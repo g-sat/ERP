@@ -19,6 +19,7 @@ import {
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
@@ -433,7 +435,17 @@ export function MedicalAssistanceTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (medicalAssistanceId: string) => {
+      const item = data?.find(
+        (service) =>
+          service.medicalAssistanceId.toString() === medicalAssistanceId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreateMedicalAssistance = useCallback(() => {
     setSelectedItem(undefined)
     setModalMode("create")
@@ -503,17 +515,46 @@ export function MedicalAssistanceTab({
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
           <DialogHeader>
-            <DialogTitle>Medical Assistance</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Medical Assistance</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit medical assistance details for this job order.
+              {modalMode === "create"
+                ? "Add a new medical assistance entry to this job order."
+                : modalMode === "edit"
+                  ? "Update the medical assistance details."
+                  : "View medical assistance details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <MedicalAssistanceForm
             jobData={jobData}
             initialData={

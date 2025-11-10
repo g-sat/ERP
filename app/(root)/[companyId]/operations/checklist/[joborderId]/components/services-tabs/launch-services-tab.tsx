@@ -348,8 +348,6 @@ export function LaunchServicesTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -364,6 +362,12 @@ export function LaunchServicesTab({
 
             console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["launchServices"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -392,9 +396,6 @@ export function LaunchServicesTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.LaunchServices}/${response.totalRecords}`
@@ -402,12 +403,14 @@ export function LaunchServicesTab({
           console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -432,7 +435,16 @@ export function LaunchServicesTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (launchServiceId: string) => {
+      const item = data?.find(
+        (service) => service.launchServiceId.toString() === launchServiceId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
 
   // Handle debit note delete
   const handleDeleteDebitNote = useCallback(

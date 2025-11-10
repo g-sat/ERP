@@ -16,6 +16,7 @@ import { JobOrder_DebitNote, JobOrder_LandingItems } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
@@ -425,7 +427,16 @@ export function LandingItemsTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (landingItemId: string) => {
+      const item = data?.find(
+        (service) => service.landingItemId.toString() === landingItemId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreateLandingItems = useCallback(() => {
     setSelectedItem(undefined)
     setModalMode("create")
@@ -495,17 +506,46 @@ export function LandingItemsTab({
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
           <DialogHeader>
-            <DialogTitle>Landing Items</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Landing Items</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit landing items details for this job order.
+              {modalMode === "create"
+                ? "Add a new landing item to this job order."
+                : modalMode === "edit"
+                  ? "Update the landing item details."
+                  : "View landing item details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <LandingItemsForm
             jobData={jobData}
             initialData={
@@ -522,34 +562,38 @@ export function LandingItemsTab({
         </DialogContent>
       </Dialog>
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.LandingItems}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.LandingItems}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.LandingItems}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDelete={handleDeleteDebitNote}
-        onClearSelection={handleClearSelection}
-        title="Debit Note"
-        description="Manage debit note details for this landing items."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.LandingItems}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          onClearSelection={handleClearSelection}
+          title="Debit Note"
+          description="Manage debit note details for this landing items."
+        />
+      )}
 
       {/* Purchase Table Modal */}
       {showPurchaseModal && (

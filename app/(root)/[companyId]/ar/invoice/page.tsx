@@ -1461,10 +1461,10 @@ export default function InvoicePage() {
                   }
                 }}
                 disabled={isLoadingInvoice}
-                className="h-8 w-8 p-0"
+                className="h-4 w-4 p-0"
                 title="Refresh invoice data"
               >
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <RefreshCw className="h-2 w-2" />
               </Button>
             )}
           </div>

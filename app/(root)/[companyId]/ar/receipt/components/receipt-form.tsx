@@ -473,6 +473,34 @@ export default function ReceiptForm({
     [form]
   )
 
+  // // Handle receipt type change
+  // const handlePaymentTypeChange = React.useCallback(
+  //   (selectedReceiptType: IPaymentTypeLookup | null) => {
+  //     if (selectedReceiptType) {
+  //       // Check if receipt type is "Cheque"
+  //       const isCheque =
+  //         selectedReceiptType?.paymentTypeName
+  //           ?.toLowerCase()
+  //           .includes("cheque") ||
+  //         selectedReceiptType?.paymentTypeCode?.toLowerCase().includes("cheque")
+
+  //       setIsChequeReceipt(isCheque)
+
+  //       // Clear cheque fields if not cheque receipt
+  //       if (!isCheque) {
+  //         form.setValue("chequeNo", "")
+  //         form.setValue("chequeDate", "")
+  //       }
+  //     } else {
+  //       // No receipt type selected, hide cheque fields
+  //       setIsChequeReceipt(false)
+  //       form.setValue("chequeNo", "")
+  //       form.setValue("chequeDate", "")
+  //     }
+  //   },
+  //   [form]
+  // )
+
   // Handle job order change
   const handleJobOrderChange = React.useCallback(
     (selectedJobOrder: IJobOrderLookup | null) => {
@@ -853,31 +881,17 @@ export default function ReceiptForm({
         <PaymentTypeAutocomplete
           form={form}
           name="paymentTypeId"
-          label="Payment Type"
+          label="Pay"
           isRequired={true}
           onChangeEvent={handlePaymentTypeChange}
         />
-
-        {/* Cheque No - Only show when receipt type is cheque */}
-        {isChequeReceipt && (
-          <CustomInput
-            form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
-          />
-        )}
-
-        {/* Cheque Date - Only show when receipt type is cheque */}
-        {isChequeReceipt && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
-            isFutureShow={true}
-          />
-        )}
+        <CustomInput form={form} name="chequeNo" label="Pay No" />
+        <CustomDateNew
+          form={form}
+          name="chequeDate"
+          label="Pay Date"
+          isFutureShow={true}
+        />
 
         {/* Unallocated Amount - Always read-only */}
         <CustomNumberInput

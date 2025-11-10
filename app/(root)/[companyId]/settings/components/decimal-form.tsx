@@ -267,6 +267,13 @@ export function DecimalForm() {
                           "dd-MM-yyyy",
                           "MM-dd-yyyy",
                           "yyyy-MM-dd",
+
+                          "dd/MMM/yyyy",
+                          "MMN/dd/yyyy",
+                          "yyyy/MMM/dd",
+                          "dd-MMM-yyyy",
+                          "MMM-dd-yyyy",
+                          "yyyy-MMM-dd",
                         ].map((format) => (
                           <SelectItem key={format} value={format}>
                             {format}
@@ -306,6 +313,13 @@ export function DecimalForm() {
                           "dd-MM-yyyy HH:mm:ss",
                           "MM-dd-yyyy HH:mm:ss",
                           "yyyy-MM-dd HH:mm:ss",
+
+                          "dd/MMM/yyyy HH:mm:ss",
+                          "MMM/dd/yyyy HH:mm:ss",
+                          "yyyy/MMM/dd HH:mm:ss",
+                          "dd-MMM-yyyy HH:mm:ss",
+                          "MMM-dd-yyyy HH:mm:ss",
+                          "yyyy-MMM-dd HH:mm:ss",
                         ].map((format) => (
                           <SelectItem key={format} value={format}>
                             {format}

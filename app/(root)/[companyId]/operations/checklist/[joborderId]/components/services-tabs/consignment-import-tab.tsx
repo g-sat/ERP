@@ -436,7 +436,17 @@ export function ConsignmentImportTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (consignmentImportId: string) => {
+      const item = data?.find(
+        (service) =>
+          service.consignmentImportId.toString() === consignmentImportId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreate = () => {
     setSelectedItem(undefined)
     setModalMode("create")

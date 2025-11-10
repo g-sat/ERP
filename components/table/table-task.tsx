@@ -148,7 +148,13 @@ export function TaskTable<T>({
     const selectedIndices = Object.keys(rowSelection)
     return selectedIndices.map((index) => {
       const item = data[parseInt(index)]
-      const id =
+      if (!item) return index
+
+      const valueFromAccessor = (item as Record<string, unknown>)[
+        accessorId as string
+      ]
+
+      const fallbackId =
         (item as T & { id?: number; taskId?: number; portExpenseId?: number })
           .id ||
         (item as T & { id?: number; taskId?: number; portExpenseId?: number })
@@ -156,9 +162,11 @@ export function TaskTable<T>({
         (item as T & { id?: number; taskId?: number; portExpenseId?: number })
           .portExpenseId ||
         index
-      return id.toString()
+
+      const id = valueFromAccessor ?? fallbackId
+      return id?.toString() ?? index
     })
-  }, [hasSelectedRows, data, rowSelection])
+  }, [hasSelectedRows, data, rowSelection, accessorId])
   const handleCombinedService = useCallback(() => {
     if (selectedRowIds.length === 0) {
       return

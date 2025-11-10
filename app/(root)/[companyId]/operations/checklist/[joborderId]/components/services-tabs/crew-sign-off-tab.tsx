@@ -418,7 +418,16 @@ export function CrewSignOffTab({
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
 
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (crewSignOffId: string) => {
+      const item = data?.find(
+        (service) => service.crewSignOffId.toString() === crewSignOffId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreate = () => {
     setSelectedItem(undefined)
     setModalMode("create")

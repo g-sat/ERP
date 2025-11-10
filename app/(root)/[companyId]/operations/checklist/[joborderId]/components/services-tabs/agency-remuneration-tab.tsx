@@ -410,7 +410,9 @@ export function AgencyRemunerationTab({
           // Invalidate queries with a small delay to allow clear selection to complete
           requestAnimationFrame(() => {
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["agencyRemuneration"] })
+              queryClient.invalidateQueries({
+                queryKey: ["agencyRemuneration"],
+              })
               queryClient.invalidateQueries({ queryKey: ["taskCount"] })
               queryClient.invalidateQueries({ queryKey: ["debitNote"] })
             }, 50)
@@ -422,7 +424,17 @@ export function AgencyRemunerationTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (agencyRemunerationId: string) => {
+      const item = data?.find(
+        (service) =>
+          service.agencyRemunerationId.toString() === agencyRemunerationId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreate = () => {
     setSelectedItem(undefined)
     setModalMode("create")

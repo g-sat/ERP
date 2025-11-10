@@ -427,7 +427,17 @@ export function CrewMiscellaneousTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (crewMiscellaneousId: string) => {
+      const item = data?.find(
+        (service) =>
+          service.crewMiscellaneousId.toString() === crewMiscellaneousId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
   const handleCreate = () => {
     setSelectedItem(undefined)
     setModalMode("create")

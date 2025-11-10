@@ -19,6 +19,7 @@ import {
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
@@ -426,7 +428,9 @@ export function TechniciansSurveyorsTab({
           // Invalidate queries with a small delay to allow clear selection to complete
           requestAnimationFrame(() => {
             setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+              queryClient.invalidateQueries({
+                queryKey: ["technicianSurveyor"],
+              })
               queryClient.invalidateQueries({ queryKey: ["taskCount"] })
               queryClient.invalidateQueries({ queryKey: ["debitNote"] })
             }, 50)
@@ -438,7 +442,17 @@ export function TechniciansSurveyorsTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
-  const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
+  const handlePurchase = useCallback(
+    (technicianSurveyorId: string) => {
+      const item = data?.find(
+        (service) =>
+          service.technicianSurveyorId.toString() === technicianSurveyorId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
 
   const handleRefreshTechnicianSurveyor = useCallback(() => {
     refetch()
@@ -503,17 +517,46 @@ export function TechniciansSurveyorsTab({
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
           <DialogHeader>
-            <DialogTitle>Technicians Surveyors</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Technicians Surveyors</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit technicians surveyors details for this job order.
+              {modalMode === "create"
+                ? "Add a new technicians surveyors entry to this job order."
+                : modalMode === "edit"
+                  ? "Update the technicians surveyors details."
+                  : "View technicians surveyors details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <TechniciansSurveyorsForm
             jobData={jobData}
             initialData={
