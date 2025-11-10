@@ -28,6 +28,7 @@ import {
 import {
   Copy,
   ListFilter,
+  Printer,
   RefreshCw,
   RotateCcw,
   Save,
@@ -1211,6 +1212,15 @@ export default function ReceiptPage() {
                 : isEdit
                   ? "Update"
                   : "Save"}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!receipt || receipt.receiptId === "0"}
+            >
+              <Printer className="mr-1 h-4 w-4" />
+              Print
             </Button>
 
             <Button

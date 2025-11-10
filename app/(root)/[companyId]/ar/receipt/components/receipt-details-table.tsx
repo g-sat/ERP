@@ -4,6 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
+import { useParams } from "next/navigation"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
@@ -44,6 +45,11 @@ export default function ReceiptDetailsTable({
     () => decimals[0]?.dateFormat || clientDateFormat,
     [decimals]
   )
+  const params = useParams()
+  const companyId = useMemo(() => {
+    const value = params?.companyId
+    return typeof value === "string" && value.trim() ? value.trim() : null
+  }, [params])
 
   const formatDateValue = useCallback(
     (value: string | Date | null | undefined) => {
@@ -117,6 +123,61 @@ export default function ReceiptDetailsTable({
     )
   }
 
+  const getTargetPath = useCallback(
+    (transactionIdValue: number): string | null => {
+      if (!companyId) return null
+
+      switch (transactionIdValue) {
+        case ARTransactionId.invoice:
+          return `/${companyId}/ar/invoice`
+        case ARTransactionId.debitNote:
+          return `/${companyId}/ar/debitnote`
+        case ARTransactionId.creditNote:
+          return `/${companyId}/ar/creditnote`
+        case ARTransactionId.adjustment:
+          return `/${companyId}/ar/adjustment`
+        case ARTransactionId.receipt:
+          return `/${companyId}/ar/receipt`
+        case ARTransactionId.refund:
+          return `/${companyId}/ar/refund`
+        case ARTransactionId.docsetoff:
+          return `/${companyId}/ar/docsetoff`
+        case ARTransactionId.invoice_edit:
+          return `/${companyId}/ar/invoice_edit`
+        default:
+          return null
+      }
+    },
+    [companyId]
+  )
+
+  const getStorageKey = useCallback((targetPath: string | null) => {
+    return targetPath ? `history-doc:${targetPath}` : null
+  }, [])
+
+  const handleDocumentNavigation = useCallback(
+    (detail: IArReceiptDt) => {
+      const transactionIdValue = Number(detail.transactionId)
+      const documentNo = detail.documentNo?.toString().trim()
+
+      if (!documentNo || !Number.isFinite(transactionIdValue)) {
+        return
+      }
+
+      const targetPath = getTargetPath(transactionIdValue)
+      if (!targetPath) return
+
+      if (typeof window !== "undefined") {
+        const storageKey = getStorageKey(targetPath)
+        if (storageKey) {
+          window.localStorage.setItem(storageKey, documentNo)
+        }
+        window.open(targetPath, "_blank", "noopener,noreferrer")
+      }
+    },
+    [getStorageKey, getTargetPath]
+  )
+
   // Define columns with visible prop checks - Receipt specific fields
   const columns: ExtendedColumnDef<IArReceiptDt>[] = [
     {
@@ -132,6 +193,27 @@ export default function ReceiptDetailsTable({
       accessorKey: "documentNo",
       header: "Document No",
       size: 150,
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => {
+        const docNo = row.original.documentNo?.toString().trim() || ""
+        const isClickable = !!docNo
+        const handleClick = () => {
+          if (isClickable) {
+            handleDocumentNavigation(row.original)
+          }
+        }
+
+        return isClickable ? (
+          <button
+            type="button"
+            onClick={handleClick}
+            className="text-primary underline decoration-dotted underline-offset-2 hover:decoration-solid"
+          >
+            {docNo}
+          </button>
+        ) : (
+          "-"
+        )
+      },
     },
     {
       accessorKey: "referenceNo",

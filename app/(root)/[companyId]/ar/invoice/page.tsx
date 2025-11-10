@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import {
   mathRound,
   setDueDate,
@@ -73,6 +73,7 @@ import Other from "./components/other"
 
 export default function InvoicePage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
@@ -126,6 +127,41 @@ export default function InvoicePage() {
   const [invoice, setInvoice] = useState<ArInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleInvoiceSearchRef =
+    useRef<((value: string) => Promise<void> | void) | null>(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ar/invoice`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -1417,6 +1453,23 @@ export default function InvoicePage() {
       setIsLoadingInvoice(false)
     }
   }
+
+  handleInvoiceSearchRef.current = handleInvoiceSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleInvoiceSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
 
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")
