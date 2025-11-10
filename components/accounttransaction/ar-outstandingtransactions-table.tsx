@@ -3,7 +3,9 @@ import { IArOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
@@ -38,6 +40,20 @@ export default function ArOutStandingTransactionsTable({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
+
+  const formatDate = useCallback(
+    (value: string | Date | null | undefined) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, dateFormat)
+      }
+      const parsed = parseDate(value)
+      if (!parsed) return value
+      return format(parsed, dateFormat)
+    },
+    [dateFormat]
+  )
 
   useEffect(() => {
     setMounted(true)
@@ -92,6 +108,8 @@ export default function ArOutStandingTransactionsTable({
       accessorKey: "accountDate",
       header: "Account Date",
       size: 120,
+      cell: ({ row }: { row: { original: IArOutTransaction } }) =>
+        formatDate(row.original.accountDate),
     },
 
     {
@@ -169,11 +187,15 @@ export default function ArOutStandingTransactionsTable({
       accessorKey: "createDate",
       header: "Create Date",
       size: 120,
+      cell: ({ row }: { row: { original: IArOutTransaction } }) =>
+        formatDate(row.original.createDate),
     },
     {
       accessorKey: "dueDate",
       header: "Due Date",
       size: 120,
+      cell: ({ row }: { row: { original: IArOutTransaction } }) =>
+        formatDate(row.original.dueDate),
     },
     {
       accessorKey: "customerCode",

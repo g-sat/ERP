@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultReceiptDetails = {
+const buildDefaultReceiptDetails = (dateFormat: string) => ({
   companyId: 0,
   receiptId: 0,
   receiptNo: "",
@@ -13,8 +13,8 @@ const defaultReceiptDetails = {
   referenceNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
-  docAccountDate: format(new Date(), clientDateFormat),
-  docDueDate: format(new Date(), clientDateFormat),
+  docAccountDate: format(new Date(), dateFormat),
+  docDueDate: format(new Date(), dateFormat),
   docTotAmt: 0,
   docTotLocalAmt: 0,
   docBalAmt: 0,
@@ -26,19 +26,19 @@ const defaultReceiptDetails = {
   centDiff: 0,
   exhGainLoss: 0,
   editVersion: 0,
-}
+})
 
-const defaultReceipt = {
+const buildDefaultReceipt = (dateFormat: string) => ({
   receiptId: "0",
   receiptNo: "",
   customerId: 0,
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   bankId: 0,
   paymentTypeId: 0,
   chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
+  chequeDate: format(new Date(), dateFormat),
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
@@ -72,24 +72,15 @@ const defaultReceipt = {
   cancelDate: "",
   cancelRemarks: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultReceipt: {
-      ...defaultReceipt,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultReceiptDetails: {
-      ...defaultReceiptDetails,
-      docAccountDate: format(new Date(), dateFormat),
-      docDueDate: format(new Date(), dateFormat),
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultReceipt: buildDefaultReceipt(dateFormat),
+  defaultReceiptDetails: buildDefaultReceiptDetails(dateFormat),
+})
 
-export { defaultReceipt, defaultReceiptDetails }
+export const defaultReceipt = buildDefaultReceipt(clientDateFormat)
+export const defaultReceiptDetails = buildDefaultReceiptDetails(
+  clientDateFormat
+)

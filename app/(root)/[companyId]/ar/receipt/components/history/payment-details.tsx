@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetPaymentDetails } from "@/hooks/use-histoy"
@@ -18,7 +19,7 @@ export default function PaymentDetails({ receiptId }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.receipt
 

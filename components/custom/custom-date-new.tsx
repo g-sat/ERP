@@ -98,12 +98,15 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
 
       // Array of possible date formats to try
       const formats = [
-        decimalDateFormat, // dd/MM/yyyy (configured format)
+        decimalDateFormat, // Primary configured format (e.g., dd/MM/yyyy or dd/MMM/yyyy)
+        "dd/MMM/yyyy", // Support for short month names with slashes
+        "dd-MMM-yyyy", // Support for short month names with hyphen
+        "dd MMM yyyy", // Support for short month names with spaces
         "dd/MM/yy", // Alternative: 15/10/25
         "dd-MM-yy", // Alternative: 15-10-25
+        "dd-MM-yyyy", // Alternative: 15-10-2025
         "yyyy-MM-dd", // ISO format: 2025-10-15
         "yyyy-MMM-dd", // API format: 2025-Oct-15
-        "dd-MM-yyyy", // Alternative: 15-10-2025
         "MM/dd/yyyy", // US format: 10/15/2025
         "yyyy/MM/dd", // Alternative ISO: 2025/10/15
       ]

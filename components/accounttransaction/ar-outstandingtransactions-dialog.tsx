@@ -4,13 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { IArOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, parse } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { Account } from "@/lib/api-routes"
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -53,6 +53,7 @@ export default function ArOutStandingTransactionsDialog({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
 
   // Create a minimal form for the summary fields
   const summaryForm = useForm<{
@@ -125,11 +126,23 @@ export default function ArOutStandingTransactionsDialog({
       }, 30000) // 30 second timeout
 
       try {
-        // Format the date properly for the API (YYYY-MM-DD format)
-        const dt = format(
-          parse(accountDate, clientDateFormat, new Date()),
-          "yyyy-MM-dd"
-        )
+        const parsedAccountDate = (() => {
+          if (!accountDate) return null
+          const parsed = parse(accountDate, dateFormat, new Date())
+          if (isValid(parsed)) return parsed
+          return parseDate(accountDate)
+        })()
+
+        if (!parsedAccountDate) {
+          clearTimeout(timeoutId)
+          setIsLoading(false)
+          isLoadingRef.current = false
+          toast.error("Invalid account date")
+          setOutTransactions([])
+          return
+        }
+
+        const dt = format(parsedAccountDate, "yyyy-MM-dd")
         const url = `${Account.getArOutstandTransaction}/${customerId}/${currencyId}/${dt}`
 
         const response = await getById(url)

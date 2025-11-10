@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   mathRound,
@@ -24,7 +24,14 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, parse, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -59,7 +66,7 @@ import {
 } from "@/components/confirmation"
 
 import History from "./components/history"
-import { defaultInvoice } from "./components/invoice-defaultvalues"
+import { getDefaultValues } from "./components/invoice-defaultvalues"
 import InvoiceTable from "./components/invoice-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
@@ -75,6 +82,31 @@ export default function InvoicePage() {
   const { decimals, user } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
 
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -98,15 +130,30 @@ export default function InvoicePage() {
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const [filters, setFilters] = useState<IArInvoiceFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "invoiceNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: pageSize,
   })
+
+  const defaultInvoiceValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultInvoice,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -215,12 +262,42 @@ export default function InvoicePage() {
           const userName = user?.userName || ""
 
           return {
-            ...defaultInvoice,
+            ...defaultInvoiceValues,
             createBy: userName,
             createDate: currentDateTime,
           }
         })(),
   })
+
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentInvoiceId = form.getValues("invoiceId") || "0"
+    if (
+      (invoice && invoice.invoiceId && invoice.invoiceId !== "0") ||
+      currentInvoiceId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultInvoiceValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultInvoiceValues, decimals, form, invoice, isDirty, user])
 
   // Mutations
   const saveMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
@@ -283,21 +360,21 @@ export default function InvoicePage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const acc =
-          typeof accountDate === "string"
-            ? format(
-                parse(accountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(accountDate, "yyyy-MM-dd")
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
+        }
 
-        const prev = prevAccountDate
-          ? typeof prevAccountDate === "string"
-            ? format(
-                parse(prevAccountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(prevAccountDate, "yyyy-MM-dd")
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
+
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
           : ""
 
         const glCheck = await getById(
@@ -369,7 +446,7 @@ export default function InvoicePage() {
     if (invoice) {
       // Create a proper clone with form values
       const currentDate = new Date()
-      const dateStr = format(currentDate, clientDateFormat)
+      const dateStr = format(currentDate, dateFormat)
 
       const clonedInvoice: ArInvoiceHdSchemaType = {
         ...invoice,
@@ -604,7 +681,7 @@ export default function InvoicePage() {
         setInvoice(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultInvoice,
+          ...defaultInvoiceValues,
           data_details: [],
         })
         toast.success(`Invoice ${invoice.invoiceNo} deleted successfully`)
@@ -629,7 +706,7 @@ export default function InvoicePage() {
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultInvoice,
+      ...defaultInvoiceValues,
       // Always set createBy and createDate to current user and current date/time on reset
       createBy: userName,
       createDate: currentDateTime,
@@ -650,33 +727,33 @@ export default function InvoicePage() {
       trnDate: apiInvoice.trnDate
         ? format(
             parseDate(apiInvoice.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiInvoice.accountDate
         ? format(
             parseDate(apiInvoice.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       dueDate: apiInvoice.dueDate
         ? format(
             parseDate(apiInvoice.dueDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       deliveryDate: apiInvoice.deliveryDate
         ? format(
             parseDate(apiInvoice.deliveryDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       gstClaimDate: apiInvoice.gstClaimDate
         ? format(
             parseDate(apiInvoice.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       customerId: apiInvoice.customerId ?? 0,
       currencyId: apiInvoice.currencyId ?? 0,
       exhRate: apiInvoice.exhRate ?? 0,
@@ -787,7 +864,7 @@ export default function InvoicePage() {
               deliveryDate: detail.deliveryDate
                 ? format(
                     parseDate(detail.deliveryDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               departmentId: detail.departmentId ?? 0,
@@ -816,7 +893,7 @@ export default function InvoicePage() {
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               supplierName: detail.supplierName ?? "",
@@ -850,7 +927,7 @@ export default function InvoicePage() {
             const parsed = parseDate(detailedInvoice.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedInvoice.accountDate as string)
             )
           }
@@ -864,36 +941,36 @@ export default function InvoicePage() {
             trnDate: detailedInvoice.trnDate
               ? format(
                   parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedInvoice.accountDate
               ? format(
                   parseDate(detailedInvoice.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedInvoice.dueDate
               ? format(
                   parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedInvoice.deliveryDate
               ? format(
                   parseDate(detailedInvoice.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedInvoice.gstClaimDate
               ? format(
                   parseDate(detailedInvoice.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedInvoice.customerId ?? 0,
             currencyId: detailedInvoice.currencyId ?? 0,
@@ -999,7 +1076,7 @@ export default function InvoicePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
@@ -1027,7 +1104,7 @@ export default function InvoicePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 supplierName: detail.supplierName ?? "",
@@ -1143,7 +1220,7 @@ export default function InvoicePage() {
             const parsed = parseDate(detailedInvoice.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedInvoice.accountDate as string)
             )
           }
@@ -1157,36 +1234,36 @@ export default function InvoicePage() {
             trnDate: detailedInvoice.trnDate
               ? format(
                   parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedInvoice.accountDate
               ? format(
                   parseDate(detailedInvoice.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedInvoice.dueDate
               ? format(
                   parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedInvoice.deliveryDate
               ? format(
                   parseDate(detailedInvoice.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedInvoice.gstClaimDate
               ? format(
                   parseDate(detailedInvoice.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedInvoice.customerId ?? 0,
             currencyId: detailedInvoice.currencyId ?? 0,
@@ -1272,7 +1349,7 @@ export default function InvoicePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
@@ -1300,7 +1377,7 @@ export default function InvoicePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 supplierName: detail.supplierName ?? "",

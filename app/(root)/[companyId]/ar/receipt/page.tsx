@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   setDueDate,
@@ -17,7 +17,14 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, parse, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -54,7 +61,7 @@ import {
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-import { defaultReceipt } from "./components/receipt-defaultvalues"
+import { getDefaultValues } from "./components/receipt-defaultvalues"
 import ReceiptTable from "./components/receipt-table"
 
 export default function ReceiptPage() {
@@ -68,6 +75,31 @@ export default function ReceiptPage() {
   const { decimals, user } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
 
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -91,15 +123,30 @@ export default function ReceiptPage() {
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const [filters, setFilters] = useState<IArReceiptFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "receiptNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: pageSize,
   })
+
+  const { defaultReceipt: defaultReceiptValues } = useMemo(
+    () => getDefaultValues(dateFormat),
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -187,14 +234,45 @@ export default function ReceiptPage() {
           const userName = user?.userName || ""
 
           return {
-            ...defaultReceipt,
+            ...defaultReceiptValues,
             createBy: userName,
             createDate: currentDateTime,
+            data_details: [],
           }
         })(),
   })
 
   // Data fetching moved to ReceiptTable component for better performance
+
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentReceiptId = form.getValues("receiptId") || "0"
+    if (
+      (receipt && receipt.receiptId && receipt.receiptId !== "0") ||
+      currentReceiptId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultReceiptValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultReceiptValues, decimals, form, receipt, isDirty, user])
 
   // Mutations
   const saveMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
@@ -256,21 +334,17 @@ export default function ReceiptPage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const acc =
-          typeof accountDate === "string"
-            ? format(
-                parse(accountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(accountDate, "yyyy-MM-dd")
+        const parsedAccountDate = parseWithFallback(accountDate)
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
+        }
 
-        const prev = prevAccountDate
-          ? typeof prevAccountDate === "string"
-            ? format(
-                parse(prevAccountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(prevAccountDate, "yyyy-MM-dd")
+        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
+
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
           : ""
 
         const glCheck = await getById(
@@ -329,7 +403,7 @@ export default function ReceiptPage() {
     if (receipt) {
       // Create a proper clone with form values
       const currentDate = new Date()
-      const dateStr = format(currentDate, clientDateFormat)
+      const dateStr = format(currentDate, dateFormat)
 
       const clonedReceipt: ArReceiptHdSchemaType = {
         ...receipt,
@@ -416,7 +490,7 @@ export default function ReceiptPage() {
         setReceipt(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultReceipt,
+          ...defaultReceiptValues,
           data_details: [],
         })
         toast.success(`Receipt ${receipt.receiptNo} deleted successfully`)
@@ -441,7 +515,7 @@ export default function ReceiptPage() {
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultReceipt,
+      ...defaultReceiptValues,
       // Always set createBy and createDate to current user and current date/time on reset
       createBy: userName,
       createDate: currentDateTime,
@@ -461,24 +535,24 @@ export default function ReceiptPage() {
       trnDate: apiReceipt.trnDate
         ? format(
             parseDate(apiReceipt.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiReceipt.accountDate
         ? format(
             parseDate(apiReceipt.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       bankId: apiReceipt.bankId ?? 0,
       paymentTypeId: apiReceipt.paymentTypeId ?? 0,
       chequeNo: apiReceipt.chequeNo ?? "",
       chequeDate: apiReceipt.chequeDate
         ? format(
             parseDate(apiReceipt.chequeDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       bankChgGLId: apiReceipt.bankChgGLId ?? 0,
       bankChgAmt: apiReceipt.bankChgAmt ?? 0,
       bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
@@ -544,13 +618,13 @@ export default function ReceiptPage() {
               docAccountDate: detail.docAccountDate
                 ? format(
                     parseDate(detail.docAccountDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               docDueDate: detail.docDueDate
                 ? format(
                     parseDate(detail.docDueDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               docTotAmt: detail.docTotAmt ?? 0,
@@ -590,7 +664,7 @@ export default function ReceiptPage() {
             const parsed = parseDate(detailedReceipt.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedReceipt.accountDate as string)
             )
           }
@@ -604,16 +678,16 @@ export default function ReceiptPage() {
             trnDate: detailedReceipt.trnDate
               ? format(
                   parseDate(detailedReceipt.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedReceipt.accountDate
               ? format(
                   parseDate(detailedReceipt.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedReceipt.customerId ?? 0,
             currencyId: detailedReceipt.currencyId ?? 0,
@@ -648,13 +722,13 @@ export default function ReceiptPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,
@@ -777,7 +851,7 @@ export default function ReceiptPage() {
             const parsed = parseDate(detailedReceipt.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedReceipt.accountDate as string)
             )
           }
@@ -791,16 +865,16 @@ export default function ReceiptPage() {
             trnDate: detailedReceipt.trnDate
               ? format(
                   parseDate(detailedReceipt.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedReceipt.accountDate
               ? format(
                   parseDate(detailedReceipt.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedReceipt.customerId ?? 0,
             currencyId: detailedReceipt.currencyId ?? 0,
@@ -811,9 +885,9 @@ export default function ReceiptPage() {
             chequeDate: detailedReceipt.chequeDate
               ? format(
                   parseDate(detailedReceipt.chequeDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             bankChgGLId: detailedReceipt.bankChgGLId ?? 0,
             bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
@@ -874,13 +948,13 @@ export default function ReceiptPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,

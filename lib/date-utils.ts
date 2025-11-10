@@ -27,7 +27,10 @@ export const parseDate = (dateStr: string | null | undefined): Date | null => {
   try {
     // Array of possible date formats to try
     const formats = [
-      clientDateFormat, // dd/MM/yyyy
+      clientDateFormat, // Default client format (e.g., dd/MM/yyyy)
+      "dd/MMM/yyyy", // Support for short month names with slash
+      "dd-MMM-yyyy", // Support for short month names with hyphen
+      "dd MMM yyyy", // Support for short month names with spaces
       "yyyy-MM-dd", // ISO format: 2025-10-15
       "yyyy-MMM-dd", // API format: 2025-Oct-15
       "dd-MM-yyyy", // Alternative: 15-10-2025

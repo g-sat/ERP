@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
-import { formatDate } from "@/helpers/account"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountReceiptBaseTable } from "@/components/table/table-account-receipt"
@@ -39,6 +40,23 @@ export default function ReceiptDetailsTable({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const formatDateValue = useCallback(
+    (value: string | Date | null | undefined) => {
+      if (!value) return ""
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "" : format(value, dateFormat)
+      }
+      const parsed = parseDate(value)
+      if (!parsed) return value || ""
+      return format(parsed, dateFormat)
+    },
+    [dateFormat]
+  )
 
   useEffect(() => {
     setMounted(true)
@@ -142,7 +160,7 @@ export default function ReceiptDetailsTable({
       size: 120,
       cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-center">
-          {formatDate(row.original.docAccountDate)}
+          {formatDateValue(row.original.docAccountDate)}
         </div>
       ),
     },
@@ -231,7 +249,9 @@ export default function ReceiptDetailsTable({
       header: "Due Date",
       size: 120,
       cell: ({ row }: { row: { original: IArReceiptDt } }) => (
-        <div className="text-center">{formatDate(row.original.docDueDate)}</div>
+        <div className="text-center">
+          {formatDateValue(row.original.docDueDate)}
+        </div>
       ),
     },
     {

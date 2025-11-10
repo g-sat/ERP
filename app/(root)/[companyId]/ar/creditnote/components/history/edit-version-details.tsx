@@ -1,19 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { IArCreditNoteHd } from "@/interfaces"
+import { IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetARCreditNoteHistoryDetails,
-  useGetARCreditNoteHistoryList,
+  useGetARInvoiceHistoryDetails,
+  useGetARInvoiceHistoryList,
 } from "@/hooks/use-ar"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -32,11 +30,11 @@ type _ExtendedColumnDef<T> = ColumnDef<T> & {
 }
 
 interface EditVersionDetailsProps {
-  creditNoteId: string
+  invoiceId: string
 }
 
 export default function EditVersionDetails({
-  creditNoteId,
+  invoiceId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -45,58 +43,59 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.creditNote
+  const transactionId = ARTransactionId.invoice
 
-  const [selectedCreditNote, setSelectedCreditNote] =
-    useState<IArCreditNoteHd | null>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<IArInvoiceHd | null>(
+    null
+  )
 
-  const { data: creditNoteHistoryData, refetch: refetchHistory } =
-    //useGetARCreditNoteHistoryList<IArCreditNoteHd[]>("14120250100024")
-    useGetARCreditNoteHistoryList<IArCreditNoteHd[]>(creditNoteId)
+  const { data: invoiceHistoryData, refetch: refetchHistory } =
+    //useGetARInvoiceHistoryList<IArInvoiceHd[]>("14120250100024")
+    useGetARInvoiceHistoryList<IArInvoiceHd[]>(invoiceId)
 
-  const { data: creditNoteDetailsData, refetch: refetchDetails } =
-    useGetARCreditNoteHistoryDetails<IArCreditNoteHd>(
-      selectedCreditNote?.creditNoteId || "",
-      selectedCreditNote?.editVersion?.toString() || ""
+  const { data: invoiceDetailsData, refetch: refetchDetails } =
+    useGetARInvoiceHistoryDetails<IArInvoiceHd>(
+      selectedInvoice?.invoiceId || "",
+      selectedInvoice?.editVersion?.toString() || ""
     )
 
-  function isIArCreditNoteHdArray(arr: unknown): arr is IArCreditNoteHd[] {
+  function isIArInvoiceHdArray(arr: unknown): arr is IArInvoiceHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "creditNoteId" in arr[0]))
+        (typeof arr[0] === "object" && "invoiceId" in arr[0]))
     )
   }
 
   // Check if history data is successful and has valid data
-  const tableData: IArCreditNoteHd[] =
-    creditNoteHistoryData?.result === 1 &&
-    isIArCreditNoteHdArray(creditNoteHistoryData?.data)
-      ? creditNoteHistoryData.data
+  const tableData: IArInvoiceHd[] =
+    invoiceHistoryData?.result === 1 &&
+    isIArInvoiceHdArray(invoiceHistoryData?.data)
+      ? invoiceHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: IArCreditNoteHd | undefined =
-    creditNoteDetailsData?.result === 1 &&
-    creditNoteDetailsData?.data &&
-    typeof creditNoteDetailsData.data === "object" &&
-    creditNoteDetailsData.data !== null &&
-    !Array.isArray(creditNoteDetailsData.data)
-      ? (creditNoteDetailsData.data as IArCreditNoteHd)
+  const dialogData: IArInvoiceHd | undefined =
+    invoiceDetailsData?.result === 1 &&
+    invoiceDetailsData?.data &&
+    typeof invoiceDetailsData.data === "object" &&
+    invoiceDetailsData.data !== null &&
+    !Array.isArray(invoiceDetailsData.data)
+      ? (invoiceDetailsData.data as IArInvoiceHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = creditNoteHistoryData?.result === -1
-  const hasDetailsError = creditNoteDetailsData?.result === -1
+  const hasHistoryError = invoiceHistoryData?.result === -1
+  const hasDetailsError = invoiceDetailsData?.result === -1
 
-  const columns: ColumnDef<IArCreditNoteHd>[] = [
+  const columns: ColumnDef<IArInvoiceHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "creditNoteNo",
-      header: "CreditNote No",
+      accessorKey: "invoiceNo",
+      header: "Invoice No",
     },
     {
       accessorKey: "referenceNo",
@@ -313,13 +312,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        creditNoteHistoryData?.message !== "Data does not exist"
+        invoiceHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        creditNoteDetailsData?.message !== "Data does not exist"
+        invoiceDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -341,26 +340,26 @@ export default function EditVersionDetails({
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.arCreditNoteHistory}
+            tableName={TableName.arInvoiceHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(creditNote) => setSelectedCreditNote(creditNote)}
+            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedCreditNote}
-        onOpenChange={() => setSelectedCreditNote(null)}
+        open={!!selectedInvoice}
+        onOpenChange={() => setSelectedInvoice(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
             <DialogTitle>
-              CreditNote Details :{" "}
+              Invoice Details :{" "}
               <Badge variant="secondary">
-                {dialogData?.creditNoteNo} : v {selectedCreditNote?.editVersion}
+                {dialogData?.invoiceNo} : v {selectedInvoice?.editVersion}
               </Badge>
             </DialogTitle>
           </DialogHeader>
@@ -390,8 +389,8 @@ export default function EditVersionDetails({
           ) : (
             <div className="text-muted-foreground py-8 text-center">
               {hasDetailsError
-                ? "Error loading creditNote details"
-                : "No creditNote details available"}
+                ? "Error loading invoice details"
+                : "No invoice details available"}
             </div>
           )}
         </DialogContent>

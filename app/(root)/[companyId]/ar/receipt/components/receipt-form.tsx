@@ -974,7 +974,7 @@ export default function ReceiptForm({
         <BankChartOfAccountAutocomplete
           form={form}
           name="bankChgGLId"
-          label="Bank Charge GL"
+          label="Bank Charges GL"
           companyId={_companyId}
         />
 

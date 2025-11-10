@@ -15,11 +15,12 @@
 
 import { IDecimal } from "@/interfaces/auth"
 import { IVisibleFields } from "@/interfaces/setting"
-import { addDays, format, parse } from "date-fns"
+import { useAuthStore } from "@/stores/auth-store"
+import { addDays, format, isValid, parse } from "date-fns"
 
 import { getData } from "@/lib/api-client"
 import { BasicSetting, Lookup } from "@/lib/api-routes"
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumberSimple } from "@/lib/format-utils"
 
 // Generic types for cross-module compatibility (AP, AR, CB, GL)
@@ -28,6 +29,41 @@ import { formatNumberSimple } from "@/lib/format-utils"
 type HdForm = any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DtForm = any
+
+const getCompanyDateFormat = (): string => {
+  try {
+    const { decimals } = useAuthStore.getState()
+    return decimals?.[0]?.dateFormat || clientDateFormat
+  } catch {
+    return clientDateFormat
+  }
+}
+
+const parseWithCompanyFormat = (
+  value: string | Date | null | undefined
+): Date | null => {
+  if (!value) return null
+
+  if (value instanceof Date) {
+    return isValid(value) ? value : null
+  }
+
+  const companyFormat = getCompanyDateFormat()
+  const parsed = parse(value, companyFormat, new Date())
+  if (isValid(parsed)) {
+    return parsed
+  }
+
+  const fallback = parseDate(value)
+  return fallback && isValid(fallback) ? fallback : null
+}
+
+const formatForApi = (
+  value: string | Date | null | undefined
+): string | null => {
+  const date = parseWithCompanyFormat(value)
+  return date ? format(date, "yyyy-MM-dd") : null
+}
 
 // ============================================================================
 // CALCULATION UTILITIES
@@ -364,10 +400,10 @@ export const setGSTPercentage = async (
 
   if (accountDate && gstId) {
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
 
       const res = await getData(
         `${BasicSetting.getGstPercentage}/${gstId}/${dt}`
@@ -396,11 +432,13 @@ export const setDueDate = async (form: HdForm) => {
   if (deliveryDate && creditTermId) {
     console.log("deliveryDate and creditTermId are available")
     try {
-      // Parse accountDate to Date object if it's a string, otherwise use as-is
-      const accountDateObj =
-        typeof accountDate === "string"
-          ? parse(accountDate, clientDateFormat, new Date())
-          : accountDate
+      const accountDateObj = parseWithCompanyFormat(accountDate)
+      const deliveryDateObj =
+        parseWithCompanyFormat(deliveryDate) ?? accountDateObj
+
+      if (!accountDateObj || !deliveryDateObj) {
+        return
+      }
 
       const dt = format(accountDateObj, "yyyy-MM-dd")
       console.log("dt", dt)
@@ -411,15 +449,9 @@ export const setDueDate = async (form: HdForm) => {
       const days = res?.data as number
       console.log("days", days)
 
-      // Parse deliveryDate string to Date object before adding days
-      const deliveryDateObj =
-        typeof deliveryDate === "string"
-          ? parse(deliveryDate, clientDateFormat, new Date())
-          : deliveryDate
-
       const dueDate = addDays(deliveryDateObj, days)
       console.log("dueDate", dueDate)
-      form.setValue("dueDate", format(dueDate, clientDateFormat))
+      form.setValue("dueDate", format(dueDate, getCompanyDateFormat()))
       form.trigger("dueDate")
     } catch (error) {
       console.error("Error setting due date:", error)
@@ -443,10 +475,10 @@ export const setExchangeRate = async (
   const { accountDate, currencyId } = form?.getValues()
   if (accountDate && currencyId) {
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
@@ -473,10 +505,10 @@ export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
   const { accountDate, currencyId } = form?.getValues()
   if (accountDate && currencyId) {
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRateLocal}/${currencyId}/${dt}`
       )
@@ -504,13 +536,10 @@ export const setFromExchangeRate = async (
 
   if (accountDate && currencyId) {
     try {
-      const dt =
-        typeof accountDate === "string"
-          ? format(
-              parse(accountDate, clientDateFormat, new Date()),
-              "yyyy-MM-dd"
-            )
-          : format(accountDate, "yyyy-MM-dd")
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
@@ -540,13 +569,10 @@ export const setToExchangeRate = async (
 
   if (accountDate && currencyId) {
     try {
-      const dt =
-        typeof accountDate === "string"
-          ? format(
-              parse(accountDate, clientDateFormat, new Date()),
-              "yyyy-MM-dd"
-            )
-          : format(accountDate, "yyyy-MM-dd")
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
@@ -577,13 +603,10 @@ export const setToExchangeRateDetails = async (
 
   if (accountDate && currencyId) {
     try {
-      const dt =
-        typeof accountDate === "string"
-          ? format(
-              parse(accountDate, clientDateFormat, new Date()),
-              "yyyy-MM-dd"
-            )
-          : format(accountDate, "yyyy-MM-dd")
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return null
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
@@ -612,10 +635,10 @@ export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
   const { accountDate, payCurrencyId } = form?.getValues()
   if (accountDate && payCurrencyId) {
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${payCurrencyId}/${dt}`
       )
@@ -638,10 +661,10 @@ export const setRecExchangeRate = async (form: HdForm, round: number | 6) => {
   const { accountDate, recCurrencyId } = form?.getValues()
   if (accountDate && recCurrencyId) {
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      const dt = formatForApi(accountDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${recCurrencyId}/${dt}`
       )
@@ -797,13 +820,10 @@ export const setExchangeRate_JobOrder = async (
   const { jobOrderDate, currencyId } = form?.getValues()
   if (jobOrderDate && currencyId) {
     try {
-      const dt =
-        typeof jobOrderDate === "string"
-          ? format(
-              parse(jobOrderDate, clientDateFormat, new Date()),
-              "yyyy-MM-dd"
-            )
-          : format(jobOrderDate, "yyyy-MM-dd")
+      const dt = formatForApi(jobOrderDate)
+      if (!dt) {
+        return
+      }
       const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
