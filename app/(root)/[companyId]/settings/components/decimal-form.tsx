@@ -68,6 +68,7 @@ export function DecimalForm() {
       }
 
       if (result === 1 && data) {
+        console.log("data", data)
         form.reset({
           amtDec: data.amtDec ?? 2,
           locAmtDec: data.locAmtDec ?? 2,
@@ -250,10 +251,7 @@ export function DecimalForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date Format</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select date format" />
@@ -296,10 +294,7 @@ export function DecimalForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Long Date Format</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select long date format" />

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import {
   IApPaymentDt,
   IApPaymentFilter,
@@ -58,6 +58,7 @@ import PaymentTable from "./components/payment-table"
 
 export default function PaymentPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
@@ -85,6 +86,38 @@ export default function PaymentPage() {
     pageNumber: 1,
     pageSize: 15,
   })
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/payment`,
+    [companyId]
+  )
+
+  const [pendingDocNo, setPendingDocNo] = useState<string>("")
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        setPendingDocNo(stored)
+        setSearchNo(stored)
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  const lastQueriedDocRef = useRef<string | null>(null)
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -337,121 +370,123 @@ export default function PaymentPage() {
   }
 
   // Helper function to transform IApPaymentHd to ApPaymentHdSchemaType
-  const transformToSchemaType = (
-    apiPayment: IApPaymentHd
-  ): ApPaymentHdSchemaType => {
-    return {
-      paymentId: apiPayment.paymentId?.toString() ?? "0",
-      paymentNo: apiPayment.paymentNo ?? "",
-      suppInvoiceNo: "", // Required by schema but not in interface
-      referenceNo: apiPayment.referenceNo ?? "",
-      trnDate: apiPayment.trnDate
-        ? format(
-            parseDate(apiPayment.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      accountDate: apiPayment.accountDate
-        ? format(
-            parseDate(apiPayment.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankId: apiPayment.bankId ?? 0,
-      paymentTypeId: apiPayment.paymentTypeId ?? 0,
-      chequeNo: apiPayment.chequeNo ?? "",
-      chequeDate: apiPayment.chequeDate
-        ? format(
-            parseDate(apiPayment.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankChgGLId: apiPayment.bankChgGLId ?? 0,
-      bankChgAmt: apiPayment.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
-      supplierId: apiPayment.supplierId ?? 0,
-      currencyId: apiPayment.currencyId ?? 0,
-      exhRate: apiPayment.exhRate ?? 0,
-      totAmt: apiPayment.totAmt ?? 0,
-      totLocalAmt: apiPayment.totLocalAmt ?? 0,
-      payCurrencyId: apiPayment.payCurrencyId ?? 0,
-      payExhRate: apiPayment.payExhRate ?? 0,
-      payTotAmt: apiPayment.payTotAmt ?? 0,
-      payTotLocalAmt: apiPayment.payTotLocalAmt ?? 0,
-      unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
-      unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
-      exhGainLoss: apiPayment.exhGainLoss ?? 0,
-      remarks: apiPayment.remarks ?? "",
-      docExhRate: apiPayment.docExhRate ?? 0,
-      docTotAmt: apiPayment.docTotAmt ?? 0,
-      docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
-      allocTotAmt: apiPayment.allocTotAmt ?? 0,
-      allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
-      moduleFrom: apiPayment.moduleFrom ?? "",
-      editVersion: apiPayment.editVersion ?? 0,
-      createBy: apiPayment.createById?.toString() ?? "",
-      editBy: apiPayment.editById?.toString() ?? "",
-      cancelBy: apiPayment.cancelById?.toString() ?? "",
-      createDate: apiPayment.createDate
-        ? format(
-            parseDate(apiPayment.createDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      editDate: apiPayment.editDate
-        ? format(
-            parseDate(apiPayment.editDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelDate: apiPayment.cancelDate
-        ? format(
-            parseDate(apiPayment.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelRemarks: apiPayment.cancelRemarks ?? "",
-      data_details:
-        apiPayment.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              paymentId: detail.paymentId?.toString() ?? "0",
-              paymentNo: detail.paymentNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              transactionId: detail.transactionId ?? 0,
-              documentId: detail.documentId?.toString() ?? "0",
-              documentNo: detail.documentNo ?? "",
-              referenceNo: detail.referenceNo ?? "",
-              docCurrencyId: detail.docCurrencyId ?? 0,
-              docExhRate: detail.docExhRate ?? 0,
-              docAccountDate: detail.docAccountDate
-                ? format(
-                    parseDate(detail.docAccountDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docDueDate: detail.docDueDate
-                ? format(
-                    parseDate(detail.docDueDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docTotAmt: detail.docTotAmt ?? 0,
-              docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-              docBalAmt: detail.docBalAmt ?? 0,
-              docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-              allocAmt: detail.allocAmt ?? 0,
-              allocLocalAmt: detail.allocLocalAmt ?? 0,
-              docAllocAmt: detail.docAllocAmt ?? 0,
-              docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-              centDiff: detail.centDiff ?? 0,
-              exhGainLoss: detail.exhGainLoss ?? 0,
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApPaymentDtSchemaType
-        ) || [],
-    }
-  }
+  const transformToSchemaType = useCallback(
+    (apiPayment: IApPaymentHd): ApPaymentHdSchemaType => {
+      return {
+        paymentId: apiPayment.paymentId?.toString() ?? "0",
+        paymentNo: apiPayment.paymentNo ?? "",
+        suppInvoiceNo: "", // Required by schema but not in interface
+        referenceNo: apiPayment.referenceNo ?? "",
+        trnDate: apiPayment.trnDate
+          ? format(
+              parseDate(apiPayment.trnDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        accountDate: apiPayment.accountDate
+          ? format(
+              parseDate(apiPayment.accountDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankId: apiPayment.bankId ?? 0,
+        paymentTypeId: apiPayment.paymentTypeId ?? 0,
+        chequeNo: apiPayment.chequeNo ?? "",
+        chequeDate: apiPayment.chequeDate
+          ? format(
+              parseDate(apiPayment.chequeDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankChgGLId: apiPayment.bankChgGLId ?? 0,
+        bankChgAmt: apiPayment.bankChgAmt ?? 0,
+        bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
+        supplierId: apiPayment.supplierId ?? 0,
+        currencyId: apiPayment.currencyId ?? 0,
+        exhRate: apiPayment.exhRate ?? 0,
+        totAmt: apiPayment.totAmt ?? 0,
+        totLocalAmt: apiPayment.totLocalAmt ?? 0,
+        payCurrencyId: apiPayment.payCurrencyId ?? 0,
+        payExhRate: apiPayment.payExhRate ?? 0,
+        payTotAmt: apiPayment.payTotAmt ?? 0,
+        payTotLocalAmt: apiPayment.payTotLocalAmt ?? 0,
+        unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
+        exhGainLoss: apiPayment.exhGainLoss ?? 0,
+        remarks: apiPayment.remarks ?? "",
+        docExhRate: apiPayment.docExhRate ?? 0,
+        docTotAmt: apiPayment.docTotAmt ?? 0,
+        docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
+        allocTotAmt: apiPayment.allocTotAmt ?? 0,
+        allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
+        moduleFrom: apiPayment.moduleFrom ?? "",
+        editVersion: apiPayment.editVersion ?? 0,
+        createBy: apiPayment.createById?.toString() ?? "",
+        editBy: apiPayment.editById?.toString() ?? "",
+        cancelBy: apiPayment.cancelById?.toString() ?? "",
+        createDate: apiPayment.createDate
+          ? format(
+              parseDate(apiPayment.createDate as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        editDate: apiPayment.editDate
+          ? format(
+              parseDate(apiPayment.editDate as unknown as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelDate: apiPayment.cancelDate
+          ? format(
+              parseDate(apiPayment.cancelDate as unknown as string) ||
+                new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelRemarks: apiPayment.cancelRemarks ?? "",
+        data_details:
+          apiPayment.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                paymentId: detail.paymentId?.toString() ?? "0",
+                paymentNo: detail.paymentNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                transactionId: detail.transactionId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
+                documentNo: detail.documentNo ?? "",
+                referenceNo: detail.referenceNo ?? "",
+                docCurrencyId: detail.docCurrencyId ?? 0,
+                docExhRate: detail.docExhRate ?? 0,
+                docAccountDate: detail.docAccountDate
+                  ? format(
+                      parseDate(detail.docAccountDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docDueDate: detail.docDueDate
+                  ? format(
+                      parseDate(detail.docDueDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docTotAmt: detail.docTotAmt ?? 0,
+                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                docBalAmt: detail.docBalAmt ?? 0,
+                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                allocAmt: detail.allocAmt ?? 0,
+                allocLocalAmt: detail.allocLocalAmt ?? 0,
+                docAllocAmt: detail.docAllocAmt ?? 0,
+                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                centDiff: detail.centDiff ?? 0,
+                exhGainLoss: detail.exhGainLoss ?? 0,
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as ApPaymentDtSchemaType
+          ) || [],
+      }
+    },
+    []
+  )
 
   const handlePaymentSelect = async (
     selectedPayment: IApPaymentHd | undefined
@@ -611,156 +646,179 @@ export default function PaymentPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handlePaymentSearch = async (value: string) => {
-    if (!value) return
+  const handlePaymentSearch = useCallback(
+    async (value: string) => {
+      if (!value) return
 
-    setIsLoadingPayment(true)
+      setIsLoadingPayment(true)
 
-    try {
-      const response = await getById(`${ApPayment.getByIdNo}/0/${value}`)
+      try {
+        const response = await getById(`${ApPayment.getByIdNo}/0/${value}`)
 
-      if (response?.result === 1) {
-        const detailedPayment = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+        if (response?.result === 1) {
+          const detailedPayment = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-        if (detailedPayment) {
-          // Parse dates properly
-          const updatedPayment = {
-            ...detailedPayment,
-            paymentId: detailedPayment.paymentId?.toString() ?? "0",
-            paymentNo: detailedPayment.paymentNo ?? "",
-            referenceNo: detailedPayment.referenceNo ?? "",
-            suppInvoiceNo: "", // Required by schema but not in interface
-            trnDate: detailedPayment.trnDate
-              ? format(
-                  parseDate(detailedPayment.trnDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
-            accountDate: detailedPayment.accountDate
-              ? format(
-                  parseDate(detailedPayment.accountDate as string) ||
-                    new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
+          if (detailedPayment) {
+            // Parse dates properly
+            const updatedPayment = {
+              ...detailedPayment,
+              paymentId: detailedPayment.paymentId?.toString() ?? "0",
+              paymentNo: detailedPayment.paymentNo ?? "",
+              referenceNo: detailedPayment.referenceNo ?? "",
+              suppInvoiceNo: "", // Required by schema but not in interface
+              trnDate: detailedPayment.trnDate
+                ? format(
+                    parseDate(detailedPayment.trnDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              accountDate: detailedPayment.accountDate
+                ? format(
+                    parseDate(detailedPayment.accountDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
 
-            supplierId: detailedPayment.supplierId ?? 0,
-            currencyId: detailedPayment.currencyId ?? 0,
-            exhRate: detailedPayment.exhRate ?? 0,
-            bankId: detailedPayment.bankId ?? 0,
-            paymentTypeId: detailedPayment.paymentTypeId ?? 0,
-            chequeNo: detailedPayment.chequeNo ?? "",
-            chequeDate: detailedPayment.chequeDate
-              ? format(
-                  parseDate(detailedPayment.chequeDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
-            bankChgGLId: detailedPayment.bankChgGLId ?? 0,
-            bankChgAmt: detailedPayment.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
-            totAmt: detailedPayment.totAmt ?? 0,
-            totLocalAmt: detailedPayment.totLocalAmt ?? 0,
-            payCurrencyId: detailedPayment.payCurrencyId ?? 0,
-            payExhRate: detailedPayment.payExhRate ?? 0,
-            payTotAmt: detailedPayment.payTotAmt ?? 0,
-            payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedPayment.exhGainLoss ?? 0,
-            remarks: detailedPayment.remarks ?? "",
-            docExhRate: detailedPayment.docExhRate ?? 0,
-            docTotAmt: detailedPayment.docTotAmt ?? 0,
-            docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedPayment.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
-            moduleFrom: detailedPayment.moduleFrom ?? "",
-            editVersion: detailedPayment.editVersion ?? 0,
-            createBy: detailedPayment.createById?.toString() ?? "",
-            createDate: detailedPayment.createDate
-              ? format(
-                  parseDate(detailedPayment.createDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            editBy: detailedPayment.editById?.toString() ?? "",
-            editDate: detailedPayment.editDate
-              ? format(
-                  parseDate(detailedPayment.editDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            cancelBy: detailedPayment.cancelById?.toString() ?? "",
-            cancelDate: detailedPayment.cancelDate
-              ? format(
-                  parseDate(detailedPayment.cancelDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            cancelRemarks: detailedPayment.cancelRemarks ?? "",
+              supplierId: detailedPayment.supplierId ?? 0,
+              currencyId: detailedPayment.currencyId ?? 0,
+              exhRate: detailedPayment.exhRate ?? 0,
+              bankId: detailedPayment.bankId ?? 0,
+              paymentTypeId: detailedPayment.paymentTypeId ?? 0,
+              chequeNo: detailedPayment.chequeNo ?? "",
+              chequeDate: detailedPayment.chequeDate
+                ? format(
+                    parseDate(detailedPayment.chequeDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              bankChgGLId: detailedPayment.bankChgGLId ?? 0,
+              bankChgAmt: detailedPayment.bankChgAmt ?? 0,
+              bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
+              totAmt: detailedPayment.totAmt ?? 0,
+              totLocalAmt: detailedPayment.totLocalAmt ?? 0,
+              payCurrencyId: detailedPayment.payCurrencyId ?? 0,
+              payExhRate: detailedPayment.payExhRate ?? 0,
+              payTotAmt: detailedPayment.payTotAmt ?? 0,
+              payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
+              unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
+              unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
+              exhGainLoss: detailedPayment.exhGainLoss ?? 0,
+              remarks: detailedPayment.remarks ?? "",
+              docExhRate: detailedPayment.docExhRate ?? 0,
+              docTotAmt: detailedPayment.docTotAmt ?? 0,
+              docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
+              allocTotAmt: detailedPayment.allocTotAmt ?? 0,
+              allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
+              moduleFrom: detailedPayment.moduleFrom ?? "",
+              editVersion: detailedPayment.editVersion ?? 0,
+              createBy: detailedPayment.createById?.toString() ?? "",
+              createDate: detailedPayment.createDate
+                ? format(
+                    parseDate(detailedPayment.createDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : "",
+              editBy: detailedPayment.editById?.toString() ?? "",
+              editDate: detailedPayment.editDate
+                ? format(
+                    parseDate(detailedPayment.editDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : "",
+              cancelBy: detailedPayment.cancelById?.toString() ?? "",
+              cancelDate: detailedPayment.cancelDate
+                ? format(
+                    parseDate(detailedPayment.cancelDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : "",
+              cancelRemarks: detailedPayment.cancelRemarks ?? "",
 
-            data_details:
-              detailedPayment.data_details?.map((detail: IApPaymentDt) => ({
-                paymentId: detail.paymentId?.toString() ?? "0",
-                paymentNo: detail.paymentNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId?.toString() ?? "0",
-                documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
-                docCurrencyId: detail.docCurrencyId ?? 0,
-                docExhRate: detail.docExhRate ?? 0,
-                docAccountDate: detail.docAccountDate
-                  ? format(
-                      parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                docDueDate: detail.docDueDate
-                  ? format(
-                      parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                docTotAmt: detail.docTotAmt ?? 0,
-                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                docBalAmt: detail.docBalAmt ?? 0,
-                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                allocAmt: detail.allocAmt ?? 0,
-                allocLocalAmt: detail.allocLocalAmt ?? 0,
-                docAllocAmt: detail.docAllocAmt ?? 0,
-                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                centDiff: detail.centDiff ?? 0,
-                exhGainLoss: detail.exhGainLoss ?? 0,
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
+              data_details:
+                detailedPayment.data_details?.map((detail: IApPaymentDt) => ({
+                  paymentId: detail.paymentId?.toString() ?? "0",
+                  paymentNo: detail.paymentNo ?? "",
+                  itemNo: detail.itemNo ?? 0,
+                  transactionId: detail.transactionId ?? 0,
+                  documentId: detail.documentId?.toString() ?? "0",
+                  documentNo: detail.documentNo ?? "",
+                  referenceNo: detail.referenceNo ?? "",
+                  docCurrencyId: detail.docCurrencyId ?? 0,
+                  docExhRate: detail.docExhRate ?? 0,
+                  docAccountDate: detail.docAccountDate
+                    ? format(
+                        parseDate(detail.docAccountDate as string) ||
+                          new Date(),
+                        clientDateFormat
+                      )
+                    : "",
+                  docDueDate: detail.docDueDate
+                    ? format(
+                        parseDate(detail.docDueDate as string) || new Date(),
+                        clientDateFormat
+                      )
+                    : "",
+                  docTotAmt: detail.docTotAmt ?? 0,
+                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                  docBalAmt: detail.docBalAmt ?? 0,
+                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                  allocAmt: detail.allocAmt ?? 0,
+                  allocLocalAmt: detail.allocLocalAmt ?? 0,
+                  docAllocAmt: detail.docAllocAmt ?? 0,
+                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                  centDiff: detail.centDiff ?? 0,
+                  exhGainLoss: detail.exhGainLoss ?? 0,
+                  editVersion: detail.editVersion ?? 0,
+                })) || [],
+            }
+
+            //setPayment(updatedPayment as ApPaymentHdSchemaType)
+            setPayment(transformToSchemaType(updatedPayment))
+            form.reset(updatedPayment)
+            form.trigger()
+
+            // Show success message
+            toast.success(`Payment ${value} loaded successfully`)
+
+            // Close the load confirmation dialog on success
+            setShowLoadConfirm(false)
           }
-
-          //setPayment(updatedPayment as ApPaymentHdSchemaType)
-          setPayment(transformToSchemaType(updatedPayment))
-          form.reset(updatedPayment)
-          form.trigger()
-
-          // Show success message
-          toast.success(`Payment ${value} loaded successfully`)
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
+        } else {
+          toast.error(response?.message || "Failed to fetch payment details")
+          // Keep dialog open on failure so user can try again
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch payment details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching payment details:", error)
+        toast.error("Error loading payment. Please try again.")
+        // Keep dialog open on error
+      } finally {
+        setIsLoadingPayment(false)
       }
-    } catch (error) {
-      console.error("Error fetching payment details:", error)
-      toast.error("Error loading payment. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      setIsLoadingPayment(false)
-    }
-  }
+    },
+    [
+      form,
+      setIsLoadingPayment,
+      setPayment,
+      setSearchNo,
+      setShowLoadConfirm,
+      transformToSchemaType,
+    ]
+  )
+
+  useEffect(() => {
+    if (!pendingDocNo) return
+    if (lastQueriedDocRef.current === pendingDocNo) return
+
+    lastQueriedDocRef.current = pendingDocNo
+    setSearchNo(pendingDocNo)
+    void handlePaymentSearch(pendingDocNo)
+  }, [handlePaymentSearch, pendingDocNo])
 
   // Determine mode and payment ID from URL
   const paymentNo = form.getValues("paymentNo")

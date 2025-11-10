@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import {
   IApDocsetoffDt,
   IApDocsetoffFilter,
@@ -59,6 +59,7 @@ import Other from "./components/other"
 
 export default function DocsetoffPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
@@ -83,11 +84,43 @@ export default function DocsetoffPage() {
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
     search: "",
-    sortBy: "setoffNo",
+    sortBy: "docSetoffNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: 15,
   })
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/docsetoff`,
+    [companyId]
+  )
+
+  const [pendingDocNo, setPendingDocNo] = useState<string>("")
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        setPendingDocNo(stored)
+        setSearchNo(stored)
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  const lastQueriedDocRef = useRef<string | null>(null)
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -344,121 +377,121 @@ export default function DocsetoffPage() {
   }
 
   // Helper function to transform IApDocsetoffHd to ApDocsetoffHdSchemaType
-  const transformToSchemaType = (
-    apiPayment: IApDocsetoffHd
-  ): ApDocsetoffHdSchemaType => {
-    return {
-      setoffId: apiPayment.setoffId?.toString() ?? "0",
-      setoffNo: apiPayment.setoffNo ?? "",
-      suppInvoiceNo: "", // Required by schema but not in interface
-      referenceNo: apiPayment.referenceNo ?? "",
-      trnDate: apiPayment.trnDate
-        ? format(
-            parseDate(apiPayment.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      accountDate: apiPayment.accountDate
-        ? format(
-            parseDate(apiPayment.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankId: apiPayment.bankId ?? 0,
-      paymentTypeId: apiPayment.paymentTypeId ?? 0,
-      chequeNo: apiPayment.chequeNo ?? "",
-      chequeDate: apiPayment.chequeDate
-        ? format(
-            parseDate(apiPayment.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankChgGLId: apiPayment.bankChgGLId ?? 0,
-      bankChgAmt: apiPayment.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
-      supplierId: apiPayment.supplierId ?? 0,
-      currencyId: apiPayment.currencyId ?? 0,
-      exhRate: apiPayment.exhRate ?? 0,
-      totAmt: apiPayment.totAmt ?? 0,
-      totLocalAmt: apiPayment.totLocalAmt ?? 0,
-      payCurrencyId: apiPayment.payCurrencyId ?? 0,
-      payExhRate: apiPayment.payExhRate ?? 0,
-      payTotAmt: apiPayment.payTotAmt ?? 0,
-      payTotLocalAmt: apiPayment.payTotLocalAmt ?? 0,
-      unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
-      unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
-      exhGainLoss: apiPayment.exhGainLoss ?? 0,
-      remarks: apiPayment.remarks ?? "",
-      docExhRate: apiPayment.docExhRate ?? 0,
-      docTotAmt: apiPayment.docTotAmt ?? 0,
-      docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
-      allocTotAmt: apiPayment.allocTotAmt ?? 0,
-      allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
-      moduleFrom: apiPayment.moduleFrom ?? "",
-      editVersion: apiPayment.editVersion ?? 0,
-      createBy: apiPayment.createById?.toString() ?? "",
-      editBy: apiPayment.editById?.toString() ?? "",
-      cancelBy: apiPayment.cancelById?.toString() ?? "",
-      createDate: apiPayment.createDate
-        ? format(
-            parseDate(apiPayment.createDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      editDate: apiPayment.editDate
-        ? format(
-            parseDate(apiPayment.editDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelDate: apiPayment.cancelDate
-        ? format(
-            parseDate(apiPayment.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelRemarks: apiPayment.cancelRemarks ?? "",
-      data_details:
-        apiPayment.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              setoffId: detail.setoffId?.toString() ?? "0",
-              setoffNo: detail.setoffNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              transactionId: detail.transactionId ?? 0,
-              documentId: detail.documentId?.toString() ?? "0",
-              documentNo: detail.documentNo ?? "",
-              referenceNo: detail.referenceNo ?? "",
-              docCurrencyId: detail.docCurrencyId ?? 0,
-              docExhRate: detail.docExhRate ?? 0,
-              docAccountDate: detail.docAccountDate
-                ? format(
-                    parseDate(detail.docAccountDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docDueDate: detail.docDueDate
-                ? format(
-                    parseDate(detail.docDueDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docTotAmt: detail.docTotAmt ?? 0,
-              docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-              docBalAmt: detail.docBalAmt ?? 0,
-              docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-              allocAmt: detail.allocAmt ?? 0,
-              allocLocalAmt: detail.allocLocalAmt ?? 0,
-              docAllocAmt: detail.docAllocAmt ?? 0,
-              docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-              centDiff: detail.centDiff ?? 0,
-              exhGainLoss: detail.exhGainLoss ?? 0,
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApDocsetoffDtSchemaType
-        ) || [],
+  const transformToSchemaType = useCallback(
+    (apiDocsetoff: IApDocsetoffHd): ApDocsetoffHdSchemaType => {
+      return {
+        setoffId: apiDocsetoff.setoffId?.toString() ?? "0",
+        setoffNo: apiDocsetoff.setoffNo ?? "",
+        suppInvoiceNo: "", // Required by schema but not in interface
+        referenceNo: apiDocsetoff.referenceNo ?? "",
+        trnDate: apiDocsetoff.trnDate
+          ? format(
+              parseDate(apiDocsetoff.trnDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        accountDate: apiDocsetoff.accountDate
+          ? format(
+              parseDate(apiDocsetoff.accountDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankId: apiDocsetoff.bankId ?? 0,
+        paymentTypeId: apiDocsetoff.paymentTypeId ?? 0,
+        chequeNo: apiDocsetoff.chequeNo ?? "",
+        chequeDate: apiDocsetoff.chequeDate
+          ? format(
+              parseDate(apiDocsetoff.chequeDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankChgGLId: apiDocsetoff.bankChgGLId ?? 0,
+        bankChgAmt: apiDocsetoff.bankChgAmt ?? 0,
+        bankChgLocalAmt: apiDocsetoff.bankChgLocalAmt ?? 0,
+        supplierId: apiDocsetoff.supplierId ?? 0,
+        currencyId: apiDocsetoff.currencyId ?? 0,
+        exhRate: apiDocsetoff.exhRate ?? 0,
+        totAmt: apiDocsetoff.totAmt ?? 0,
+        totLocalAmt: apiDocsetoff.totLocalAmt ?? 0,
+        payCurrencyId: apiDocsetoff.payCurrencyId ?? 0,
+        payExhRate: apiDocsetoff.payExhRate ?? 0,
+        payTotAmt: apiDocsetoff.payTotAmt ?? 0,
+        payTotLocalAmt: apiDocsetoff.payTotLocalAmt ?? 0,
+        unAllocTotAmt: apiDocsetoff.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiDocsetoff.unAllocTotLocalAmt ?? 0,
+        exhGainLoss: apiDocsetoff.exhGainLoss ?? 0,
+        remarks: apiDocsetoff.remarks ?? "",
+        docExhRate: apiDocsetoff.docExhRate ?? 0,
+        docTotAmt: apiDocsetoff.docTotAmt ?? 0,
+        docTotLocalAmt: apiDocsetoff.docTotLocalAmt ?? 0,
+        allocTotAmt: apiDocsetoff.allocTotAmt ?? 0,
+        allocTotLocalAmt: apiDocsetoff.allocTotLocalAmt ?? 0,
+        moduleFrom: apiDocsetoff.moduleFrom ?? "",
+        editVersion: apiDocsetoff.editVersion ?? 0,
+        createBy: apiDocsetoff.createById?.toString() ?? "",
+        editBy: apiDocsetoff.editById?.toString() ?? "",
+        cancelBy: apiDocsetoff.cancelById?.toString() ?? "",
+        createDate: apiDocsetoff.createDate
+          ? format(
+              parseDate(apiDocsetoff.createDate as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        editDate: apiDocsetoff.editDate
+          ? format(
+              parseDate(apiDocsetoff.editDate as unknown as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelDate: apiDocsetoff.cancelDate
+          ? format(
+              parseDate(apiDocsetoff.cancelDate as unknown as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelRemarks: apiDocsetoff.cancelRemarks ?? "",
+        data_details:
+          apiDocsetoff.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                setoffId: detail.setoffId?.toString() ?? "0",
+                setoffNo: detail.setoffNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                transactionId: detail.transactionId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
+                documentNo: detail.documentNo ?? "",
+                referenceNo: detail.referenceNo ?? "",
+                docCurrencyId: detail.docCurrencyId ?? 0,
+                docExhRate: detail.docExhRate ?? 0,
+                docAccountDate: detail.docAccountDate
+                  ? format(
+                      parseDate(detail.docAccountDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docDueDate: detail.docDueDate
+                  ? format(
+                      parseDate(detail.docDueDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docTotAmt: detail.docTotAmt ?? 0,
+                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                docBalAmt: detail.docBalAmt ?? 0,
+                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                allocAmt: detail.allocAmt ?? 0,
+                allocLocalAmt: detail.allocLocalAmt ?? 0,
+                docAllocAmt: detail.docAllocAmt ?? 0,
+                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                centDiff: detail.centDiff ?? 0,
+                exhGainLoss: detail.exhGainLoss ?? 0,
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as ApDocsetoffDtSchemaType
+          ) || [],
+      }
     }
-  }
+  , [])
 
   const handlePaymentSelect = async (
     selectedPayment: IApDocsetoffHd | undefined
@@ -618,7 +651,7 @@ export default function DocsetoffPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handlePaymentSearch = async (value: string) => {
+  const handlePaymentSearch = useCallback(async (value: string) => {
     if (!value) return
 
     setIsLoadingDocsetoff(true)
@@ -767,7 +800,23 @@ export default function DocsetoffPage() {
     } finally {
       setIsLoadingDocsetoff(false)
     }
-  }
+  }, [
+    form,
+    setDocsetoff,
+    setIsLoadingDocsetoff,
+    setSearchNo,
+    setShowLoadConfirm,
+    transformToSchemaType,
+  ])
+
+  useEffect(() => {
+    if (!pendingDocNo) return
+    if (lastQueriedDocRef.current === pendingDocNo) return
+
+    lastQueriedDocRef.current = pendingDocNo
+    setSearchNo(pendingDocNo)
+    void handlePaymentSearch(pendingDocNo)
+  }, [handlePaymentSearch, pendingDocNo])
 
   // Determine mode and docsetoff ID from URL
   const setoffNo = form.getValues("setoffNo")

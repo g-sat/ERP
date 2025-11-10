@@ -52,3 +52,17 @@ export interface IPaymentDetails {
   AllLocalAmt?: number
   ExGainLoss?: number | string
 }
+export interface IPaymentHistoryDetails {
+  moduleId?: number
+  transactionId?: number
+  trnType?: string
+  documentId?: number
+  documentNo?: string
+  referenceNo?: string
+  accountDate?: string | Date
+  totAmt?: number
+  totLocalAmt?: number
+  allAmt?: number
+  allLocalAmt?: number
+  exGainLoss?: number | string
+}

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useEffect, useState, useMemo, useRef, useCallback } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import { IApRefundDt, IApRefundFilter, IApRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -55,6 +55,7 @@ import RefundTable from "./components/refund-table"
 
 export default function RefundPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
@@ -82,6 +83,38 @@ export default function RefundPage() {
     pageNumber: 1,
     pageSize: 15,
   })
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/refund`,
+    [companyId]
+  )
+
+  const [pendingDocNo, setPendingDocNo] = useState<string>("")
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        setPendingDocNo(stored)
+        setSearchNo(stored)
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  const lastQueriedDocRef = useRef<string | null>(null)
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -334,121 +367,122 @@ export default function RefundPage() {
   }
 
   // Helper function to transform IApRefundHd to ApRefundHdSchemaType
-  const transformToSchemaType = (
-    apiPayment: IApRefundHd
-  ): ApRefundHdSchemaType => {
-    return {
-      refundId: apiPayment.refundId?.toString() ?? "0",
-      refundNo: apiPayment.refundNo ?? "",
-      suppInvoiceNo: "", // Required by schema but not in interface
-      referenceNo: apiPayment.referenceNo ?? "",
-      trnDate: apiPayment.trnDate
-        ? format(
-            parseDate(apiPayment.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      accountDate: apiPayment.accountDate
-        ? format(
-            parseDate(apiPayment.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankId: apiPayment.bankId ?? 0,
-      paymentTypeId: apiPayment.paymentTypeId ?? 0,
-      chequeNo: apiPayment.chequeNo ?? "",
-      chequeDate: apiPayment.chequeDate
-        ? format(
-            parseDate(apiPayment.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      bankChgGLId: apiPayment.bankChgGLId ?? 0,
-      bankChgAmt: apiPayment.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
-      supplierId: apiPayment.supplierId ?? 0,
-      currencyId: apiPayment.currencyId ?? 0,
-      exhRate: apiPayment.exhRate ?? 0,
-      totAmt: apiPayment.totAmt ?? 0,
-      totLocalAmt: apiPayment.totLocalAmt ?? 0,
-      payCurrencyId: apiPayment.payCurrencyId ?? 0,
-      payExhRate: apiPayment.payExhRate ?? 0,
-      payTotAmt: apiPayment.payTotAmt ?? 0,
-      payTotLocalAmt: apiPayment.payTotLocalAmt ?? 0,
-      unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
-      unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
-      exhGainLoss: apiPayment.exhGainLoss ?? 0,
-      remarks: apiPayment.remarks ?? "",
-      docExhRate: apiPayment.docExhRate ?? 0,
-      docTotAmt: apiPayment.docTotAmt ?? 0,
-      docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
-      allocTotAmt: apiPayment.allocTotAmt ?? 0,
-      allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
-      moduleFrom: apiPayment.moduleFrom ?? "",
-      editVersion: apiPayment.editVersion ?? 0,
-      createBy: apiPayment.createById?.toString() ?? "",
-      editBy: apiPayment.editById?.toString() ?? "",
-      cancelBy: apiPayment.cancelById?.toString() ?? "",
-      createDate: apiPayment.createDate
-        ? format(
-            parseDate(apiPayment.createDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      editDate: apiPayment.editDate
-        ? format(
-            parseDate(apiPayment.editDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelDate: apiPayment.cancelDate
-        ? format(
-            parseDate(apiPayment.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelRemarks: apiPayment.cancelRemarks ?? "",
-      data_details:
-        apiPayment.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              refundId: detail.refundId?.toString() ?? "0",
-              refundNo: detail.refundNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              transactionId: detail.transactionId ?? 0,
-              documentId: detail.documentId?.toString() ?? "0",
-              documentNo: detail.documentNo ?? "",
-              referenceNo: detail.referenceNo ?? "",
-              docCurrencyId: detail.docCurrencyId ?? 0,
-              docExhRate: detail.docExhRate ?? 0,
-              docAccountDate: detail.docAccountDate
-                ? format(
-                    parseDate(detail.docAccountDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docDueDate: detail.docDueDate
-                ? format(
-                    parseDate(detail.docDueDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : "",
-              docTotAmt: detail.docTotAmt ?? 0,
-              docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-              docBalAmt: detail.docBalAmt ?? 0,
-              docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-              allocAmt: detail.allocAmt ?? 0,
-              allocLocalAmt: detail.allocLocalAmt ?? 0,
-              docAllocAmt: detail.docAllocAmt ?? 0,
-              docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-              centDiff: detail.centDiff ?? 0,
-              exhGainLoss: detail.exhGainLoss ?? 0,
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApRefundDtSchemaType
-        ) || [],
-    }
-  }
+  const transformToSchemaType = useCallback(
+    (apiRefund: IApRefundHd): ApRefundHdSchemaType => {
+      return {
+        refundId: apiRefund.refundId?.toString() ?? "0",
+        refundNo: apiRefund.refundNo ?? "",
+        suppInvoiceNo: "", // Required by schema but not in interface
+        referenceNo: apiRefund.referenceNo ?? "",
+        trnDate: apiRefund.trnDate
+          ? format(
+              parseDate(apiRefund.trnDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        accountDate: apiRefund.accountDate
+          ? format(
+              parseDate(apiRefund.accountDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankId: apiRefund.bankId ?? 0,
+        paymentTypeId: apiRefund.paymentTypeId ?? 0,
+        chequeNo: apiRefund.chequeNo ?? "",
+        chequeDate: apiRefund.chequeDate
+          ? format(
+              parseDate(apiRefund.chequeDate as string) || new Date(),
+              clientDateFormat
+            )
+          : clientDateFormat,
+        bankChgGLId: apiRefund.bankChgGLId ?? 0,
+        bankChgAmt: apiRefund.bankChgAmt ?? 0,
+        bankChgLocalAmt: apiRefund.bankChgLocalAmt ?? 0,
+        supplierId: apiRefund.supplierId ?? 0,
+        currencyId: apiRefund.currencyId ?? 0,
+        exhRate: apiRefund.exhRate ?? 0,
+        totAmt: apiRefund.totAmt ?? 0,
+        totLocalAmt: apiRefund.totLocalAmt ?? 0,
+        payCurrencyId: apiRefund.payCurrencyId ?? 0,
+        payExhRate: apiRefund.payExhRate ?? 0,
+        payTotAmt: apiRefund.payTotAmt ?? 0,
+        payTotLocalAmt: apiRefund.payTotLocalAmt ?? 0,
+        unAllocTotAmt: apiRefund.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiRefund.unAllocTotLocalAmt ?? 0,
+        exhGainLoss: apiRefund.exhGainLoss ?? 0,
+        remarks: apiRefund.remarks ?? "",
+        docExhRate: apiRefund.docExhRate ?? 0,
+        docTotAmt: apiRefund.docTotAmt ?? 0,
+        docTotLocalAmt: apiRefund.docTotLocalAmt ?? 0,
+        allocTotAmt: apiRefund.allocTotAmt ?? 0,
+        allocTotLocalAmt: apiRefund.allocTotLocalAmt ?? 0,
+        moduleFrom: apiRefund.moduleFrom ?? "",
+        editVersion: apiRefund.editVersion ?? 0,
+        createBy: apiRefund.createById?.toString() ?? "",
+        editBy: apiRefund.editById?.toString() ?? "",
+        cancelBy: apiRefund.cancelById?.toString() ?? "",
+        createDate: apiRefund.createDate
+          ? format(
+              parseDate(apiRefund.createDate as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        editDate: apiRefund.editDate
+          ? format(
+              parseDate(apiRefund.editDate as unknown as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelDate: apiRefund.cancelDate
+          ? format(
+              parseDate(apiRefund.cancelDate as unknown as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        cancelRemarks: apiRefund.cancelRemarks ?? "",
+        data_details:
+          apiRefund.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                refundId: detail.refundId?.toString() ?? "0",
+                refundNo: detail.refundNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                transactionId: detail.transactionId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
+                documentNo: detail.documentNo ?? "",
+                referenceNo: detail.referenceNo ?? "",
+                docCurrencyId: detail.docCurrencyId ?? 0,
+                docExhRate: detail.docExhRate ?? 0,
+                docAccountDate: detail.docAccountDate
+                  ? format(
+                      parseDate(detail.docAccountDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docDueDate: detail.docDueDate
+                  ? format(
+                      parseDate(detail.docDueDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                docTotAmt: detail.docTotAmt ?? 0,
+                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                docBalAmt: detail.docBalAmt ?? 0,
+                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                allocAmt: detail.allocAmt ?? 0,
+                allocLocalAmt: detail.allocLocalAmt ?? 0,
+                docAllocAmt: detail.docAllocAmt ?? 0,
+                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                centDiff: detail.centDiff ?? 0,
+                exhGainLoss: detail.exhGainLoss ?? 0,
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as ApRefundDtSchemaType
+          ) || [],
+      }
+    },
+    []
+  )
 
   const handlePaymentSelect = async (
     selectedPayment: IApRefundHd | undefined
@@ -608,7 +642,7 @@ export default function RefundPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handlePaymentSearch = async (value: string) => {
+  const handlePaymentSearch = useCallback(async (value: string) => {
     if (!value) return
 
     setIsLoadingRefund(true)
@@ -757,7 +791,23 @@ export default function RefundPage() {
     } finally {
       setIsLoadingRefund(false)
     }
-  }
+  }, [
+    form,
+    setIsLoadingRefund,
+    setRefund,
+    setSearchNo,
+    setShowLoadConfirm,
+    transformToSchemaType,
+  ])
+
+  useEffect(() => {
+    if (!pendingDocNo) return
+    if (lastQueriedDocRef.current === pendingDocNo) return
+
+    lastQueriedDocRef.current = pendingDocNo
+    setSearchNo(pendingDocNo)
+    void handlePaymentSearch(pendingDocNo)
+  }, [handlePaymentSearch, pendingDocNo])
 
   // Determine mode and refund ID from URL
   const refundNo = form.getValues("refundNo")
