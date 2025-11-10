@@ -76,11 +76,16 @@ export default function ReceiptForm({
 
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
 
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
   // State to track if currencies are the same
   const [isCurrenciesEqual, setIsCurrenciesEqual] = React.useState(true)
 
   // State to track if receipt type is cheque
-  const [isChequeReceipt, setIsChequeReceipt] = React.useState(false)
+  const [, setIsChequeReceipt] = React.useState(false)
 
   // Refs to store original values on focus for comparison on blur
   const originalExhRateRef = React.useRef<number>(0)
@@ -323,7 +328,7 @@ export default function ReceiptForm({
       const trnDateStr =
         typeof trnDate === "string"
           ? trnDate
-          : format(trnDate || new Date(), clientDateFormat)
+          : format(trnDate || new Date(), dateFormat)
 
       form.setValue("accountDate", trnDateStr)
       form?.trigger("accountDate")
@@ -336,7 +341,7 @@ export default function ReceiptForm({
       // Calculate and set due date (for detail records)
       await setDueDate(form)
     },
-    [exhRateDec, form, visible]
+    [dateFormat, exhRateDec, form, visible]
   )
 
   // Handle account date selection
@@ -351,7 +356,7 @@ export default function ReceiptForm({
           const accountDateValue =
             typeof selectedAccountDate === "string"
               ? selectedAccountDate
-              : format(selectedAccountDate, clientDateFormat)
+              : format(selectedAccountDate, dateFormat)
           form.setValue("accountDate", accountDateValue)
           form.trigger("accountDate")
         }
@@ -366,7 +371,7 @@ export default function ReceiptForm({
         await setDueDate(form)
       }
     },
-    [exhRateDec, form, visible]
+    [dateFormat, exhRateDec, form, visible]
   )
 
   // Handle customer selection
