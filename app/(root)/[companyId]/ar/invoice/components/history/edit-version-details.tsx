@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
@@ -38,6 +39,7 @@ export default function EditVersionDetails({
   invoiceId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat
@@ -49,6 +51,13 @@ export default function EditVersionDetails({
   const [selectedInvoice, setSelectedInvoice] = useState<IArInvoiceHd | null>(
     null
   )
+  const canViewInvoiceHistory = hasPermission(moduleId, transactionId, "isRead")
+
+  useEffect(() => {
+    if (!canViewInvoiceHistory) {
+      setSelectedInvoice(null)
+    }
+  }, [canViewInvoiceHistory])
 
   const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARInvoiceHistoryList<IArInvoiceHd[]>("14120250100024")
@@ -346,7 +355,11 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
+            onRowSelect={
+              canViewInvoiceHistory
+                ? (invoice) => setSelectedInvoice(invoice)
+                : undefined
+            }
           />
         </CardContent>
       </Card>

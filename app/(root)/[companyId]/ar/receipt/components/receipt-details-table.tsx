@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useParams } from "next/navigation"
 import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { useParams } from "next/navigation"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
@@ -38,6 +39,7 @@ export default function ReceiptDetailsTable({
 }: ReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
@@ -123,6 +125,14 @@ export default function ReceiptDetailsTable({
     )
   }
 
+  const canNavigateToTransaction = useCallback(
+    (transactionIdValue: number) => {
+      if (!Number.isFinite(transactionIdValue)) return false
+      return hasPermission(ModuleId.ar, transactionIdValue, "isRead")
+    },
+    [hasPermission]
+  )
+
   const getTargetPath = useCallback(
     (transactionIdValue: number): string | null => {
       if (!companyId) return null
@@ -160,7 +170,11 @@ export default function ReceiptDetailsTable({
       const transactionIdValue = Number(detail.transactionId)
       const documentNo = detail.documentNo?.toString().trim()
 
-      if (!documentNo || !Number.isFinite(transactionIdValue)) {
+      if (
+        !documentNo ||
+        !Number.isFinite(transactionIdValue) ||
+        !canNavigateToTransaction(transactionIdValue)
+      ) {
         return
       }
 
@@ -175,7 +189,7 @@ export default function ReceiptDetailsTable({
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }
     },
-    [getStorageKey, getTargetPath]
+    [canNavigateToTransaction, getStorageKey, getTargetPath]
   )
 
   // Define columns with visible prop checks - Receipt specific fields
@@ -196,13 +210,17 @@ export default function ReceiptDetailsTable({
       cell: ({ row }: { row: { original: IArReceiptDt } }) => {
         const docNo = row.original.documentNo?.toString().trim() || ""
         const isClickable = !!docNo
+        const transactionIdValue = Number(row.original.transactionId)
+        const canViewDocument =
+          isClickable && canNavigateToTransaction(transactionIdValue)
+
         const handleClick = () => {
-          if (isClickable) {
+          if (canViewDocument) {
             handleDocumentNavigation(row.original)
           }
         }
 
-        return isClickable ? (
+        return canViewDocument ? (
           <button
             type="button"
             onClick={handleClick}
@@ -210,6 +228,8 @@ export default function ReceiptDetailsTable({
           >
             {docNo}
           </button>
+        ) : docNo ? (
+          <span className="text-muted-foreground">{docNo}</span>
         ) : (
           "-"
         )
