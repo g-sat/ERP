@@ -10,9 +10,7 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
+  calculateAdjustmentHeaderTotals,
   recalculateAllDetailAmounts,
 } from "@/helpers/ar-adjustment-calculations"
 import { IArAdjustmentDt } from "@/interfaces"
@@ -394,42 +392,30 @@ export default function AdjustmentForm({
       form.setValue("totLocalAmt", 0)
       form.setValue("gstLocalAmt", 0)
       form.setValue("totLocalAmtAftGst", 0)
-      if (visible?.m_CtyCurr) {
-        form.setValue("totCtyAmt", 0)
-        form.setValue("gstCtyAmt", 0)
-        form.setValue("totCtyAmtAftGst", 0)
-      }
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
+      form.setValue("isDebit", false)
       return
     }
 
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    const headerTotals = calculateAdjustmentHeaderTotals(
       formDetails as unknown as IArAdjustmentDt[],
-      amtDec
+      decimals[0],
+      !!visible?.m_CtyCurr
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IArAdjustmentDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as IArAdjustmentDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
+    form.setValue("isDebit", headerTotals.isDebit)
+    form.setValue("totAmt", headerTotals.totAmt)
+    form.setValue("gstAmt", headerTotals.gstAmt)
+    form.setValue("totAmtAftGst", headerTotals.totAmtAftGst)
+    form.setValue("totLocalAmt", headerTotals.totLocalAmt)
+    form.setValue("gstLocalAmt", headerTotals.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", headerTotals.totLocalAmtAftGst)
+    form.setValue("totCtyAmt", headerTotals.totCtyAmt)
+    form.setValue("gstCtyAmt", headerTotals.gstCtyAmt)
+    form.setValue("totCtyAmtAftGst", headerTotals.totCtyAmtAftGst)
+  }, [decimals, form, visible?.m_CtyCurr])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
@@ -477,7 +463,6 @@ export default function AdjustmentForm({
     },
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
-
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0

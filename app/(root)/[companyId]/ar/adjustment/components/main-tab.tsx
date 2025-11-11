@@ -2,11 +2,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/ar-adjustment-calculations"
+import { calculateAdjustmentHeaderTotals } from "@/helpers/ar-adjustment-calculations"
 import { IArAdjustmentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
@@ -122,36 +118,32 @@ export default function Main({
       form.setValue("totCtyAmt", 0)
       form.setValue("gstCtyAmt", 0)
       form.setValue("totCtyAmtAftGst", 0)
+      form.setValue("isDebit", false)
       return
     }
 
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    const headerTotals = calculateAdjustmentHeaderTotals(
       dataDetails as unknown as IArAdjustmentDt[],
-      amtDec
+      decimals[0],
+      !!visible?.m_CtyCurr
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IArAdjustmentDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as IArAdjustmentDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+    form.setValue("isDebit", headerTotals.isDebit)
+    form.setValue("totAmt", headerTotals.totAmt)
+    form.setValue("gstAmt", headerTotals.gstAmt)
+    form.setValue("totAmtAftGst", headerTotals.totAmtAftGst)
+    form.setValue("totLocalAmt", headerTotals.totLocalAmt)
+    form.setValue("gstLocalAmt", headerTotals.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", headerTotals.totLocalAmtAftGst)
+    if (visible?.m_CtyCurr) {
+      form.setValue("totCtyAmt", headerTotals.totCtyAmt)
+      form.setValue("gstCtyAmt", headerTotals.gstCtyAmt)
+      form.setValue("totCtyAmtAftGst", headerTotals.totCtyAmtAftGst)
+    } else {
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
+    }
 
     // Trigger form validation to update UI
     form.trigger([
@@ -164,6 +156,7 @@ export default function Main({
       "totCtyAmt",
       "gstCtyAmt",
       "totCtyAmtAftGst",
+      "isDebit",
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
