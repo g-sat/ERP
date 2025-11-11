@@ -22,10 +22,10 @@ export interface IArDebitNoteHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+
   invoiceId: string
   invoiceNo: string
-  jobOrderId: number
-  jobOrderNo: string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -84,6 +84,17 @@ export interface IArDebitNoteHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
+  jobOrderId: number
+  jobOrderNo: string
+  vesselId: number
+  vesselCode: string
+  vesselName: string
+  portId: number
+  portCode: string
+  portName: string
+  serviceTypeId: number
+  serviceTypeName: string
   data_details: IArDebitNoteDt[]
 }
 

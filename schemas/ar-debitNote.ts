@@ -11,7 +11,7 @@ export const ArDebitNoteHdSchema = (
     debitNoteId: z.string().optional(),
     debitNoteNo: z.string().optional(),
     suppDebitNoteNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier DebitNote No is required")
+      ? z.string().min(1, "Supplier Credit Note No is required")
       : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
@@ -40,17 +40,9 @@ export const ArDebitNoteHdSchema = (
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
-
     // Invoice Fields
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-
-    // Job Order Fields
-    jobOrderId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Job Order is required")
-        : z.number().optional(),
-    jobOrderNo: z.string().optional(),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
@@ -108,7 +100,7 @@ export const ArDebitNoteHdSchema = (
     contactName: z.string().optional(),
     mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().optional()
       : z.string().optional(),
 
     // Customer Details
@@ -122,15 +114,30 @@ export const ArDebitNoteHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+
+    // Job Order Fields
+    jobOrderId: z.number().optional(),
+    jobOrderNo: z.string().optional(),
+
+    // Vessel Fields
+    vesselId: z.number().optional(),
+
+    // Port Fields
+    portId: z.number().optional(),
+
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
 
     // Nested Details
     data_details: z
       .array(ArDebitNoteDtSchema(required, visible))
-      .min(1, "At least one debitNote detail is required"),
+      .min(1, "At least one invoice detail is required"),
   })
 }
 
