@@ -1,5 +1,5 @@
 import { ApiResponse } from "@/interfaces/auth"
-import { useQuery } from "@tanstack/react-query"
+import { UseQueryOptions, useQuery } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
 import { HistoryDetails } from "@/lib/api-routes"
@@ -67,5 +67,45 @@ export function useGetPaymentDetails<T>(
     gcTime: 0,
     staleTime: 0,
     ...options,
+  })
+}
+
+/**
+ * 3. Customer Invoice Lookup
+ * --------------------------
+ * 3.1 Get customer invoices by customer and currency
+ * @param {number} customerId - Customer ID
+ * @param {number} currencyId - Currency ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice list
+ */
+export function useGetCustomerInvoices<T>(
+  customerId?: number,
+  currencyId?: number,
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
+) {
+  const { enabled, ...restOptions } = options || {}
+
+  const isBaseEnabled =
+    !!customerId &&
+    customerId > 0 &&
+    !!currencyId &&
+    currencyId > 0 &&
+    (enabled ?? true)
+
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["customer-invoices", customerId, currencyId],
+    queryFn: async () => {
+      return await getData(
+        `${HistoryDetails.getInvoice}/${customerId}/${currencyId}`
+      )
+    },
+    enabled: isBaseEnabled,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...restOptions,
   })
 }

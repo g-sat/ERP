@@ -15,7 +15,7 @@ import {
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
 } from "@/helpers/ar-creditNote-calculations"
-import { IArCreditNoteDt } from "@/interfaces"
+import { IArCreditNoteDt, IArCustomerInvoice } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
@@ -27,7 +27,9 @@ import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArCreditNoteDtSchemaType, ArCreditNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { format, isValid, parse } from "date-fns"
+import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
+import { toast } from "sonner"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useGetDynamicLookup } from "@/hooks/use-lookup"
@@ -42,6 +44,8 @@ import {
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
+import InvoiceSelectionDialog from "@/components/common/invoice-selection-dialog"
+import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -100,6 +104,18 @@ export default function CreditNoteForm({
     control: form.control,
     name: "accountDate",
   })
+  const customerIdValue = useWatch({
+    control: form.control,
+    name: "customerId",
+  })
+  const currencyIdValue = useWatch({
+    control: form.control,
+    name: "currencyId",
+  })
+  const invoiceIdValue = useWatch({
+    control: form.control,
+    name: "invoiceId",
+  })
   const dueDateMinDate = React.useMemo(() => {
     if (!accountDateValue) return new Date()
 
@@ -114,9 +130,41 @@ export default function CreditNoteForm({
       : new Date()
   }, [accountDateValue, parseWithFallback])
 
+  const isCustomerCurrencyLocked = React.useMemo(() => {
+    if (invoiceIdValue === undefined || invoiceIdValue === null) {
+      return false
+    }
+
+    if (typeof invoiceIdValue === "string") {
+      const trimmed = invoiceIdValue.trim()
+      return trimmed.length > 0 && trimmed !== "0"
+    }
+
+    if (typeof invoiceIdValue === "number") {
+      return invoiceIdValue !== 0
+    }
+
+    return Boolean(invoiceIdValue)
+  }, [invoiceIdValue])
+
+  const customerIdNumeric = React.useMemo(
+    () => Number(customerIdValue || 0),
+    [customerIdValue]
+  )
+  const currencyIdNumeric = React.useMemo(
+    () => Number(currencyIdValue || 0),
+    [currencyIdValue]
+  )
+  const canSelectInvoice = React.useMemo(
+    () => customerIdNumeric > 0 && currencyIdNumeric > 0,
+    [customerIdNumeric, currencyIdNumeric]
+  )
+
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
   const originalCtyExhRateRef = React.useRef<number>(0)
+
+  const [showInvoiceDialog, setShowInvoiceDialog] = React.useState(false)
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -487,6 +535,67 @@ export default function CreditNoteForm({
     )
   }, [form])
 
+  // Handle add invoice no to button click
+  const handleAddInvoiceNo = React.useCallback(() => {
+    const selectedCustomerId = Number(form.getValues("customerId") || 0)
+    if (!selectedCustomerId) {
+      toast.error("Select customer", {
+        description: "Choose a customer before selecting an invoice.",
+      })
+      return
+    }
+
+    const selectedCurrencyId = Number(form.getValues("currencyId") || 0)
+    if (!selectedCurrencyId) {
+      toast.error("Select currency", {
+        description: "Choose a currency before selecting an invoice.",
+      })
+      return
+    }
+
+    setShowInvoiceDialog(true)
+  }, [form])
+
+  const handleInvoiceInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value ?? ""
+      if (value.trim().length === 0) {
+        form.setValue("invoiceId", "0", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+        form.setValue("invoiceNo", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+      } else {
+        form.setValue("invoiceId", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+      }
+    },
+    [form]
+  )
+
+  const handleInvoiceSelected = React.useCallback(
+    (invoice: IArCustomerInvoice) => {
+      const invoiceId = invoice.invoiceId ? String(invoice.invoiceId) : ""
+      const invoiceNo = invoice.invoiceNo ?? ""
+
+      form.setValue("invoiceId", invoiceId, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.setValue("invoiceNo", invoiceNo, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.trigger(["invoiceId", "invoiceNo"])
+    },
+    [form]
+  )
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (value: number) => {
@@ -647,6 +756,7 @@ export default function CreditNoteForm({
               label="Customer-D"
               isRequired={true}
               onChangeEvent={handleCustomerChange}
+              isDisabled={isCustomerCurrencyLocked}
             />
           ) : (
             <CustomerAutocomplete
@@ -655,6 +765,7 @@ export default function CreditNoteForm({
               label="Customer-S"
               isRequired={true}
               onChangeEvent={handleCustomerChange}
+              isDisabled={isCustomerCurrencyLocked}
             />
           )}
 
@@ -704,9 +815,6 @@ export default function CreditNoteForm({
             />
           )}
 
-          {/* Invoice */}
-          <CustomInput form={form} name="invoiceNo" label="Invoice" />
-
           {/* Currency */}
           <CurrencyAutocomplete
             form={form}
@@ -714,6 +822,7 @@ export default function CreditNoteForm({
             label="Currency"
             isRequired={true}
             onChangeEvent={handleCurrencyChange}
+            isDisabled={isCustomerCurrencyLocked}
           />
 
           {/* Exchange Rate */}
@@ -742,6 +851,21 @@ export default function CreditNoteForm({
               />
             </>
           )}
+
+          {/* Invoice */}
+          <CustomInputGroup
+            form={form}
+            name="invoiceNo"
+            label="Invoice"
+            isRequired={false}
+            buttonText=""
+            buttonIcon={<PlusIcon className="h-4 w-4" />}
+            buttonPosition="right"
+            onButtonClick={handleAddInvoiceNo}
+            buttonVariant="default"
+            buttonDisabled={!canSelectInvoice}
+            onChangeEvent={handleInvoiceInputChange}
+          />
 
           {/* Delivery Date */}
           {visible?.m_DeliveryDate && (
@@ -953,6 +1077,13 @@ export default function CreditNoteForm({
           </div>
         </div>
       </form>
+      <InvoiceSelectionDialog
+        open={showInvoiceDialog}
+        onOpenChange={setShowInvoiceDialog}
+        customerId={customerIdNumeric}
+        currencyId={currencyIdNumeric}
+        onSelect={handleInvoiceSelected}
+      />
     </FormProvider>
   )
 }
