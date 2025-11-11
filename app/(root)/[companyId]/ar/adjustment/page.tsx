@@ -9,9 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
+  calculateAdjustmentHeaderTotals,
   recalculateAllDetailAmounts,
 } from "@/helpers/ar-adjustment-calculations"
 import {
@@ -552,53 +550,22 @@ export default function AdjustmentPage() {
       const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
       const details = clonedAdjustment.data_details || []
-      if (details.length > 0) {
-        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
-        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
-        const totLocalAmt = details.reduce(
-          (sum, d) => sum + (d.totLocalAmt || 0),
-          0
-        )
-        const gstLocalAmt = details.reduce(
-          (sum, d) => sum + (d.gstLocalAmt || 0),
-          0
-        )
-        const totCtyAmt = details.reduce(
-          (sum, d) => sum + (d.totCtyAmt || 0),
-          0
-        )
-        const gstCtyAmt = details.reduce(
-          (sum, d) => sum + (d.gstCtyAmt || 0),
-          0
-        )
+      const headerTotals = calculateAdjustmentHeaderTotals(
+        details as unknown as IArAdjustmentDt[],
+        decimals[0],
+        !!visible?.m_CtyCurr
+      )
 
-        clonedAdjustment.totAmt = mathRound(totAmt, amtDec)
-        clonedAdjustment.gstAmt = mathRound(gstAmt, amtDec)
-        clonedAdjustment.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
-        clonedAdjustment.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
-        clonedAdjustment.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
-        clonedAdjustment.totLocalAmtAftGst = mathRound(
-          totLocalAmt + gstLocalAmt,
-          locAmtDec
-        )
-        clonedAdjustment.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
-        clonedAdjustment.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
-        clonedAdjustment.totCtyAmtAftGst = mathRound(
-          totCtyAmt + gstCtyAmt,
-          ctyAmtDec
-        )
-      } else {
-        // Reset amounts if no details
-        clonedAdjustment.totAmt = 0
-        clonedAdjustment.totLocalAmt = 0
-        clonedAdjustment.totCtyAmt = 0
-        clonedAdjustment.gstAmt = 0
-        clonedAdjustment.gstLocalAmt = 0
-        clonedAdjustment.gstCtyAmt = 0
-        clonedAdjustment.totAmtAftGst = 0
-        clonedAdjustment.totLocalAmtAftGst = 0
-        clonedAdjustment.totCtyAmtAftGst = 0
-      }
+      clonedAdjustment.isDebit = headerTotals.isDebit
+      clonedAdjustment.totAmt = headerTotals.totAmt
+      clonedAdjustment.gstAmt = headerTotals.gstAmt
+      clonedAdjustment.totAmtAftGst = headerTotals.totAmtAftGst
+      clonedAdjustment.totLocalAmt = headerTotals.totLocalAmt
+      clonedAdjustment.gstLocalAmt = headerTotals.gstLocalAmt
+      clonedAdjustment.totLocalAmtAftGst = headerTotals.totLocalAmtAftGst
+      clonedAdjustment.totCtyAmt = headerTotals.totCtyAmt
+      clonedAdjustment.gstCtyAmt = headerTotals.gstCtyAmt
+      clonedAdjustment.totCtyAmtAftGst = headerTotals.totCtyAmtAftGst
 
       setAdjustment(clonedAdjustment)
       form.reset(clonedAdjustment)
@@ -637,31 +604,27 @@ export default function AdjustmentPage() {
             )
 
             // Recalculate header totals from updated details
-            const totals = calculateTotalAmounts(
+            const headerTotalsAfterRecalc = calculateAdjustmentHeaderTotals(
               updatedDetails as unknown as IArAdjustmentDt[],
-              amtDec
+              decimals[0],
+              !!visible?.m_CtyCurr
             )
-            form.setValue("totAmt", totals.totAmt)
-            form.setValue("gstAmt", totals.gstAmt)
-            form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-            const localAmounts = calculateLocalAmounts(
-              updatedDetails as unknown as IArAdjustmentDt[],
-              locAmtDec
+            form.setValue("isDebit", headerTotalsAfterRecalc.isDebit)
+            form.setValue("totAmt", headerTotalsAfterRecalc.totAmt)
+            form.setValue("gstAmt", headerTotalsAfterRecalc.gstAmt)
+            form.setValue("totAmtAftGst", headerTotalsAfterRecalc.totAmtAftGst)
+            form.setValue("totLocalAmt", headerTotalsAfterRecalc.totLocalAmt)
+            form.setValue("gstLocalAmt", headerTotalsAfterRecalc.gstLocalAmt)
+            form.setValue(
+              "totLocalAmtAftGst",
+              headerTotalsAfterRecalc.totLocalAmtAftGst
             )
-            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-            if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
-                updatedDetails as unknown as IArAdjustmentDt[],
-                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-              )
-              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-            }
+            form.setValue("totCtyAmt", headerTotalsAfterRecalc.totCtyAmt)
+            form.setValue("gstCtyAmt", headerTotalsAfterRecalc.gstCtyAmt)
+            form.setValue(
+              "totCtyAmtAftGst",
+              headerTotalsAfterRecalc.totCtyAmtAftGst
+            )
           }
         } catch (error) {
           console.error("Error updating exchange rates:", error)
@@ -1613,7 +1576,7 @@ export default function AdjustmentPage() {
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
                 >
-                  {titleText}
+                  {titleText} - {adjustment?.isDebit ? "Debit" : "Credit"}
                 </span>
               </span>
             </h1>

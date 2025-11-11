@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -131,6 +132,19 @@ export default function AdjustmentDetailsTable({
           },
         ]
       : []),
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      size: 100,
+      cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
+        <div className="flex justify-center">
+          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+            {row.original.isDebit ? "Debit" : "Credit"}
+          </Badge>
+        </div>
+      ),
+    },
+
     ...(visible?.m_UnitPrice
       ? [
           {
