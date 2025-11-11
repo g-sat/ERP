@@ -49,6 +49,7 @@ export default function ArOutStandingTransactionsDialog({
   )
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
+  const [tableKey, setTableKey] = useState(0)
 
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -170,6 +171,14 @@ export default function ArOutStandingTransactionsDialog({
     // State updates are safe and loading state will always be reset
   }, [open, customerId, currencyId, accountDate, dateFormat])
 
+  // Force remount of transactions table and clear selection whenever dialog opens
+  useEffect(() => {
+    if (open) {
+      setTableKey((prev) => prev + 1)
+      setSelectedTransactions([])
+    }
+  }, [open])
+
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
     (selectedIds: string[], transactions: IArOutTransaction[]) => {
@@ -238,9 +247,17 @@ export default function ArOutStandingTransactionsDialog({
       onAddSelected(selectedTransactionsData)
     }
 
+    const remainingTransactions = outTransactions.filter(
+      (transaction) =>
+        !newlySelectedIds.includes(transaction.documentId.toString())
+    )
+    setOutTransactions(remainingTransactions)
+
     // Reset selection and close dialog
     setSelectedTransactions([])
-    onOpenChangeAction(false)
+    if (remainingTransactions.length === 0) {
+      onOpenChangeAction(false)
+    }
   }, [
     selectedTransactions,
     outTransactions,
@@ -298,14 +315,7 @@ export default function ArOutStandingTransactionsDialog({
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button
-              onClick={handleAddSelected}
-              disabled={
-                selectedTransactions.filter(
-                  (docId) => !existingDocumentIds.includes(Number(docId))
-                ).length === 0
-              }
-            >
+            <Button onClick={handleAddSelected}>
               Add Selected (
               {
                 selectedTransactions.filter(
@@ -333,6 +343,7 @@ export default function ArOutStandingTransactionsDialog({
             </div>
           ) : (
             <ArOutStandingTransactionsTable
+              key={tableKey}
               data={outTransactions}
               visible={visible}
               onRefresh={handleRefresh}

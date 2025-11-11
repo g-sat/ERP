@@ -146,7 +146,7 @@ export default function CreditNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/creditNote`,
+    () => `history-doc:/${companyId}/ar/creditnote`,
     [companyId]
   )
 

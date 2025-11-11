@@ -146,7 +146,7 @@ export default function DebitNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/debitNote`,
+    () => `history-doc:/${companyId}/ar/debitnote`,
     [companyId]
   )
 
@@ -163,8 +163,11 @@ export default function DebitNotePage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
+          console.log("trimmed", trimmed)
           setPendingDocNo(trimmed)
           setSearchNo(trimmed)
+          console.log("setPendingDocNo", trimmed)
+          console.log("setSearchNo", trimmed)
         }
       }
     }
