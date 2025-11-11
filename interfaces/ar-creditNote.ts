@@ -23,6 +23,9 @@ export interface IArCreditNoteHd {
   bankCode: null | string | number
   bankName: null | string
 
+  invoiceId: string
+  invoiceNo: string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -92,8 +95,6 @@ export interface IArCreditNoteHd {
   portName: string
   serviceTypeId: number
   serviceTypeName: string
-  otherRemarks: string
-  advRecAmt: number
   data_details: IArCreditNoteDt[]
 }
 
