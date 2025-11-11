@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
-  mathRound,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
@@ -53,6 +52,7 @@ import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -543,11 +543,6 @@ export default function AdjustmentPage() {
             editVersion: 0,
           })) || [],
       }
-
-      // Calculate totals from details with proper rounding
-      const amtDec = decimals[0]?.amtDec || 2
-      const locAmtDec = decimals[0]?.locAmtDec || 2
-      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
       const details = clonedAdjustment.data_details || []
       const headerTotals = calculateAdjustmentHeaderTotals(
@@ -1474,6 +1469,9 @@ export default function AdjustmentPage() {
   const isEdit = Boolean(adjustmentNo)
   const isCancelled = adjustment?.isCancel === true
 
+  const headerIsDebit = form.watch("isDebit")
+  const headerDebitLabel = headerIsDebit ? "Debit" : "Credit"
+
   // Calculate payment status only if not cancelled
   const balAmt = adjustment?.balAmt ?? 0
   const payAmt = adjustment?.payAmt ?? 0
@@ -1580,6 +1578,11 @@ export default function AdjustmentPage() {
                 </span>
               </span>
             </h1>
+
+            <Badge variant={headerIsDebit ? "default" : "destructive"}>
+              {headerDebitLabel}
+            </Badge>
+
             {isEdit && (
               <Button
                 variant="ghost"
