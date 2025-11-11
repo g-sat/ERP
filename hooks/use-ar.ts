@@ -5,6 +5,7 @@ import { getById, getData } from "@/lib/api-client"
 import {
   ArAdjustment,
   ArCreditNote,
+  ArDebitNote,
   ArInvoice,
   ArReceipt,
 } from "@/lib/api-routes"
@@ -143,6 +144,62 @@ export function useGetARCreditNoteHistoryDetails<T>(
       )
     },
     enabled: !!creditNoteId && creditNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AR Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetARDebitNoteHistoryList<T>(
+  debitNoteId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-debitnote-history-list", debitNoteId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArDebitNote.history}/${debitNoteId}`)
+    },
+    enabled: !!debitNoteId && debitNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AR Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetARDebitNoteHistoryDetails<T>(
+  debitNoteId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-debitnote-history-details", debitNoteId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArDebitNote.historyDetails}/${debitNoteId}/${editVersion}`
+      )
+    },
+    enabled: !!debitNoteId && debitNoteId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
