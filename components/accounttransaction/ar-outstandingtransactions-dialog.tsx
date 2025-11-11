@@ -25,7 +25,7 @@ import ArOutStandingTransactionsTable from "./ar-outstandingtransactions-table"
 
 interface ArOutStandingTransactionsDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   customerId?: number
   currencyId?: number
   accountDate?: string
@@ -36,7 +36,7 @@ interface ArOutStandingTransactionsDialogProps {
 
 export default function ArOutStandingTransactionsDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   customerId,
   currencyId,
   accountDate,
@@ -69,22 +69,6 @@ export default function ArOutStandingTransactionsDialog({
   // Use ref to prevent duplicate API calls
   const isLoadingRef = useRef(false)
   const lastLoadParamsRef = useRef<string>("")
-
-  // Initialize selected transactions with existing ones when dialog opens
-  useEffect(() => {
-    if (
-      open &&
-      outTransactions.length > 0 &&
-      selectedTransactions.length === 0
-    ) {
-      setSelectedTransactions(existingDocumentIds.map(String))
-    }
-  }, [
-    open,
-    outTransactions.length,
-    existingDocumentIds,
-    selectedTransactions.length,
-  ])
 
   // Load transactions when dialog opens
   useEffect(() => {
@@ -123,7 +107,7 @@ export default function ArOutStandingTransactionsDialog({
         setIsLoading(false)
         isLoadingRef.current = false
         setOutTransactions([])
-      }, 30000) // 30 second timeout
+      }, 3000) // 30 second timeout
 
       try {
         const parsedAccountDate = (() => {
@@ -151,10 +135,7 @@ export default function ArOutStandingTransactionsDialog({
         clearTimeout(timeoutId)
 
         if (response?.result === 1) {
-          // Show all transactions (don't filter)
-          const allTransactions = response.data || []
-
-          setOutTransactions(allTransactions)
+          setOutTransactions(response.data || [])
         } else {
           setOutTransactions([])
           const errorMsg = response?.message || "Failed to load transactions"
@@ -187,7 +168,7 @@ export default function ArOutStandingTransactionsDialog({
 
     // No cleanup function - let the request complete naturally
     // State updates are safe and loading state will always be reset
-  }, [open, customerId, currencyId, accountDate])
+  }, [open, customerId, currencyId, accountDate, dateFormat])
 
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
@@ -243,7 +224,7 @@ export default function ArOutStandingTransactionsDialog({
     )
 
     if (newlySelectedIds.length === 0) {
-      onOpenChange(false)
+      onOpenChangeAction(false)
       return
     }
 
@@ -259,19 +240,19 @@ export default function ArOutStandingTransactionsDialog({
 
     // Reset selection and close dialog
     setSelectedTransactions([])
-    onOpenChange(false)
+    onOpenChangeAction(false)
   }, [
     selectedTransactions,
     outTransactions,
     onAddSelected,
-    onOpenChange,
+    onOpenChangeAction,
     existingDocumentIds,
   ])
 
   const handleCancel = useCallback(() => {
     setSelectedTransactions([])
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChangeAction(false)
+  }, [onOpenChangeAction])
 
   const handleRefresh = useCallback(() => {
     // Refresh is handled by the useEffect when dialog opens
@@ -284,7 +265,7 @@ export default function ArOutStandingTransactionsDialog({
   }, [])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="flex h-[80vh] w-[80vw] !max-w-none flex-col overflow-y-auto rounded-lg">
         <DialogHeader>
           <DialogTitle>AR Transaction List</DialogTitle>
@@ -358,7 +339,6 @@ export default function ArOutStandingTransactionsDialog({
               onFilterChange={handleFilterChange}
               onSelect={handleSelect}
               onBulkSelectionChange={handleBulkSelectionChange}
-              initialSelectedIds={existingDocumentIds.map(String)}
             />
           )}
         </div>

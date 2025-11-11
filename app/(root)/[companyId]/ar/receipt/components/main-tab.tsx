@@ -699,7 +699,7 @@ export default function Main({
       {showTransactionDialog && dialogParamsRef.current && (
         <ArOutStandingTransactionsDialog
           open={showTransactionDialog}
-          onOpenChange={setShowTransactionDialog}
+          onOpenChangeAction={setShowTransactionDialog}
           customerId={dialogParamsRef.current.customerId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
