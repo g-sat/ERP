@@ -61,18 +61,7 @@ import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 // Hook to get grid layout settings
 // UI components for table structure
-import {
-  Table,
-  // Main table component
-  TableBody,
-  // Table body component
-  TableCell,
-  // Table row component
-  TableHeader,
-  // Table header component (renamed to avoid conflicts)
-  // Table cell component
-  TableRow,
-} from "@/components/ui/table"
+import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
 
 // Custom table components
 import { SortableTableHeader } from "./sortable-table-header"
@@ -250,10 +239,8 @@ export function MainTable<T>({
   const [currentPage, setCurrentPage] = useState(propCurrentPage || 1) // Current page number
   const [pageSize, setPageSize] = useState(propPageSize || 50) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
-  // Refs for custom horizontal scrollbar
+  // Shared scroll container ref
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const customScrollbarRef = useRef<HTMLDivElement>(null)
-  const customThumbRef = useRef<HTMLDivElement>(null)
   // ============================================================================
   // EFFECT: UPDATE STATE WHEN GRID SETTINGS CHANGE
   // ============================================================================
@@ -545,94 +532,7 @@ export function MainTable<T>({
     setColumnSizing({})
   }, [table])
 
-  // ============================================================================
-  // CUSTOM HORIZONTAL SCROLLBAR FUNCTIONALITY
-  // ============================================================================
-  /**
-   * Custom vertical scrollbar for horizontal scrolling
-   * Maps horizontal scroll position to vertical thumb position
-   */
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current
-    const customScrollbar = customScrollbarRef.current
-    const customThumb = customThumbRef.current
-
-    if (!scrollContainer || !customScrollbar || !customThumb) return
-
-    const updateThumbPosition = () => {
-      const scrollWidth = scrollContainer.scrollWidth
-      const clientWidth = scrollContainer.clientWidth
-      const scrollLeft = scrollContainer.scrollLeft
-      const maxScroll = scrollWidth - clientWidth
-
-      if (maxScroll <= 0) {
-        // No scrolling needed, hide scrollbar
-        customScrollbar.style.display = "none"
-        return
-      }
-
-      customScrollbar.style.display = "block"
-      const scrollRatio = scrollLeft / maxScroll
-      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
-      customThumb.style.top = `${scrollRatio * maxThumbTop}px`
-    }
-
-    // Initial update
-    updateThumbPosition()
-
-    // Update on scroll
-    scrollContainer.addEventListener("scroll", updateThumbPosition)
-
-    // Update on resize
-    const resizeObserver = new ResizeObserver(updateThumbPosition)
-    resizeObserver.observe(scrollContainer)
-
-    // Drag functionality
-    let isDragging = false
-    let startY = 0
-    let startTop = 0
-
-    const handleMouseDown = (e: MouseEvent) => {
-      isDragging = true
-      startY = e.clientY
-      startTop = parseFloat(customThumb.style.top) || 0
-      e.preventDefault()
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return
-
-      const delta = e.clientY - startY
-      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
-      let newTop = startTop + delta
-      newTop = Math.min(Math.max(newTop, 0), maxThumbTop)
-
-      customThumb.style.top = `${newTop}px`
-
-      // Map thumb vertical position back to horizontal scrollLeft
-      const scrollRatio = newTop / maxThumbTop
-      const scrollWidth = scrollContainer.scrollWidth
-      const clientWidth = scrollContainer.clientWidth
-      const maxScroll = scrollWidth - clientWidth
-      scrollContainer.scrollLeft = scrollRatio * maxScroll
-    }
-
-    const handleMouseUp = () => {
-      isDragging = false
-    }
-
-    customScrollbar.addEventListener("mousedown", handleMouseDown)
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("mouseup", handleMouseUp)
-
-    return () => {
-      scrollContainer.removeEventListener("scroll", updateThumbPosition)
-      resizeObserver.disconnect()
-      customScrollbar.removeEventListener("mousedown", handleMouseDown)
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mouseup", handleMouseUp)
-    }
-  }, [data])
+  // Use native scrollbars (always visible)
 
   // ============================================================================
   // RENDER SECTION
@@ -678,18 +578,12 @@ export function MainTable<T>({
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="overflow-x-auto overflow-y-hidden rounded-lg border [&::-webkit-scrollbar]:hidden"
+            className="max-h-[460px] overflow-x-scroll overflow-y-scroll rounded-lg border text-xs"
             style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
+              scrollbarGutter: "stable",
             }}
           >
-            {/* Fixed header table with column sizing */}
-            <Table
-              className="w-full table-fixed border-collapse"
-              style={{ minWidth: "100%" }}
-            >
-              {/* Column group for consistent sizing */}
+            <table className="w-full table-fixed border-collapse text-xs" style={{ minWidth: "100%" }}>
               <colgroup>
                 {table.getAllLeafColumns().map((col) => (
                   <col
@@ -698,51 +592,37 @@ export function MainTable<T>({
                       width: `${col.getSize()}px`,
                       minWidth: `${col.getSize()}px`,
                       maxWidth: `${col.getSize()}px`,
-                    }} // Set column width from table state
+                    }}
                   />
                 ))}
               </colgroup>
-              {/* Sticky table header */}
               <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
-                    {/* Sortable context for drag and drop */}
                     <SortableContext
-                      items={headerGroup.headers.map((header) => header.id)} // Column IDs for sorting
-                      strategy={horizontalListSortingStrategy} // Horizontal sorting strategy
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
                     >
-                      {/* Render each sortable header */}
-                      {headerGroup.headers.map((header) => (
-                        <SortableTableHeader key={header.id} header={header} />
-                      ))}
+                      {headerGroup.headers.map((header, headerIndex) => {
+                        const isFirst = headerIndex === 0 || header.id === "actions"
+                        return (
+                          <SortableTableHeader
+                            key={header.id}
+                            header={header}
+                            className={isFirst ? "bg-background sticky left-0 z-20" : ""}
+                            style={
+                              isFirst
+                                ? { position: "sticky", left: 0, zIndex: 20 }
+                                : undefined
+                            }
+                          />
+                        )
+                      })}
                     </SortableContext>
                   </TableRow>
                 ))}
               </TableHeader>
-            </Table>
-            {/* Scrollable body container */}
-            <div
-              className="max-h-[460px] overflow-y-auto" // Allow vertical scrolling if needed
-            >
-              {/* Body table with same column sizing as header */}
-              <Table
-                className="w-full table-fixed border-collapse"
-                style={{ minWidth: "100%" }}
-              >
-                {/* Column group matching header for alignment */}
-                <colgroup>
-                  {table.getAllLeafColumns().map((col) => (
-                    <col
-                      key={col.id}
-                      style={{
-                        width: `${col.getSize()}px`,
-                        minWidth: `${col.getSize()}px`,
-                        maxWidth: `${col.getSize()}px`,
-                      }} // Match header column widths
-                    />
-                  ))}
-                </colgroup>
-                <TableBody>
+              <TableBody>
                   {/* ============================================================================
                     DATA ROWS RENDERING
                     ============================================================================ */}
@@ -844,25 +724,10 @@ export function MainTable<T>({
                       </TableCell>
                     </TableRow>
                   )}
-                </TableBody>
-              </Table>
-            </div>
+              </TableBody>
+            </table>
           </div>
-        {/* Custom vertical scrollbar for horizontal scrolling */}
-        <div
-          ref={customScrollbarRef}
-          className="absolute top-0 right-0 h-full w-3 bg-gray-200 dark:bg-gray-700 cursor-pointer select-none z-30 rounded-r-lg"
-          style={{ display: "none" }}
-        >
-          <div
-            ref={customThumbRef}
-            className="absolute w-full bg-gray-600 dark:bg-gray-500 rounded cursor-pointer"
-            style={{
-              height: "40px",
-              top: "0",
-            }}
-          />
-        </div>
+        {/* Native scrollbars are used; no custom overlay */}
       </div>
     </DndContext>
       {/* ============================================================================

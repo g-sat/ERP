@@ -170,3 +170,42 @@ Updated the empty rows logic to ensure a minimum of 5 total rows (data + empty),
 - When there are 5 or more data rows, no empty rows are added to keep the table clean and focused on actual data
 - This logic applies to both dialog tables (like bank list) and main page tables
 
+---
+
+# Fix Log: Table Header/Body Scroll Sync in Dialogs
+
+## Date
+2024-12-19
+
+## Issue Type
+UI Behavior / Scroll Sync
+
+## Problem Description
+In the AR Invoice list dialog, the table header and the body rows were scrolling independently horizontally, causing misalignment during navigation.
+
+## Root Cause
+The dialog table rendered the header table and the body table separately with different scrollable containers, so horizontal scrolling was not consistently applied to both at the same time.
+
+## Solution
+- Unified horizontal scrolling by introducing a single horizontal scroll container wrapping both header and body tables.
+- Kept the header sticky for vertical positioning, but ensured both header and body live within the same horizontal scroll container.
+- Implemented a custom vertical scrollbar that maps to the horizontal scroll position to improve UX (applies consistently to dialogs and main tables).
+
+## Files Modified
+- `components/table/table-dialog.tsx`
+  - Wrapped header and body tables in a shared horizontal scroll container (`div` with `overflow-x-auto`) and added the custom scrollbar.
+- `components/table/table-main.tsx`
+  - Applied the same structure and custom scrollbar to ensure consistent behavior across non-dialog tables.
+
+## Behavior After Fix
+- Header and body now scroll together horizontally in AR Invoice dialog and any other dialog using `DialogDataTable`.
+- Sticky header remains correctly aligned while vertically scrolling rows.
+
+## Testing
+- Verified in AR Invoice dialog: header and rows move together during horizontal scroll.
+- Spot check on other list dialogs and main tables that use the shared components confirmed consistent behavior.
+
+## Impact
+- Global improvement for all tables using `DialogDataTable` and `MainTable`.
+- No breaking changes. UX aligned and consistent across modules.
+

@@ -34,7 +34,6 @@ import { useGetGridLayout } from "@/hooks/use-settings"
 // Virtual scrolling removed - using empty rows instead
 
 import {
-  Table,
   TableBody,
   TableCell,
   TableHeader,
@@ -135,11 +134,8 @@ export function DialogDataTable<T>({
   const [currentPage, setCurrentPage] = useState(propCurrentPage || 1)
   const [pageSize, setPageSize] = useState(propPageSize || 50)
   const [rowSelection, setRowSelection] = useState({})
-
-  // Refs for custom horizontal scrollbar
+  // Shared scroll container ref
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const customScrollbarRef = useRef<HTMLDivElement>(null)
-  const customThumbRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (gridSettingsData) {
@@ -347,88 +343,7 @@ export function DialogDataTable<T>({
     setColumnSizing({})
   }, [table])
 
-  // Custom horizontal scrollbar functionality
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current
-    const customScrollbar = customScrollbarRef.current
-    const customThumb = customThumbRef.current
-
-    if (!scrollContainer || !customScrollbar || !customThumb) return
-
-    const updateThumbPosition = () => {
-      const scrollWidth = scrollContainer.scrollWidth
-      const clientWidth = scrollContainer.clientWidth
-      const scrollLeft = scrollContainer.scrollLeft
-      const maxScroll = scrollWidth - clientWidth
-
-      if (maxScroll <= 0) {
-        // No scrolling needed, hide scrollbar
-        customScrollbar.style.display = "none"
-        return
-      }
-
-      customScrollbar.style.display = "block"
-      const scrollRatio = scrollLeft / maxScroll
-      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
-      customThumb.style.top = `${scrollRatio * maxThumbTop}px`
-    }
-
-    // Initial update
-    updateThumbPosition()
-
-    // Update on scroll
-    scrollContainer.addEventListener("scroll", updateThumbPosition)
-
-    // Update on resize
-    const resizeObserver = new ResizeObserver(updateThumbPosition)
-    resizeObserver.observe(scrollContainer)
-
-    // Drag functionality
-    let isDragging = false
-    let startY = 0
-    let startTop = 0
-
-    const handleMouseDown = (e: MouseEvent) => {
-      isDragging = true
-      startY = e.clientY
-      startTop = parseFloat(customThumb.style.top) || 0
-      e.preventDefault()
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return
-
-      const delta = e.clientY - startY
-      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
-      let newTop = startTop + delta
-      newTop = Math.min(Math.max(newTop, 0), maxThumbTop)
-
-      customThumb.style.top = `${newTop}px`
-
-      // Map thumb vertical position back to horizontal scrollLeft
-      const scrollRatio = newTop / maxThumbTop
-      const scrollWidth = scrollContainer.scrollWidth
-      const clientWidth = scrollContainer.clientWidth
-      const maxScroll = scrollWidth - clientWidth
-      scrollContainer.scrollLeft = scrollRatio * maxScroll
-    }
-
-    const handleMouseUp = () => {
-      isDragging = false
-    }
-
-    customScrollbar.addEventListener("mousedown", handleMouseDown)
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("mouseup", handleMouseUp)
-
-    return () => {
-      scrollContainer.removeEventListener("scroll", updateThumbPosition)
-      resizeObserver.disconnect()
-      customScrollbar.removeEventListener("mousedown", handleMouseDown)
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mouseup", handleMouseUp)
-    }
-  }, [data])
+  // No custom scrollbar; use native scrollbars (always visible)
 
   return (
     <>
@@ -455,16 +370,12 @@ export function DialogDataTable<T>({
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="overflow-x-auto overflow-y-hidden rounded-lg border [&::-webkit-scrollbar]:hidden"
+            className="max-h-[480px] overflow-x-scroll overflow-y-scroll rounded-lg border text-xs"
             style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
+              scrollbarGutter: "stable",
             }}
           >
-            <Table
-              className="w-full table-fixed border-collapse"
-              style={{ minWidth: "100%" }}
-            >
+            <table className="w-full table-fixed border-collapse text-xs" style={{ minWidth: "100%" }}>
               <colgroup>
                 {table.getAllLeafColumns().map((col) => (
                   <col
@@ -485,151 +396,118 @@ export function DialogDataTable<T>({
                       items={headerGroup.headers.map((header) => header.id)}
                       strategy={horizontalListSortingStrategy}
                     >
-                      {headerGroup.headers.map((header) => (
-                        <SortableTableHeader key={header.id} header={header} />
-                      ))}
+                      {headerGroup.headers.map((header, headerIndex) => {
+                        const isFirst = headerIndex === 0 || header.id === "actions"
+                        return (
+                          <SortableTableHeader
+                            key={header.id}
+                            header={header}
+                            className={isFirst ? "bg-background sticky left-0 z-20" : ""}
+                            style={
+                              isFirst
+                                ? {
+                                    position: "sticky",
+                                    left: 0,
+                                    zIndex: 20,
+                                  }
+                                : undefined
+                            }
+                          />
+                        )
+                      })}
                     </SortableContext>
                   </TableRow>
                 ))}
               </TableHeader>
-            </Table>
 
-            <div className="max-h-[480px] overflow-y-auto">
-              <Table
-                className="w-full table-fixed border-collapse"
-                style={{ minWidth: "100%" }}
-              >
-                <colgroup>
-                  {table.getAllLeafColumns().map((col) => (
-                    <col
-                      key={col.id}
-                      style={{
-                        width: `${col.getSize()}px`,
-                        minWidth: `${col.getSize()}px`,
-                        maxWidth: `${col.getSize()}px`,
-                      }}
-                    />
-                  ))}
-                </colgroup>
-
-                <TableBody>
-                  {/* Render data rows */}
-                  {table.getRowModel().rows.map((row) => {
-                    return (
-                      <TableRow
-                        key={row.id}
-                        onClick={() => handleRowClick(row.original)}
-                        className={`py-1 ${onRowSelect ? "hover:bg-muted/50 cursor-pointer" : ""}`}
-                      >
-                        {row.getVisibleCells().map((cell, cellIndex) => {
-                          const isActions = cell.column.id === "actions"
-                          const isFirstColumn = cellIndex === 0
-
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={`px-2 py-1 ${
-                                isFirstColumn || isActions
-                                  ? "bg-background sticky left-0 z-10"
-                                  : ""
-                              }`}
-                              style={{
-                                width: `${cell.column.getSize()}px`,
-                                minWidth: `${cell.column.getSize()}px`,
-                                maxWidth: `${cell.column.getSize()}px`,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                position:
-                                  isFirstColumn || isActions
-                                    ? "sticky"
-                                    : "relative",
-                                left: isFirstColumn || isActions ? 0 : "auto",
-                                zIndex: isFirstColumn || isActions ? 10 : 1,
-                              }}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    )
-                  })}
-
-                  {/* Add empty rows to ensure minimum 5 rows total, but only if data rows < 5 */}
-                  {Array.from({
-                    length: (() => {
-                      const dataRows = table.getRowModel().rows.length
-                      // If we have 5+ data rows, show only data rows (no empty rows)
-                      // If we have less than 5 data rows, add empty rows to make it 5 total
-                      return dataRows >= 5 ? 0 : Math.max(0, 5 - dataRows)
-                    })(),
-                  }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} className="h-7">
-                      {table.getAllLeafColumns().map((column, cellIndex) => {
-                        const isActions = column.id === "actions"
+              <TableBody>
+                {/* Render data rows */}
+                {table.getRowModel().rows.map((row) => {
+                  return (
+                    <TableRow
+                      key={row.id}
+                      onClick={() => handleRowClick(row.original)}
+                      className={`py-1 ${onRowSelect ? "hover:bg-muted/50 cursor-pointer" : ""}`}
+                    >
+                      {row.getVisibleCells().map((cell, cellIndex) => {
+                        const isActions = cell.column.id === "actions"
                         const isFirstColumn = cellIndex === 0
 
                         return (
                           <TableCell
-                            key={`empty-${index}-${column.id}`}
+                            key={cell.id}
                             className={`px-2 py-1 ${
                               isFirstColumn || isActions
                                 ? "bg-background sticky left-0 z-10"
                                 : ""
                             }`}
                             style={{
-                              width: `${column.getSize()}px`,
-                              minWidth: `${column.getSize()}px`,
-                              maxWidth: `${column.getSize()}px`,
+                              width: `${cell.column.getSize()}px`,
+                              minWidth: `${cell.column.getSize()}px`,
+                              maxWidth: `${cell.column.getSize()}px`,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
                               position:
-                                isFirstColumn || isActions
-                                  ? "sticky"
-                                  : "relative",
+                                isFirstColumn || isActions ? "sticky" : "relative",
                               left: isFirstColumn || isActions ? 0 : "auto",
                               zIndex: isFirstColumn || isActions ? 10 : 1,
                             }}
                           >
-                            {/* Empty cell content */}
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </TableCell>
                         )
                       })}
                     </TableRow>
-                  ))}
+                  )
+                })}
 
-                  {/* Show empty state or loading message when no data */}
-                  {table.getRowModel().rows.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length}
-                        className="h-7 py-2 text-center"
-                      >
-                        {isLoading ? "Loading..." : emptyMessage}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                {/* Add empty rows to ensure minimum 5 rows total, but only if data rows < 5 */}
+                {Array.from({
+                  length: (() => {
+                    const dataRows = table.getRowModel().rows.length
+                    return dataRows >= 5 ? 0 : Math.max(0, 5 - dataRows)
+                  })(),
+                }).map((_, index) => (
+                  <TableRow key={`empty-${index}`} className="h-7">
+                    {table.getAllLeafColumns().map((column, cellIndex) => {
+                      const isActions = column.id === "actions"
+                      const isFirstColumn = cellIndex === 0
+
+                      return (
+                        <TableCell
+                          key={`empty-${index}-${column.id}`}
+                          className={`px-2 py-1 ${
+                            isFirstColumn || isActions ? "bg-background sticky left-0 z-10" : ""
+                          }`}
+                          style={{
+                            width: `${column.getSize()}px`,
+                            minWidth: `${column.getSize()}px`,
+                            maxWidth: `${column.getSize()}px`,
+                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            left: isFirstColumn || isActions ? 0 : "auto",
+                            zIndex: isFirstColumn || isActions ? 10 : 1,
+                          }}
+                        >
+                          {/* Empty cell content */}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+
+                {/* Show empty state or loading message when no data */}
+                {table.getRowModel().rows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={tableColumns.length} className="h-7 py-2 text-center">
+                      {isLoading ? "Loading..." : emptyMessage}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </table>
           </div>
-        {/* Custom vertical scrollbar for horizontal scrolling */}
-        <div
-          ref={customScrollbarRef}
-          className="absolute top-0 right-0 h-full w-3 bg-gray-200 dark:bg-gray-700 cursor-pointer select-none z-30 rounded-r-lg"
-          style={{ display: "none" }}
-        >
-          <div
-            ref={customThumbRef}
-            className="absolute w-full bg-gray-600 dark:bg-gray-500 rounded cursor-pointer"
-            style={{
-              height: "40px",
-              top: "0",
-            }}
-          />
-        </div>
+        {/* Native scrollbars are used; no custom overlay */}
       </div>
     </DndContext>
 
