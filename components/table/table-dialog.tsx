@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   DndContext,
   DragEndEvent,
@@ -136,7 +136,10 @@ export function DialogDataTable<T>({
   const [pageSize, setPageSize] = useState(propPageSize || 50)
   const [rowSelection, setRowSelection] = useState({})
 
-  // Reference removed as not needed without virtual scrolling
+  // Refs for custom horizontal scrollbar
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const customScrollbarRef = useRef<HTMLDivElement>(null)
+  const customThumbRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (gridSettingsData) {
@@ -344,6 +347,89 @@ export function DialogDataTable<T>({
     setColumnSizing({})
   }, [table])
 
+  // Custom horizontal scrollbar functionality
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+    const customScrollbar = customScrollbarRef.current
+    const customThumb = customThumbRef.current
+
+    if (!scrollContainer || !customScrollbar || !customThumb) return
+
+    const updateThumbPosition = () => {
+      const scrollWidth = scrollContainer.scrollWidth
+      const clientWidth = scrollContainer.clientWidth
+      const scrollLeft = scrollContainer.scrollLeft
+      const maxScroll = scrollWidth - clientWidth
+
+      if (maxScroll <= 0) {
+        // No scrolling needed, hide scrollbar
+        customScrollbar.style.display = "none"
+        return
+      }
+
+      customScrollbar.style.display = "block"
+      const scrollRatio = scrollLeft / maxScroll
+      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
+      customThumb.style.top = `${scrollRatio * maxThumbTop}px`
+    }
+
+    // Initial update
+    updateThumbPosition()
+
+    // Update on scroll
+    scrollContainer.addEventListener("scroll", updateThumbPosition)
+
+    // Update on resize
+    const resizeObserver = new ResizeObserver(updateThumbPosition)
+    resizeObserver.observe(scrollContainer)
+
+    // Drag functionality
+    let isDragging = false
+    let startY = 0
+    let startTop = 0
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging = true
+      startY = e.clientY
+      startTop = parseFloat(customThumb.style.top) || 0
+      e.preventDefault()
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+
+      const delta = e.clientY - startY
+      const maxThumbTop = customScrollbar.clientHeight - customThumb.clientHeight
+      let newTop = startTop + delta
+      newTop = Math.min(Math.max(newTop, 0), maxThumbTop)
+
+      customThumb.style.top = `${newTop}px`
+
+      // Map thumb vertical position back to horizontal scrollLeft
+      const scrollRatio = newTop / maxThumbTop
+      const scrollWidth = scrollContainer.scrollWidth
+      const clientWidth = scrollContainer.clientWidth
+      const maxScroll = scrollWidth - clientWidth
+      scrollContainer.scrollLeft = scrollRatio * maxScroll
+    }
+
+    const handleMouseUp = () => {
+      isDragging = false
+    }
+
+    customScrollbar.addEventListener("mousedown", handleMouseDown)
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleMouseUp)
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updateThumbPosition)
+      resizeObserver.disconnect()
+      customScrollbar.removeEventListener("mousedown", handleMouseDown)
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+  }, [data])
+
   return (
     <>
       <DialogDataTableHeader
@@ -361,13 +447,20 @@ export function DialogDataTable<T>({
         transactionId={transactionId || 1}
         onResetLayout={handleResetLayout}
       />
-      <Table>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="overflow-x-auto rounded-lg border">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="relative">
+          <div
+            ref={scrollContainerRef}
+            className="overflow-x-auto overflow-y-hidden rounded-lg border [&::-webkit-scrollbar]:hidden"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
             <Table
               className="w-full table-fixed border-collapse"
               style={{ minWidth: "100%" }}
@@ -466,12 +559,14 @@ export function DialogDataTable<T>({
                     )
                   })}
 
-                  {/* Add empty rows to fill the remaining space based on page size */}
+                  {/* Add empty rows to ensure minimum 5 rows total, but only if data rows < 5 */}
                   {Array.from({
-                    length: Math.min(
-                      Math.max(0, pageSize - table.getRowModel().rows.length),
-                      10 // Limit to maximum 10 empty rows to prevent excessive height
-                    ),
+                    length: (() => {
+                      const dataRows = table.getRowModel().rows.length
+                      // If we have 5+ data rows, show only data rows (no empty rows)
+                      // If we have less than 5 data rows, add empty rows to make it 5 total
+                      return dataRows >= 5 ? 0 : Math.max(0, 5 - dataRows)
+                    })(),
                   }).map((_, index) => (
                     <TableRow key={`empty-${index}`} className="h-7">
                       {table.getAllLeafColumns().map((column, cellIndex) => {
@@ -520,8 +615,23 @@ export function DialogDataTable<T>({
               </Table>
             </div>
           </div>
-        </DndContext>
-      </Table>
+        {/* Custom vertical scrollbar for horizontal scrolling */}
+        <div
+          ref={customScrollbarRef}
+          className="absolute top-0 right-0 h-full w-3 bg-gray-200 dark:bg-gray-700 cursor-pointer select-none z-30 rounded-r-lg"
+          style={{ display: "none" }}
+        >
+          <div
+            ref={customThumbRef}
+            className="absolute w-full bg-gray-600 dark:bg-gray-500 rounded cursor-pointer"
+            style={{
+              height: "40px",
+              top: "0",
+            }}
+          />
+        </div>
+      </div>
+    </DndContext>
 
       <MainTableFooter
         currentPage={currentPage} // Current page number

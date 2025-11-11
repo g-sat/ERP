@@ -79,7 +79,7 @@ export * from "./ar-adjustment"
 //account-ap
 export * from "./ap-invoice"
 export * from "./ap-payment"
-export * from "./ap-creditNote"
+export * from "./ap-creditnote" //duplicate with ap-creditnote.ts
 export * from "./ap-debitNote"
 export * from "./ap-adjustment"
 export * from "./ap-refund"
