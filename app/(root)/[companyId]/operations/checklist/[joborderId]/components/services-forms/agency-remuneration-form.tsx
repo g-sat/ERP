@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IAgencyRemuneration, IJobOrderHd } from "@/interfaces/checklist"
 import {
   AgencyRemunerationSchema,
@@ -8,10 +8,10 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
@@ -53,6 +53,30 @@ export function AgencyRemunerationForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
@@ -68,10 +92,10 @@ export function AgencyRemunerationForm({
       taskId: Task.AgencyRemuneration,
       date: initialData?.date
         ? format(
-            parseDate(initialData.date as string) || new Date(),
-            datetimeFormat
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), datetimeFormat),
+        : format(new Date(), dateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
@@ -88,10 +112,10 @@ export function AgencyRemunerationForm({
       taskId: Task.AgencyRemuneration,
       date: initialData?.date
         ? format(
-            parseDate(initialData.date as string) || new Date(),
-            datetimeFormat
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), datetimeFormat),
+        : format(new Date(), dateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
@@ -99,13 +123,14 @@ export function AgencyRemunerationForm({
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
-    initialData,
-    taskDefaults,
+    dateFormat,
     form,
+    initialData,
+    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
-    isChartOfAccountLoading,
-    datetimeFormat,
+    parseWithFallback,
+    taskDefaults,
   ])
 
   const onSubmit = (data: AgencyRemunerationSchemaType) => {

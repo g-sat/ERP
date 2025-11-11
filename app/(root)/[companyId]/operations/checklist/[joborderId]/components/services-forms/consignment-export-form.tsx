@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IConsignmentExport, IJobOrderHd } from "@/interfaces/checklist"
 import {
   ConsignmentExportSchema,
@@ -8,7 +8,7 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
@@ -60,6 +60,30 @@ export function ConsignmentExportForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
@@ -94,20 +118,20 @@ export function ConsignmentExportForm({
       referenceNo: initialData?.referenceNo ?? "",
       receiveDate: initialData?.receiveDate
         ? format(
-            parseDate(initialData.receiveDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.receiveDate as string) || new Date(),
+            dateFormat
           )
         : "",
       deliverDate: initialData?.deliverDate
         ? format(
-            parseDate(initialData.deliverDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.deliverDate as string) || new Date(),
+            dateFormat
           )
         : "",
       arrivalDate: initialData?.arrivalDate
         ? format(
-            parseDate(initialData.arrivalDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.arrivalDate as string) || new Date(),
+            dateFormat
           )
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
@@ -147,20 +171,20 @@ export function ConsignmentExportForm({
       referenceNo: initialData?.referenceNo ?? "",
       receiveDate: initialData?.receiveDate
         ? format(
-            parseDate(initialData.receiveDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.receiveDate as string) || new Date(),
+            dateFormat
           )
         : "",
       deliverDate: initialData?.deliverDate
         ? format(
-            parseDate(initialData.deliverDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.deliverDate as string) || new Date(),
+            dateFormat
           )
         : "",
       arrivalDate: initialData?.arrivalDate
         ? format(
-            parseDate(initialData.arrivalDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.arrivalDate as string) || new Date(),
+            dateFormat
           )
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
@@ -172,12 +196,14 @@ export function ConsignmentExportForm({
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
-    initialData,
-    taskDefaults,
+    dateFormat,
     form,
+    initialData,
+    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
-    isChartOfAccountLoading,
+    parseWithFallback,
+    taskDefaults,
   ])
 
   // Show loading state while data is being fetched

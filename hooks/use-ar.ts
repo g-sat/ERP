@@ -2,7 +2,12 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ArAdjustment, ArInvoice, ArReceipt } from "@/lib/api-routes"
+import {
+  ArAdjustment,
+  ArCreditNote,
+  ArInvoice,
+  ArReceipt,
+} from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -82,6 +87,62 @@ export function useGetARInvoiceHistoryDetails<T>(
       )
     },
     enabled: !!invoiceId && invoiceId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AR Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetARCreditNoteHistoryList<T>(
+  creditNoteId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-creditnote-history-list", creditNoteId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArCreditNote.history}/${creditNoteId}`)
+    },
+    enabled: !!creditNoteId && creditNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AR Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetARCreditNoteHistoryDetails<T>(
+  creditNoteId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-creditnote-history-details", creditNoteId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArCreditNote.historyDetails}/${creditNoteId}/${editVersion}`
+      )
+    },
+    enabled: !!creditNoteId && creditNoteId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

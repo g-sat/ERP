@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -31,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import {
   useChartOfAccountLookup,
   useGstLookup,
@@ -53,7 +54,7 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultCreditNoteDetails } from "./creditNote-defaultvalues"
+import { getDefaultValues } from "./creditNote-defaultvalues"
 
 interface CreditNoteDetailsFormProps {
   Hdform: UseFormReturn<ArCreditNoteHdSchemaType>
@@ -88,6 +89,14 @@ export default function CreditNoteDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+  const defaultCreditNoteDetails = useMemo(
+    () => getDefaultValues(dateFormat).defaultCreditNoteDetails,
+    [dateFormat]
+  )
 
   // Track if submit was attempted to show errors only after submit
   const [submitAttempted, setSubmitAttempted] = useState(false)

@@ -1,11 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { IFreshWater, IFreshWaterFilter } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, isValid } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
@@ -46,8 +47,47 @@ export function FreshWaterTable({
   isConfirmed,
 }: FreshWaterTableProps) {
   const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const formatDateValue = useCallback(
+    (value: unknown) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, dateFormat)
+      }
+      if (typeof value === "string") {
+        const parsed = parseDate(value) || parse(value, dateFormat, new Date())
+        if (!parsed || !isValid(parsed)) {
+          return value
+        }
+        return format(parsed, dateFormat)
+      }
+      return "-"
+    },
+    [dateFormat]
+  )
+
+  const formatDateTimeValue = useCallback(
+    (value: unknown) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, datetimeFormat)
+      }
+      if (typeof value === "string") {
+        const parsed = parseDate(value) || parse(value, dateFormat, new Date())
+        if (!parsed || !isValid(parsed)) {
+          return value
+        }
+        return format(parsed, datetimeFormat)
+      }
+      return "-"
+    },
+    [dateFormat, datetimeFormat]
+  )
 
   // State for history dialog
   const [historyDialog, setHistoryDialog] = useState<{
@@ -96,16 +136,9 @@ export function FreshWaterTable({
         accessorKey: "date",
         header: "Date",
         cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
           return (
             <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
+              {formatDateValue(row.getValue("date"))}
             </div>
           )
         },
@@ -229,16 +262,9 @@ export function FreshWaterTable({
         accessorKey: "createDate",
         header: "Create Date",
         cell: ({ row }) => {
-          const raw = row.getValue("createDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
           return (
             <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
+              {formatDateTimeValue(row.getValue("createDate"))}
             </div>
           )
         },
@@ -259,16 +285,9 @@ export function FreshWaterTable({
         accessorKey: "editDate",
         header: "Edit Date",
         cell: ({ row }) => {
-          const raw = row.getValue("editDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
           return (
             <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
+              {formatDateTimeValue(row.getValue("editDate"))}
             </div>
           )
         },

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { KeyboardEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
@@ -10,6 +10,7 @@ import { format } from "date-fns"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { AccountReceiptBaseTable } from "@/components/table/table-account-receipt"
 
 // Extended column definition with hide property
@@ -38,6 +39,11 @@ export default function ReceiptDetailsTable({
   isCancelled = false,
 }: ReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [pendingDeleteTarget, setPendingDeleteTarget] = useState<{
+    itemNo: number
+    label: string
+  } | null>(null)
   const { decimals } = useAuthStore()
   const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -165,6 +171,46 @@ export default function ReceiptDetailsTable({
     return targetPath ? `history-doc:${targetPath}` : null
   }, [])
 
+  const handleDeleteRequest = useCallback(
+    (itemId: string) => {
+      if (isCancelled || !onDelete) return
+
+      const itemNo = Number(itemId)
+      if (!Number.isFinite(itemNo)) return
+
+      const detail = data.find((record) => record.itemNo === itemNo)
+      const docNo = detail?.documentNo
+        ? detail.documentNo.toString().trim()
+        : ""
+      const label = docNo ? `Document ${docNo}` : `Item No ${itemNo}`
+
+      setPendingDeleteTarget({
+        itemNo,
+        label,
+      })
+      setDeleteDialogOpen(true)
+    },
+    [data, isCancelled, onDelete]
+  )
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!pendingDeleteTarget || !onDelete) return
+
+    onDelete(pendingDeleteTarget.itemNo)
+    setPendingDeleteTarget(null)
+  }, [onDelete, pendingDeleteTarget])
+
+  const handleDeleteCancel = useCallback(() => {
+    setPendingDeleteTarget(null)
+  }, [])
+
+  const handleDeleteDialogChange = useCallback((open: boolean) => {
+    setDeleteDialogOpen(open)
+    if (!open) {
+      setPendingDeleteTarget(null)
+    }
+  }, [])
+
   const handleDocumentNavigation = useCallback(
     (detail: IArReceiptDt) => {
       const transactionIdValue = Number(detail.transactionId)
@@ -214,16 +260,26 @@ export default function ReceiptDetailsTable({
         const canViewDocument =
           isClickable && canNavigateToTransaction(transactionIdValue)
 
-        const handleClick = () => {
+        const handleActivate = () => {
           if (canViewDocument) {
             handleDocumentNavigation(row.original)
+          }
+        }
+
+        const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+          if (!canViewDocument) return
+
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            handleActivate()
           }
         }
 
         return canViewDocument ? (
           <button
             type="button"
-            onClick={handleClick}
+            onDoubleClick={handleActivate}
+            onKeyDown={handleKeyDown}
             className="text-primary underline decoration-dotted underline-offset-2 hover:decoration-solid"
           >
             {docNo}
@@ -453,11 +509,7 @@ export default function ReceiptDetailsTable({
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
-        onDelete={
-          isCancelled
-            ? undefined
-            : (itemId: string) => onDelete?.(Number(itemId))
-        }
+        onDelete={isCancelled ? undefined : handleDeleteRequest}
         showHeader={true}
         showActions={true}
         hideEdit={true}
@@ -466,6 +518,14 @@ export default function ReceiptDetailsTable({
         disableOnAccountExists={false}
         maxHeight="380px"
         pageSizeOption={10}
+      />
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={handleDeleteDialogChange}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        itemName={pendingDeleteTarget?.label}
+        description="This detail will be removed from the receipt. This action cannot be undone."
       />
     </div>
   )

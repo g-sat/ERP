@@ -163,6 +163,7 @@ export interface IVisibleFields {
   m_PortIdHd: boolean
   m_VesselIdHd: boolean
   m_AdvRecAmt: boolean
+  m_BankChgGLId: boolean
 }
 
 export interface INumberFormatDetails {

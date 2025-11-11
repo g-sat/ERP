@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IJobOrderHd, ILandingItems } from "@/interfaces/checklist"
 import { LandingItemsSchema, LandingItemsSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
@@ -54,6 +54,30 @@ export function LandingItemsForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
@@ -69,14 +93,14 @@ export function LandingItemsForm({
       taskId: Task.LandingItems,
       date: initialData?.date
         ? format(
-            parseDate(initialData.date as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), clientDateFormat),
+        : format(new Date(), dateFormat),
       returnDate: initialData?.returnDate
         ? format(
-            parseDate(initialData.returnDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.returnDate as string) || new Date(),
+            dateFormat
           )
         : "",
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
@@ -103,14 +127,14 @@ export function LandingItemsForm({
       taskId: Task.LandingItems,
       date: initialData?.date
         ? format(
-            parseDate(initialData.date as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), clientDateFormat),
+        : format(new Date(), dateFormat),
       returnDate: initialData?.returnDate
         ? format(
-            parseDate(initialData.returnDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.returnDate as string) || new Date(),
+            dateFormat
           )
         : "",
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
@@ -128,12 +152,14 @@ export function LandingItemsForm({
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
-    initialData,
-    taskDefaults,
+    dateFormat,
     form,
+    initialData,
+    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
-    isChartOfAccountLoading,
+    parseWithFallback,
+    taskDefaults,
   ])
 
   // Show loading state while data is being fetched

@@ -596,6 +596,27 @@ export function VisibleTable() {
       ),
       size: 100,
     },
+    {
+      accessorKey: "m_BankChgGLId",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Bank Chg GL</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_BankChgGLId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_BankChgGLId",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
   ]
 
   const handleSave = async () => {

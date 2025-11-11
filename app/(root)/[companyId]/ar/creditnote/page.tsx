@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import {
   mathRound,
   setDueDate,
@@ -28,11 +28,19 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, parse, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -61,7 +69,7 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultCreditNote } from "./components/creditNote-defaultvalues"
+import { getDefaultValues } from "./components/creditNote-defaultvalues"
 import CreditNoteTable from "./components/creditNote-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
@@ -69,6 +77,7 @@ import Other from "./components/other"
 
 export default function CreditNotePage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
@@ -78,6 +87,31 @@ export default function CreditNotePage() {
   const { decimals, user } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
 
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -99,19 +133,70 @@ export default function CreditNotePage() {
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleCreditNoteSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ar/creditNote`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const [filters, setFilters] = useState<IArCreditNoteFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "creditNoteNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: pageSize,
   })
+
+  const defaultCreditNoteValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultCreditNote,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -147,6 +232,8 @@ export default function CreditNotePage() {
           ctyExhRate: creditNote.ctyExhRate ?? 0,
           creditTermId: creditNote.creditTermId ?? 0,
           bankId: creditNote.bankId ?? 0,
+          invoiceId: creditNote.invoiceId ?? "0",
+          invoiceNo: creditNote.invoiceNo ?? "",
           totAmt: creditNote.totAmt ?? 0,
           totLocalAmt: creditNote.totLocalAmt ?? 0,
           totCtyAmt: creditNote.totCtyAmt ?? 0,
@@ -189,8 +276,6 @@ export default function CreditNotePage() {
           vesselId: creditNote.vesselId ?? 0,
           portId: creditNote.portId ?? 0,
           serviceTypeId: creditNote.serviceTypeId ?? 0,
-          otherRemarks: creditNote.otherRemarks ?? "",
-          advRecAmt: creditNote.advRecAmt ?? 0,
           data_details:
             creditNote.data_details?.map((detail) => ({
               ...detail,
@@ -220,12 +305,52 @@ export default function CreditNotePage() {
           const userName = user?.userName || ""
 
           return {
-            ...defaultCreditNote,
+            ...defaultCreditNoteValues,
             createBy: userName,
             createDate: currentDateTime,
           }
         })(),
   })
+
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentCreditNoteId = form.getValues("creditNoteId") || "0"
+    if (
+      (creditNote &&
+        creditNote.creditNoteId &&
+        creditNote.creditNoteId !== "0") ||
+      currentCreditNoteId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultCreditNoteValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultCreditNoteValues,
+    decimals,
+    form,
+    creditNote,
+    isDirty,
+    user,
+  ])
 
   // Mutations
   const saveMutation = usePersist<ArCreditNoteHdSchemaType>(
@@ -295,21 +420,21 @@ export default function CreditNotePage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const acc =
-          typeof accountDate === "string"
-            ? format(
-                parse(accountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(accountDate, "yyyy-MM-dd")
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
+        }
 
-        const prev = prevAccountDate
-          ? typeof prevAccountDate === "string"
-            ? format(
-                parse(prevAccountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(prevAccountDate, "yyyy-MM-dd")
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
+
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
           : ""
 
         const glCheck = await getById(
@@ -381,7 +506,7 @@ export default function CreditNotePage() {
     if (creditNote) {
       // Create a proper clone with form values
       const currentDate = new Date()
-      const dateStr = format(currentDate, clientDateFormat)
+      const dateStr = format(currentDate, dateFormat)
 
       const clonedCreditNote: ArCreditNoteHdSchemaType = {
         ...creditNote,
@@ -616,7 +741,7 @@ export default function CreditNotePage() {
         setCreditNote(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultCreditNote,
+          ...defaultCreditNoteValues,
           data_details: [],
         })
         toast.success(
@@ -643,7 +768,7 @@ export default function CreditNotePage() {
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultCreditNote,
+      ...defaultCreditNoteValues,
       // Always set createBy and createDate to current user and current date/time on reset
       createBy: userName,
       createDate: currentDateTime,
@@ -664,39 +789,41 @@ export default function CreditNotePage() {
       trnDate: apiCreditNote.trnDate
         ? format(
             parseDate(apiCreditNote.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiCreditNote.accountDate
         ? format(
             parseDate(apiCreditNote.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       dueDate: apiCreditNote.dueDate
         ? format(
             parseDate(apiCreditNote.dueDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       deliveryDate: apiCreditNote.deliveryDate
         ? format(
             parseDate(apiCreditNote.deliveryDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       gstClaimDate: apiCreditNote.gstClaimDate
         ? format(
             parseDate(apiCreditNote.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       customerId: apiCreditNote.customerId ?? 0,
       currencyId: apiCreditNote.currencyId ?? 0,
       exhRate: apiCreditNote.exhRate ?? 0,
       ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
       creditTermId: apiCreditNote.creditTermId ?? 0,
       bankId: apiCreditNote.bankId ?? 0,
+      invoiceId: apiCreditNote.invoiceId ?? "0",
+      invoiceNo: apiCreditNote.invoiceNo ?? "",
 
       totAmt: apiCreditNote.totAmt ?? 0,
       totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
@@ -740,8 +867,6 @@ export default function CreditNotePage() {
       vesselId: apiCreditNote.vesselId ?? 0,
       portId: apiCreditNote.portId ?? 0,
       serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
-      otherRemarks: apiCreditNote.otherRemarks ?? "",
-      advRecAmt: apiCreditNote.advRecAmt ?? 0,
       createBy: apiCreditNote.createBy ?? "",
       editBy: apiCreditNote.editBy ?? "",
       cancelBy: apiCreditNote.cancelBy ?? "",
@@ -803,7 +928,7 @@ export default function CreditNotePage() {
               deliveryDate: detail.deliveryDate
                 ? format(
                     parseDate(detail.deliveryDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               departmentId: detail.departmentId ?? 0,
@@ -832,7 +957,7 @@ export default function CreditNotePage() {
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               supplierName: detail.supplierName ?? "",
@@ -866,7 +991,7 @@ export default function CreditNotePage() {
             const parsed = parseDate(detailedCreditNote.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedCreditNote.accountDate as string)
             )
           }
@@ -880,36 +1005,36 @@ export default function CreditNotePage() {
             trnDate: detailedCreditNote.trnDate
               ? format(
                   parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedCreditNote.accountDate
               ? format(
                   parseDate(detailedCreditNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedCreditNote.dueDate
               ? format(
                   parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedCreditNote.deliveryDate
               ? format(
                   parseDate(detailedCreditNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedCreditNote.gstClaimDate
               ? format(
                   parseDate(detailedCreditNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedCreditNote.customerId ?? 0,
             currencyId: detailedCreditNote.currencyId ?? 0,
@@ -917,6 +1042,8 @@ export default function CreditNotePage() {
             ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
             creditTermId: detailedCreditNote.creditTermId ?? 0,
             bankId: detailedCreditNote.bankId ?? 0,
+            invoiceId: detailedCreditNote.invoiceId ?? "0",
+            invoiceNo: detailedCreditNote.invoiceNo ?? "",
             totAmt: detailedCreditNote.totAmt ?? 0,
             totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
             totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
@@ -958,8 +1085,6 @@ export default function CreditNotePage() {
             vesselId: detailedCreditNote.vesselId ?? 0,
             portId: detailedCreditNote.portId ?? 0,
             serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            otherRemarks: detailedCreditNote.otherRemarks ?? "",
-            advRecAmt: detailedCreditNote.advRecAmt ?? 0,
             createBy: detailedCreditNote.createBy ?? "",
             createDate: detailedCreditNote.createDate
               ? format(
@@ -1019,7 +1144,7 @@ export default function CreditNotePage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
@@ -1047,7 +1172,7 @@ export default function CreditNotePage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   supplierName: detail.supplierName ?? "",
@@ -1166,7 +1291,7 @@ export default function CreditNotePage() {
             const parsed = parseDate(detailedCreditNote.accountDate as string)
             setPreviousAccountDate(
               parsed
-                ? format(parsed, "dd/MM/yyyy")
+                ? format(parsed, dateFormat)
                 : (detailedCreditNote.accountDate as string)
             )
           }
@@ -1180,36 +1305,36 @@ export default function CreditNotePage() {
             trnDate: detailedCreditNote.trnDate
               ? format(
                   parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedCreditNote.accountDate
               ? format(
                   parseDate(detailedCreditNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedCreditNote.dueDate
               ? format(
                   parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedCreditNote.deliveryDate
               ? format(
                   parseDate(detailedCreditNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedCreditNote.gstClaimDate
               ? format(
                   parseDate(detailedCreditNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             customerId: detailedCreditNote.customerId ?? 0,
             currencyId: detailedCreditNote.currencyId ?? 0,
@@ -1217,6 +1342,8 @@ export default function CreditNotePage() {
             ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
             creditTermId: detailedCreditNote.creditTermId ?? 0,
             bankId: detailedCreditNote.bankId ?? 0,
+            invoiceId: detailedCreditNote.invoiceId ?? "0",
+            invoiceNo: detailedCreditNote.invoiceNo ?? "",
             totAmt: detailedCreditNote.totAmt ?? 0,
             totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
             totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
@@ -1258,8 +1385,6 @@ export default function CreditNotePage() {
             vesselId: detailedCreditNote.vesselId ?? 0,
             portId: detailedCreditNote.portId ?? 0,
             serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            otherRemarks: detailedCreditNote.otherRemarks ?? "",
-            advRecAmt: detailedCreditNote.advRecAmt ?? 0,
             isCancel: detailedCreditNote.isCancel ?? false,
             cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
 
@@ -1296,7 +1421,7 @@ export default function CreditNotePage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
@@ -1324,7 +1449,7 @@ export default function CreditNotePage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   supplierName: detail.supplierName ?? "",
@@ -1365,6 +1490,23 @@ export default function CreditNotePage() {
       setIsLoadingCreditNote(false)
     }
   }
+
+  handleCreditNoteSearchRef.current = handleCreditNoteSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleCreditNoteSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
 
   // Determine mode and creditNote ID from URL
   const creditNoteNo = form.getValues("creditNoteNo")
@@ -1459,23 +1601,42 @@ export default function CreditNotePage() {
             )}
           </div>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (creditNote?.creditNoteNo) {
+                    setSearchNo(creditNote.creditNoteNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingCreditNote}
+                className="h-4 w-4 p-0"
+                title="Refresh creditNote data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input

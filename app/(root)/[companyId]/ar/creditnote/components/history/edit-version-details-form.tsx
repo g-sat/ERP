@@ -241,7 +241,7 @@ export function EditVersionDetailsForm({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold">
-              Invoice Details
+              CreditNote Details
             </CardTitle>
           </CardHeader>
           <CardContent>

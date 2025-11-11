@@ -40,6 +40,9 @@ export const ArCreditNoteHdSchema = (
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
+    // Invoice Fields
+    invoiceId: z.string().optional(),
+    invoiceNo: z.string().optional(),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
@@ -97,7 +100,7 @@ export const ArCreditNoteHdSchema = (
     contactName: z.string().optional(),
     mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().optional()
       : z.string().optional(),
 
     // Customer Details
@@ -131,14 +134,10 @@ export const ArCreditNoteHdSchema = (
       ? z.number().min(1, "Service Type is required")
       : z.number().optional(),
 
-    // Other Remarks Fields
-    otherRemarks: z.string().optional(),
-    advRecAmt: z.number().optional(),
-
     // Nested Details
     data_details: z
       .array(ArCreditNoteDtSchema(required, visible))
-      .min(1, "At least one credit note detail is required"),
+      .min(1, "At least one invoice detail is required"),
   })
 }
 

@@ -1,14 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   IConsignmentImport,
   IConsignmentImportFilter,
 } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, isValid } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
@@ -51,8 +52,47 @@ export function ConsignmentImportTable({
   isConfirmed,
 }: ConsignmentImportTableProps) {
   const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const formatDateValue = useCallback(
+    (value: unknown) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, dateFormat)
+      }
+      if (typeof value === "string") {
+        const parsed = parseDate(value) || parse(value, dateFormat, new Date())
+        if (!parsed || !isValid(parsed)) {
+          return value
+        }
+        return format(parsed, dateFormat)
+      }
+      return "-"
+    },
+    [dateFormat]
+  )
+
+  const formatDateTimeValue = useCallback(
+    (value: unknown) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, datetimeFormat)
+      }
+      if (typeof value === "string") {
+        const parsed = parseDate(value) || parse(value, dateFormat, new Date())
+        if (!parsed || !isValid(parsed)) {
+          return value
+        }
+        return format(parsed, datetimeFormat)
+      }
+      return "-"
+    },
+    [dateFormat, datetimeFormat]
+  )
 
   // State for history dialog
   const [historyDialog, setHistoryDialog] = useState<{
@@ -214,18 +254,7 @@ export function ConsignmentImportTable({
         accessorKey: "receiveDate",
         header: "Receive Date",
         cell: ({ row }) => {
-          const raw = row.getValue("receiveDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
+          return formatDateValue(row.getValue("receiveDate"))
         },
         size: 120,
         minSize: 100,
@@ -234,18 +263,7 @@ export function ConsignmentImportTable({
         accessorKey: "deliverDate",
         header: "Deliver Date",
         cell: ({ row }) => {
-          const raw = row.getValue("deliverDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
+          return formatDateValue(row.getValue("deliverDate"))
         },
         size: 120,
         minSize: 100,
@@ -263,18 +281,7 @@ export function ConsignmentImportTable({
         accessorKey: "createDate",
         header: "Create Date",
         cell: ({ row }) => {
-          const raw = row.getValue("createDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
-            </div>
-          )
+          return formatDateTimeValue(row.getValue("createDate"))
         },
         size: 180,
         minSize: 150,
@@ -293,18 +300,7 @@ export function ConsignmentImportTable({
         accessorKey: "editDate",
         header: "Edit Date",
         cell: ({ row }) => {
-          const raw = row.getValue("editDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
-            </div>
-          )
+          return formatDateTimeValue(row.getValue("editDate"))
         },
         size: 180,
         minSize: 150,

@@ -1,14 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   IAgencyRemuneration,
   IAgencyRemunerationFilter,
 } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, isValid } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
@@ -52,6 +53,28 @@ export function AgencyRemunerationTable({
 }: AgencyRemunerationTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const formatDateTimeValue = useCallback(
+    (value: unknown) => {
+      if (!value) return "-"
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? "-" : format(value, datetimeFormat)
+      }
+      if (typeof value === "string") {
+        const parsed = parseDate(value) || parse(value, dateFormat, new Date())
+        if (!parsed || !isValid(parsed)) {
+          return value
+        }
+        return format(parsed, datetimeFormat)
+      }
+      return "-"
+    },
+    [dateFormat, datetimeFormat]
+  )
 
   // State for history dialog
   const [historyDialog, setHistoryDialog] = useState<{
@@ -147,16 +170,9 @@ export function AgencyRemunerationTable({
         accessorKey: "createDate",
         header: "Create Date",
         cell: ({ row }) => {
-          const raw = row.getValue("createDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
           return (
             <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
+              {formatDateTimeValue(row.getValue("createDate"))}
             </div>
           )
         },
@@ -177,16 +193,9 @@ export function AgencyRemunerationTable({
         accessorKey: "editDate",
         header: "Edit Date",
         cell: ({ row }) => {
-          const raw = row.getValue("editDate")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
           return (
             <div className="text-wrap">
-              {date && isValid(date) ? format(date, datetimeFormat) : "-"}
+              {formatDateTimeValue(row.getValue("editDate"))}
             </div>
           )
         },
@@ -195,7 +204,7 @@ export function AgencyRemunerationTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat]
+    [datetimeFormat, formatDateTimeValue]
   )
 
   // Wrapper functions to handle type differences

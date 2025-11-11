@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { IJobOrderHd, ILaunchService } from "@/interfaces/checklist"
 import {
   LaunchServiceSchema,
@@ -8,14 +8,10 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { differenceInMinutes, format, isValid } from "date-fns"
+import { differenceInMinutes, format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import {
-  clientDateFormat,
-  formatDateWithoutTimezone,
-  parseDate,
-} from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
@@ -68,6 +64,30 @@ export function LaunchServiceForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
@@ -82,10 +102,10 @@ export function LaunchServiceForm({
       taskId: Task.LaunchServices,
       date: initialData?.date
         ? format(
-            parseDate(initialData.date as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), clientDateFormat),
+        : format(new Date(), dateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -93,19 +113,20 @@ export function LaunchServiceForm({
       boatopTally: initialData?.boatopTally ?? "",
       distance: initialData?.distance ?? 0,
       loadingTime: initialData?.loadingTime
-        ? parseDate(initialData.loadingTime as string) || undefined
+        ? parseWithFallback(initialData.loadingTime as string) || undefined
         : undefined,
       leftJetty: initialData?.leftJetty
-        ? parseDate(initialData.leftJetty as string) || undefined
+        ? parseWithFallback(initialData.leftJetty as string) || undefined
         : undefined,
       alongsideVessel: initialData?.alongsideVessel
-        ? parseDate(initialData.alongsideVessel as string) || undefined
+        ? parseWithFallback(initialData.alongsideVessel as string) || undefined
         : undefined,
       departedFromVessel: initialData?.departedFromVessel
-        ? parseDate(initialData.departedFromVessel as string) || undefined
+        ? parseWithFallback(initialData.departedFromVessel as string) ||
+          undefined
         : undefined,
       arrivedAtJetty: initialData?.arrivedAtJetty
-        ? parseDate(initialData.arrivedAtJetty as string) || undefined
+        ? parseWithFallback(initialData.arrivedAtJetty as string) || undefined
         : undefined,
       waitingTime: initialData?.waitingTime ?? 0,
       timeDiff: initialData?.timeDiff ?? 0,
@@ -134,10 +155,10 @@ export function LaunchServiceForm({
         taskId: Task.LaunchServices,
         date: initialData?.date
           ? format(
-              parseDate(initialData.date as string) || new Date(),
-              clientDateFormat
+              parseWithFallback(initialData.date as string) || new Date(),
+              dateFormat
             )
-          : format(new Date(), clientDateFormat),
+          : format(new Date(), dateFormat),
         glId: initialData?.glId ?? taskDefaults.glId ?? 0,
         chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
         uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -145,19 +166,20 @@ export function LaunchServiceForm({
         boatopTally: initialData?.boatopTally ?? "",
         distance: initialData?.distance ?? 0,
         loadingTime: initialData?.loadingTime
-          ? parseDate(initialData.loadingTime as string) || undefined
+          ? parseWithFallback(initialData.loadingTime as string) || undefined
           : undefined,
         leftJetty: initialData?.leftJetty
-          ? parseDate(initialData.leftJetty as string) || undefined
+          ? parseWithFallback(initialData.leftJetty as string) || undefined
           : undefined,
         alongsideVessel: initialData?.alongsideVessel
-          ? parseDate(initialData.alongsideVessel as string) || undefined
+          ? parseWithFallback(initialData.alongsideVessel as string) || undefined
           : undefined,
         departedFromVessel: initialData?.departedFromVessel
-          ? parseDate(initialData.departedFromVessel as string) || undefined
+          ? parseWithFallback(initialData.departedFromVessel as string) ||
+            undefined
           : undefined,
         arrivedAtJetty: initialData?.arrivedAtJetty
-          ? parseDate(initialData.arrivedAtJetty as string) || undefined
+          ? parseWithFallback(initialData.arrivedAtJetty as string) || undefined
           : undefined,
         waitingTime: initialData?.waitingTime ?? 0,
         timeDiff: initialData?.timeDiff ?? 0,
@@ -176,12 +198,14 @@ export function LaunchServiceForm({
       })
     }
   }, [
-    initialData,
-    taskDefaults,
+    dateFormat,
     form,
+    initialData,
+    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
-    isChartOfAccountLoading,
+    parseWithFallback,
+    taskDefaults,
   ])
 
   // Convert decimal hours to HH:mm format (e.g., 1.14 -> "01:14")
@@ -272,23 +296,23 @@ export function LaunchServiceForm({
       ...data,
       loadingTime:
         data.loadingTime instanceof Date
-          ? formatDateWithoutTimezone(data.loadingTime)
+          ? format(data.loadingTime, dateFormat)
           : data.loadingTime,
       leftJetty:
         data.leftJetty instanceof Date
-          ? formatDateWithoutTimezone(data.leftJetty)
+          ? format(data.leftJetty, dateFormat)
           : data.leftJetty,
       alongsideVessel:
         data.alongsideVessel instanceof Date
-          ? formatDateWithoutTimezone(data.alongsideVessel)
+          ? format(data.alongsideVessel, dateFormat)
           : data.alongsideVessel,
       departedFromVessel:
         data.departedFromVessel instanceof Date
-          ? formatDateWithoutTimezone(data.departedFromVessel)
+          ? format(data.departedFromVessel, dateFormat)
           : data.departedFromVessel,
       arrivedAtJetty:
         data.arrivedAtJetty instanceof Date
-          ? formatDateWithoutTimezone(data.arrivedAtJetty)
+          ? format(data.arrivedAtJetty, dateFormat)
           : data.arrivedAtJetty,
     }
 

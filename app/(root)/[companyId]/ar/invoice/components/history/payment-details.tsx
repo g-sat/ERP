@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { KeyboardEvent, useCallback, useMemo } from "react"
 import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentHistoryDetails } from "@/interfaces/history"
@@ -125,16 +125,26 @@ export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
         cell: ({ row }) => {
           const docNo = row.original.documentNo
           const isClickable = !!docNo
-          const handleClick = () => {
+          const handleActivate = () => {
             if (isClickable) {
               handleDocumentNavigation(row.original)
+            }
+          }
+
+          const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+            if (!isClickable) return
+
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              handleActivate()
             }
           }
 
           return isClickable ? (
             <button
               type="button"
-              onClick={handleClick}
+              onDoubleClick={handleActivate}
+              onKeyDown={handleKeyDown}
               className="text-primary underline decoration-dotted underline-offset-2 hover:decoration-solid"
             >
               {docNo}

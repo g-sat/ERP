@@ -265,33 +265,6 @@ export default function Other({ form, visible }: OtherProps) {
             </CardContent>
           </Card>
         </div>
-        {/* Other Information Section */}
-        {(visible?.m_OtherRemarks || visible?.m_AdvRecAmt) && (
-          <Card className="border-0">
-            <CardContent>
-              <div className="grid grid-cols-2 gap-1">
-                {visible?.m_OtherRemarks && (
-                  <CustomTextarea
-                    form={form}
-                    name="otherRemarks"
-                    label="Other Remarks"
-                    isRequired={false}
-                  />
-                )}
-                {visible?.m_AdvRecAmt && (
-                  <CustomNumberInput
-                    form={form}
-                    name="advRecAmt"
-                    label="Advance Received Amount"
-                    isRequired={false}
-                    round={2}
-                    className="text-right"
-                  />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </Form>
 
       {/* Document Upload Section - Only show after creditNote is saved */}
