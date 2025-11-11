@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { setExchangeRate_JobOrder } from "@/helpers/account"
 import { IJobOrderHd } from "@/interfaces/checklist"
@@ -12,7 +12,7 @@ import {
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, parse } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -52,6 +52,30 @@ export default function NewChecklistPage() {
   const params = useParams()
   const companyId = params.companyId as string
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Use the useSaveJobOrder hook
   const saveJobOrderMutation = useSaveJobOrder()
 
@@ -63,7 +87,7 @@ export default function NewChecklistPage() {
     defaultValues: {
       jobOrderId: 0,
       jobOrderNo: "",
-      jobOrderDate: format(new Date(), clientDateFormat),
+      jobOrderDate: format(new Date(), dateFormat),
       imoCode: "",
       vesselDistance: 10,
       portId: 0,
@@ -81,8 +105,8 @@ export default function NewChecklistPage() {
       masterName: "",
       charters: "",
       chartersAgent: "",
-      accountDate: format(new Date(), clientDateFormat), // Set to current date as string for new records
-      seriesDate: format(new Date(), clientDateFormat), // Set to current date as string for new records
+      accountDate: format(new Date(), dateFormat), // Set to current date as string for new records
+      seriesDate: format(new Date(), dateFormat), // Set to current date as string for new records
       addressId: 0,
       contactId: 0,
       natureOfCall: "",
@@ -162,10 +186,10 @@ export default function NewChecklistPage() {
       const accountDateStr =
         typeof jobOrderDate === "string"
           ? jobOrderDate
-          : format(jobOrderDate, clientDateFormat)
+          : format(jobOrderDate, dateFormat)
       form.setValue("accountDate", accountDateStr)
     }
-  }, [jobOrderDate, form])
+  }, [dateFormat, form, jobOrderDate])
 
   // Update exchange rate when accountDate or currencyId changes
   useEffect(() => {
@@ -174,10 +198,10 @@ export default function NewChecklistPage() {
         try {
           // Format date to yyyy-MM-dd (matching account.ts pattern)
           // accountDate is always a string in clientDateFormat
-          const dt = format(
-            parse(accountDate as string, clientDateFormat, new Date()),
-            "yyyy-MM-dd"
-          )
+          const parsedAccountDate = parseWithFallback(accountDate)
+          if (!parsedAccountDate) return
+
+          const dt = format(parsedAccountDate, "yyyy-MM-dd")
           const res = await getData(
             `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
           )
@@ -193,7 +217,7 @@ export default function NewChecklistPage() {
     }
 
     updateExchangeRate()
-  }, [accountDate, currencyId, exhRateDec, form])
+  }, [accountDate, currencyId, exhRateDec, form, parseWithFallback])
 
   // Handle currency selection
   const handleCurrencyChange = useCallback(
@@ -205,10 +229,10 @@ export default function NewChecklistPage() {
       if (selectedCurrencyId && accountDate) {
         // Format date to yyyy-MM-dd (matching account.ts pattern)
         // accountDate is always a string in clientDateFormat
-        const dt = format(
-          parse(accountDate as string, clientDateFormat, new Date()),
-          "yyyy-MM-dd"
-        )
+        const parsedAccountDate = parseWithFallback(accountDate)
+        if (!parsedAccountDate) return
+
+        const dt = format(parsedAccountDate, "yyyy-MM-dd")
         const res = await getData(
           `${BasicSetting.getExchangeRate}/${selectedCurrencyId}/${dt}`
         )
@@ -219,7 +243,7 @@ export default function NewChecklistPage() {
         }
       }
     },
-    [exhRateDec, form]
+    [exhRateDec, form, parseWithFallback]
   )
 
   // Handle customer selection
@@ -311,8 +335,8 @@ export default function NewChecklistPage() {
               : format(
                   formData.jobOrderDate instanceof Date
                     ? formData.jobOrderDate
-                    : parseDate(formData.jobOrderDate as string) || new Date(),
-                  clientDateFormat
+                    : parseWithFallback(formData.jobOrderDate) || new Date(),
+                  dateFormat
                 ),
           accountDate:
             typeof formData.accountDate === "string"
@@ -320,10 +344,8 @@ export default function NewChecklistPage() {
               : format(
                   formData.accountDate instanceof Date
                     ? formData.accountDate
-                    : parseDate(
-                        (formData.accountDate as string | undefined) || ""
-                      ) || new Date(),
-                  clientDateFormat
+                    : parseWithFallback(formData.accountDate) || new Date(),
+                  dateFormat
                 ),
           seriesDate:
             typeof formData.seriesDate === "string"
@@ -331,10 +353,8 @@ export default function NewChecklistPage() {
               : format(
                   formData.seriesDate instanceof Date
                     ? formData.seriesDate
-                    : parseDate(
-                        (formData.seriesDate as string | undefined) || ""
-                      ) || new Date(),
-                  clientDateFormat
+                    : parseWithFallback(formData.seriesDate) || new Date(),
+                  dateFormat
                 ),
         }
       }
@@ -351,7 +371,7 @@ export default function NewChecklistPage() {
 
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
-        // Date-only fields: already strings in "dd/MM/yyyy" format (from transformToSchemaType)
+        // Date-only fields: already strings formatted with company date format (from transformToSchemaType)
         jobOrderDate: formValues.jobOrderDate as string,
         accountDate: formValues.accountDate as string,
         seriesDate: formValues.seriesDate as string,

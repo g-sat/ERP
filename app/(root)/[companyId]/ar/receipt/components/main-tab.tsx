@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ar-outstandingtransactions-dialog"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 
 import ReceiptDetailsTable from "./receipt-details-table"
 import ReceiptForm from "./receipt-form"
@@ -50,6 +51,10 @@ export default function Main({
   const [isAllocated, setIsAllocated] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [dataDetails, setDataDetails] = useState<ArReceiptDtSchemaType[]>([])
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [pendingBulkDeleteItemNos, setPendingBulkDeleteItemNos] = useState<
+    number[]
+  >([])
   const dialogParamsRef = useRef<{
     customerId: number
     currencyId: number
@@ -91,133 +96,134 @@ export default function Main({
     setIsAllocated(hasAllocations)
   }, [dataDetails])
 
-  const handleDelete = (itemNo: number) => {
-    const currentData = form.getValues("data_details") || []
-    const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
+  const removeReceiptDetails = useCallback(
+    (itemNos: number[]) => {
+      if (!itemNos || itemNos.length === 0) return
 
-    // Reset all allocations to 0 for remaining records
-    const resetData = updatedData.map((item) => ({
-      ...item,
-      allocAmt: 0,
-    }))
-    const resetArr = resetData as unknown as IArReceiptDt[]
+      const normalizedItemNos = itemNos
+        .map((item) => Number(item))
+        .filter((item) => Number.isFinite(item))
+      if (normalizedItemNos.length === 0) return
 
-    // Recalculate local amounts and gain/loss after reset
-    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
-    const exhRate = Number(form.getValues("exhRate")) || 1
-    for (let i = 0; i < resetArr.length; i++) {
-      calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
-    }
+      const itemsToRemove = new Set(normalizedItemNos)
+      const currentData = form.getValues("data_details") || []
+      const updatedData = currentData.filter(
+        (item) => !itemsToRemove.has(item.itemNo)
+      )
 
-    // Update reset data with calculated values
-    const finalResetData: ArReceiptDtSchemaType[] = resetData.map(
-      (item, index) => ({
+      if (updatedData.length === currentData.length) {
+        return
+      }
+
+      const resetData = updatedData.map((item) => ({
         ...item,
-        allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
-        exhGainLoss: resetArr[index]?.exhGainLoss || 0,
+        allocAmt: 0,
+      }))
+      const resetArr = resetData as unknown as IArReceiptDt[]
+
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      const exhRate = Number(form.getValues("exhRate")) || 1
+      for (let i = 0; i < resetArr.length; i++) {
+        calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
+      }
+
+      const finalResetData: ArReceiptDtSchemaType[] = resetData.map(
+        (item, index) => ({
+          ...item,
+          allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
+          exhGainLoss: resetArr[index]?.exhGainLoss || 0,
+        })
+      )
+
+      const resetSumAllocAmt = 0
+      const resetSumAllocLocalAmt = 0
+      const resetSumExhGainLoss = 0
+
+      const totAmt = Number(form.getValues("totAmt")) || 0
+      const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
+      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+        totAmt,
+        totLocalAmt,
+        resetSumAllocAmt,
+        resetSumAllocLocalAmt,
+        dec
+      )
+
+      form.setValue("data_details", finalResetData, {
+        shouldDirty: true,
+        shouldTouch: true,
       })
-    )
+      setDataDetails(finalResetData)
+      form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", resetSumAllocLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+        shouldDirty: true,
+      })
+      setIsAllocated(false)
+      form.trigger("data_details")
+      setRefreshKey((prev) => prev + 1)
+    },
+    [decimals, form]
+  )
 
-    // Reset sums
-    const resetSumAllocAmt = 0
-    const resetSumAllocLocalAmt = 0
-    const resetSumExhGainLoss = 0
-
-    // Recalculate unallocated amounts
-    const totAmt = Number(form.getValues("totAmt")) || 0
-    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-      totAmt,
-      totLocalAmt,
-      resetSumAllocAmt,
-      resetSumAllocLocalAmt,
-      dec
-    )
-
-    // Update form values
-    form.setValue("data_details", finalResetData, {
-      shouldDirty: true,
-      shouldTouch: true,
-    })
-    setDataDetails(finalResetData)
-    form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
-    form.setValue("allocTotLocalAmt", resetSumAllocLocalAmt, {
-      shouldDirty: true,
-    })
-    form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-      shouldDirty: true,
-    })
-    setIsAllocated(false)
-    form.trigger("data_details")
-    setRefreshKey((prev) => prev + 1)
+  const handleDelete = (itemNo: number) => {
+    removeReceiptDetails([itemNo])
   }
 
   const handleBulkDelete = (selectedItemNos: number[]) => {
-    const currentData = form.getValues("data_details") || []
-    const updatedData = currentData.filter(
-      (item) => !selectedItemNos.includes(item.itemNo)
+    const validItemNos = selectedItemNos.filter((itemNo) =>
+      Number.isFinite(itemNo)
+    )
+    if (validItemNos.length === 0) return
+
+    const uniqueItemNos = Array.from(new Set(validItemNos))
+    setPendingBulkDeleteItemNos(uniqueItemNos)
+    setIsBulkDeleteDialogOpen(true)
+  }
+
+  const handleBulkDeleteConfirm = useCallback(() => {
+    if (pendingBulkDeleteItemNos.length === 0) return
+    removeReceiptDetails(pendingBulkDeleteItemNos)
+    setPendingBulkDeleteItemNos([])
+  }, [pendingBulkDeleteItemNos, removeReceiptDetails])
+
+  const handleBulkDeleteCancel = useCallback(() => {
+    setPendingBulkDeleteItemNos([])
+  }, [])
+
+  const handleBulkDeleteDialogChange = useCallback((open: boolean) => {
+    setIsBulkDeleteDialogOpen(open)
+    if (!open) {
+      setPendingBulkDeleteItemNos([])
+    }
+  }, [])
+
+  const bulkDeleteItemName = useMemo(() => {
+    if (pendingBulkDeleteItemNos.length === 0) return undefined
+
+    const matches = dataDetails.filter((detail) =>
+      pendingBulkDeleteItemNos.includes(detail.itemNo)
     )
 
-    // Reset all allocations to 0 for remaining records
-    const resetData = updatedData.map((item) => ({
-      ...item,
-      allocAmt: 0,
-    }))
-    const resetArr = resetData as unknown as IArReceiptDt[]
-
-    // Recalculate local amounts and gain/loss after reset
-    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
-    const exhRate = Number(form.getValues("exhRate")) || 1
-    for (let i = 0; i < resetArr.length; i++) {
-      calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
+    if (matches.length === 0) {
+      return `Selected items (${pendingBulkDeleteItemNos.length})`
     }
 
-    // Update reset data with calculated values
-    const finalResetData: ArReceiptDtSchemaType[] = resetData.map(
-      (item, index) => ({
-        ...item,
-        allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
-        exhGainLoss: resetArr[index]?.exhGainLoss || 0,
-      })
-    )
-
-    // Reset sums
-    const resetSumAllocAmt = 0
-    const resetSumAllocLocalAmt = 0
-    const resetSumExhGainLoss = 0
-
-    // Recalculate unallocated amounts
-    const totAmt = Number(form.getValues("totAmt")) || 0
-    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-      totAmt,
-      totLocalAmt,
-      resetSumAllocAmt,
-      resetSumAllocLocalAmt,
-      dec
-    )
-
-    // Update form values
-    form.setValue("data_details", finalResetData, {
-      shouldDirty: true,
-      shouldTouch: true,
+    const lines = matches.slice(0, 10).map((detail) => {
+      const docNo = detail.documentNo ? detail.documentNo.toString().trim() : ""
+      return docNo ? `Document ${docNo}` : `Item No ${detail.itemNo}`
     })
-    setDataDetails(finalResetData)
-    form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
-    form.setValue("allocTotLocalAmt", resetSumAllocLocalAmt, {
-      shouldDirty: true,
-    })
-    form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-      shouldDirty: true,
-    })
-    setIsAllocated(false)
-    form.trigger("data_details")
-    setRefreshKey((prev) => prev + 1)
-  }
+
+    if (matches.length > 10) {
+      lines.push(`...and ${matches.length - 10} more`)
+    }
+
+    return lines.join("<br/>")
+  }, [dataDetails, pendingBulkDeleteItemNos])
 
   const handleDataReorder = (newData: IArReceiptDt[]) => {
     form.setValue("data_details", newData as unknown as ArReceiptDtSchemaType[])
@@ -679,6 +685,15 @@ export default function Main({
           onCellEdit={handleCellEdit}
         />
       </div>
+
+      <DeleteConfirmation
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={handleBulkDeleteDialogChange}
+        onConfirm={handleBulkDeleteConfirm}
+        onCancel={handleBulkDeleteCancel}
+        itemName={bulkDeleteItemName}
+        description="Selected receipt details will be removed. This action cannot be undone."
+      />
 
       {/* Transaction Selection Dialog */}
       {showTransactionDialog && dialogParamsRef.current && (

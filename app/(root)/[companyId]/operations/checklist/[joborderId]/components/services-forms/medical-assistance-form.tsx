@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { IJobOrderHd, IMedicalAssistance } from "@/interfaces/checklist"
 import {
   MedicalAssistanceSchema,
@@ -8,7 +8,7 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
@@ -56,6 +56,30 @@ export function MedicalAssistanceForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      return parseDate(value)
+    },
+    [dateFormat]
+  )
+
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
@@ -78,14 +102,15 @@ export function MedicalAssistanceForm({
       reason: initialData?.reason ?? "",
       admittedDate: initialData?.admittedDate
         ? format(
-            parseDate(initialData.admittedDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.admittedDate as string) || new Date(),
+            dateFormat
           )
-        : "",
+        : format(new Date(), dateFormat),
       dischargedDate: initialData?.dischargedDate
         ? format(
-            parseDate(initialData.dischargedDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.dischargedDate as string) ||
+              new Date(),
+            dateFormat
           )
         : "",
       remarks: initialData?.remarks ?? "",
@@ -111,14 +136,15 @@ export function MedicalAssistanceForm({
       reason: initialData?.reason ?? "",
       admittedDate: initialData?.admittedDate
         ? format(
-            parseDate(initialData.admittedDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.admittedDate as string) || new Date(),
+            dateFormat
           )
-        : "",
+        : format(new Date(), dateFormat),
       dischargedDate: initialData?.dischargedDate
         ? format(
-            parseDate(initialData.dischargedDate as string) || new Date(),
-            clientDateFormat
+            parseWithFallback(initialData.dischargedDate as string) ||
+              new Date(),
+            dateFormat
           )
         : "",
       remarks: initialData?.remarks ?? "",
@@ -128,12 +154,14 @@ export function MedicalAssistanceForm({
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
-    initialData,
-    taskDefaults,
+    dateFormat,
     form,
+    initialData,
+    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
-    isChartOfAccountLoading,
+    parseWithFallback,
+    taskDefaults,
   ])
 
   // Show loading state while data is being fetched

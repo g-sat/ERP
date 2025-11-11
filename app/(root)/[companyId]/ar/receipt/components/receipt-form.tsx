@@ -984,13 +984,15 @@ export default function ReceiptForm({
         />
 
         {/* Bank Charges Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charges Amount"
-          onFocusEvent={handleBankChgAmtFocus}
-          onBlurEvent={handleBankChgAmtChange}
-        />
+        {visible?.m_BankChgGLId && (
+          <CustomNumberInput
+            form={form}
+            name="bankChgAmt"
+            label="Bank Charges Amount"
+            onFocusEvent={handleBankChgAmtFocus}
+            onBlurEvent={handleBankChgAmtChange}
+          />
+        )}
 
         {/* Bank Charges Local Amount */}
         <CustomNumberInput
