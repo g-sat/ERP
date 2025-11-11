@@ -1574,7 +1574,7 @@ export default function AdjustmentPage() {
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
                 >
-                  {titleText}
+                  {titleText} - {adjustment?.isDebit ? "Debit" : "Credit"}
                 </span>
               </span>
             </h1>
