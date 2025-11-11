@@ -23,6 +23,8 @@ export interface IArAdjustmentHd {
   bankCode: null | string | number
   bankName: null | string
 
+  isDebit: boolean
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -92,8 +94,6 @@ export interface IArAdjustmentHd {
   portName: string
   serviceTypeId: number
   serviceTypeName: string
-  otherRemarks: string
-  advRecAmt: number
   data_details: IArAdjustmentDt[]
 }
 
@@ -125,6 +125,7 @@ export interface IArAdjustmentDt {
   uomCode: string
   uomName: string
   unitPrice: number
+  isDebit: boolean
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -161,8 +162,8 @@ export interface IArAdjustmentDt {
   salesOrderNo: string
   supplyDate: Date | string
   supplierName: string
-  suppAdjustmentNo: string
   apAdjustmentId: string
   apAdjustmentNo: string
+  suppAdjustmentNo: string
   editVersion: number
 }

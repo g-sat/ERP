@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { IArAdjustmentFilter, IArAdjustmentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, subMonths } from "date-fns"
+import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
 import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArAdjustment } from "@/lib/api-routes"
+import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
@@ -34,18 +35,26 @@ export default function AdjustmentTable({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 9
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.adjustment
 
+  const today = useMemo(() => new Date(), [])
+  const defaultStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const form = useForm({
     defaultValues: {
-      startDate:
-        initialFilters?.startDate ||
-        format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-      endDate: initialFilters?.endDate || format(new Date(), "yyyy-MM-dd"),
+      startDate: initialFilters?.startDate || defaultStartDate,
+      endDate: initialFilters?.endDate || defaultEndDate,
     },
   })
 
@@ -57,21 +66,22 @@ export default function AdjustmentTable({
   const [hasSearched, setHasSearched] = useState(false)
   // Store the actual search dates - initialize from initialFilters if available
   const [searchStartDate, setSearchStartDate] = useState<string | undefined>(
-    initialFilters?.startDate?.toString()
+    initialFilters?.startDate?.toString() || defaultStartDate
   )
   const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
-    initialFilters?.endDate?.toString()
+    initialFilters?.endDate?.toString() || defaultEndDate
   )
 
   // Update form values when initialFilters change (when dialog reopens)
   useEffect(() => {
-    if (initialFilters?.startDate) {
-      form.setValue("startDate", initialFilters.startDate)
-    }
-    if (initialFilters?.endDate) {
-      form.setValue("endDate", initialFilters.endDate)
-    }
-  }, [initialFilters, form])
+    form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
+    form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
+
+    setSearchStartDate(
+      initialFilters?.startDate?.toString() || defaultStartDate
+    )
+    setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
+  }, [initialFilters, form, defaultStartDate, defaultEndDate])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {

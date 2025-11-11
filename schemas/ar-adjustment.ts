@@ -41,6 +41,8 @@ export const ArAdjustmentHdSchema = (
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
 
+    isDebit: z.boolean().optional(),
+
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
@@ -201,6 +203,7 @@ export const ArAdjustmentDtSchema = (
       required?.m_UnitPrice && visible?.m_UnitPrice
         ? z.number().min(0)
         : z.number().optional(),
+    isDebit: z.boolean().optional(),
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().min(0),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),

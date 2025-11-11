@@ -26,10 +26,10 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, parse } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
@@ -75,6 +75,26 @@ export default function AdjustmentForm({
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
 
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = React.useCallback(
+    (value: string): Date | null => {
+      if (!value) return null
+
+      const parsedByDateFormat = parse(value, dateFormat, new Date())
+      if (isValid(parsedByDateFormat)) {
+        return parsedByDateFormat
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
   // Watch account date to use as minDate for due date
   const accountDateValue = useWatch({
     control: form.control,
@@ -86,13 +106,13 @@ export default function AdjustmentForm({
     // Parse account date string to Date object if needed
     const accountDateObj =
       typeof accountDateValue === "string"
-        ? parse(accountDateValue, clientDateFormat, new Date())
+        ? parseWithFallback(accountDateValue)
         : accountDateValue
 
     return accountDateObj && !isNaN(accountDateObj.getTime())
       ? accountDateObj
       : new Date()
-  }, [accountDateValue])
+  }, [accountDateValue, parseWithFallback])
 
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
@@ -123,18 +143,18 @@ export default function AdjustmentForm({
       const dueDateValue =
         typeof accountDate === "string"
           ? accountDate
-          : format(accountDate, clientDateFormat)
+          : format(accountDate, dateFormat)
       form.setValue("dueDate", dueDateValue)
       form.trigger("dueDate")
     } else {
       console.log("No account date either - set to today")
       // No account date either - set to today
-      const todayValue = format(new Date(), clientDateFormat)
+      const todayValue = format(new Date(), dateFormat)
       form.setValue("dueDate", todayValue)
       form.trigger("dueDate")
     }
     console.log("dueDate", form.getValues("dueDate"))
-  }, [form])
+  }, [form, dateFormat])
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
@@ -146,7 +166,7 @@ export default function AdjustmentForm({
       const trnDateStr =
         typeof trnDate === "string"
           ? trnDate
-          : format(trnDate || new Date(), clientDateFormat)
+          : format(trnDate || new Date(), dateFormat)
 
       form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
@@ -166,7 +186,7 @@ export default function AdjustmentForm({
       )
       await setDueDate(form)
     },
-    [decimals, exhRateDec, form, visible]
+    [decimals, exhRateDec, form, visible, dateFormat]
   )
 
   // Handle account date selection
@@ -180,7 +200,7 @@ export default function AdjustmentForm({
         const accountDateStr =
           typeof accountDate === "string"
             ? accountDate
-            : format(accountDate, clientDateFormat)
+            : format(accountDate, dateFormat)
 
         // Set gstClaimDate and deliveryDate to the new account date (as strings)
         form.setValue("gstClaimDate", accountDateStr)
@@ -194,7 +214,7 @@ export default function AdjustmentForm({
           const accountDateValue =
             typeof selectedAccountDate === "string"
               ? selectedAccountDate
-              : format(selectedAccountDate, clientDateFormat)
+              : format(selectedAccountDate, dateFormat)
           form.setValue("accountDate", accountDateValue)
           form.trigger("accountDate")
         }
@@ -211,7 +231,7 @@ export default function AdjustmentForm({
         await calculateAndSetDueDate()
       }
     },
-    [exhRateDec, form, visible, calculateAndSetDueDate]
+    [exhRateDec, form, visible, calculateAndSetDueDate, dateFormat]
   )
 
   // Handle customer selection

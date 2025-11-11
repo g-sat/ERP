@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IArAdjustmentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
@@ -37,9 +39,10 @@ export default function EditVersionDetails({
   adjustmentId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ar
@@ -47,6 +50,17 @@ export default function EditVersionDetails({
 
   const [selectedAdjustment, setSelectedAdjustment] =
     useState<IArAdjustmentHd | null>(null)
+  const canViewAdjustmentHistory = hasPermission(
+    moduleId,
+    transactionId,
+    "isRead"
+  )
+
+  useEffect(() => {
+    if (!canViewAdjustmentHistory) {
+      setSelectedAdjustment(null)
+    }
+  }, [canViewAdjustmentHistory])
 
   const { data: adjustmentHistoryData, refetch: refetchHistory } =
     //useGetARAdjustmentHistoryList<IArAdjustmentHd[]>("14120250100024")
@@ -344,7 +358,11 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(adjustment) => setSelectedAdjustment(adjustment)}
+            onRowSelect={
+              canViewAdjustmentHistory
+                ? (adjustment) => setSelectedAdjustment(adjustment)
+                : undefined
+            }
           />
         </CardContent>
       </Card>

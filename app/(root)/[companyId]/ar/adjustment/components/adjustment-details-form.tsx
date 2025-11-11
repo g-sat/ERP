@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -31,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import {
   useChartOfAccountLookup,
   useGstLookup,
@@ -50,10 +51,11 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultAdjustmentDetails } from "./adjustment-defaultvalues"
+import { getDefaultValues } from "./adjustment-defaultvalues"
 
 interface AdjustmentDetailsFormProps {
   Hdform: UseFormReturn<ArAdjustmentHdSchemaType>
@@ -88,6 +90,14 @@ export default function AdjustmentDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+  const defaultAdjustmentDetails = useMemo(
+    () => getDefaultValues(dateFormat).defaultAdjustmentDetails,
+    [dateFormat]
+  )
 
   // Track if submit was attempted to show errors only after submit
   const [submitAttempted, setSubmitAttempted] = useState(false)
@@ -154,6 +164,7 @@ export default function AdjustmentDetailsForm({
           uomCode: editingDetail.uomCode ?? "",
           uomName: editingDetail.uomName ?? "",
           unitPrice: editingDetail.unitPrice ?? 0,
+          isDebit: editingDetail.isDebit ?? false,
           totAmt: editingDetail.totAmt ?? 0,
           totLocalAmt: editingDetail.totLocalAmt ?? 0,
           totCtyAmt: editingDetail.totCtyAmt ?? 0,
@@ -447,6 +458,7 @@ export default function AdjustmentDetailsForm({
         uomCode: editingDetail.uomCode ?? "",
         uomName: editingDetail.uomName ?? "",
         unitPrice: editingDetail.unitPrice ?? 0,
+        isDebit: editingDetail.isDebit ?? false,
         totAmt: editingDetail.totAmt ?? 0,
         totLocalAmt: editingDetail.totLocalAmt ?? 0,
         totCtyAmt: editingDetail.totCtyAmt ?? 0,
@@ -582,6 +594,7 @@ export default function AdjustmentDetailsForm({
         uomCode: populatedData.uomCode ?? "",
         uomName: populatedData.uomName ?? "",
         unitPrice: data.unitPrice ?? 0,
+        isDebit: data.isDebit ?? false,
         totAmt: data.totAmt ?? 0,
         totLocalAmt: data.totLocalAmt ?? 0,
         totCtyAmt: data.totCtyAmt ?? 0,
@@ -1194,6 +1207,9 @@ export default function AdjustmentDetailsForm({
               onChangeEvent={handleUnitPriceChange}
             />
           )}
+
+          {/* Is Debit */}
+          <CustomCheckbox form={form} name="isDebit" label="Debit" />
 
           {/* Total Amount */}
           <CustomNumberInput

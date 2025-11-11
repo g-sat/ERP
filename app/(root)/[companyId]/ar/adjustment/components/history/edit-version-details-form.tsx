@@ -1,7 +1,10 @@
 "use client"
 
+import { useMemo } from "react"
+import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -33,6 +36,12 @@ export function EditVersionDetailsForm({
   detailsData,
   summaryData,
 }: EditVersionDetailsFormProps) {
+  const { decimals } = useAuthStore()
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
   // Format currency values
   const formatCurrency = (value: unknown, decimals: number = 2) => {
     if (typeof value === "number") {
@@ -46,18 +55,25 @@ export function EditVersionDetailsForm({
 
   // Format date values
   const formatDate = (value: unknown) => {
+    if (!value) return ""
+
     if (value instanceof Date) {
-      return format(value, "dd/MM/yyyy")
+      return format(value, dateFormat)
     }
-    if (typeof value === "string" && value) {
-      try {
-        const date = new Date(value)
-        return format(date, "dd/MM/yyyy")
-      } catch {
-        return String(value)
+
+    if (typeof value === "string") {
+      const parsed = parseDate(value)
+      if (parsed) {
+        return format(parsed, dateFormat)
       }
+      const native = new Date(value)
+      if (!isNaN(native.getTime())) {
+        return format(native, dateFormat)
+      }
+      return value
     }
-    return String(value || "")
+
+    return String(value)
   }
 
   // Get field value safely

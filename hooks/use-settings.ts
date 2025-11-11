@@ -147,6 +147,7 @@ export const useUserSettingDefaults = () => {
         invoiceGlId: settings?.ap_IN_GLId || 0,
         creditNoteGlId: settings?.ap_CN_GLId || 0,
         debitNoteGlId: settings?.ap_DN_GLId || 0,
+        adjustmentGlId: settings?.ap_DN_GLId || 0,
       },
       // Accounts Receivable defaults
       ar: {
@@ -154,6 +155,7 @@ export const useUserSettingDefaults = () => {
         invoiceGlId: settings?.ar_IN_GLId || 0,
         creditNoteGlId: settings?.ar_CN_GLId || 0,
         debitNoteGlId: settings?.ar_DN_GLId || 0,
+        adjustmentGlId: settings?.ar_DN_GLId || 0,
       },
       // Cash & Bank defaults
       cb: {

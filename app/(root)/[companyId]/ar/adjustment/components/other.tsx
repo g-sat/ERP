@@ -20,7 +20,6 @@ import DynamicContactAutocomplete, {
   EntityType as ContactEntityType,
 } from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomInput from "@/components/custom/custom-input"
-import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
 
@@ -265,33 +264,6 @@ export default function Other({ form, visible }: OtherProps) {
             </CardContent>
           </Card>
         </div>
-        {/* Other Information Section */}
-        {(visible?.m_OtherRemarks || visible?.m_AdvRecAmt) && (
-          <Card className="border-0">
-            <CardContent>
-              <div className="grid grid-cols-2 gap-1">
-                {visible?.m_OtherRemarks && (
-                  <CustomTextarea
-                    form={form}
-                    name="otherRemarks"
-                    label="Other Remarks"
-                    isRequired={false}
-                  />
-                )}
-                {visible?.m_AdvRecAmt && (
-                  <CustomNumberInput
-                    form={form}
-                    name="advRecAmt"
-                    label="Advance Received Amount"
-                    isRequired={false}
-                    round={2}
-                    className="text-right"
-                  />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </Form>
 
       {/* Document Upload Section - Only show after adjustment is saved */}

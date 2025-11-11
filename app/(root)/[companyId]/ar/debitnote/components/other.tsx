@@ -20,7 +20,6 @@ import DynamicContactAutocomplete, {
   EntityType as ContactEntityType,
 } from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomInput from "@/components/custom/custom-input"
-import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
 

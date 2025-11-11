@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -57,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousAdjustmentKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentAdjustmentId = form.watch("adjustmentId")
+  const currentAdjustmentNo = form.watch("adjustmentNo")
+
+  useEffect(() => {
+    const currentKey = `${currentAdjustmentId ?? ""}::${currentAdjustmentNo ?? ""}`
+    if (previousAdjustmentKeyRef.current === currentKey) {
+      return
+    }
+
+    previousAdjustmentKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentAdjustmentId, currentAdjustmentNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -67,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IArAdjustmentDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailAdjustmentId = `${detail.adjustmentId ?? ""}`
+      const editingAdjustmentId = `${editingDetail.adjustmentId ?? ""}`
+      const detailAdjustmentNo = detail.adjustmentNo ?? ""
+      const editingAdjustmentNo = editingDetail.adjustmentNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailAdjustmentId === editingAdjustmentId &&
+        detailAdjustmentNo === editingAdjustmentNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -240,7 +281,7 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as ArAdjustmentDtSchemaType[]}
-        defaultGlId={defaults.ar.invoiceGlId}
+        defaultGlId={defaults.ar.adjustmentGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
         isCancelled={isCancelled}
