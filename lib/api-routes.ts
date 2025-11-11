@@ -834,7 +834,7 @@ export const ArAdjustment = {
 }
 
 // Accounts Receivable DOCSetOff Endpoints
-export const ArDocSetoff = {
+export const ArDocSetOff = {
   get: "/account/getardocsetoff",
   getByIdNo: "/account/getardocsetoffbyidno",
   add: "/account/saveardocsetoff",

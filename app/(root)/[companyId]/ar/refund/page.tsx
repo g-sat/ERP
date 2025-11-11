@@ -7,12 +7,12 @@ import {
   setExchangeRate,
   setRecExchangeRate,
 } from "@/helpers/account"
-import { IArReceiptDt, IArReceiptFilter, IArReceiptHd } from "@/interfaces"
+import { IArRefundDt, IArRefundFilter, IArRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  ArReceiptDtSchemaType,
-  ArReceiptHdSchema,
-  ArReceiptHdSchemaType,
+  ArRefundDtSchemaType,
+  ArRefundHdSchema,
+  ArRefundHdSchemaType,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
@@ -38,7 +38,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ArReceipt, BasicSetting } from "@/lib/api-routes"
+import { ArRefund, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
@@ -61,16 +61,16 @@ import {
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-import { getDefaultValues } from "./components/receipt-defaultvalues"
-import ReceiptTable from "./components/receipt-table"
+import { getDefaultValues } from "./components/refund-defaultvalues"
+import RefundTable from "./components/refund-table"
 
-export default function ReceiptPage() {
+export default function RefundPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.receipt
+  const transactionId = ARTransactionId.refund
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -89,7 +89,7 @@ export default function ReceiptPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/receipt`,
+    () => `history-doc:/${companyId}/ar/refund`,
     [companyId]
   )
 
@@ -145,9 +145,9 @@ export default function ReceiptPage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
+  const [isLoadingRefund, setIsLoadingRefund] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [receipt, setReceipt] = useState<ArReceiptHdSchemaType | null>(null)
+  const [refund, setRefund] = useState<ArRefundHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
@@ -164,17 +164,17 @@ export default function ReceiptPage() {
     [today]
   )
 
-  const [filters, setFilters] = useState<IArReceiptFilter>({
+  const [filters, setFilters] = useState<IArRefundFilter>({
     startDate: defaultFilterStartDate,
     endDate: defaultFilterEndDate,
     search: "",
-    sortBy: "receiptNo",
+    sortBy: "refundNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: pageSize,
   })
 
-  const { defaultReceipt: defaultReceiptValues } = useMemo(
+  const { defaultRefund: defaultRefundValues } = useMemo(
     () => getDefaultValues(dateFormat),
     [dateFormat]
   )
@@ -194,49 +194,49 @@ export default function ReceiptPage() {
   const required: IMandatoryFields = requiredFieldsData ?? null
 
   // Add form state management
-  const form = useForm<ArReceiptHdSchemaType>({
-    resolver: zodResolver(ArReceiptHdSchema(required, visible)),
-    defaultValues: receipt
+  const form = useForm<ArRefundHdSchemaType>({
+    resolver: zodResolver(ArRefundHdSchema(required, visible)),
+    defaultValues: refund
       ? {
-          receiptId: receipt.receiptId?.toString() ?? "0",
-          receiptNo: receipt.receiptNo ?? "",
-          referenceNo: receipt.referenceNo ?? "",
-          trnDate: receipt.trnDate ?? new Date(),
-          accountDate: receipt.accountDate ?? new Date(),
-          bankId: receipt.bankId ?? 0,
-          paymentTypeId: receipt.paymentTypeId ?? 0,
-          chequeNo: receipt.chequeNo ?? "",
-          chequeDate: receipt.chequeDate ?? new Date(),
-          bankChgGLId: receipt.bankChgGLId ?? 0,
-          bankChgAmt: receipt.bankChgAmt ?? 0,
-          bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
-          customerId: receipt.customerId ?? 0,
-          currencyId: receipt.currencyId ?? 0,
-          exhRate: receipt.exhRate ?? 0,
-          totAmt: receipt.totAmt ?? 0,
-          totLocalAmt: receipt.totLocalAmt ?? 0,
-          recCurrencyId: receipt.recCurrencyId ?? 0,
-          recExhRate: receipt.recExhRate ?? 0,
-          recTotAmt: receipt.recTotAmt ?? 0,
-          recTotLocalAmt: receipt.recTotLocalAmt ?? 0,
-          unAllocTotAmt: receipt.unAllocTotAmt ?? 0,
-          unAllocTotLocalAmt: receipt.unAllocTotLocalAmt ?? 0,
-          exhGainLoss: receipt.exhGainLoss ?? 0,
-          remarks: receipt.remarks ?? "",
-          docExhRate: receipt.docExhRate ?? 0,
-          docTotAmt: receipt.docTotAmt ?? 0,
-          docTotLocalAmt: receipt.docTotLocalAmt ?? 0,
-          allocTotAmt: receipt.allocTotAmt ?? 0,
-          allocTotLocalAmt: receipt.allocTotLocalAmt ?? 0,
-          jobOrderId: receipt.jobOrderId ?? 0,
-          jobOrderNo: receipt.jobOrderNo ?? "",
-          moduleFrom: receipt.moduleFrom ?? "",
-          editVersion: receipt.editVersion ?? 0,
+          refundId: refund.refundId?.toString() ?? "0",
+          refundNo: refund.refundNo ?? "",
+          referenceNo: refund.referenceNo ?? "",
+          trnDate: refund.trnDate ?? new Date(),
+          accountDate: refund.accountDate ?? new Date(),
+          bankId: refund.bankId ?? 0,
+          paymentTypeId: refund.paymentTypeId ?? 0,
+          chequeNo: refund.chequeNo ?? "",
+          chequeDate: refund.chequeDate ?? new Date(),
+          bankChgGLId: refund.bankChgGLId ?? 0,
+          bankChgAmt: refund.bankChgAmt ?? 0,
+          bankChgLocalAmt: refund.bankChgLocalAmt ?? 0,
+          customerId: refund.customerId ?? 0,
+          currencyId: refund.currencyId ?? 0,
+          exhRate: refund.exhRate ?? 0,
+          totAmt: refund.totAmt ?? 0,
+          totLocalAmt: refund.totLocalAmt ?? 0,
+          recCurrencyId: refund.recCurrencyId ?? 0,
+          recExhRate: refund.recExhRate ?? 0,
+          recTotAmt: refund.recTotAmt ?? 0,
+          recTotLocalAmt: refund.recTotLocalAmt ?? 0,
+          unAllocTotAmt: refund.unAllocTotAmt ?? 0,
+          unAllocTotLocalAmt: refund.unAllocTotLocalAmt ?? 0,
+          exhGainLoss: refund.exhGainLoss ?? 0,
+          remarks: refund.remarks ?? "",
+          docExhRate: refund.docExhRate ?? 0,
+          docTotAmt: refund.docTotAmt ?? 0,
+          docTotLocalAmt: refund.docTotLocalAmt ?? 0,
+          allocTotAmt: refund.allocTotAmt ?? 0,
+          allocTotLocalAmt: refund.allocTotLocalAmt ?? 0,
+          jobOrderId: refund.jobOrderId ?? 0,
+          jobOrderNo: refund.jobOrderNo ?? "",
+          moduleFrom: refund.moduleFrom ?? "",
+          editVersion: refund.editVersion ?? 0,
           data_details:
-            receipt.data_details?.map((detail) => ({
+            refund.data_details?.map((detail) => ({
               ...detail,
-              receiptId: detail.receiptId?.toString() ?? "0",
-              receiptNo: detail.receiptNo ?? "",
+              refundId: detail.refundId?.toString() ?? "0",
+              refundNo: detail.refundNo ?? "",
               documentId: detail.documentId?.toString() ?? "0",
               documentNo: detail.documentNo ?? "",
               referenceNo: detail.referenceNo ?? "",
@@ -258,14 +258,14 @@ export default function ReceiptPage() {
             })) || [],
         }
       : (() => {
-          // For new receipt, set createDate with time and createBy
+          // For new refund, set createDate with time and createBy
           const currentDateTime = decimals[0]?.longDateFormat
             ? format(new Date(), decimals[0].longDateFormat)
             : format(new Date(), "dd/MM/yyyy HH:mm:ss")
           const userName = user?.userName || ""
 
           return {
-            ...defaultReceiptValues,
+            ...defaultRefundValues,
             createBy: userName,
             createDate: currentDateTime,
             data_details: [],
@@ -273,7 +273,7 @@ export default function ReceiptPage() {
         })(),
   })
 
-  // Data fetching moved to ReceiptTable component for better performance
+  // Data fetching moved to RefundTable component for better performance
 
   const previousDateFormatRef = useRef<string>(dateFormat)
   const lastQueriedDocRef = useRef<string | null>(null)
@@ -285,10 +285,10 @@ export default function ReceiptPage() {
 
     if (isDirty) return
 
-    const currentReceiptId = form.getValues("receiptId") || "0"
+    const currentRefundId = form.getValues("refundId") || "0"
     if (
-      (receipt && receipt.receiptId && receipt.receiptId !== "0") ||
-      currentReceiptId !== "0"
+      (refund && refund.refundId && refund.refundId !== "0") ||
+      currentRefundId !== "0"
     ) {
       return
     }
@@ -299,23 +299,23 @@ export default function ReceiptPage() {
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultReceiptValues,
+      ...defaultRefundValues,
       createBy: userName,
       createDate: currentDateTime,
       data_details: [],
     })
-  }, [dateFormat, defaultReceiptValues, decimals, form, receipt, isDirty, user])
+  }, [dateFormat, defaultRefundValues, decimals, form, refund, isDirty, user])
 
   // Mutations
-  const saveMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
-  const updateMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
-  const deleteMutation = useDeleteWithRemarks(`${ArReceipt.delete}`)
+  const saveMutation = usePersist<ArRefundHdSchemaType>(`${ArRefund.add}`)
+  const updateMutation = usePersist<ArRefundHdSchemaType>(`${ArRefund.add}`)
+  const deleteMutation = useDeleteWithRemarks(`${ArRefund.delete}`)
 
-  // Remove the useGetReceiptById hook for selection
-  // const { data: receiptByIdData, refetch: refetchReceiptById } = ...
+  // Remove the useGetRefundById hook for selection
+  // const { data: refundByIdData, refetch: refetchRefundById } = ...
 
   // Handle Save
-  const handleSaveReceipt = async () => {
+  const handleSaveRefund = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -326,13 +326,13 @@ export default function ReceiptPage() {
     try {
       // Get form values and validate them
       const formValues = transformToSchemaType(
-        form.getValues() as unknown as IArReceiptHd
+        form.getValues() as unknown as IArRefundHd
       )
 
       console.log("formValues", formValues)
 
       // Validate the form data using the schema
-      const validationResult = ArReceiptHdSchema(required, visible).safeParse(
+      const validationResult = ArRefundHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -341,7 +341,7 @@ export default function ReceiptPage() {
 
         // Set field-level errors on the form so FormMessage components can display them
         validationResult.error.issues.forEach((error) => {
-          const fieldPath = error.path.join(".") as keyof ArReceiptHdSchemaType
+          const fieldPath = error.path.join(".") as keyof ArRefundHdSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,
@@ -358,9 +358,18 @@ export default function ReceiptPage() {
         return
       }
 
+      //check totamt and totlocalamt should be zero
+      if (
+        formValues.data_details?.length === undefined ||
+        formValues.data_details?.length === 0
+      ) {
+        toast.error("Data Details should not be empty")
+        return
+      }
+
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
-        const isNew = Number(formValues.receiptId) === 0
+        const isNew = Number(formValues.refundId) === 0
         const prevAccountDate = isNew ? accountDate : previousAccountDate
 
         console.log("accountDate", accountDate)
@@ -394,22 +403,22 @@ export default function ReceiptPage() {
       }
       {
         const response =
-          Number(formValues.receiptId) === 0
+          Number(formValues.refundId) === 0
             ? await saveMutation.mutateAsync(formValues)
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const receiptData = Array.isArray(response.data)
+          const refundData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (receiptData) {
+          if (refundData) {
             const updatedSchemaType = transformToSchemaType(
-              receiptData as unknown as IArReceiptHd
+              refundData as unknown as IArRefundHd
             )
-            setSearchNo(updatedSchemaType.receiptNo || "")
-            setReceipt(updatedSchemaType)
+            setSearchNo(updatedSchemaType.refundNo || "")
+            setRefund(updatedSchemaType)
             const parsed = parseDate(updatedSchemaType.accountDate as string)
             setPreviousAccountDate(
               parsed
@@ -423,30 +432,30 @@ export default function ReceiptPage() {
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
 
-          // Data refresh handled by ReceiptTable component
+          // Data refresh handled by RefundTable component
         } else {
-          toast.error(response.message || "Failed to save receipt")
+          toast.error(response.message || "Failed to save refund")
         }
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving receipt")
+      toast.error("Network error while saving refund")
     } finally {
       setIsSaving(false)
     }
   }
 
   // Handle Clone
-  const handleCloneReceipt = async () => {
-    if (receipt) {
+  const handleCloneRefund = async () => {
+    if (refund) {
       // Create a proper clone with form values
       const currentDate = new Date()
       const dateStr = format(currentDate, dateFormat)
 
-      const clonedReceipt: ArReceiptHdSchemaType = {
-        ...receipt,
-        receiptId: "0",
-        receiptNo: "",
+      const clonedRefund: ArRefundHdSchemaType = {
+        ...refund,
+        refundId: "0",
+        refundNo: "",
         // Set all dates to current date
         trnDate: dateStr,
         accountDate: dateStr,
@@ -458,7 +467,7 @@ export default function ReceiptPage() {
         createDate: "",
         editDate: "",
         cancelDate: "",
-        // Clear all amounts for new receipt
+        // Clear all amounts for new refund
         totAmt: 0,
         totLocalAmt: 0,
         recTotAmt: 0,
@@ -476,15 +485,15 @@ export default function ReceiptPage() {
         data_details: [],
       }
 
-      setReceipt(clonedReceipt)
-      form.reset(clonedReceipt)
+      setRefund(clonedRefund)
+      form.reset(clonedRefund)
       form.trigger("accountDate")
 
       // Get exchange rate decimal places
       const exhRateDec = decimals[0]?.exhRateDec || 6
 
       // Fetch and set new exchange rates based on new account date
-      if (clonedReceipt.currencyId && clonedReceipt.accountDate) {
+      if (clonedRefund.currencyId && clonedRefund.accountDate) {
         try {
           // Wait a tick to ensure form state is updated before calling setExchangeRate
           await new Promise((resolve) => setTimeout(resolve, 0))
@@ -502,7 +511,7 @@ export default function ReceiptPage() {
       // Clear search input
       setSearchNo("")
 
-      toast.success("Receipt cloned successfully")
+      toast.success("Refund cloned successfully")
     }
   }
 
@@ -514,138 +523,138 @@ export default function ReceiptPage() {
   }
 
   // Handle Delete - Second Level: With Cancel Remarks
-  const handleReceiptDelete = async (cancelRemarks: string) => {
-    if (!receipt) return
+  const handleRefundDelete = async (cancelRemarks: string) => {
+    if (!refund) return
 
     try {
       const response = await deleteMutation.mutateAsync({
-        documentId: receipt.receiptId?.toString() ?? "",
-        documentNo: receipt.receiptNo ?? "",
+        documentId: refund.refundId?.toString() ?? "",
+        documentNo: refund.refundNo ?? "",
         cancelRemarks: cancelRemarks,
       })
 
       if (response.result === 1) {
-        setReceipt(null)
+        setRefund(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultReceiptValues,
+          ...defaultRefundValues,
           data_details: [],
         })
-        toast.success(`Receipt ${receipt.receiptNo} deleted successfully`)
-        // Data refresh handled by ReceiptTable component
+        toast.success(`Refund ${refund.refundNo} deleted successfully`)
+        // Data refresh handled by RefundTable component
       } else {
-        toast.error(response.message || "Failed to delete receipt")
+        toast.error(response.message || "Failed to delete refund")
       }
     } catch {
-      toast.error("Network error while deleting receipt")
+      toast.error("Network error while deleting refund")
     }
   }
 
   // Handle Reset
-  const handleReceiptReset = () => {
-    setReceipt(null)
+  const handleRefundReset = () => {
+    setRefund(null)
     setSearchNo("") // Clear search input
 
-    // Get current date/time and user name - always set for reset (new receipt)
+    // Get current date/time and user name - always set for reset (new refund)
     const currentDateTime = decimals[0]?.longDateFormat
       ? format(new Date(), decimals[0].longDateFormat)
       : format(new Date(), "dd/MM/yyyy HH:mm:ss")
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultReceiptValues,
+      ...defaultRefundValues,
       // Always set createBy and createDate to current user and current date/time on reset
       createBy: userName,
       createDate: currentDateTime,
       data_details: [],
     })
-    toast.success("Receipt reset successfully")
+    toast.success("Refund reset successfully")
   }
 
-  // Helper function to transform IArReceiptHd to ArReceiptHdSchemaType
+  // Helper function to transform IArRefundHd to ArRefundHdSchemaType
   const transformToSchemaType = useCallback(
-    (apiReceipt: IArReceiptHd): ArReceiptHdSchemaType => {
+    (apiRefund: IArRefundHd): ArRefundHdSchemaType => {
       return {
-        receiptId: apiReceipt.receiptId?.toString() ?? "0",
-        receiptNo: apiReceipt.receiptNo ?? "",
-        referenceNo: apiReceipt.referenceNo ?? "",
-        trnDate: apiReceipt.trnDate
+        refundId: apiRefund.refundId?.toString() ?? "0",
+        refundNo: apiRefund.refundNo ?? "",
+        referenceNo: apiRefund.referenceNo ?? "",
+        trnDate: apiRefund.trnDate
           ? format(
-              parseDate(apiReceipt.trnDate as string) || new Date(),
+              parseDate(apiRefund.trnDate as string) || new Date(),
               dateFormat
             )
           : dateFormat,
-        accountDate: apiReceipt.accountDate
+        accountDate: apiRefund.accountDate
           ? format(
-              parseDate(apiReceipt.accountDate as string) || new Date(),
+              parseDate(apiRefund.accountDate as string) || new Date(),
               dateFormat
             )
           : dateFormat,
-        bankId: apiReceipt.bankId ?? 0,
-        paymentTypeId: apiReceipt.paymentTypeId ?? 0,
-        chequeNo: apiReceipt.chequeNo ?? "",
-        chequeDate: apiReceipt.chequeDate
+        bankId: apiRefund.bankId ?? 0,
+        paymentTypeId: apiRefund.paymentTypeId ?? 0,
+        chequeNo: apiRefund.chequeNo ?? "",
+        chequeDate: apiRefund.chequeDate
           ? format(
-              parseDate(apiReceipt.chequeDate as string) || new Date(),
+              parseDate(apiRefund.chequeDate as string) || new Date(),
               dateFormat
             )
           : dateFormat,
-        bankChgGLId: apiReceipt.bankChgGLId ?? 0,
-        bankChgAmt: apiReceipt.bankChgAmt ?? 0,
-        bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
-        customerId: apiReceipt.customerId ?? 0,
-        currencyId: apiReceipt.currencyId ?? 0,
-        exhRate: apiReceipt.exhRate ?? 0,
-        totAmt: apiReceipt.totAmt ?? 0,
-        totLocalAmt: apiReceipt.totLocalAmt ?? 0,
-        recCurrencyId: apiReceipt.recCurrencyId ?? 0,
-        recExhRate: apiReceipt.recExhRate ?? 0,
-        recTotAmt: apiReceipt.recTotAmt ?? 0,
-        recTotLocalAmt: apiReceipt.recTotLocalAmt ?? 0,
-        unAllocTotAmt: apiReceipt.unAllocTotAmt ?? 0,
-        unAllocTotLocalAmt: apiReceipt.unAllocTotLocalAmt ?? 0,
-        exhGainLoss: apiReceipt.exhGainLoss ?? 0,
-        remarks: apiReceipt.remarks ?? "",
-        docExhRate: apiReceipt.docExhRate ?? 0,
-        docTotAmt: apiReceipt.docTotAmt ?? 0,
-        docTotLocalAmt: apiReceipt.docTotLocalAmt ?? 0,
-        allocTotAmt: apiReceipt.allocTotAmt ?? 0,
-        allocTotLocalAmt: apiReceipt.allocTotLocalAmt ?? 0,
-        jobOrderId: apiReceipt.jobOrderId ?? 0,
-        jobOrderNo: apiReceipt.jobOrderNo ?? "",
-        moduleFrom: apiReceipt.moduleFrom ?? "",
-        editVersion: apiReceipt.editVersion ?? 0,
-        createBy: apiReceipt.createById?.toString() ?? "",
-        editBy: apiReceipt.editById?.toString() ?? "",
-        cancelBy: apiReceipt.cancelById?.toString() ?? "",
-        isCancel: apiReceipt.isCancel ?? false,
-        createDate: apiReceipt.createDate
+        bankChgGLId: apiRefund.bankChgGLId ?? 0,
+        bankChgAmt: apiRefund.bankChgAmt ?? 0,
+        bankChgLocalAmt: apiRefund.bankChgLocalAmt ?? 0,
+        customerId: apiRefund.customerId ?? 0,
+        currencyId: apiRefund.currencyId ?? 0,
+        exhRate: apiRefund.exhRate ?? 0,
+        totAmt: apiRefund.totAmt ?? 0,
+        totLocalAmt: apiRefund.totLocalAmt ?? 0,
+        recCurrencyId: apiRefund.recCurrencyId ?? 0,
+        recExhRate: apiRefund.recExhRate ?? 0,
+        recTotAmt: apiRefund.recTotAmt ?? 0,
+        recTotLocalAmt: apiRefund.recTotLocalAmt ?? 0,
+        unAllocTotAmt: apiRefund.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiRefund.unAllocTotLocalAmt ?? 0,
+        exhGainLoss: apiRefund.exhGainLoss ?? 0,
+        remarks: apiRefund.remarks ?? "",
+        docExhRate: apiRefund.docExhRate ?? 0,
+        docTotAmt: apiRefund.docTotAmt ?? 0,
+        docTotLocalAmt: apiRefund.docTotLocalAmt ?? 0,
+        allocTotAmt: apiRefund.allocTotAmt ?? 0,
+        allocTotLocalAmt: apiRefund.allocTotLocalAmt ?? 0,
+        jobOrderId: apiRefund.jobOrderId ?? 0,
+        jobOrderNo: apiRefund.jobOrderNo ?? "",
+        moduleFrom: apiRefund.moduleFrom ?? "",
+        editVersion: apiRefund.editVersion ?? 0,
+        createBy: apiRefund.createById?.toString() ?? "",
+        editBy: apiRefund.editById?.toString() ?? "",
+        cancelBy: apiRefund.cancelById?.toString() ?? "",
+        isCancel: apiRefund.isCancel ?? false,
+        createDate: apiRefund.createDate
           ? format(
-              parseDate(apiReceipt.createDate as string) || new Date(),
+              parseDate(apiRefund.createDate as string) || new Date(),
               decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        editDate: apiReceipt.editDate
+        editDate: apiRefund.editDate
           ? format(
-              parseDate(apiReceipt.editDate as unknown as string) || new Date(),
+              parseDate(apiRefund.editDate as unknown as string) || new Date(),
               decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        cancelDate: apiReceipt.cancelDate
+        cancelDate: apiRefund.cancelDate
           ? format(
-              parseDate(apiReceipt.cancelDate as unknown as string) ||
+              parseDate(apiRefund.cancelDate as unknown as string) ||
                 new Date(),
               decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        cancelRemarks: apiReceipt.cancelRemarks ?? "",
+        cancelRemarks: apiRefund.cancelRemarks ?? "",
         data_details:
-          apiReceipt.data_details?.map(
+          apiRefund.data_details?.map(
             (detail) =>
               ({
                 ...detail,
-                receiptId: detail.receiptId?.toString() ?? "0",
-                receiptNo: detail.receiptNo ?? "",
+                refundId: detail.refundId?.toString() ?? "0",
+                refundNo: detail.refundNo ?? "",
                 itemNo: detail.itemNo ?? 0,
                 transactionId: detail.transactionId ?? 0,
                 documentId: detail.documentId?.toString() ?? "0",
@@ -676,82 +685,81 @@ export default function ReceiptPage() {
                 centDiff: detail.centDiff ?? 0,
                 exhGainLoss: detail.exhGainLoss ?? 0,
                 editVersion: detail.editVersion ?? 0,
-              }) as unknown as ArReceiptDtSchemaType
+              }) as unknown as ArRefundDtSchemaType
           ) || [],
       }
     },
     [dateFormat, decimals]
   )
 
-  const handleReceiptSelect = async (
-    selectedReceipt: IArReceiptHd | undefined
+  const handleRefundSelect = async (
+    selectedRefund: IArRefundHd | undefined
   ) => {
-    if (!selectedReceipt) return
+    if (!selectedRefund) return
 
     try {
-      // Fetch receipt details directly using selected receipt's values
+      // Fetch refund details directly using selected refund's values
       const response = await getById(
-        `${ArReceipt.getByIdNo}/${selectedReceipt.receiptId}/${selectedReceipt.receiptNo}`
+        `${ArRefund.getByIdNo}/${selectedRefund.refundId}/${selectedRefund.refundNo}`
       )
 
       if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
+        const detailedRefund = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedReceipt) {
+        if (detailedRefund) {
           {
-            const parsed = parseDate(detailedReceipt.accountDate as string)
+            const parsed = parseDate(detailedRefund.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
-                : (detailedReceipt.accountDate as string)
+                : (detailedRefund.accountDate as string)
             )
           }
 
           // Parse dates properly
-          const updatedReceipt = {
-            ...detailedReceipt,
-            receiptId: detailedReceipt.receiptId?.toString() ?? "0",
-            receiptNo: detailedReceipt.receiptNo ?? "",
-            referenceNo: detailedReceipt.referenceNo ?? "",
-            trnDate: detailedReceipt.trnDate
+          const updatedRefund = {
+            ...detailedRefund,
+            refundId: detailedRefund.refundId?.toString() ?? "0",
+            refundNo: detailedRefund.refundNo ?? "",
+            referenceNo: detailedRefund.referenceNo ?? "",
+            trnDate: detailedRefund.trnDate
               ? format(
-                  parseDate(detailedReceipt.trnDate as string) || new Date(),
+                  parseDate(detailedRefund.trnDate as string) || new Date(),
                   dateFormat
                 )
               : dateFormat,
-            accountDate: detailedReceipt.accountDate
+            accountDate: detailedRefund.accountDate
               ? format(
-                  parseDate(detailedReceipt.accountDate as string) ||
-                    new Date(),
+                  parseDate(detailedRefund.accountDate as string) || new Date(),
                   dateFormat
                 )
               : dateFormat,
 
-            customerId: detailedReceipt.customerId ?? 0,
-            currencyId: detailedReceipt.currencyId ?? 0,
-            exhRate: detailedReceipt.exhRate ?? 0,
-            bankId: detailedReceipt.bankId ?? 0,
-            totAmt: detailedReceipt.totAmt ?? 0,
-            totLocalAmt: detailedReceipt.totLocalAmt ?? 0,
-            recTotAmt: detailedReceipt.recTotAmt ?? 0,
-            recTotLocalAmt: detailedReceipt.recTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-            remarks: detailedReceipt.remarks ?? "",
-            docExhRate: detailedReceipt.docExhRate ?? 0,
-            docTotAmt: detailedReceipt.docTotAmt ?? 0,
-            docTotLocalAmt: detailedReceipt.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-            bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
+            customerId: detailedRefund.customerId ?? 0,
+            currencyId: detailedRefund.currencyId ?? 0,
+            exhRate: detailedRefund.exhRate ?? 0,
+            bankId: detailedRefund.bankId ?? 0,
+            totAmt: detailedRefund.totAmt ?? 0,
+            totLocalAmt: detailedRefund.totLocalAmt ?? 0,
+            recTotAmt: detailedRefund.recTotAmt ?? 0,
+            recTotLocalAmt: detailedRefund.recTotLocalAmt ?? 0,
+            unAllocTotAmt: detailedRefund.unAllocTotAmt ?? 0,
+            unAllocTotLocalAmt: detailedRefund.unAllocTotLocalAmt ?? 0,
+            exhGainLoss: detailedRefund.exhGainLoss ?? 0,
+            remarks: detailedRefund.remarks ?? "",
+            docExhRate: detailedRefund.docExhRate ?? 0,
+            docTotAmt: detailedRefund.docTotAmt ?? 0,
+            docTotLocalAmt: detailedRefund.docTotLocalAmt ?? 0,
+            allocTotAmt: detailedRefund.allocTotAmt ?? 0,
+            allocTotLocalAmt: detailedRefund.allocTotLocalAmt ?? 0,
+            bankChgAmt: detailedRefund.bankChgAmt ?? 0,
+            bankChgLocalAmt: detailedRefund.bankChgLocalAmt ?? 0,
             data_details:
-              detailedReceipt.data_details?.map((detail: IArReceiptDt) => ({
-                receiptId: detail.receiptId?.toString() ?? "0",
-                receiptNo: detail.receiptNo ?? "",
+              detailedRefund.data_details?.map((detail: IArRefundDt) => ({
+                refundId: detail.refundId?.toString() ?? "0",
+                refundNo: detail.refundNo ?? "",
                 itemNo: detail.itemNo ?? 0,
                 transactionId: detail.transactionId ?? 0,
                 documentId: detail.documentId?.toString() ?? "0",
@@ -785,48 +793,46 @@ export default function ReceiptPage() {
               })) || [],
           }
 
-          //setReceipt(updatedReceipt as ArReceiptHdSchemaType)
-          setReceipt(transformToSchemaType(updatedReceipt))
-          form.reset(updatedReceipt)
+          //setRefund(updatedRefund as ArRefundHdSchemaType)
+          setRefund(transformToSchemaType(updatedRefund))
+          form.reset(updatedRefund)
           form.trigger()
 
-          // Set the receipt number in search input
-          setSearchNo(updatedReceipt.receiptNo || "")
+          // Set the refund number in search input
+          setSearchNo(updatedRefund.refundNo || "")
 
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Receipt ${updatedReceipt.receiptNo} loaded successfully`
-          )
+          toast.success(`Refund ${updatedRefund.refundNo} loaded successfully`)
         }
       } else {
-        toast.error(response?.message || "Failed to fetch receipt details")
+        toast.error(response?.message || "Failed to fetch refund details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching receipt details:", error)
-      toast.error("Error loading receipt. Please try again.")
+      console.error("Error fetching refund details:", error)
+      toast.error("Error loading refund. Please try again.")
       // Keep dialog open on error
     } finally {
       // Selection completed
     }
   }
 
-  // Remove direct refetchReceipts from handleFilterChange
-  const handleFilterChange = (newFilters: IArReceiptFilter) => {
+  // Remove direct refetchRefunds from handleFilterChange
+  const handleFilterChange = (newFilters: IArRefundFilter) => {
     setFilters(newFilters)
-    // refetchReceipts(); // Removed: will be handled by useEffect
+    // refetchRefunds(); // Removed: will be handled by useEffect
   }
 
-  // Set createBy and createDate for new receipts on page load/refresh
+  // Set createBy and createDate for new refunds on page load/refresh
   useEffect(() => {
-    if (!receipt && user && decimals.length > 0) {
-      const currentReceiptId = form.getValues("receiptId")
-      const currentReceiptNo = form.getValues("receiptNo")
-      const isNewReceipt =
-        !currentReceiptId || currentReceiptId === "0" || !currentReceiptNo
+    if (!refund && user && decimals.length > 0) {
+      const currentRefundId = form.getValues("refundId")
+      const currentRefundNo = form.getValues("refundNo")
+      const isNewRefund =
+        !currentRefundId || currentRefundId === "0" || !currentRefundNo
 
-      if (isNewReceipt) {
+      if (isNewRefund) {
         const currentDateTime = decimals[0]?.longDateFormat
           ? format(new Date(), decimals[0].longDateFormat)
           : format(new Date(), "dd/MM/yyyy HH:mm:ss")
@@ -836,7 +842,7 @@ export default function ReceiptPage() {
         form.setValue("createDate", currentDateTime)
       }
     }
-  }, [receipt, user, decimals, form])
+  }, [refund, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -873,115 +879,115 @@ export default function ReceiptPage() {
     form.clearErrors()
   }, [activeTab, form])
 
-  const handleReceiptSearch = useCallback(
+  const handleRefundSearch = useCallback(
     async (value: string) => {
       if (!value) return
 
-      setIsLoadingReceipt(true)
+      setIsLoadingRefund(true)
 
       try {
-        const response = await getById(`${ArReceipt.getByIdNo}/0/${value}`)
+        const response = await getById(`${ArRefund.getByIdNo}/0/${value}`)
 
         if (response?.result === 1) {
-          const detailedReceipt = Array.isArray(response.data)
+          const detailedRefund = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
-          if (detailedReceipt) {
+          if (detailedRefund) {
             {
-              const parsed = parseDate(detailedReceipt.accountDate as string)
+              const parsed = parseDate(detailedRefund.accountDate as string)
               setPreviousAccountDate(
                 parsed
                   ? format(parsed, dateFormat)
-                  : (detailedReceipt.accountDate as string)
+                  : (detailedRefund.accountDate as string)
               )
             }
             // Parse dates properly
-            const updatedReceipt = {
-              ...detailedReceipt,
-              receiptId: detailedReceipt.receiptId?.toString() ?? "0",
-              receiptNo: detailedReceipt.receiptNo ?? "",
-              referenceNo: detailedReceipt.referenceNo ?? "",
+            const updatedRefund = {
+              ...detailedRefund,
+              refundId: detailedRefund.refundId?.toString() ?? "0",
+              refundNo: detailedRefund.refundNo ?? "",
+              referenceNo: detailedRefund.referenceNo ?? "",
               suppInvoiceNo: "", // Required by schema but not in interface
-              trnDate: detailedReceipt.trnDate
+              trnDate: detailedRefund.trnDate
                 ? format(
-                    parseDate(detailedReceipt.trnDate as string) || new Date(),
+                    parseDate(detailedRefund.trnDate as string) || new Date(),
                     dateFormat
                   )
                 : dateFormat,
-              accountDate: detailedReceipt.accountDate
+              accountDate: detailedRefund.accountDate
                 ? format(
-                    parseDate(detailedReceipt.accountDate as string) ||
+                    parseDate(detailedRefund.accountDate as string) ||
                       new Date(),
                     dateFormat
                   )
                 : dateFormat,
 
-              customerId: detailedReceipt.customerId ?? 0,
-              currencyId: detailedReceipt.currencyId ?? 0,
-              exhRate: detailedReceipt.exhRate ?? 0,
-              bankId: detailedReceipt.bankId ?? 0,
-              paymentTypeId: detailedReceipt.paymentTypeId ?? 0,
-              chequeNo: detailedReceipt.chequeNo ?? "",
-              chequeDate: detailedReceipt.chequeDate
+              customerId: detailedRefund.customerId ?? 0,
+              currencyId: detailedRefund.currencyId ?? 0,
+              exhRate: detailedRefund.exhRate ?? 0,
+              bankId: detailedRefund.bankId ?? 0,
+              paymentTypeId: detailedRefund.paymentTypeId ?? 0,
+              chequeNo: detailedRefund.chequeNo ?? "",
+              chequeDate: detailedRefund.chequeDate
                 ? format(
-                    parseDate(detailedReceipt.chequeDate as string) ||
+                    parseDate(detailedRefund.chequeDate as string) ||
                       new Date(),
                     dateFormat
                   )
                 : dateFormat,
-              bankChgGLId: detailedReceipt.bankChgGLId ?? 0,
-              bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
-              bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
-              totAmt: detailedReceipt.totAmt ?? 0,
-              totLocalAmt: detailedReceipt.totLocalAmt ?? 0,
-              recCurrencyId: detailedReceipt.recCurrencyId ?? 0,
-              recExhRate: detailedReceipt.recExhRate ?? 0,
-              recTotAmt: detailedReceipt.recTotAmt ?? 0,
-              recTotLocalAmt: detailedReceipt.recTotLocalAmt ?? 0,
-              unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-              unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-              exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-              remarks: detailedReceipt.remarks ?? "",
-              docExhRate: detailedReceipt.docExhRate ?? 0,
-              docTotAmt: detailedReceipt.docTotAmt ?? 0,
-              docTotLocalAmt: detailedReceipt.docTotLocalAmt ?? 0,
-              allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-              allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-              jobOrderId: detailedReceipt.jobOrderId ?? 0,
-              jobOrderNo: detailedReceipt.jobOrderNo ?? "",
-              moduleFrom: detailedReceipt.moduleFrom ?? "",
-              editVersion: detailedReceipt.editVersion ?? 0,
-              createBy: detailedReceipt.createById?.toString() ?? "",
-              createDate: detailedReceipt.createDate
+              bankChgGLId: detailedRefund.bankChgGLId ?? 0,
+              bankChgAmt: detailedRefund.bankChgAmt ?? 0,
+              bankChgLocalAmt: detailedRefund.bankChgLocalAmt ?? 0,
+              totAmt: detailedRefund.totAmt ?? 0,
+              totLocalAmt: detailedRefund.totLocalAmt ?? 0,
+              recCurrencyId: detailedRefund.recCurrencyId ?? 0,
+              recExhRate: detailedRefund.recExhRate ?? 0,
+              recTotAmt: detailedRefund.recTotAmt ?? 0,
+              recTotLocalAmt: detailedRefund.recTotLocalAmt ?? 0,
+              unAllocTotAmt: detailedRefund.unAllocTotAmt ?? 0,
+              unAllocTotLocalAmt: detailedRefund.unAllocTotLocalAmt ?? 0,
+              exhGainLoss: detailedRefund.exhGainLoss ?? 0,
+              remarks: detailedRefund.remarks ?? "",
+              docExhRate: detailedRefund.docExhRate ?? 0,
+              docTotAmt: detailedRefund.docTotAmt ?? 0,
+              docTotLocalAmt: detailedRefund.docTotLocalAmt ?? 0,
+              allocTotAmt: detailedRefund.allocTotAmt ?? 0,
+              allocTotLocalAmt: detailedRefund.allocTotLocalAmt ?? 0,
+              jobOrderId: detailedRefund.jobOrderId ?? 0,
+              jobOrderNo: detailedRefund.jobOrderNo ?? "",
+              moduleFrom: detailedRefund.moduleFrom ?? "",
+              editVersion: detailedRefund.editVersion ?? 0,
+              createBy: detailedRefund.createById?.toString() ?? "",
+              createDate: detailedRefund.createDate
                 ? format(
-                    parseDate(detailedReceipt.createDate as string) ||
+                    parseDate(detailedRefund.createDate as string) ||
                       new Date(),
                     decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
-              editBy: detailedReceipt.editById?.toString() ?? "",
-              editDate: detailedReceipt.editDate
+              editBy: detailedRefund.editById?.toString() ?? "",
+              editDate: detailedRefund.editDate
                 ? format(
-                    parseDate(detailedReceipt.editDate as string) || new Date(),
+                    parseDate(detailedRefund.editDate as string) || new Date(),
                     decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
-              isCancel: detailedReceipt.isCancel ?? false,
-              cancelBy: detailedReceipt.cancelById?.toString() ?? "",
-              cancelDate: detailedReceipt.cancelDate
+              isCancel: detailedRefund.isCancel ?? false,
+              cancelBy: detailedRefund.cancelById?.toString() ?? "",
+              cancelDate: detailedRefund.cancelDate
                 ? format(
-                    parseDate(detailedReceipt.cancelDate as string) ||
+                    parseDate(detailedRefund.cancelDate as string) ||
                       new Date(),
                     decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
-              cancelRemarks: detailedReceipt.cancelRemarks ?? "",
+              cancelRemarks: detailedRefund.cancelRemarks ?? "",
 
               data_details:
-                detailedReceipt.data_details?.map((detail: IArReceiptDt) => ({
-                  receiptId: detail.receiptId?.toString() ?? "0",
-                  receiptNo: detail.receiptNo ?? "",
+                detailedRefund.data_details?.map((detail: IArRefundDt) => ({
+                  refundId: detail.refundId?.toString() ?? "0",
+                  refundNo: detail.refundNo ?? "",
                   itemNo: detail.itemNo ?? 0,
                   transactionId: detail.transactionId ?? 0,
                   documentId: detail.documentId?.toString() ?? "0",
@@ -1016,41 +1022,41 @@ export default function ReceiptPage() {
                 })) || [],
             }
 
-            //setReceipt(updatedReceipt as ArReceiptHdSchemaType)
-            setReceipt(transformToSchemaType(updatedReceipt))
-            form.reset(updatedReceipt)
+            //setRefund(updatedRefund as ArRefundHdSchemaType)
+            setRefund(transformToSchemaType(updatedRefund))
+            form.reset(updatedRefund)
             form.trigger()
 
-            // Set the receipt number in search input to the actual receipt number from database
-            setSearchNo(updatedReceipt.receiptNo || "")
+            // Set the refund number in search input to the actual refund number from database
+            setSearchNo(updatedRefund.refundNo || "")
 
             // Show success message
             toast.success(
-              `Receipt ${updatedReceipt.receiptNo || value} loaded successfully`
+              `Refund ${updatedRefund.refundNo || value} loaded successfully`
             )
 
             // Close the load confirmation dialog on success
             setShowLoadConfirm(false)
           }
         } else {
-          toast.error(response?.message || "Failed to fetch receipt details")
+          toast.error(response?.message || "Failed to fetch refund details")
           // Keep dialog open on failure so user can try again
         }
       } catch (error) {
-        console.error("Error fetching receipt details:", error)
-        toast.error("Error loading receipt. Please try again.")
+        console.error("Error fetching refund details:", error)
+        toast.error("Error loading refund. Please try again.")
         // Keep dialog open on error
       } finally {
-        setIsLoadingReceipt(false)
+        setIsLoadingRefund(false)
       }
     },
     [
       dateFormat,
       decimals,
       form,
-      setIsLoadingReceipt,
+      setIsLoadingRefund,
       setPreviousAccountDate,
-      setReceipt,
+      setRefund,
       setShowLoadConfirm,
       transformToSchemaType,
     ]
@@ -1062,18 +1068,18 @@ export default function ReceiptPage() {
 
     lastQueriedDocRef.current = pendingDocNo
     setSearchNo(pendingDocNo)
-    void handleReceiptSearch(pendingDocNo)
-  }, [handleReceiptSearch, pendingDocNo])
+    void handleRefundSearch(pendingDocNo)
+  }, [handleRefundSearch, pendingDocNo])
 
-  // Determine mode and receipt ID from URL
-  const receiptNo = form.getValues("receiptNo")
-  const isEdit = Boolean(receiptNo)
-  const isCancelled = receipt?.isCancel === true
+  // Determine mode and refund ID from URL
+  const refundNo = form.getValues("refundNo")
+  const isEdit = Boolean(refundNo)
+  const isCancelled = refund?.isCancel === true
 
   // Compose title text
   const titleText = isEdit
-    ? `Receipt (Edit)- v[${receipt?.editVersion}] - ${receiptNo}`
-    : "Receipt (New)"
+    ? `Refund (Edit)- v[${refund?.editVersion}] - ${refundNo}`
+    : "Refund (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1081,7 +1087,7 @@ export default function ReceiptPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading receipt form...</p>
+          <p className="mt-4 text-sm text-gray-600">Loading refund form...</p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -1113,9 +1119,9 @@ export default function ReceiptPage() {
                   <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
                   Cancelled
                 </span>
-                {receipt?.cancelRemarks && (
+                {refund?.cancelRemarks && (
                   <div className="max-w-xs truncate text-sm text-red-600">
-                    {receipt.cancelRemarks}
+                    {refund.cancelRemarks}
                   </div>
                 )}
               </div>
@@ -1145,14 +1151,14 @@ export default function ReceiptPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  if (receipt?.receiptNo) {
-                    setSearchNo(receipt.receiptNo)
+                  if (refund?.refundNo) {
+                    setSearchNo(refund.refundNo)
                     setShowLoadConfirm(true)
                   }
                 }}
-                disabled={isLoadingReceipt}
+                disabled={isLoadingRefund}
                 className="h-4 w-4 p-0"
-                title="Refresh receipt data"
+                title="Refresh refund data"
               >
                 <RefreshCw className="h-2 w-2" />
               </Button>
@@ -1174,10 +1180,10 @@ export default function ReceiptPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Receipt No"
+              placeholder="Search Refund No"
               className="h-8 text-sm"
-              readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
-              disabled={!!receipt?.receiptId && receipt.receiptId !== "0"}
+              readOnly={!!refund?.refundId && refund.refundId !== "0"}
+              disabled={!!refund?.refundId && refund.refundId !== "0"}
             />
             <Button
               variant="outline"
@@ -1223,7 +1229,7 @@ export default function ReceiptPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!refund || refund.refundId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1243,7 +1249,7 @@ export default function ReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0" || isCancelled}
+              disabled={!refund || refund.refundId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1255,8 +1261,8 @@ export default function ReceiptPage() {
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
                 !canView ||
-                !receipt ||
-                receipt.receiptId === "0" ||
+                !refund ||
+                refund.refundId === "0" ||
                 deleteMutation.isPending ||
                 isCancelled ||
                 !canDelete
@@ -1276,7 +1282,7 @@ export default function ReceiptPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveReceipt()
+              handleSaveRefund()
             }}
             isEdit={isEdit}
             visible={visible}
@@ -1309,18 +1315,18 @@ export default function ReceiptPage() {
           {/* Header */}
           <div className="bg-background flex flex-col gap-1 border-b p-2">
             <DialogTitle className="text-2xl font-bold tracking-tight">
-              Receipt List
+              Refund List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing receipts from the list below. Use
-              search to filter records or create new receipts.
+              Manage and select existing refunds from the list below. Use search
+              to filter records or create new refunds.
             </p>
           </div>
 
           {/* Table Container - Takes remaining space */}
           <div className="flex-1 overflow-auto px-4 py-2">
-            <ReceiptTable
-              onReceiptSelect={handleReceiptSelect}
+            <RefundTable
+              onRefundSelect={handleRefundSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
@@ -1334,10 +1340,10 @@ export default function ReceiptPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveReceipt}
-        itemName={receipt?.receiptNo || "New Receipt"}
+        onConfirm={handleSaveRefund}
+        itemName={refund?.refundNo || "New Refund"}
         operationType={
-          receipt?.receiptId && receipt.receiptId !== "0" ? "update" : "create"
+          refund?.refundId && refund.refundId !== "0" ? "update" : "create"
         }
         isSaving={
           isSaving || saveMutation.isPending || updateMutation.isPending
@@ -1349,9 +1355,9 @@ export default function ReceiptPage() {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
-        itemName={receipt?.receiptNo}
-        title="Delete Receipt"
-        description="This action cannot be undone. All receipt details will be permanently deleted."
+        itemName={refund?.refundNo}
+        title="Delete Refund"
+        description="This action cannot be undone. All refund details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -1359,10 +1365,10 @@ export default function ReceiptPage() {
       <CancelConfirmation
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}
-        onConfirmAction={handleReceiptDelete}
-        itemName={receipt?.receiptNo}
-        title="Cancel Receipt"
-        description="Please provide a reason for cancelling this receipt."
+        onConfirmAction={handleRefundDelete}
+        itemName={refund?.refundNo}
+        title="Cancel Refund"
+        description="Please provide a reason for cancelling this refund."
         isCancelling={deleteMutation.isPending}
       />
 
@@ -1370,21 +1376,21 @@ export default function ReceiptPage() {
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleReceiptSearch(searchNo)}
+        onLoad={() => handleRefundSearch(searchNo)}
         code={searchNo}
-        typeLabel="Receipt"
+        typeLabel="Refund"
         showDetails={false}
-        description={`Do you want to load Receipt ${searchNo}?`}
-        isLoading={isLoadingReceipt}
+        description={`Do you want to load Refund ${searchNo}?`}
+        isLoading={isLoadingRefund}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleReceiptReset}
-        itemName={receipt?.receiptNo}
-        title="Reset Receipt"
+        onConfirm={handleRefundReset}
+        itemName={refund?.refundNo}
+        title="Reset Refund"
         description="This will clear all unsaved changes."
       />
 
@@ -1392,10 +1398,10 @@ export default function ReceiptPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneReceipt}
-        itemName={receipt?.receiptNo}
-        title="Clone Receipt"
-        description="This will create a copy as a new receipt."
+        onConfirm={handleCloneRefund}
+        itemName={refund?.refundNo}
+        title="Clone Refund"
+        description="This will create a copy as a new refund."
       />
     </div>
   )

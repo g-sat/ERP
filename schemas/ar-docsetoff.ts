@@ -1,81 +1,35 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const ArReceiptHdSchema = (
+export const ArDocSetOffHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
 
-    receiptId: z.string().optional(),
-    receiptNo: z.string().optional(),
+    setoffId: z.string().optional(),
+    setoffNo: z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
     trnDate: z.union([z.date(), z.string()]),
     accountDate: z.union([z.date(), z.string()]),
     customerId: z.number().min(1, "Customer is required"),
-    // Bank Fields
-    bankId:
-      required?.m_BankId && visible?.m_BankId
-        ? z.number().min(1, "Bank is required")
-        : z.number().optional(),
-    // Payment Type Fields
-    paymentTypeId: z.number().min(1, "Payment Type is required"),
-    // Cheque Fields
-    chequeNo: z.string().optional(),
-    chequeDate: z.union([z.date(), z.string()]),
-
-    // Bank Charge GL Fields
-    bankChgGLId: visible?.m_BankChgGLId
-      ? z.number().min(0, "Bank Charge GL is required")
-      : z.number().optional(),
-    bankChgAmt: z.number().min(0, "Bank Charges Amount is required"),
-    bankChgLocalAmt: z.number().min(0, "Bank Charges Local Amount is required"),
 
     // Currency Fields
     currencyId: z.number().min(1, "Currency is required"),
     exhRate: z.number().min(0, "Exchange Rate is required"),
 
-    // Amounts
-    totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
-    totLocalAmt: z.number().optional(),
-
-    // Receiving Currency Fields
-    recCurrencyId: z.number().min(1, "Receiving Currency is required"),
-    recExhRate: z.number().min(0, "Receiving Exchange Rate is required"),
-    recTotAmt: z.number().min(0, "Receiving Total Amount is required"),
-    recTotLocalAmt: z
-      .number()
-      .min(0, "Receiving Total Local Amount is required"),
-
-    // Unallocated Amount Fields
-    unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
-    unAllocTotLocalAmt: z
-      .number()
-      .min(0, "Unallocated Total Local Amount is required"),
-    exhGainLoss: z.number().optional(),
-
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
 
-    // Document Fields
-    docExhRate: z.number().min(0, "Document Exchange Rate is required"),
-    docTotAmt: z.number().min(0, "Document Total Amount is required"),
-    docTotLocalAmt: z
-      .number()
-      .min(0, "Document Total Local Amount is required"),
     // Allocated Amount Fields
-    allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
-    allocTotLocalAmt: z
-      .number()
-      .min(0, "Allocated Total Local Amount is required"),
-
-    // Job Order Fields
-    jobOrderId: z.number().optional(),
-    jobOrderNo: z.string().optional(),
+    allocTotAmt: z.number().min(0, "Allocated Amount is required"),
+    balAmt: z.number().min(0, "Balanced Amount is required"),
+    unAllocTotAmt: z.number().min(0, "Unallocated Amount is required"),
+    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
 
     // Module From Field
     moduleFrom: z.string().optional(),
@@ -95,30 +49,32 @@ export const ArReceiptHdSchema = (
     appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(ArReceiptDtSchema(required, visible)).optional(),
+    data_details: z.array(ArDocSetOffDtSchema(required, visible)).optional(),
   })
 }
 
-export type ArReceiptHdSchemaType = z.infer<
-  ReturnType<typeof ArReceiptHdSchema>
+export type ArDocSetOffHdSchemaType = z.infer<
+  ReturnType<typeof ArDocSetOffHdSchema>
 >
 
-export const ArReceiptHdFiltersSchema = z.object({
+export const ArDocSetOffHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArReceiptHdFiltersValues = z.infer<typeof ArReceiptHdFiltersSchema>
+export type ArDocSetOffHdFiltersValues = z.infer<
+  typeof ArDocSetOffHdFiltersSchema
+>
 
-export const ArReceiptDtSchema = (
+export const ArDocSetOffDtSchema = (
   _required: IMandatoryFields,
   _visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    receiptId: z.string().optional(),
-    receiptNo: z.string().optional(),
+    setoffId: z.string().optional(),
+    setoffNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     transactionId: z.number().min(1, "Transaction is required"),
 
@@ -152,14 +108,16 @@ export const ArReceiptDtSchema = (
   })
 }
 
-export type ArReceiptDtSchemaType = z.infer<
-  ReturnType<typeof ArReceiptDtSchema>
+export type ArDocSetOffDtSchemaType = z.infer<
+  ReturnType<typeof ArDocSetOffDtSchema>
 >
 
-export const ArReceiptDtFiltersSchema = z.object({
+export const ArDocSetOffDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArReceiptDtFiltersValues = z.infer<typeof ArReceiptDtFiltersSchema>
+export type ArDocSetOffDtFiltersValues = z.infer<
+  typeof ArDocSetOffDtFiltersSchema
+>

@@ -75,6 +75,8 @@ export * from "./ar-customer-invoice"
 export * from "./ar-invoice"
 export * from "./ar-debitNote"
 export * from "./ar-adjustment"
+export * from "./ar-refund"
+export * from "./ar-docsetoff"
 
 //account-ap
 export * from "./ap-invoice"

@@ -6,8 +6,10 @@ import {
   ArAdjustment,
   ArCreditNote,
   ArDebitNote,
+  ArDocSetOff,
   ArInvoice,
   ArReceipt,
+  ArRefund,
 } from "@/lib/api-routes"
 
 /**
@@ -210,6 +212,55 @@ export function useGetARDebitNoteHistoryDetails<T>(
 }
 
 /**
+ * 1.4 Get AR Adjustment History List
+ */
+export function useGetARAdjustmentHistoryList<T>(
+  adjustmentId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-adjustment-history-list", adjustmentId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArAdjustment.history}/${adjustmentId}`)
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.5 Get AR Adjustment History Details
+ */
+export function useGetARAdjustmentHistoryDetails<T>(
+  adjustmentId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-adjustment-history-details", adjustmentId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
+      )
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
  * 1.2 Get AR Receipt History List
  */
 export function useGetARReceiptHistoryList<T>(receiptId: string, options = {}) {
@@ -256,19 +307,16 @@ export function useGetARReceiptHistoryDetails<T>(
 }
 
 /**
- * 1.4 Get AR Adjustment History List
+ * 1.2 Get AR Refund History List
  */
-export function useGetARAdjustmentHistoryList<T>(
-  adjustmentId: string,
-  options = {}
-) {
+export function useGetARRefundHistoryList<T>(refundId: string, options = {}) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ar-adjustment-history-list", adjustmentId],
+    queryKey: ["ar-refund-history-list", refundId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      return await getData(`${ArAdjustment.history}/${adjustmentId}`)
+      return await getData(`${ArRefund.history}/${refundId}`)
     },
-    enabled: !!adjustmentId && adjustmentId !== "0",
+    enabled: !!refundId && refundId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -279,27 +327,76 @@ export function useGetARAdjustmentHistoryList<T>(
 }
 
 /**
- * 1.5 Get AR Adjustment History Details
+ * 1.3 Get AR Refund History Details
  */
-export function useGetARAdjustmentHistoryDetails<T>(
-  adjustmentId: string,
+export function useGetARRefundHistoryDetails<T>(
+  refundId: string,
   editVersion: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ar-adjustment-history-details", adjustmentId, editVersion],
+    queryKey: ["ar-refund-history-details", refundId, editVersion],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
       return await getData(
-        `${ArAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
+        `${ArRefund.historyDetails}/${refundId}/${editVersion}`
       )
     },
-    enabled: !!adjustmentId && adjustmentId !== "0",
+    enabled: !!refundId && refundId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AR DocSetOff History List
+ */
+export function useGetARDocSetOffHistoryList<T>(
+  setoffId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-docsetoff-history-list", setoffId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArDocSetOff.history}/${setoffId}`)
+    },
+    enabled: !!setoffId && setoffId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AR DocSetOff History Details
+ */
+export function useGetARDocSetOffHistoryDetails<T>(
+  setoffId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-docsetoff-history-details", setoffId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArDocSetOff.historyDetails}/${setoffId}/${editVersion}`
+      )
+    },
+    enabled: !!setoffId && setoffId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }

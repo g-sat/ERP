@@ -1,15 +1,15 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const ArReceiptHdSchema = (
+export const ArRefundHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
 
-    receiptId: z.string().optional(),
-    receiptNo: z.string().optional(),
+    refundId: z.string().optional(),
+    refundNo: z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -95,30 +95,28 @@ export const ArReceiptHdSchema = (
     appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(ArReceiptDtSchema(required, visible)).optional(),
+    data_details: z.array(ArRefundDtSchema(required, visible)).optional(),
   })
 }
 
-export type ArReceiptHdSchemaType = z.infer<
-  ReturnType<typeof ArReceiptHdSchema>
->
+export type ArRefundHdSchemaType = z.infer<ReturnType<typeof ArRefundHdSchema>>
 
-export const ArReceiptHdFiltersSchema = z.object({
+export const ArRefundHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArReceiptHdFiltersValues = z.infer<typeof ArReceiptHdFiltersSchema>
+export type ArRefundHdFiltersValues = z.infer<typeof ArRefundHdFiltersSchema>
 
-export const ArReceiptDtSchema = (
+export const ArRefundDtSchema = (
   _required: IMandatoryFields,
   _visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    receiptId: z.string().optional(),
-    receiptNo: z.string().optional(),
+    refundId: z.string().optional(),
+    refundNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     transactionId: z.number().min(1, "Transaction is required"),
 
@@ -152,14 +150,12 @@ export const ArReceiptDtSchema = (
   })
 }
 
-export type ArReceiptDtSchemaType = z.infer<
-  ReturnType<typeof ArReceiptDtSchema>
->
+export type ArRefundDtSchemaType = z.infer<ReturnType<typeof ArRefundDtSchema>>
 
-export const ArReceiptDtFiltersSchema = z.object({
+export const ArRefundDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArReceiptDtFiltersValues = z.infer<typeof ArReceiptDtFiltersSchema>
+export type ArRefundDtFiltersValues = z.infer<typeof ArRefundDtFiltersSchema>
