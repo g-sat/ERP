@@ -467,6 +467,12 @@ export default function AdjustmentPage() {
 
             setSearchNo(updatedSchemaType.adjustmentNo || "")
             setAdjustment(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
             form.reset(updatedSchemaType)
             form.trigger()
           }

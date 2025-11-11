@@ -129,8 +129,9 @@ export default function InvoicePage() {
   const [activeTab, setActiveTab] = useState("main")
   const [pendingDocNo, setPendingDocNo] = useState("")
 
-  const handleInvoiceSearchRef =
-    useRef<((value: string) => Promise<void> | void) | null>(null)
+  const handleInvoiceSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
 
   const documentNoFromQuery = useMemo(() => {
     const value =
@@ -446,6 +447,12 @@ export default function InvoicePage() {
 
             setSearchNo(updatedSchemaType.invoiceNo || "")
             setInvoice(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
             form.reset(updatedSchemaType)
             form.trigger()
           }

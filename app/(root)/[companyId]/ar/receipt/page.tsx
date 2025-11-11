@@ -410,6 +410,12 @@ export default function ReceiptPage() {
             )
             setSearchNo(updatedSchemaType.receiptNo || "")
             setReceipt(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
             form.reset(updatedSchemaType)
             form.trigger()
           }
