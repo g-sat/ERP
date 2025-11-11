@@ -976,23 +976,23 @@ export default function ReceiptForm({
         />
 
         {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charges GL"
-          companyId={_companyId}
-        />
-
-        {/* Bank Charges Amount */}
         {visible?.m_BankChgGLId && (
-          <CustomNumberInput
+          <BankChartOfAccountAutocomplete
             form={form}
-            name="bankChgAmt"
-            label="Bank Charges Amount"
-            onFocusEvent={handleBankChgAmtFocus}
-            onBlurEvent={handleBankChgAmtChange}
+            name="bankChgGLId"
+            label="Bank Charges GL"
+            companyId={_companyId}
           />
         )}
+
+        {/* Bank Charges Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChgAmt"
+          label="Bank Charges Amount"
+          onFocusEvent={handleBankChgAmtFocus}
+          onBlurEvent={handleBankChgAmtChange}
+        />
 
         {/* Bank Charges Local Amount */}
         <CustomNumberInput
