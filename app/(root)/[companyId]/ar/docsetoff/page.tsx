@@ -352,9 +352,18 @@ export default function DocSetOffPage() {
         return
       }
 
+      console.log("formValues.allocTotAmt", formValues.allocTotAmt)
+      console.log("formValues.balTotAmt", formValues.balTotAmt)
+      console.log("formValues", formValues)
+
       //check totamt and totlocalamt should be zero
       if (formValues.allocTotAmt === 0 || formValues.balTotAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
+        return
+      }
+
+      if (formValues.data_details?.length === 0) {
+        toast.error("Data details should not be empty")
         return
       }
 

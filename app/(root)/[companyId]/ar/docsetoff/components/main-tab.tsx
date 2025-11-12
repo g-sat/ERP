@@ -483,7 +483,7 @@ export default function Main({
     })
     setDataDetails(updatedData)
 
-    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+    form.setValue("allocTotAmt", matchedAllocation, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -518,7 +518,9 @@ export default function Main({
       shouldTouch: true,
     })
     setDataDetails(updatedData)
-    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+    form.setValue("allocTotAmt", allocationTotals.matched, {
+      shouldDirty: true,
+    })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
