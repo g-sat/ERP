@@ -87,14 +87,13 @@ export const autoAllocateAmounts = (
   })
 
   const hasBothSides = totalPositive > 0 && totalNegativeAbs > 0
-  let appliedTotal = 0
+  let appliedTotal = Math.min(totalPositive, totalNegativeAbs)
 
   if (!hasBothSides) {
     updatedDetails.forEach((row) => {
       const balanceAmount = toNumber(row.docBalAmt)
       row.allocAmt = balanceAmount
     })
-    appliedTotal = Math.max(totalPositive, totalNegativeAbs)
     return {
       updatedDetails,
       appliedTotal,

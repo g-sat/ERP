@@ -144,24 +144,15 @@ export default function Main({
         })
       )
 
-      const resetSumAllocAmt = 0
-      const resetSumExhGainLoss = 0
-
-      const balTotAmt = Number(form.getValues("balTotAmt")) || 0
-      const { unAllocAmt } = calculateUnallocated(
-        balTotAmt,
-        resetSumAllocAmt,
-        dec
-      )
-
       form.setValue("data_details", finalResetData, {
         shouldDirty: true,
         shouldTouch: true,
       })
       setDataDetails(finalResetData)
-      form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotAmt", 0, { shouldDirty: true })
+      form.setValue("exhGainLoss", 0, { shouldDirty: true })
+      form.setValue("balTotAmt", 0, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", 0, { shouldDirty: true })
       setIsAllocated(false)
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -564,10 +555,26 @@ export default function Main({
 
       const updatedData = [...currentData, ...newDetails]
 
+      const positiveTotal = updatedData.reduce((sum, detail) => {
+        const bal = Number((detail as unknown as IArDocSetOffDt).docBalAmt) || 0
+        return bal > 0 ? sum + bal : sum
+      }, 0)
+
+      const negativeTotalAbs = updatedData.reduce((sum, detail) => {
+        const bal = Number((detail as unknown as IArDocSetOffDt).docBalAmt) || 0
+        return bal < 0 ? sum + Math.abs(bal) : sum
+      }, 0)
+
+      const limitingTotal = Math.min(positiveTotal, negativeTotalAbs)
+
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
         shouldTouch: true,
       })
+      form.setValue("balTotAmt", limitingTotal, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", limitingTotal, { shouldDirty: true })
+      form.setValue("allocTotAmt", 0, { shouldDirty: true })
+      form.setValue("exhGainLoss", 0, { shouldDirty: true })
 
       setDataDetails(updatedData)
       form.trigger("data_details")
