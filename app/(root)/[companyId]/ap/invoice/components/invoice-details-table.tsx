@@ -148,10 +148,10 @@ export default function InvoiceDetailsTable({
             size: 100,
             cell: ({ row }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("unitPrice") as number, amtDec)}
+                {formatNumber(row.getValue("unitPrice"), amtDec)}
               </div>
             ),
-          },
+          } as ColumnDef<IApInvoiceDt>,
         ]
       : []),
     {
@@ -230,10 +230,10 @@ export default function InvoiceDetailsTable({
             size: 100,
             cell: ({ row }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("totCtyAmt") as number, locAmtDec)}
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
               </div>
             ),
-          },
+          } as ColumnDef<IApInvoiceDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -263,10 +263,10 @@ export default function InvoiceDetailsTable({
             size: 100,
             cell: ({ row }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("gstCtyAmt") as number, locAmtDec)}
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
               </div>
             ),
-          },
+          } as ColumnDef<IApInvoiceDt>,
         ]
       : []),
 
