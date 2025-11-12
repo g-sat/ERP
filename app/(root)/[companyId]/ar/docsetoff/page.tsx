@@ -213,11 +213,8 @@ export default function DocSetOffPage() {
           exhRate: docSetOff.exhRate ?? 0,
 
           unAllocTotAmt: docSetOff.unAllocTotAmt ?? 0,
-          unAllocTotLocalAmt: docSetOff.unAllocTotLocalAmt ?? 0,
           allocTotAmt: docSetOff.allocTotAmt ?? 0,
-          allocTotLocalAmt: docSetOff.allocTotLocalAmt ?? 0,
-          balAmt: docSetOff.balAmt ?? 0,
-          balLocalAmt: docSetOff.balLocalAmt ?? 0,
+          balTotAmt: docSetOff.balTotAmt ?? 0,
           exhGainLoss: docSetOff.exhGainLoss ?? 0,
           remarks: docSetOff.remarks ?? "",
 
@@ -356,7 +353,7 @@ export default function DocSetOffPage() {
       }
 
       //check totamt and totlocalamt should be zero
-      if (formValues.allocTotAmt === 0 || formValues.allocTotLocalAmt === 0) {
+      if (formValues.allocTotAmt === 0 || formValues.balTotAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
         return
       }
@@ -463,12 +460,9 @@ export default function DocSetOffPage() {
         cancelDate: "",
         // Clear all amounts for new docSetOff
         unAllocTotAmt: 0,
-        unAllocTotLocalAmt: 0,
         allocTotAmt: 0,
-        allocTotLocalAmt: 0,
+        balTotAmt: 0,
         exhGainLoss: 0,
-        balAmt: 0,
-        balLocalAmt: 0,
 
         // Clear data details - remove all records
         data_details: [],
@@ -584,11 +578,8 @@ export default function DocSetOffPage() {
         currencyId: apiReceipt.currencyId ?? 0,
         exhRate: apiReceipt.exhRate ?? 0,
         unAllocTotAmt: apiReceipt.unAllocTotAmt ?? 0,
-        unAllocTotLocalAmt: apiReceipt.unAllocTotLocalAmt ?? 0,
         allocTotAmt: apiReceipt.allocTotAmt ?? 0,
-        allocTotLocalAmt: apiReceipt.allocTotLocalAmt ?? 0,
-        balAmt: apiReceipt.balAmt ?? 0,
-        balLocalAmt: apiReceipt.balLocalAmt ?? 0,
+        balTotAmt: apiReceipt.balTotAmt ?? 0,
         exhGainLoss: apiReceipt.exhGainLoss ?? 0,
         remarks: apiReceipt.remarks ?? "",
 
@@ -907,7 +898,7 @@ export default function DocSetOffPage() {
 
               allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
               allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-              balAmt: detailedReceipt.balAmt ?? 0,
+              balTotAmt: detailedReceipt.balTotAmt ?? 0,
               balLocalAmt: detailedReceipt.balLocalAmt ?? 0,
 
               moduleFrom: detailedReceipt.moduleFrom ?? "",

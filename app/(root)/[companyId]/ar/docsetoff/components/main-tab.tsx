@@ -75,12 +75,12 @@ export default function Main({
     setDataDetails(watchedDataDetails || [])
   }, [watchedDataDetails])
 
-  // Calculate sum of balAmt (balance amounts) from docSetOff details
+  // Calculate sum of balTotAmt (balance amounts) from docSetOff details
   const totalBalanceAmt = useMemo(() => {
     return dataDetails.reduce((sum, detail) => {
-      const balAmt =
+      const balTotAmt =
         Number((detail as unknown as IArDocSetOffDt).docBalAmt) || 0
-      return sum + balAmt
+      return sum + balTotAmt
     }, 0)
   }, [dataDetails])
 
@@ -147,8 +147,12 @@ export default function Main({
       const resetSumAllocAmt = 0
       const resetSumExhGainLoss = 0
 
-      const balAmt = Number(form.getValues("balAmt")) || 0
-      const { unAllocAmt } = calculateUnallocated(balAmt, resetSumAllocAmt, dec)
+      const balTotAmt = Number(form.getValues("balTotAmt")) || 0
+      const { unAllocAmt } = calculateUnallocated(
+        balTotAmt,
+        resetSumAllocAmt,
+        dec
+      )
 
       form.setValue("data_details", finalResetData, {
         shouldDirty: true,
@@ -249,7 +253,7 @@ export default function Main({
 
       const exhRate = Number(form.getValues("exhRate"))
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
-      const balAmt = Number(form.getValues("balAmt")) || 0
+      const balTotAmt = Number(form.getValues("balTotAmt")) || 0
 
       // console.log(
       //   "updateAllocationCalculations",
@@ -333,10 +337,14 @@ export default function Main({
       })
       setDataDetails(updatedData)
       form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
-      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
 
-      const { unAllocAmt } = calculateUnallocated(balAmt, totalAllocated, dec)
+      const { unAllocAmt } = calculateUnallocated(
+        balTotAmt,
+        totalAllocated,
+        dec
+      )
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -362,7 +370,7 @@ export default function Main({
       }
 
       // Don't allow manual entry when totAmt = 0
-      const headerBalAmt = Number(form.getValues("balAmt")) || 0
+      const headerBalAmt = Number(form.getValues("balTotAmt")) || 0
       if (headerBalAmt === 0) {
         toast.error(
           "Balance Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Balance Amount."
@@ -382,7 +390,7 @@ export default function Main({
         return finalValue ?? 0
       } else {
         // console.log("handleCellEdit else", itemNo, field, value)
-        // When balAmt > 0, allow manual entry with validation
+        // When balTotAmt > 0, allow manual entry with validation
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IArDocSetOffDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
@@ -411,7 +419,7 @@ export default function Main({
 
     if (!validateAllocation(currentData)) return
 
-    const balAmt = Number(form.getValues("balAmt")) || 0
+    const balTotAmt = Number(form.getValues("balTotAmt")) || 0
     const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
     const { updatedDetails: details, appliedTotal } = autoAllocateAmounts(
       currentData as unknown as IArDocSetOffDt[],
@@ -435,8 +443,8 @@ export default function Main({
 
     const totalAllocated = appliedTotal ?? 0
 
-    // If balAmt was 0, update it with the calculated allocation total
-    const finalBalAmt = balAmt === 0 ? totalAllocated : balAmt
+    // If balTotAmt was 0, update it with the calculated allocation total
+    const finalBalAmt = balTotAmt === 0 ? totalAllocated : balTotAmt
 
     const { unAllocAmt } = calculateUnallocated(
       finalBalAmt,
@@ -451,7 +459,6 @@ export default function Main({
     setDataDetails(updatedData)
 
     form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
-    form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -479,8 +486,8 @@ export default function Main({
     const sumAllocAmt = 0
     const sumAllocLocalAmt = 0
     const sumExhGainLoss = 0
-    const balAmt = Number(form.getValues("balAmt")) || 0
-    const { unAllocAmt } = calculateUnallocated(balAmt, sumAllocAmt, dec)
+    const balTotAmt = Number(form.getValues("balTotAmt")) || 0
+    const { unAllocAmt } = calculateUnallocated(balTotAmt, sumAllocAmt, dec)
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -488,7 +495,6 @@ export default function Main({
     })
     setDataDetails(updatedData)
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-    form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -641,7 +647,6 @@ export default function Main({
             className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
           >
             Total Local:{" "}
-            {(form.getValues("allocTotLocalAmt") || 0).toFixed(locAmtDec)}
           </Badge>
           <Badge
             variant="outline"

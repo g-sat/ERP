@@ -9,14 +9,14 @@ export interface IArDocSetOffHd {
   customerId: number
   currencyId: number
   exhRate: number
+
   allocTotAmt: number
-  allocTotLocalAmt: number
-  balAmt: number
-  balLocalAmt: number
+  balTotAmt: number
   unAllocTotAmt: number
-  unAllocTotLocalAmt: number
+
   exhGainLoss: number
   remarks: string | null
+
   moduleFrom: string
   createById: number
   createDate: Date | string

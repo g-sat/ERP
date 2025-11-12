@@ -22,18 +22,11 @@ export const ArDocSetOffHdSchema = (
 
     // Allocated Amount Fields
     allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
-    allocTotLocalAmt: z
-      .number()
-      .min(0, "Allocated Total Local Amount is required"),
 
-    balAmt: z.number().min(0, "Balanced Amount is required"),
-    balLocalAmt: z.number().min(0, "Balanced Local Amount is required"),
+    balTotAmt: z.number().min(0, "Balanced Total Amount is required"),
 
     // Unallocated Amount Fields
     unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
-    unAllocTotLocalAmt: z
-      .number()
-      .min(0, "Unallocated Total Local Amount is required"),
 
     exhGainLoss: z.number().optional(),
 

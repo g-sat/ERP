@@ -143,7 +143,28 @@ export default function EditVersionDetails({
         </div>
       ),
     },
-
+    {
+      accessorKey: "allocTotAmt",
+      header: "Allocated Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocTotAmt
+            ? formatNumber(row.original.allocTotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "balTotAmt",
+      header: "Balanced Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.balTotAmt
+            ? formatNumber(row.original.balTotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
     {
       accessorKey: "unAllocTotAmt",
       header: "Unallocated Amount",
@@ -155,17 +176,7 @@ export default function EditVersionDetails({
         </div>
       ),
     },
-    {
-      accessorKey: "unAllocTotLocalAmt",
-      header: "Unallocated Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.unAllocTotLocalAmt
-            ? formatNumber(row.original.unAllocTotLocalAmt, locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "exhGainLoss",
       header: "Exchange Gain/Loss",

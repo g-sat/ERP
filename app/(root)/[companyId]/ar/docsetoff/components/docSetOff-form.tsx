@@ -76,9 +76,7 @@ export default function DocSetOffForm({
     (clearAllocations = false) => {
       const currencyId = form.getValues("currencyId") || 0
       const allocTotAmt = form.getValues("allocTotAmt") || 0
-      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
-      const balAmt = form.getValues("balAmt") || 0
-      const balLocalAmt = form.getValues("balLocalAmt") || 0
+      const balTotAmt = form.getValues("balTotAmt") || 0
 
       // Recalculate all details with new exchange rate if data details exist
       if (dataDetails && dataDetails.length > 0) {
@@ -118,12 +116,8 @@ export default function DocSetOffForm({
           shouldTouch: true,
         })
         form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-        form.setValue("allocTotLocalAmt", sumAllocLocalAmt, {
-          shouldDirty: true,
-        })
         form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-        form.setValue("balAmt", balAmt, { shouldDirty: true })
-        form.setValue("balLocalAmt", balLocalAmt, { shouldDirty: true })
+        form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
 
         // Recalculate unallocated amounts with updated totals
         const currentAllocTotAmt = form.getValues("allocTotAmt") || 0
@@ -385,7 +379,11 @@ export default function DocSetOffForm({
         />
 
         {/* Balanced Amount - Always read-only */}
-        <CustomNumberInput form={form} name="balAmt" label="Balanced Amount" />
+        <CustomNumberInput
+          form={form}
+          name="balTotAmt"
+          label="Balanced Amount"
+        />
 
         {/* Exchange Gain/Loss */}
         <CustomNumberInput

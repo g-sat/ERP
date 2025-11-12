@@ -106,21 +106,21 @@ export default function DocSetOffTable({
   const isLoading = isLoadingReceipts || isRefetchingReceipts
 
   const getPaymentStatus = (
-    balAmt: number,
+    balTotAmt: number,
     payAmt: number,
     isCancel: boolean
   ) => {
     if (isCancel) {
       return "Cancelled"
     }
-    // if (balAmt === 0 && payAmt > 0) {
+    // if (balTotAmt === 0 && payAmt > 0) {
     //   return "Fully Paid"
-    // } else if (balAmt > 0 && payAmt > 0) {
+    // } else if (balTotAmt > 0 && payAmt > 0) {
     //   return "Partially Paid"
-    // } else if (balAmt > 0 && payAmt === 0) {
+    // } else if (balTotAmt > 0 && payAmt === 0) {
     //   return "Not Paid"
     // }
-    // else if (balAmt === 0 && payAmt === 0) {
+    // else if (balTotAmt === 0 && payAmt === 0) {
     //   return "Cancelled"
     // }
     return ""
@@ -135,10 +135,10 @@ export default function DocSetOffTable({
       accessorKey: "paymentStatus",
       header: "Payment Status",
       cell: ({ row }) => {
-        const balAmt = row.original.unAllocTotAmt ?? 0
+        const balTotAmt = row.original.unAllocTotAmt ?? 0
         const payAmt = row.original.allocTotAmt ?? 0
         const isCancel = row.original.isCancel ?? false
-        const status = getPaymentStatus(balAmt, payAmt, isCancel)
+        const status = getPaymentStatus(balTotAmt, payAmt, isCancel)
 
         const getStatusStyle = (status: string) => {
           switch (status) {

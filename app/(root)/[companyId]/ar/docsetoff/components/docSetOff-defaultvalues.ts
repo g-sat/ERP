@@ -40,7 +40,7 @@ const buildDefaultDocSetOff = (dateFormat: string) => ({
   exhRate: 0,
   allocTotAmt: 0,
   allocTotLocalAmt: 0,
-  balAmt: 0,
+  balTotAmt: 0,
   balLocalAmt: 0,
   unAllocTotAmt: 0,
   unAllocTotLocalAmt: 0,
