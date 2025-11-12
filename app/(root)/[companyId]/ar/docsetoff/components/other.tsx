@@ -20,11 +20,11 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      {/* Document Upload Section - Only show after receipt is saved */}
+      {/* Document Upload Section - Only show after docSetOff is saved */}
       {setoffId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.ar}
-          transactionId={ARTransactionId.receipt}
+          transactionId={ARTransactionId.docsetoff}
           recordId={setoffId}
           recordNo={setoffNo}
           companyId={Number(companyId)}

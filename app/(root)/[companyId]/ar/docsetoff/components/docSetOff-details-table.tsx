@@ -152,8 +152,8 @@ export default function DocSetOffDetailsTable({
           return `/${companyId}/ar/creditnote`
         case ARTransactionId.adjustment:
           return `/${companyId}/ar/adjustment`
-        case ARTransactionId.receipt:
-          return `/${companyId}/ar/receipt`
+        case ARTransactionId.docsetoff:
+          return `/${companyId}/ar/docSetOff`
         case ARTransactionId.refund:
           return `/${companyId}/ar/refund`
         case ARTransactionId.docsetoff:
@@ -238,7 +238,7 @@ export default function DocSetOffDetailsTable({
     [canNavigateToTransaction, getStorageKey, getTargetPath]
   )
 
-  // Define columns with visible prop checks - Receipt specific fields
+  // Define columns with visible prop checks - DocSetOff specific fields
   const columns: ExtendedColumnDef<IArDocSetOffDt>[] = [
     {
       accessorKey: "itemNo",
@@ -497,9 +497,9 @@ export default function DocSetOffDetailsTable({
         data={data}
         columns={visibleColumns as ColumnDef<IArDocSetOffDt>[]}
         moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.receipt}
-        tableName={TableName.arReceiptDt}
-        emptyMessage="No receipt details found."
+        transactionId={ARTransactionId.docsetoff}
+        tableName={TableName.arDocSetOffDt}
+        emptyMessage="No docSetOff details found."
         accessorId="itemNo"
         onBulkDelete={
           isCancelled
@@ -525,7 +525,7 @@ export default function DocSetOffDetailsTable({
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         itemName={pendingDeleteTarget?.label}
-        description="This detail will be removed from the receipt. This action cannot be undone."
+        description="This detail will be removed from the docSetOff. This action cannot be undone."
       />
     </div>
   )

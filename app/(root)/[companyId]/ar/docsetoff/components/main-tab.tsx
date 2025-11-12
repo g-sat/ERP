@@ -75,7 +75,7 @@ export default function Main({
     setDataDetails(watchedDataDetails || [])
   }, [watchedDataDetails])
 
-  // Calculate sum of balAmt (balance amounts) from receipt details
+  // Calculate sum of balAmt (balance amounts) from docSetOff details
   const totalBalanceAmt = useMemo(() => {
     return dataDetails.reduce((sum, detail) => {
       const balAmt =
@@ -502,7 +502,7 @@ export default function Main({
       accountDate: accountDate?.toString() || "",
       isRefund: false,
       documentId: form.getValues("setoffId") || "0",
-      transactionId: ARTransactionId.receipt,
+      transactionId: ARTransactionId.docsetoff,
     }
 
     setShowTransactionDialog(true)
@@ -659,7 +659,7 @@ export default function Main({
         onConfirm={handleBulkDeleteConfirm}
         onCancel={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
-        description="Selected receipt details will be removed. This action cannot be undone."
+        description="Selected docSetOff details will be removed. This action cannot be undone."
       />
 
       {/* Transaction Selection Dialog */}

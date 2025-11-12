@@ -39,7 +39,7 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.receipt
+  const transactionId = ARTransactionId.docsetoff
 
   const [selectedReceipt, setSelectedReceipt] = useState<IArDocSetOffHd | null>(
     null
@@ -89,7 +89,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "setoffNo",
-      header: "Receipt No",
+      header: "DocSetOff No",
     },
     {
       accessorKey: "referenceNo",
@@ -344,7 +344,7 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedReceipt(receipt)}
+            onRowSelect={(docSetOff) => setSelectedReceipt(docSetOff)}
           />
         </CardContent>
       </Card>
@@ -355,7 +355,7 @@ export default function EditVersionDetails({
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Receipt Details</DialogTitle>
+            <DialogTitle>DocSetOff Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
@@ -371,8 +371,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                  ? "No docSetOff details found for this version."
+                  : `Failed to load docSetOff details: ${receiptDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -380,7 +380,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Header</CardTitle>
+                <CardTitle>DocSetOff Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -399,15 +399,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading docSetOff details"
+                      : "No docSetOff details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Details</CardTitle>
+                <CardTitle>DocSetOff Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -416,7 +416,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.arReceiptHistory}
-                  emptyMessage="No receipt details available"
+                  emptyMessage="No docSetOff details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

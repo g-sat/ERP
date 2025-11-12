@@ -21,7 +21,7 @@ export default function PaymentDetails({ setoffId }: PaymentDetailsProps) {
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.receipt
+  const transactionId = ARTransactionId.docsetoff
 
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")

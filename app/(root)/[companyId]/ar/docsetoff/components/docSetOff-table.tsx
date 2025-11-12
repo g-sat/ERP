@@ -39,7 +39,7 @@ export default function DocSetOffTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.receipt
+  const transactionId = ARTransactionId.docsetoff
 
   const today = useMemo(() => new Date(), [])
   const defaultStartDate = useMemo(
@@ -129,7 +129,7 @@ export default function DocSetOffTable({
   const columns: ColumnDef<IArDocSetOffHd>[] = [
     {
       accessorKey: "setoffNo",
-      header: "Receipt No",
+      header: "DocSetOff No",
     },
     {
       accessorKey: "paymentStatus",
@@ -245,11 +245,11 @@ export default function DocSetOffTable({
     },
     {
       accessorKey: "paymentTypeCode",
-      header: "Receipt Type Code",
+      header: "DocSetOff Type Code",
     },
     {
       accessorKey: "paymentTypeName",
-      header: "Receipt Type Name",
+      header: "DocSetOff Type Name",
     },
     {
       accessorKey: "chequeNo",
