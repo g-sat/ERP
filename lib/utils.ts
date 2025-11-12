@@ -457,9 +457,9 @@ export enum TableName {
   arRefund = "arRefund",
   arRefundDt = "arRefundDt",
   arRefundHistory = "arRefundHistory",
-  arDocSetoff = "arDocSetoff",
-  arDocSetoffDt = "arDocSetoffDt",
-  arDocSetoffHistory = "arDocSetoffHistory",
+  arDocSetOff = "arDocSetOff",
+  arDocSetOffDt = "arDocSetOffDt",
+  arDocSetOffHistory = "arDocSetOffHistory",
   arOutTransaction = "arOutTransaction",
   //AP
   apInvoice = "apInvoice",

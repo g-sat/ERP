@@ -986,6 +986,7 @@ export default function InvoicePage() {
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
+  const isCancelled = invoice?.isCancel === true
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
@@ -1152,6 +1153,7 @@ export default function InvoicePage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 

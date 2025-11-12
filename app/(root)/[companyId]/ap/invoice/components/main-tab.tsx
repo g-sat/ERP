@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -30,6 +30,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -39,13 +40,13 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
-  // Get user settings with defaults for all modules
   const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
@@ -58,21 +59,39 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousInvoiceKeyRef = useRef<string>("")
 
-  // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentInvoiceId = form.watch("invoiceId")
+  const currentInvoiceNo = form.watch("invoiceNo")
 
-  // Clear editingDetail when data_details is reset/cleared
+  const currentInvoiceKey = useMemo(
+    () => `${currentInvoiceId ?? ""}::${currentInvoiceNo ?? ""}`,
+    [currentInvoiceId, currentInvoiceNo]
+  )
+
+  useEffect(() => {
+    if (previousInvoiceKeyRef.current === currentInvoiceKey) {
+      return
+    }
+
+    previousInvoiceKeyRef.current = currentInvoiceKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentInvoiceKey])
+
   useEffect(() => {
     if (dataDetails.length === 0 && editingDetail) {
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
 
-  // Recalculate header totals when details change
   useEffect(() => {
     if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
       form.setValue("totAmt", 0)
       form.setValue("gstAmt", 0)
       form.setValue("totAmtAftGst", 0)
@@ -85,7 +104,6 @@ export default function Main({
       return
     }
 
-    // Calculate base currency totals
     const totals = calculateTotalAmounts(
       dataDetails as unknown as IApInvoiceDt[],
       amtDec
@@ -94,7 +112,6 @@ export default function Main({
     form.setValue("gstAmt", totals.gstAmt)
     form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
       dataDetails as unknown as IApInvoiceDt[],
       locAmtDec
@@ -103,8 +120,6 @@ export default function Main({
     form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
     form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
       dataDetails as unknown as IApInvoiceDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
@@ -113,7 +128,6 @@ export default function Main({
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
 
-    // Trigger form validation to update UI
     form.trigger([
       "totAmt",
       "gstAmt",
@@ -132,7 +146,6 @@ export default function Main({
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
-      // Update existing row by itemNo (unique identifier)
       const updatedData = currentData.map((item) =>
         item.itemNo === editingDetail.itemNo ? rowData : item
       )
@@ -144,7 +157,6 @@ export default function Main({
 
       setEditingDetail(null)
     } else {
-      // Add new row
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
@@ -153,7 +165,6 @@ export default function Main({
       )
     }
 
-    // Trigger form validation
     form.trigger("data_details")
   }
 
@@ -174,7 +185,6 @@ export default function Main({
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
 
-    // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
 
@@ -193,15 +203,11 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
 
-    // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
 
   const handleEdit = (detail: IApInvoiceDt) => {
-    // console.log("Editing detail:", detail)
-    // Convert IApInvoiceDt to ApInvoiceDtSchemaType and set for editing
     setEditingDetail(detail as unknown as ApInvoiceDtSchemaType)
-    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -209,7 +215,6 @@ export default function Main({
   }
 
   const handleDataReorder = (newData: IApInvoiceDt[]) => {
-    // Update itemNo sequentially after reordering
     const reorderedData = newData.map((item, index) => ({
       ...item,
       itemNo: index + 1,
@@ -244,6 +249,7 @@ export default function Main({
         defaultGlId={defaults.ap.invoiceGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <InvoiceDetailsTable
@@ -253,9 +259,10 @@ export default function Main({
         onDelete={handleDelete}
         onBulkDelete={handleBulkDelete}
         onEdit={handleEdit as (template: IApInvoiceDt) => void}
-        onRefresh={() => {}} // Add refresh logic if needed
-        onFilterChange={() => {}} // Add filter logic if needed
+        onRefresh={() => {}}
+        onFilterChange={() => {}}
         onDataReorder={handleDataReorder as (newData: IApInvoiceDt[]) => void}
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

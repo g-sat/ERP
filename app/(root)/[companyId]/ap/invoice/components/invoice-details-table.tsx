@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { IApInvoiceDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
@@ -16,6 +18,7 @@ interface InvoiceDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApInvoiceDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
 export default function InvoiceDetailsTable({
@@ -27,8 +30,12 @@ export default function InvoiceDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
+  isCancelled = false,
 }: InvoiceDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -139,8 +146,10 @@ export default function InvoiceDetailsTable({
             accessorKey: "unitPrice",
             header: "Price",
             size: 100,
-            cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-              <div className="text-right">{row.original.unitPrice}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("unitPrice") as number, amtDec)}
+              </div>
             ),
           },
         ]
@@ -149,8 +158,10 @@ export default function InvoiceDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt") as number, amtDec)}
+        </div>
       ),
     },
 
@@ -158,16 +169,20 @@ export default function InvoiceDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage") as number, 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt") as number, amtDec)}
+        </div>
       ),
     },
     ...(visible?.m_JobOrderId
@@ -201,8 +216,10 @@ export default function InvoiceDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt") as number, locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -211,8 +228,10 @@ export default function InvoiceDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt") as number, locAmtDec)}
+              </div>
             ),
           },
         ]
@@ -230,8 +249,10 @@ export default function InvoiceDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt") as number, locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -240,8 +261,10 @@ export default function InvoiceDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt") as number, locAmtDec)}
+              </div>
             ),
           },
         ]
@@ -310,7 +333,7 @@ export default function InvoiceDetailsTable({
     <div className="w-full p-2">
       <AccountBaseTable
         data={data}
-        columns={columns}
+        columns={columns as ColumnDef<IApInvoiceDt>[]}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.invoice}
         tableName={TableName.apInvoiceDt}
@@ -325,9 +348,9 @@ export default function InvoiceDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>
