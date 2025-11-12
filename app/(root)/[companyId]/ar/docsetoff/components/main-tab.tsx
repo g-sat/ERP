@@ -264,7 +264,6 @@ export default function Main({
         arr,
         rowIndex,
         allocValue,
-        balAmt,
         dec
       )
 
@@ -309,7 +308,16 @@ export default function Main({
 
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
-      const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
+      const totalPositiveAlloc = arr.reduce(
+        (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
+        0
+      )
+      const totalNegativeAllocAbs = arr.reduce(
+        (sum, r) =>
+          sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
+        0
+      )
+      const totalAllocated = Math.min(totalPositiveAlloc, totalNegativeAllocAbs)
       const sumAllocLocalAmt = arr.reduce(
         (s, r) => s + (Number(r.allocLocalAmt) || 0),
         0
@@ -324,11 +332,11 @@ export default function Main({
         shouldTouch: true,
       })
       setDataDetails(updatedData)
-      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
 
-      const { unAllocAmt } = calculateUnallocated(balAmt, sumAllocAmt, dec)
+      const { unAllocAmt } = calculateUnallocated(balAmt, totalAllocated, dec)
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -405,20 +413,17 @@ export default function Main({
 
     const balAmt = Number(form.getValues("balAmt")) || 0
     const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
-    const result = autoAllocateAmounts(
+    const { updatedDetails: details, appliedTotal } = autoAllocateAmounts(
       currentData as unknown as IArDocSetOffDt[],
-      balAmt,
       dec
     )
-    const updatedData =
-      result.updatedDetails as unknown as ArDocSetOffDtSchemaType[]
+    const updatedData = details as unknown as ArDocSetOffDtSchemaType[]
 
     const arr = updatedData as unknown as IArDocSetOffDt[]
     const exhRate = Number(form.getValues("exhRate")) || 1
     for (let i = 0; i < arr.length; i++) {
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-    const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
     const sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
       0
@@ -428,10 +433,16 @@ export default function Main({
       0
     )
 
-    // If totAmt was 0, update it with the calculated sumAllocAmt
-    const finalBalAmt = balAmt === 0 ? sumAllocAmt : balAmt
+    const totalAllocated = appliedTotal ?? 0
 
-    const { unAllocAmt } = calculateUnallocated(finalBalAmt, sumAllocAmt, dec)
+    // If balAmt was 0, update it with the calculated allocation total
+    const finalBalAmt = balAmt === 0 ? totalAllocated : balAmt
+
+    const { unAllocAmt } = calculateUnallocated(
+      finalBalAmt,
+      totalAllocated,
+      dec
+    )
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -439,7 +450,7 @@ export default function Main({
     })
     setDataDetails(updatedData)
 
-    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+    form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
