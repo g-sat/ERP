@@ -16,6 +16,7 @@ import { Plus, RotateCcw, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
+import { ARTransactionId } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ar-outstandingtransactions-dialog"
@@ -61,6 +62,7 @@ export default function Main({
     accountDate?: string
     isRefund?: boolean
     documentId?: string
+    transactionId: number
   } | null>(null)
 
   const watchedDataDetails = form.watch("data_details")
@@ -542,10 +544,11 @@ export default function Main({
       accountDate: accountDate?.toString() || "",
       isRefund: false,
       documentId: form.getValues("receiptId") || "0",
+      transactionId: ARTransactionId.receipt,
     }
 
     setShowTransactionDialog(true)
-  }, [customerId, currencyId, accountDate])
+  }, [customerId, currencyId, accountDate, form])
 
   const handleAddSelectedTransactions = useCallback(
     (transactions: IArOutTransaction[]) => {
@@ -709,6 +712,7 @@ export default function Main({
           accountDate={dialogParamsRef.current.accountDate}
           isRefund={dialogParamsRef.current.isRefund}
           documentId={dialogParamsRef.current.documentId}
+          transactionId={dialogParamsRef.current.transactionId}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>

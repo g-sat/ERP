@@ -8,7 +8,7 @@ import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { getById } from "@/lib/api-client"
+import { getByBody } from "@/lib/api-client"
 import { Account } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
@@ -31,6 +31,7 @@ interface ArOutStandingTransactionsDialogProps {
   accountDate?: string
   isRefund?: boolean
   documentId?: string
+  transactionId?: number
   visible: IVisibleFields
   onAddSelected?: (transactions: IArOutTransaction[]) => void
   existingDocumentIds?: number[] // Array of already selected document IDs
@@ -44,6 +45,7 @@ export default function ArOutStandingTransactionsDialog({
   accountDate,
   isRefund,
   documentId,
+  transactionId,
   visible,
   onAddSelected,
   existingDocumentIds = [],
@@ -132,9 +134,20 @@ export default function ArOutStandingTransactionsDialog({
         }
 
         const dt = format(parsedAccountDate, "yyyy-MM-dd")
-        const url = `${Account.getArOutstandTransaction}/${customerId}/${currencyId}/${dt}`
 
-        const response = await getById(url)
+        const payload: Record<string, unknown> = {
+          customerId: customerId,
+          currencyId: currencyId,
+          accountDate: dt,
+          isRefund: isRefund ?? false,
+          documentId: documentId ?? "",
+          transactionId: transactionId ?? "",
+        }
+
+        const response = await getByBody(
+          Account.getArOutstandTransaction,
+          payload
+        )
 
         // Clear timeout since API call completed
         clearTimeout(timeoutId)
@@ -181,6 +194,7 @@ export default function ArOutStandingTransactionsDialog({
     isRefund,
     documentId,
     dateFormat,
+    transactionId,
   ])
 
   // Force remount of transactions table and clear selection whenever dialog opens

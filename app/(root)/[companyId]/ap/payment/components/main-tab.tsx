@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   calculateAllocationAmounts,
   calculateTotalExchangeGainLoss,
@@ -16,6 +16,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
+import { APTransactionId } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
@@ -50,10 +51,13 @@ export default function Main({
     supplierId: number
     currencyId: number
     accountDate: string
+    isRefund: boolean
+    documentId: string
+    transactionId: number
   } | null>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = useMemo(() => form.watch("data_details") || [], [form])
+  const dataDetails = form.watch("data_details") || []
 
   // Watch header allocation totals
   const allocTotAmt = form.watch("allocTotAmt") || 0
@@ -530,6 +534,9 @@ export default function Main({
       supplierId,
       currencyId,
       accountDate: accountDate?.toString() || "",
+      isRefund: false,
+      documentId: form.getValues("paymentId")?.toString() || "",
+      transactionId: APTransactionId.payment,
     }
 
     setShowTransactionDialog(true)
@@ -639,10 +646,13 @@ export default function Main({
       {showTransactionDialog && dialogParamsRef.current && (
         <ApOutStandingTransactionsDialog
           open={showTransactionDialog}
-          onOpenChange={setShowTransactionDialog}
+          onOpenChangeAction={(open) => setShowTransactionDialog(open)}
           supplierId={dialogParamsRef.current.supplierId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
+          isRefund={dialogParamsRef.current.isRefund}
+          documentId={dialogParamsRef.current.documentId}
+          transactionId={dialogParamsRef.current.transactionId}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>

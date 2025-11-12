@@ -8,7 +8,7 @@ import { format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { getById } from "@/lib/api-client"
+import { getByBody } from "@/lib/api-client"
 import { Account } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
@@ -25,10 +25,13 @@ import ApOutStandingTransactionsTable from "./ap-outstandingtransactions-table"
 
 interface ApOutStandingTransactionsDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   supplierId?: number
   currencyId?: number
   accountDate?: string
+  isRefund?: boolean
+  documentId?: string
+  transactionId?: number
   visible: IVisibleFields
   onAddSelected?: (transactions: IApOutTransaction[]) => void
   existingDocumentIds?: number[] // Array of already selected document IDs
@@ -36,10 +39,13 @@ interface ApOutStandingTransactionsDialogProps {
 
 export default function ApOutStandingTransactionsDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   supplierId,
   currencyId,
   accountDate,
+  isRefund,
+  documentId,
+  transactionId,
   visible,
   onAddSelected,
   existingDocumentIds = [],
@@ -143,9 +149,19 @@ export default function ApOutStandingTransactionsDialog({
         }
 
         const dt = format(parsedAccountDate, "yyyy-MM-dd")
-        const url = `${Account.getApOutstandTransaction}/${supplierId}/${currencyId}/${dt}`
+        const payload = {
+          supplierId: supplierId,
+          currencyId: currencyId,
+          accountDate: dt,
+          isRefund: isRefund ?? false,
+          documentId: documentId ?? "",
+          transactionId: transactionId ?? "",
+        }
 
-        const response = await getById(url)
+        const response = await getByBody(
+          Account.getApOutstandTransaction,
+          payload
+        )
 
         // Clear timeout since API call completed
         clearTimeout(timeoutId)
@@ -187,7 +203,15 @@ export default function ApOutStandingTransactionsDialog({
 
     // No cleanup function - let the request complete naturally
     // State updates are safe and loading state will always be reset
-  }, [open, supplierId, currencyId, accountDate])
+  }, [
+    open,
+    supplierId,
+    currencyId,
+    accountDate,
+    isRefund,
+    documentId,
+    dateFormat,
+  ])
 
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
@@ -243,7 +267,7 @@ export default function ApOutStandingTransactionsDialog({
     )
 
     if (newlySelectedIds.length === 0) {
-      onOpenChange(false)
+      onOpenChangeAction(false)
       return
     }
 
@@ -259,19 +283,19 @@ export default function ApOutStandingTransactionsDialog({
 
     // Reset selection and close dialog
     setSelectedTransactions([])
-    onOpenChange(false)
+    onOpenChangeAction(false)
   }, [
     selectedTransactions,
     outTransactions,
     onAddSelected,
-    onOpenChange,
+    onOpenChangeAction,
     existingDocumentIds,
   ])
 
   const handleCancel = useCallback(() => {
     setSelectedTransactions([])
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChangeAction(false)
+  }, [onOpenChangeAction])
 
   const handleRefresh = useCallback(() => {
     // Refresh is handled by the useEffect when dialog opens
@@ -284,7 +308,7 @@ export default function ApOutStandingTransactionsDialog({
   }, [])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="flex h-[80vh] w-[80vw] !max-w-none flex-col overflow-y-auto rounded-lg">
         <DialogHeader>
           <DialogTitle>AP Transaction List</DialogTitle>

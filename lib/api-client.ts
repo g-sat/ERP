@@ -141,6 +141,20 @@ export const getByParams = async (
     throw error
   }
 }
+
+export const getByBody = async (
+  endpoint: string,
+  data: Record<string, unknown>
+) => {
+  try {
+    const response = await apiClient.post(endpoint, data) // body = data
+    return response.data
+  } catch (error) {
+    console.error("POST request failed:", error)
+    throw error
+  }
+}
+
 export const saveData = async (
   endpoint: string,
   data: Record<string, unknown> | unknown
