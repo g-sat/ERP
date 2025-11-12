@@ -50,7 +50,6 @@ export default function Main({
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showTransactionDialog, setShowTransactionDialog] = useState(false)
   const [isAllocated, setIsAllocated] = useState(false)
@@ -82,6 +81,31 @@ export default function Main({
         Number((detail as unknown as IArDocSetOffDt).docBalAmt) || 0
       return sum + balTotAmt
     }, 0)
+  }, [dataDetails])
+
+  const allocationTotals = useMemo(() => {
+    const arr = (dataDetails as unknown as IArDocSetOffDt[]) || []
+    let positive = 0
+    let negativeAbs = 0
+
+    arr.forEach((detail) => {
+      const value = Number((detail as unknown as IArDocSetOffDt).allocAmt) || 0
+      if (value > 0) {
+        positive += value
+      } else if (value < 0) {
+        negativeAbs += Math.abs(value)
+      }
+    })
+
+    return {
+      positive,
+      negativeAbs,
+      matched:
+        positive - negativeAbs === 0
+          ? Math.min(positive, negativeAbs)
+          : positive - negativeAbs,
+      totalSetOff: positive - negativeAbs,
+    }
   }, [dataDetails])
 
   // Clear dialog params when dialog closes
@@ -312,9 +336,12 @@ export default function Main({
           sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
         0
       )
-      const totalAllocated = Math.min(totalPositiveAlloc, totalNegativeAllocAbs)
-      const sumAllocLocalAmt = arr.reduce(
-        (s, r) => s + (Number(r.allocLocalAmt) || 0),
+      const matchedAllocation = Math.min(
+        totalPositiveAlloc,
+        totalNegativeAllocAbs
+      )
+      const sumAllocAmt = arr.reduce(
+        (sum, r) => sum + (Number(r.allocAmt) || 0),
         0
       )
       const sumExhGainLoss = arr.reduce(
@@ -327,13 +354,13 @@ export default function Main({
         shouldTouch: true,
       })
       setDataDetails(updatedData)
-      form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
       form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
 
       const { unAllocAmt } = calculateUnallocated(
         balTotAmt,
-        totalAllocated,
+        matchedAllocation,
         dec
       )
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
@@ -423,8 +450,14 @@ export default function Main({
     for (let i = 0; i < arr.length; i++) {
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-    const sumAllocLocalAmt = arr.reduce(
-      (s, r) => s + (Number(r.allocLocalAmt) || 0),
+    const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
+    const totalPositiveAlloc = arr.reduce(
+      (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
+      0
+    )
+    const totalNegativeAllocAbs = arr.reduce(
+      (sum, r) =>
+        sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
       0
     )
     const sumExhGainLoss = arr.reduce(
@@ -432,14 +465,15 @@ export default function Main({
       0
     )
 
-    const totalAllocated = appliedTotal ?? 0
+    const matchedAllocation =
+      appliedTotal ?? Math.min(totalPositiveAlloc, totalNegativeAllocAbs)
 
     // If balTotAmt was 0, update it with the calculated allocation total
-    const finalBalAmt = balTotAmt === 0 ? totalAllocated : balTotAmt
+    const finalBalAmt = balTotAmt === 0 ? matchedAllocation : balTotAmt
 
     const { unAllocAmt } = calculateUnallocated(
       finalBalAmt,
-      totalAllocated,
+      matchedAllocation,
       dec
     )
 
@@ -449,7 +483,7 @@ export default function Main({
     })
     setDataDetails(updatedData)
 
-    form.setValue("allocTotAmt", totalAllocated, { shouldDirty: true })
+    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -475,7 +509,6 @@ export default function Main({
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
     const sumAllocAmt = 0
-    const sumAllocLocalAmt = 0
     const sumExhGainLoss = 0
     const balTotAmt = Number(form.getValues("balTotAmt")) || 0
     const { unAllocAmt } = calculateUnallocated(balTotAmt, sumAllocAmt, dec)
@@ -647,13 +680,13 @@ export default function Main({
             variant="secondary"
             className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
           >
-            Total Alloc: {(form.getValues("allocTotAmt") || 0).toFixed(amtDec)}
+            Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
           </Badge>
           <Badge
-            variant="outline"
-            className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
+            variant="secondary"
+            className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
           >
-            Total Local:{" "}
+            Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
           </Badge>
           <Badge
             variant="outline"
