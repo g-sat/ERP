@@ -56,9 +56,11 @@ export default function Main({
     number[]
   >([])
   const dialogParamsRef = useRef<{
-    customerId: number
-    currencyId: number
-    accountDate: string
+    customerId?: number
+    currencyId?: number
+    accountDate?: string
+    isRefund?: boolean
+    documentId?: string
   } | null>(null)
 
   const watchedDataDetails = form.watch("data_details")
@@ -538,6 +540,8 @@ export default function Main({
       customerId,
       currencyId,
       accountDate: accountDate?.toString() || "",
+      isRefund: false,
+      documentId: form.getValues("receiptId") || "0",
     }
 
     setShowTransactionDialog(true)
@@ -703,6 +707,8 @@ export default function Main({
           customerId={dialogParamsRef.current.customerId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
+          isRefund={dialogParamsRef.current.isRefund}
+          documentId={dialogParamsRef.current.documentId}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>

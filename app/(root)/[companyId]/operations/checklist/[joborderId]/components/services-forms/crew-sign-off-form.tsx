@@ -56,7 +56,6 @@ export function CrewSignOffForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<CrewSignOffSchemaType>({
     mode: "onChange",
     resolver: zodResolver(CrewSignOffSchema),

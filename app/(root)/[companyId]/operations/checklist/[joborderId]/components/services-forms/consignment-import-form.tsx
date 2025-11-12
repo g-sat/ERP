@@ -89,7 +89,6 @@ export function ConsignmentImportForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<ConsignmentImportSchemaType>({
     resolver: zodResolver(ConsignmentImportSchema),
     defaultValues: {

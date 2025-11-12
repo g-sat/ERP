@@ -105,11 +105,7 @@ export default function RefundTable({
   const totalRecords = refundsResponse?.totalRecords || data.length
   const isLoading = isLoadingRefunds || isRefetchingRefunds
 
-  const getPaymentStatus = (
-    balAmt: number,
-    payAmt: number,
-    isCancel: boolean
-  ) => {
+  const getPaymentStatus = (payAmt: number, isCancel: boolean) => {
     if (isCancel) {
       return "Cancelled"
     }
@@ -135,10 +131,9 @@ export default function RefundTable({
       accessorKey: "paymentStatus",
       header: "Payment Status",
       cell: ({ row }) => {
-        const balAmt = row.original.unAllocTotAmt ?? 0
         const payAmt = row.original.allocTotAmt ?? 0
         const isCancel = row.original.isCancel ?? false
-        const status = getPaymentStatus(balAmt, payAmt, isCancel)
+        const status = getPaymentStatus(payAmt, isCancel)
 
         const getStatusStyle = (status: string) => {
           switch (status) {

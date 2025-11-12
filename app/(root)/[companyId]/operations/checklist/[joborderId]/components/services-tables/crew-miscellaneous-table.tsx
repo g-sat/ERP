@@ -90,14 +90,14 @@ export function CrewMiscellaneousTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: ICrewMiscellaneous) => {
+  const handleOpenHistory = useCallback((item: ICrewMiscellaneous) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       crewMiscellaneousId: item.crewMiscellaneousId,
       crewMiscellaneousIdDisplay: item.crewMiscellaneousId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ICrewMiscellaneous>[] = useMemo(
@@ -213,7 +213,7 @@ export function CrewMiscellaneousTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, formatDateTimeValue]
+    [datetimeFormat, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

@@ -87,7 +87,6 @@ export function TechniciansSurveyorsForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<TechnicianSurveyorSchemaType>({
     resolver: zodResolver(TechnicianSurveyorSchema),
     defaultValues: {

@@ -86,7 +86,6 @@ export function OtherServiceForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<OtherServiceSchemaType>({
     resolver: zodResolver(OtherServiceSchema),
     defaultValues: {

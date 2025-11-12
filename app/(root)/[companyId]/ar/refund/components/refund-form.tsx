@@ -127,19 +127,6 @@ export default function RefundForm({
           shouldDirty: true,
         })
         form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
-
-        // Calculate unallocated amounts
-        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-          totAmt,
-          newTotLocalAmt,
-          allocTotAmt,
-          allocTotLocalAmt,
-          decimals[0]
-        )
-        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-          shouldDirty: true,
-        })
       } else {
         if (totAmt > 0) {
           form.setValue("recTotAmt", totAmt, { shouldDirty: true })
@@ -166,19 +153,6 @@ export default function RefundForm({
         })
         form.setValue("totAmt", newTotAmt, { shouldDirty: true })
         form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
-
-        // Calculate unallocated amounts
-        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-          newTotAmt,
-          newTotLocalAmt,
-          allocTotAmt,
-          allocTotLocalAmt,
-          decimals[0]
-        )
-        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-          shouldDirty: true,
-        })
       }
 
       // Recalculate all details with new exchange rate if data details exist
@@ -223,21 +197,6 @@ export default function RefundForm({
           shouldDirty: true,
         })
         form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-
-        // Recalculate unallocated amounts with updated totals
-        const currentTotAmt = form.getValues("totAmt") || 0
-        const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
-        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-          currentTotAmt,
-          currentTotLocalAmt,
-          sumAllocAmt,
-          sumAllocLocalAmt,
-          dec
-        )
-        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-          shouldDirty: true,
-        })
       }
     },
     [form, decimals, dataDetails]
@@ -896,22 +855,6 @@ export default function RefundForm({
           name="chequeDate"
           label="Pay Date"
           isFutureShow={true}
-        />
-
-        {/* Unallocated Amount - Always read-only */}
-        <CustomNumberInput
-          form={form}
-          name="unAllocTotAmt"
-          label="Unallocated Amount"
-          isDisabled={true}
-        />
-
-        {/* Unallocated Local Amount - Always read-only */}
-        <CustomNumberInput
-          form={form}
-          name="unAllocTotLocalAmt"
-          label="Unallocated Local Amount"
-          isDisabled={true}
         />
 
         {/* Pay Currency */}

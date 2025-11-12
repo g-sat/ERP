@@ -103,14 +103,14 @@ export function LaunchServiceTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: ILaunchService) => {
+  const handleOpenHistory = useCallback((item: ILaunchService) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       launchServiceId: item.launchServiceId,
       launchServiceIdDisplay: item.launchServiceId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ILaunchService>[] = useMemo(
@@ -466,7 +466,7 @@ export function LaunchServiceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

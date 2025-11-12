@@ -83,7 +83,6 @@ export function LandingItemsForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<LandingItemsSchemaType>({
     resolver: zodResolver(LandingItemsSchema),
     defaultValues: {

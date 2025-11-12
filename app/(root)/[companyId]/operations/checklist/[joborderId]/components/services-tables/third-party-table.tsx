@@ -103,14 +103,14 @@ export function ThirdPartyTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IThirdParty) => {
+  const handleOpenHistory = useCallback((item: IThirdParty) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       thirdPartyId: item.thirdPartyId,
       thirdPartyIdDisplay: item.thirdPartyId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IThirdParty>[] = useMemo(
@@ -258,7 +258,7 @@ export function ThirdPartyTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

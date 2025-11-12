@@ -5,7 +5,6 @@ import {
   autoAllocateAmounts,
   calauteLocalAmtandGainLoss,
   calculateManualAllocation,
-  calculateUnallocated,
   validateAllocation as validateAllocationHelper,
 } from "@/helpers/ar-refund-calculations"
 import { IArOutTransaction, IArRefundDt } from "@/interfaces"
@@ -59,6 +58,8 @@ export default function Main({
     customerId: number
     currencyId: number
     accountDate: string
+    isRefund?: boolean
+    documentId?: string
   } | null>(null)
 
   const watchedDataDetails = form.watch("data_details")
@@ -139,16 +140,6 @@ export default function Main({
       const resetSumAllocLocalAmt = 0
       const resetSumExhGainLoss = 0
 
-      const totAmt = Number(form.getValues("totAmt")) || 0
-      const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-        totAmt,
-        totLocalAmt,
-        resetSumAllocAmt,
-        resetSumAllocLocalAmt,
-        dec
-      )
-
       form.setValue("data_details", finalResetData, {
         shouldDirty: true,
         shouldTouch: true,
@@ -159,10 +150,6 @@ export default function Main({
         shouldDirty: true,
       })
       form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-        shouldDirty: true,
-      })
       setIsAllocated(false)
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -330,20 +317,6 @@ export default function Main({
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
 
-      const totLocalAmt = Number(form.getValues("totLocalAmt"))
-
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-        totAmt,
-        totLocalAmt,
-        sumAllocAmt,
-        sumAllocLocalAmt,
-        dec
-      )
-
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-        shouldDirty: true,
-      })
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
 
@@ -432,7 +405,6 @@ export default function Main({
     for (let i = 0; i < arr.length; i++) {
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
     const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
     const sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
@@ -441,17 +413,6 @@ export default function Main({
     const sumExhGainLoss = arr.reduce(
       (s, r) => s + (Number(r.exhGainLoss) || 0),
       0
-    )
-
-    // If totAmt was 0, update it with the calculated sumAllocAmt
-    const finalTotAmt = totAmt === 0 ? sumAllocAmt : totAmt
-
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-      finalTotAmt,
-      totLocalAmt,
-      sumAllocAmt,
-      sumAllocLocalAmt,
-      dec
     )
 
     form.setValue("data_details", updatedData, {
@@ -471,8 +432,6 @@ export default function Main({
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(true)
@@ -498,15 +457,6 @@ export default function Main({
     const sumAllocAmt = 0
     const sumAllocLocalAmt = 0
     const sumExhGainLoss = 0
-    const totAmt = Number(form.getValues("totAmt")) || 0
-    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-      totAmt,
-      totLocalAmt,
-      sumAllocAmt,
-      sumAllocLocalAmt,
-      dec
-    )
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -516,8 +466,6 @@ export default function Main({
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(false)
@@ -538,6 +486,8 @@ export default function Main({
       customerId,
       currencyId,
       accountDate: accountDate?.toString() || "",
+      isRefund: true,
+      documentId: form.getValues("refundId") || "0",
     }
 
     setShowTransactionDialog(true)
@@ -703,6 +653,8 @@ export default function Main({
           customerId={dialogParamsRef.current.customerId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
+          isRefund={dialogParamsRef.current.isRefund}
+          documentId={dialogParamsRef.current.documentId}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>

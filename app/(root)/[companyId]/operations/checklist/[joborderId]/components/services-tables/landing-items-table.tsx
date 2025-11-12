@@ -103,14 +103,14 @@ export function LandingItemsTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: ILandingItems) => {
+  const handleOpenHistory = useCallback((item: ILandingItems) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       landingItemId: item.landingItemId,
       landingItemIdDisplay: item.landingItemId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ILandingItems>[] = useMemo(
@@ -286,7 +286,7 @@ export function LandingItemsTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

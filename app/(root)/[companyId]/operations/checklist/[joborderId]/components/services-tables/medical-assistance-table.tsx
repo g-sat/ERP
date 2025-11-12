@@ -108,14 +108,14 @@ export function MedicalAssistanceTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IMedicalAssistance) => {
+  const handleOpenHistory = useCallback((item: IMedicalAssistance) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       medicalAssistanceId: item.medicalAssistanceId,
       medicalAssistanceIdDisplay: item.medicalAssistanceId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IMedicalAssistance>[] = useMemo(
@@ -281,7 +281,7 @@ export function MedicalAssistanceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

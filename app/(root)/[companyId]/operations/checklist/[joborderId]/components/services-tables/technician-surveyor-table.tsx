@@ -108,14 +108,14 @@ export function TechnicianSurveyorTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: ITechnicianSurveyor) => {
+  const handleOpenHistory = useCallback((item: ITechnicianSurveyor) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       technicianSurveyorId: item.technicianSurveyorId,
       technicianSurveyorIdDisplay: item.technicianSurveyorId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ITechnicianSurveyor>[] = useMemo(
@@ -339,7 +339,7 @@ export function TechnicianSurveyorTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

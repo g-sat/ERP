@@ -86,7 +86,7 @@ export function FreshWaterTable({
       }
       return "-"
     },
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // State for history dialog
@@ -103,14 +103,14 @@ export function FreshWaterTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IFreshWater) => {
+  const handleOpenHistory = useCallback((item: IFreshWater) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       freshWaterId: item.freshWaterId,
       freshWaterIdDisplay: item.freshWaterId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IFreshWater>[] = useMemo(

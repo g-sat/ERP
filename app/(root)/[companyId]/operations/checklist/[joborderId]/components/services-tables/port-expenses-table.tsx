@@ -103,14 +103,14 @@ export function PortExpensesTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IPortExpenses) => {
+  const handleOpenHistory = useCallback((item: IPortExpenses) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       portExpenseId: item.portExpenseId,
       portExpenseIdDisplay: item.portExpenseId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IPortExpenses>[] = useMemo(
@@ -238,7 +238,7 @@ export function PortExpensesTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateValue, formatDateTimeValue]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

@@ -85,14 +85,14 @@ export function CrewSignOnTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: ICrewSignOn) => {
+  const handleOpenHistory = useCallback((item: ICrewSignOn) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       crewSignOnId: item.crewSignOnId,
       crewSignOnIdDisplay: item.crewSignOnId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ICrewSignOn>[] = useMemo(
@@ -307,7 +307,7 @@ export function CrewSignOnTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateTimeValue]
+    [datetimeFormat, dateFormat, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

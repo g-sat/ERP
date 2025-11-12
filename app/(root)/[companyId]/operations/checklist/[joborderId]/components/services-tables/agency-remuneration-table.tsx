@@ -90,14 +90,14 @@ export function AgencyRemunerationTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IAgencyRemuneration) => {
+  const handleOpenHistory = useCallback((item: IAgencyRemuneration) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       agencyRemunerationId: item.agencyRemunerationId,
       agencyRemunerationIdDisplay: item.agencyRemunerationId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IAgencyRemuneration>[] = useMemo(
@@ -204,7 +204,7 @@ export function AgencyRemunerationTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, formatDateTimeValue]
+    [datetimeFormat, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

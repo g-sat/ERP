@@ -103,14 +103,14 @@ export function EquipmentUsedTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IEquipmentUsed) => {
+  const handleOpenHistory = useCallback((item: IEquipmentUsed) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       equipmentUsedId: item.equipmentUsedId,
       equipmentUsedIdDisplay: item.equipmentUsedId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IEquipmentUsed>[] = useMemo(
@@ -311,7 +311,7 @@ export function EquipmentUsedTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

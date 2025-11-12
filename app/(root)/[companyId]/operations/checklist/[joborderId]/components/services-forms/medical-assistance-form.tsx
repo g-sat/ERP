@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IJobOrderHd, IMedicalAssistance } from "@/interfaces/checklist"
 import {
   MedicalAssistanceSchema,
@@ -85,7 +85,6 @@ export function MedicalAssistanceForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<MedicalAssistanceSchemaType>({
     resolver: zodResolver(MedicalAssistanceSchema),
     defaultValues: {

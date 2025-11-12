@@ -29,6 +29,8 @@ interface ArOutStandingTransactionsDialogProps {
   customerId?: number
   currencyId?: number
   accountDate?: string
+  isRefund?: boolean
+  documentId?: string
   visible: IVisibleFields
   onAddSelected?: (transactions: IArOutTransaction[]) => void
   existingDocumentIds?: number[] // Array of already selected document IDs
@@ -40,6 +42,8 @@ export default function ArOutStandingTransactionsDialog({
   customerId,
   currencyId,
   accountDate,
+  isRefund,
+  documentId,
   visible,
   onAddSelected,
   existingDocumentIds = [],
@@ -78,7 +82,7 @@ export default function ArOutStandingTransactionsDialog({
     }
 
     // Create a unique key for current params
-    const paramsKey = `${customerId}-${currencyId}-${accountDate}`
+    const paramsKey = `${customerId}-${currencyId}-${accountDate}-${isRefund}-${documentId}`
 
     // Prevent duplicate calls with same parameters (only if actively loading)
     if (isLoadingRef.current && lastLoadParamsRef.current === paramsKey) {
@@ -169,7 +173,15 @@ export default function ArOutStandingTransactionsDialog({
 
     // No cleanup function - let the request complete naturally
     // State updates are safe and loading state will always be reset
-  }, [open, customerId, currencyId, accountDate, dateFormat])
+  }, [
+    open,
+    customerId,
+    currencyId,
+    accountDate,
+    isRefund,
+    documentId,
+    dateFormat,
+  ])
 
   // Force remount of transactions table and clear selection whenever dialog opens
   useEffect(() => {

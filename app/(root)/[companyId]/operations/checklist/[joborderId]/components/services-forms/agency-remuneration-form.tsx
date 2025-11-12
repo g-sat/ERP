@@ -82,7 +82,6 @@ export function AgencyRemunerationForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<AgencyRemunerationSchemaType>({
     resolver: zodResolver(AgencyRemunerationSchema),
     defaultValues: {

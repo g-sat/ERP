@@ -92,14 +92,14 @@ export function ConsignmentExportTable({
   })
 
   // Handler to open history dialog
-  const _handleOpenHistory = (item: IConsignmentExport) => {
+  const _handleOpenHistory = useCallback((item: IConsignmentExport) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       consignmentExportId: item.consignmentExportId,
       consignmentExportIdDisplay: item.consignmentExportId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IConsignmentExport>[] = useMemo(
@@ -238,7 +238,7 @@ export function ConsignmentExportTable({
         minSize: 130,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateTime]
+    [datetimeFormat, dateFormat, formatDateTime, _handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

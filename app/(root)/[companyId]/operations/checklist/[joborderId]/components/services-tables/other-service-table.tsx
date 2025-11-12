@@ -103,14 +103,14 @@ export function OtherServiceTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IOtherService) => {
+  const handleOpenHistory = useCallback((item: IOtherService) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,
       otherServiceId: item.otherServiceId,
       otherServiceIdDisplay: item.otherServiceId,
     })
-  }
+  }, [])
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IOtherService>[] = useMemo(
@@ -263,7 +263,7 @@ export function OtherServiceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue]
+    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences

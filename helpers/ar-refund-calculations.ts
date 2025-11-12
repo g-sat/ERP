@@ -78,35 +78,6 @@ export const calculateDiffCurrency = (
   }
 }
 
-/**
- * Unallocated Amounts
- * Inputs: totAmt, totLocalAmt, allocTotAmt, allocTotLocalAmt
- * Outputs: { unAllocAmt, unAllocLocalAmt }
- */
-export const calculateUnallocated = (
-  totAmt: number,
-  totLocalAmt: number,
-  allocTotAmt: number,
-  allocTotLocalAmt: number,
-  decimals: IDecimal
-) => {
-  const unAllocAmt = calculateSubtractionAmount(
-    totAmt,
-    allocTotAmt,
-    decimals.amtDec
-  )
-  const unAllocLocalAmt = calculateSubtractionAmount(
-    totLocalAmt,
-    allocTotLocalAmt,
-    decimals.locAmtDec
-  )
-
-  return {
-    unAllocAmt,
-    unAllocLocalAmt,
-  }
-}
-
 // ============================================================================
 // AUTO ALLOCATION
 // ============================================================================
@@ -117,7 +88,7 @@ export const calculateUnallocated = (
  * 1) If totAmt == 0: set allocAmt = docBalAmt for all rows
  * 2) If totAmt > 0: sort rows placing negative docBalAmt first, then allocate
  *    by consuming remaining amount across positives; negatives are fully taken first
- * After allocation, computes local amounts, doc allocations, gain/loss, sums, and unallocated.
+ * After allocation, computes local amounts, doc allocations, gain/loss, sums.
  */
 export const autoAllocateAmounts = (
   details: IArRefundDt[],

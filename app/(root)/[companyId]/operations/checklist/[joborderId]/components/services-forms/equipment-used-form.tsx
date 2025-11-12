@@ -177,20 +177,7 @@ export function EquipmentUsedForm({
   ])
 
   const onSubmit = (data: EquipmentUsedSchemaType) => {
-    console.log("Submitting form data:", data)
-    try {
-      // Log form state
-      console.log("Form is valid:", form.formState.isValid)
-      console.log("Form is submitting:", form.formState.isSubmitting)
-      console.log(
-        "Form is submitting successfully:",
-        form.formState.isSubmitSuccessful
-      )
-
-      submitAction(data)
-    } catch (error) {
-      console.error("Error submitting form:", error)
-    }
+    submitAction(data)
   }
 
   // Show loading state while data is being fetched

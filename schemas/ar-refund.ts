@@ -50,23 +50,12 @@ export const ArRefundHdSchema = (
       .number()
       .min(0, "Receiving Total Local Amount is required"),
 
-    // Unallocated Amount Fields
-    unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
-    unAllocTotLocalAmt: z
-      .number()
-      .min(0, "Unallocated Total Local Amount is required"),
     exhGainLoss: z.number().optional(),
 
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
 
-    // Document Fields
-    docExhRate: z.number().min(0, "Document Exchange Rate is required"),
-    docTotAmt: z.number().min(0, "Document Total Amount is required"),
-    docTotLocalAmt: z
-      .number()
-      .min(0, "Document Total Local Amount is required"),
     // Allocated Amount Fields
     allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
     allocTotLocalAmt: z

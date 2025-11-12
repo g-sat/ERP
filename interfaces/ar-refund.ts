@@ -21,13 +21,8 @@ export interface IArRefundHd {
   recExhRate: number
   recTotAmt: number
   recTotLocalAmt: number
-  unAllocTotAmt: number
-  unAllocTotLocalAmt: number
   exhGainLoss: number
   remarks: string | null
-  docExhRate: number
-  docTotAmt: number
-  docTotLocalAmt: number
   allocTotAmt: number | null
   allocTotLocalAmt: number | null
   jobOrderId: number | null

@@ -83,7 +83,6 @@ export function FreshWaterForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<FreshWaterSchemaType>({
     resolver: zodResolver(FreshWaterSchema),
     defaultValues: {

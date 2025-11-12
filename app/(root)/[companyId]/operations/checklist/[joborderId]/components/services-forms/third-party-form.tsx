@@ -83,7 +83,6 @@ export function ThirdPartyForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<ThirdPartySchemaType>({
     resolver: zodResolver(ThirdPartySchema),
     defaultValues: {

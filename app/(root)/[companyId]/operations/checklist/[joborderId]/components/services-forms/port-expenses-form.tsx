@@ -111,9 +111,6 @@ export function PortExpensesForm({
     },
   })
 
-  console.log("deliverDate format form :", form.getValues("deliverDate"))
-  console.log("forms : ", form.getValues())
-
   useEffect(() => {
     // Only reset form when data is loaded to prevent race conditions
     if (!isChartOfAccountLoading && !isSupplierLoading) {
