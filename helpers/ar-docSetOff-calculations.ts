@@ -1,9 +1,9 @@
 import {
-  calculateDivisionAmount,
   calculateMultiplierAmount,
   calculateSubtractionAmount,
 } from "@/helpers/account"
-import { IArDocSetOffDt, IDecimal } from "@/interfaces"
+import { IDecimal } from "@/interfaces"
+import { IArDocSetOffDt } from "@/interfaces/ar-docsetoff"
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -18,76 +18,13 @@ export const validateAllocation = (details: IArDocSetOffDt[]): boolean => {
 // ============================================================================
 
 /**
- * Same Currency scenario
- * Inputs: totAmt, exhRate
- * Outputs: { totAmt, totLocalAmt, recTotAmt, recTotLocalAmt }
- */
-export const calculateSameCurrency = (
-  totAmt: number,
-  exhRate: number,
-  decimals: IDecimal
-) => {
-  const totLocalAmt = calculateMultiplierAmount(
-    totAmt,
-    exhRate,
-    decimals.locAmtDec
-  )
-  const recTotAmt = totAmt
-  const recTotLocalAmt = totLocalAmt
-
-  return {
-    totAmt,
-    totLocalAmt,
-    recTotAmt,
-    recTotLocalAmt,
-  }
-}
-
-/**
- * Different Currency scenario
- * Inputs: recTotAmt, recExhRate, exhRate
- * Outputs: { recTotAmt, recTotLocalAmt, totAmt, totLocalAmt }
- */
-export const calculateDiffCurrency = (
-  recTotAmt: number,
-  recExhRate: number,
-  exhRate: number,
-  decimals: IDecimal
-) => {
-  const recTotLocalAmt = calculateMultiplierAmount(
-    recTotAmt,
-    recExhRate,
-    decimals.locAmtDec
-  )
-  const totAmt = calculateDivisionAmount(
-    recTotLocalAmt,
-    exhRate,
-    decimals.amtDec
-  )
-  const totLocalAmt = calculateMultiplierAmount(
-    totAmt,
-    exhRate,
-    decimals.locAmtDec
-  )
-
-  return {
-    recTotAmt,
-    recTotLocalAmt,
-    totAmt,
-    totLocalAmt,
-  }
-}
-
-/**
  * Unallocated Amounts
  * Inputs: totAmt, totLocalAmt, allocTotAmt, allocTotLocalAmt
  * Outputs: { unAllocAmt, unAllocLocalAmt }
  */
 export const calculateUnallocated = (
   totAmt: number,
-  totLocalAmt: number,
   allocTotAmt: number,
-  allocTotLocalAmt: number,
   decimals: IDecimal
 ) => {
   const unAllocAmt = calculateSubtractionAmount(
@@ -95,15 +32,9 @@ export const calculateUnallocated = (
     allocTotAmt,
     decimals.amtDec
   )
-  const unAllocLocalAmt = calculateSubtractionAmount(
-    totLocalAmt,
-    allocTotLocalAmt,
-    decimals.locAmtDec
-  )
 
   return {
     unAllocAmt,
-    unAllocLocalAmt,
   }
 }
 

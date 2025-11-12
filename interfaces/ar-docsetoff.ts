@@ -5,12 +5,16 @@ export interface IArDocSetOffHd {
   referenceNo: string
   trnDate: Date | string
   accountDate: Date | string
+
   customerId: number
   currencyId: number
   exhRate: number
   allocTotAmt: number
+  allocTotLocalAmt: number
   balAmt: number
+  balLocalAmt: number
   unAllocTotAmt: number
+  unAllocTotLocalAmt: number
   exhGainLoss: number
   remarks: string | null
   moduleFrom: string

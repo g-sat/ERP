@@ -16,20 +16,30 @@ export const ArDocSetOffHdSchema = (
     trnDate: z.union([z.date(), z.string()]),
     accountDate: z.union([z.date(), z.string()]),
     customerId: z.number().min(1, "Customer is required"),
-
     // Currency Fields
     currencyId: z.number().min(1, "Currency is required"),
     exhRate: z.number().min(0, "Exchange Rate is required"),
 
+    // Allocated Amount Fields
+    allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
+    allocTotLocalAmt: z
+      .number()
+      .min(0, "Allocated Total Local Amount is required"),
+
+    balAmt: z.number().min(0, "Balanced Amount is required"),
+    balLocalAmt: z.number().min(0, "Balanced Local Amount is required"),
+
+    // Unallocated Amount Fields
+    unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
+    unAllocTotLocalAmt: z
+      .number()
+      .min(0, "Unallocated Total Local Amount is required"),
+
+    exhGainLoss: z.number().optional(),
+
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
-
-    // Allocated Amount Fields
-    allocTotAmt: z.number().min(0, "Allocated Amount is required"),
-    balAmt: z.number().min(0, "Balanced Amount is required"),
-    unAllocTotAmt: z.number().min(0, "Unallocated Amount is required"),
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
 
     // Module From Field
     moduleFrom: z.string().optional(),
