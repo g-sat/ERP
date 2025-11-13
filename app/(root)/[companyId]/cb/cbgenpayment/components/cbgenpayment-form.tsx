@@ -187,6 +187,24 @@ export default function CbGenPaymentForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultCurrencyId, isEdit])
 
+  const accountDate = form.watch("accountDate")
+  const chequeDate = form.watch("chequeDate")
+
+  React.useEffect(() => {
+    if (!accountDate || chequeDate) {
+      return
+    }
+
+    const accountDateStr =
+      typeof accountDate === "string"
+        ? accountDate
+        : format(accountDate, dateFormat)
+
+    form.setValue("chequeDate", accountDateStr, {
+      shouldDirty: true,
+    })
+  }, [accountDate, chequeDate, dateFormat, form])
+
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
     const formDetails = form.getValues("data_details") || []
@@ -422,6 +440,20 @@ export default function CbGenPaymentForm({
         if (!isCheque) {
           form.setValue("chequeNo", "")
           form.setValue("chequeDate", "")
+        } else {
+          const currentChequeDate = form.getValues("chequeDate")
+          const currentAccountDate = form.getValues("accountDate")
+
+          if (!currentChequeDate && currentAccountDate) {
+            const accountDateStr =
+              typeof currentAccountDate === "string"
+                ? currentAccountDate
+                : format(currentAccountDate, dateFormat)
+
+            form.setValue("chequeDate", accountDateStr, {
+              shouldDirty: true,
+            })
+          }
         }
       } else {
         // No receipt type selected, hide cheque fields
@@ -430,7 +462,7 @@ export default function CbGenPaymentForm({
         form.setValue("chequeDate", "")
       }
     },
-    [form]
+    [dateFormat, form]
   )
 
   // Handle payee selection from dialog
