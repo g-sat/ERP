@@ -11,8 +11,8 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetARReceiptHistoryDetails,
-  useGetARReceiptHistoryList,
+  useGetAPDocSetOffHistoryDetails,
+  useGetAPDocSetOffHistoryList,
 } from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,10 +46,10 @@ export default function EditVersionDetails({
   )
 
   const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetARReceiptHistoryList<IApDocSetOffHd[]>(setoffId)
+    useGetAPDocSetOffHistoryList<IApDocSetOffHd[]>(setoffId)
 
   const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetARReceiptHistoryDetails<IApDocSetOffHd>(
+    useGetAPDocSetOffHistoryDetails<IApDocSetOffHd>(
       selectedReceipt?.setoffId || "",
       selectedReceipt?.editVersion?.toString() || ""
     )
