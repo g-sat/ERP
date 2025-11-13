@@ -104,5 +104,17 @@ export interface ICbPettyCashDt {
   bargeName: string
   voyageId: number
   voyageNo: string
+  invoiceDate: Date | string
+  invoiceNo: string
+  supplierName: string
+  gstNo: string
+  jobOrderId: number
+  jobOrderNo: string
+  taskId: number
+  taskName: string
+  serviceId: number
+  serviceName: string
+  serviceTypeId: number
+  serviceTypeName: string
   editVersion: number
 }

@@ -37,6 +37,18 @@ const buildDefaultCbPettyCashDetails = (dateFormat: string) => ({
   bargeName: "",
   voyageId: 0,
   voyageNo: "",
+  invoiceDate: format(new Date(), dateFormat),
+  invoiceNo: "",
+  supplierName: "",
+  gstNo: "",
+  jobOrderId: 0,
+  jobOrderNo: "",
+  taskId: 0,
+  taskName: "",
+  serviceId: 0,
+  serviceName: "",
+  serviceTypeId: 0,
+  serviceTypeName: "",
   editVersion: 0,
 })
 

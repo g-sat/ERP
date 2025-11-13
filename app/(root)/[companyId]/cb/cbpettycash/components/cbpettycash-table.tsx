@@ -39,7 +39,7 @@ export default function CbPettyCashTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbpettycash
 
   const today = useMemo(() => new Date(), [])
   const defaultStartDate = useMemo(

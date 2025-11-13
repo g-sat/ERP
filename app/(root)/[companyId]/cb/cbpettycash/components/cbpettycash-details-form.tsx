@@ -14,7 +14,11 @@ import {
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
+  IJobOrderLookup,
   IPortLookup,
+  IServiceLookup,
+  IServiceTypeLookup,
+  ITaskLookup,
   IVesselLookup,
   IVoyageLookup,
 } from "@/interfaces/lookup"
@@ -26,10 +30,11 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useChartOfAccountLookup, useGstLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,10 +44,17 @@ import {
   DepartmentAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
+  JobOrderAutocomplete,
+  JobOrderServiceAutocomplete,
+  JobOrderTaskAutocomplete,
   PortAutocomplete,
+  ServiceTypeAutocomplete,
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import { DuplicateConfirmation } from "@/components/confirmation/duplicate-confirmation"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -86,6 +98,14 @@ export default function CbPettyCashDetailsForm({
     () => getDefaultValues(dateFormat).defaultCbPettyCashDetails,
     [dateFormat]
   )
+
+  // State to manage job-specific vs department-specific rendering
+  const [isJobSpecific, setIsJobSpecific] = useState(false)
+  // State for duplicate confirmation dialog
+  const [showDuplicateConfirmation, setShowDuplicateConfirmation] =
+    useState(false)
+  const [pendingSubmitData, setPendingSubmitData] =
+    useState<CbPettyCashDtSchemaType | null>(null)
 
   // Track if submit was attempted to show errors only after submit
   const [submitAttempted, setSubmitAttempted] = useState(false)
@@ -162,6 +182,17 @@ export default function CbPettyCashDetailsForm({
           bargeName: editingDetail.bargeName ?? "",
           voyageId: editingDetail.voyageId ?? 0,
           voyageNo: editingDetail.voyageNo ?? "",
+          invoiceDate: editingDetail.invoiceDate ?? "",
+          invoiceNo: editingDetail.invoiceNo ?? "",
+          supplierName: editingDetail.supplierName ?? "",
+          jobOrderId: editingDetail.jobOrderId ?? 0,
+          jobOrderNo: editingDetail.jobOrderNo ?? "",
+          taskId: editingDetail.taskId ?? 0,
+          taskName: editingDetail.taskName ?? "",
+          serviceId: editingDetail.serviceId ?? 0,
+          serviceName: editingDetail.serviceName ?? "",
+          serviceTypeId: editingDetail.serviceTypeId ?? 0,
+          serviceTypeName: editingDetail.serviceTypeName ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -250,6 +281,8 @@ export default function CbPettyCashDetailsForm({
   }
 
   // Watch form values to trigger re-renders when they change
+  const watchedJobOrderId = form.watch("jobOrderId")
+  const watchedTaskId = form.watch("taskId")
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
 
@@ -386,6 +419,17 @@ export default function CbPettyCashDetailsForm({
         bargeName: editingDetail.bargeName ?? "",
         voyageId: editingDetail.voyageId ?? 0,
         voyageNo: editingDetail.voyageNo ?? "",
+        invoiceDate: editingDetail.invoiceDate ?? "",
+        invoiceNo: editingDetail.invoiceNo ?? "",
+        supplierName: editingDetail.supplierName ?? "",
+        jobOrderId: editingDetail.jobOrderId ?? 0,
+        jobOrderNo: editingDetail.jobOrderNo ?? "",
+        taskId: editingDetail.taskId ?? 0,
+        taskName: editingDetail.taskName ?? "",
+        serviceId: editingDetail.serviceId ?? 0,
+        serviceName: editingDetail.serviceName ?? "",
+        serviceTypeId: editingDetail.serviceTypeId ?? 0,
+        serviceTypeName: editingDetail.serviceTypeName ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
@@ -499,6 +543,18 @@ export default function CbPettyCashDetailsForm({
         bargeName: data.bargeName ?? "",
         voyageId: data.voyageId ?? 0,
         voyageNo: data.voyageNo ?? "",
+        invoiceDate: data.invoiceDate ?? "",
+        invoiceNo: data.invoiceNo ?? "",
+        supplierName: data.supplierName ?? "",
+        gstNo: data.gstNo ?? "",
+        jobOrderId: data.jobOrderId ?? 0,
+        jobOrderNo: data.jobOrderNo ?? "",
+        taskId: data.taskId ?? 0,
+        taskName: data.taskName ?? "",
+        serviceId: data.serviceId ?? 0,
+        serviceName: data.serviceName ?? "",
+        serviceTypeId: data.serviceTypeId ?? 0,
+        serviceTypeName: data.serviceTypeName ?? "",
         editVersion: data.editVersion ?? 0,
       }
 
@@ -534,6 +590,56 @@ export default function CbPettyCashDetailsForm({
   // HANDLERS
   // ============================================================================
 
+  // Check for duplicate records based on invoiceDate, invoiceNo, and supplierName
+  const checkDuplicateRecord = (
+    data: CbPettyCashDtSchemaType
+  ): CbPettyCashDtSchemaType | null => {
+    if (existingDetails.length === 0) return null
+
+    // Find if any existing record has the same invoiceDate, invoiceNo, and supplierName
+    const duplicate = existingDetails.find(
+      (detail: CbPettyCashDtSchemaType) =>
+        detail.invoiceDate === data.invoiceDate &&
+        detail.invoiceNo === data.invoiceNo &&
+        detail.supplierName === data.supplierName &&
+        detail.itemNo !== data.itemNo // Exclude the current record if editing
+    )
+
+    return duplicate || null
+  }
+
+  // Check for duplicates on field change
+  const checkDuplicateOnChange = () => {
+    const currentData = form.getValues()
+    // Only check if all three fields have values
+    if (
+      currentData.invoiceDate &&
+      currentData.invoiceNo &&
+      currentData.supplierName
+    ) {
+      const duplicateRecord = checkDuplicateRecord(currentData)
+      if (duplicateRecord) {
+        setPendingSubmitData(duplicateRecord)
+        setShowDuplicateConfirmation(true)
+      }
+    }
+  }
+
+  // Handle duplicate confirmation - keep data in form for user to modify
+  const handleDuplicateConfirm = () => {
+    // Don't submit - just keep the data in the form for user to modify
+    setPendingSubmitData(null)
+    toast.info("You can modify the data and submit again")
+  }
+
+  // Handle duplicate confirmation - cancel and reset form
+  const handleDuplicateCancel = () => {
+    setPendingSubmitData(null)
+    const nextItemNo = getNextItemNo()
+    form.reset(createDefaultValues(nextItemNo))
+    toast.info("Form reset due to duplicate record")
+  }
+
   // Handle chart of account selection
   const handleChartOfAccountChange = (
     selectedOption: IChartOfAccountLookup | null
@@ -545,6 +651,68 @@ export default function CbPettyCashDetailsForm({
       })
       form.setValue("glCode", selectedOption.glCode || "")
       form.setValue("glName", selectedOption.glName || "")
+
+      // CRITICAL: Use the actual isJobSpecific property from the chart of account data
+      // This determines which fields will be shown/required
+      const isJobSpecificAccount = selectedOption.isJobSpecific || false
+
+      setIsJobSpecific(isJobSpecificAccount)
+
+      // Reset dependent fields when switching between job-specific and department-specific
+      // This prevents invalid data from being submitted
+      if (!isJobSpecificAccount) {
+        // Department-Specific: Reset job-related fields
+        form.setValue("jobOrderId", 0, { shouldValidate: true })
+        form.setValue("jobOrderNo", "")
+        form.setValue("taskId", 0, { shouldValidate: true })
+        form.setValue("taskName", "")
+        form.setValue("serviceId", 0, { shouldValidate: true })
+        form.setValue("serviceName", "")
+      } else {
+        // Job-Specific: Reset department field
+        form.setValue("departmentId", 0, { shouldValidate: true })
+        form.setValue("departmentCode", "")
+        form.setValue("departmentName", "")
+      }
+    } else {
+      // Clear COA and all related fields when account is cleared
+      form.setValue("glId", 0, { shouldValidate: true })
+      form.setValue("glCode", "")
+      form.setValue("glName", "")
+
+      // Clear all dimensional fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
+
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
+
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
+
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
+
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
+
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
+
+      // Reset to department mode by default
+      setIsJobSpecific(false)
     }
   }
 
@@ -553,6 +721,68 @@ export default function CbPettyCashDetailsForm({
       form.setValue("gstId", selectedOption.gstId)
       form.setValue("gstName", selectedOption.gstName || "")
       await setGSTPercentage(Hdform, form, decimals[0], visible)
+    }
+  }
+
+  // Handle job order selection
+  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
+    if (selectedOption) {
+      form.setValue("jobOrderId", selectedOption.jobOrderId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
+      // Reset task and service when job order changes
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    } else {
+      // Clear job order and related fields
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    }
+  }
+
+  // Handle task selection
+  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
+    if (selectedOption) {
+      form.setValue("taskId", selectedOption.taskId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("taskName", selectedOption.taskName || "")
+      // Reset service when task changes
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    } else {
+      // Clear task and service fields
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    }
+  }
+
+  // Handle service selection
+  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    if (selectedOption) {
+      form.setValue("serviceId", selectedOption.serviceId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
+    } else {
+      // Clear service fields
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -624,6 +854,20 @@ export default function CbPettyCashDetailsForm({
         shouldDirty: true,
       })
       form.setValue("voyageNo", selectedOption.voyageNo || "")
+    }
+  }
+
+  // Handle Service Type change
+  const handleServiceTypeChange = (
+    selectedOption: IServiceTypeLookup | null
+  ) => {
+    if (selectedOption) {
+      form.setValue("serviceTypeId", selectedOption.serviceTypeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+    } else {
+      form.setValue("serviceTypeId", 0, { shouldValidate: true })
     }
   }
 
@@ -768,6 +1012,12 @@ export default function CbPettyCashDetailsForm({
           <input type="hidden" {...form.register("vesselCode")} />
           <input type="hidden" {...form.register("vesselName")} />
           <input type="hidden" {...form.register("voyageNo")} />
+          <input type="hidden" {...form.register("supplierName")} />
+          <input type="hidden" {...form.register("gstNo")} />
+          <input type="hidden" {...form.register("jobOrderNo")} />
+          <input type="hidden" {...form.register("taskName")} />
+          <input type="hidden" {...form.register("serviceName")} />
+          <input type="hidden" {...form.register("serviceTypeName")} />
 
           {/* Section Header */}
           <div className="col-span-8 mb-1">
@@ -801,6 +1051,39 @@ export default function CbPettyCashDetailsForm({
             isDisabled={true}
           />
 
+          {/* Invoice Date */}
+          {visible?.m_InvoiceDate && (
+            <CustomDateNew
+              form={form}
+              name="invoiceDate"
+              label="Invoice Date"
+              isRequired={true}
+              onChangeEvent={checkDuplicateOnChange}
+            />
+          )}
+
+          {/* Supplier Name */}
+          {visible?.m_SupplierName && (
+            <CustomInput
+              form={form}
+              name="supplierName"
+              label="Supplier Name"
+              isRequired={true}
+              onChangeEvent={checkDuplicateOnChange}
+            />
+          )}
+
+          {/* GST No */}
+          {visible?.m_GstNo && (
+            <CustomInput
+              form={form}
+              name="gstNo"
+              label="GST No"
+              isRequired={true}
+              onChangeEvent={checkDuplicateOnChange}
+            />
+          )}
+
           {/* Chart Of Account */}
           <ChartOfAccountAutocomplete
             form={form}
@@ -811,15 +1094,72 @@ export default function CbPettyCashDetailsForm({
             companyId={companyId}
           />
 
-          {/* DEPARTMENT-SPECIFIC MODE: Department only */}
-          {visible?.m_DepartmentId && (
-            <DepartmentAutocomplete
-              form={form}
-              name="departmentId"
-              label="Department"
-              isRequired={required?.m_DepartmentId}
-              onChangeEvent={handleDepartmentChange}
-            />
+          {/* 
+            CONDITIONAL RENDERING BASED ON CHART OF ACCOUNT TYPE
+            =====================================================
+            If Chart of Account is Job-Specific (isJobSpecific = true):
+              - Shows: Job Order → Task → Service (cascading dropdowns)
+              - Hides: Department
+            
+            If Chart of Account is Department-Specific (isJobSpecific = false):
+              - Shows: Department
+              - Hides: Job Order, Task, Service
+            
+            The isJobSpecific state is set by:
+            1. Chart of Account selection (handleChartOfAccountChange)
+            2. Edit mode detection (useEffect checking existing jobOrderId/departmentId)
+          */}
+          {isJobSpecific ? (
+            <>
+              {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
+              {visible?.m_JobOrderId && (
+                <JobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderTaskAutocomplete
+                  key={`task-${watchedJobOrderId}`}
+                  form={form}
+                  name="taskId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  label="Task"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleTaskChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderServiceAutocomplete
+                  key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                  form={form}
+                  name="serviceId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  taskId={watchedTaskId || 0}
+                  label="Service"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleServiceChange}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {/* DEPARTMENT-SPECIFIC MODE: Department only */}
+              {visible?.m_DepartmentId && (
+                <DepartmentAutocomplete
+                  form={form}
+                  name="departmentId"
+                  label="Department"
+                  isRequired={required?.m_DepartmentId && !isJobSpecific}
+                  onChangeEvent={handleDepartmentChange}
+                />
+              )}
+            </>
           )}
 
           {/* Employee */}
@@ -966,6 +1306,17 @@ export default function CbPettyCashDetailsForm({
             />
           )}
 
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={visible?.m_ServiceTypeId}
+              onChangeEvent={handleServiceTypeChange}
+            />
+          )}
+
           {/* Remarks */}
           {visible?.m_Remarks && (
             <CustomTextarea
@@ -1008,6 +1359,39 @@ export default function CbPettyCashDetailsForm({
           </div>
         </form>
       </FormProvider>
+
+      {/* Duplicate Confirmation */}
+      <DuplicateConfirmation
+        open={showDuplicateConfirmation}
+        onOpenChange={setShowDuplicateConfirmation}
+        onConfirm={handleDuplicateConfirm}
+        onCancel={handleDuplicateCancel}
+        duplicateInfo={
+          pendingSubmitData
+            ? {
+                invoiceDate:
+                  pendingSubmitData.invoiceDate instanceof Date
+                    ? format(pendingSubmitData.invoiceDate, clientDateFormat)
+                    : typeof pendingSubmitData.invoiceDate === "string"
+                      ? format(
+                          parseDate(pendingSubmitData.invoiceDate) ||
+                            new Date(),
+                          clientDateFormat
+                        )
+                      : "",
+                invoiceNo: pendingSubmitData.invoiceNo,
+                supplierName: pendingSubmitData.supplierName,
+                glCode: pendingSubmitData.glCode,
+                glName: pendingSubmitData.glName,
+                totAmt: pendingSubmitData.totAmt,
+                totLocalAmt: pendingSubmitData.totLocalAmt,
+                gstPercentage: pendingSubmitData.gstPercentage,
+                gstAmt: pendingSubmitData.gstAmt,
+                remarks: pendingSubmitData.remarks,
+              }
+            : undefined
+        }
+      />
     </>
   )
 }

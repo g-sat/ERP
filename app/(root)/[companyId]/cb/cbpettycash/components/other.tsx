@@ -26,7 +26,7 @@ export default function Other({ form, visible }: OtherProps) {
       {paymentId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.cb}
-          transactionId={CBTransactionId.cbgenpayment}
+          transactionId={CBTransactionId.cbpettycash}
           recordId={paymentId}
           recordNo={paymentNo}
           companyId={Number(companyId)}

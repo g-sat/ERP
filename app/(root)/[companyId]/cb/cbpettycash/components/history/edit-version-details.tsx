@@ -11,8 +11,8 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBCbPettyCashHistoryDetails,
-  useGetCBCbPettyCashHistoryList,
+  useGetCbPettyCashHistoryDetails,
+  useGetCbPettyCashHistoryList,
 } from "@/hooks/use-cb"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,7 +46,7 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbpettycash
 
   const [selectedCbPettyCash, setSelectedCbPettyCash] =
     useState<ICbPettyCashHd | null>(null)
@@ -64,10 +64,10 @@ export default function EditVersionDetails({
 
   const { data: cbPettyCashHistoryData, refetch: refetchHistory } =
     //useGetARCbPettyCashHistoryList<ICbPettyCashHd[]>("14120250100024")
-    useGetCBCbPettyCashHistoryList<ICbPettyCashHd[]>(paymentId)
+    useGetCbPettyCashHistoryList<ICbPettyCashHd[]>(paymentId)
 
   const { data: cbPettyCashDetailsData, refetch: refetchDetails } =
-    useGetCBCbPettyCashHistoryDetails<ICbPettyCashHd>(
+    useGetCbPettyCashHistoryDetails<ICbPettyCashHd>(
       selectedCbPettyCash?.paymentId || "",
       selectedCbPettyCash?.editVersion?.toString() || ""
     )
@@ -370,10 +370,6 @@ export default function EditVersionDetails({
                 localGstAmount: dialogData?.gstLocalAmt,
                 totalAmount: dialogData?.totAmtAftGst,
                 localTotalAmount: dialogData?.totLocalAmtAftGst,
-                paymentAmount: dialogData?.payAmt,
-                localPaymentAmount: dialogData?.payLocalAmt,
-                balanceAmount: dialogData?.balAmt,
-                localBalanceAmount: dialogData?.balLocalAmt,
               }}
             />
           ) : (

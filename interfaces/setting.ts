@@ -164,6 +164,10 @@ export interface IVisibleFields {
   m_VesselIdHd: boolean
   m_AdvRecAmt: boolean
   m_BankChgGLId: boolean
+  m_InvoiceDate: boolean
+  m_InvoiceNo: boolean
+  m_SupplierName: boolean
+  m_GstNo: boolean
 }
 
 export interface INumberFormatDetails {

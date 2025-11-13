@@ -27,7 +27,7 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbpettycash
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")

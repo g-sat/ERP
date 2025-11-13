@@ -11,8 +11,8 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBCbGenReceiptHistoryDetails,
-  useGetCBCbGenReceiptHistoryList,
+  useGetCbGenReceiptHistoryDetails,
+  useGetCbGenReceiptHistoryList,
 } from "@/hooks/use-cb"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,10 +64,10 @@ export default function EditVersionDetails({
 
   const { data: cbGenReceiptHistoryData, refetch: refetchHistory } =
     //useGetARCbGenReceiptHistoryList<ICbGenReceiptHd[]>("14120250100024")
-    useGetCBCbGenReceiptHistoryList<ICbGenReceiptHd[]>(receiptId)
+    useGetCbGenReceiptHistoryList<ICbGenReceiptHd[]>(receiptId)
 
   const { data: cbGenReceiptDetailsData, refetch: refetchDetails } =
-    useGetCBCbGenReceiptHistoryDetails<ICbGenReceiptHd>(
+    useGetCbGenReceiptHistoryDetails<ICbGenReceiptHd>(
       selectedCbGenReceipt?.receiptId || "",
       selectedCbGenReceipt?.editVersion?.toString() || ""
     )
@@ -370,10 +370,6 @@ export default function EditVersionDetails({
                 localGstAmount: dialogData?.gstLocalAmt,
                 totalAmount: dialogData?.totAmtAftGst,
                 localTotalAmount: dialogData?.totLocalAmtAftGst,
-                receiptAmount: dialogData?.payAmt,
-                localReceiptAmount: dialogData?.payLocalAmt,
-                balanceAmount: dialogData?.balAmt,
-                localBalanceAmount: dialogData?.balLocalAmt,
               }}
             />
           ) : (

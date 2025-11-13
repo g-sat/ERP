@@ -617,6 +617,83 @@ export function VisibleTable() {
       ),
       size: 100,
     },
+    {
+      accessorKey: "m_InvoiceDate",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Invoice Date</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_InvoiceDate}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_InvoiceDate",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_InvoiceNo",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Invoice No</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_InvoiceNo}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_InvoiceNo", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_SupplierName",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Supplier Name</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_SupplierName}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_SupplierName",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_GstNo",
+      header: () => (
+        <div className="text-center font-medium text-wrap">GST No</div>
+      ),
+
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_GstNo}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_GstNo", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
   ]
 
   const handleSave = async () => {

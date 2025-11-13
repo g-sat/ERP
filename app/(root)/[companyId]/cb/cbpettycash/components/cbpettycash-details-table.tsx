@@ -257,7 +257,7 @@ export default function CbPettyCashDetailsTable({
         data={data}
         columns={columns}
         moduleId={ModuleId.cb}
-        transactionId={CBTransactionId.cbgenpayment}
+        transactionId={CBTransactionId.cbpettycash}
         tableName={TableName.cbPettyCashDt}
         emptyMessage="No cbPettyCash details found."
         accessorId="itemNo"

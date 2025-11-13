@@ -370,10 +370,6 @@ export default function EditVersionDetails({
                 localGstAmount: dialogData?.gstLocalAmt,
                 totalAmount: dialogData?.totAmtAftGst,
                 localTotalAmount: dialogData?.totLocalAmtAftGst,
-                paymentAmount: dialogData?.payAmt,
-                localPaymentAmount: dialogData?.payLocalAmt,
-                balanceAmount: dialogData?.balAmt,
-                localBalanceAmount: dialogData?.balLocalAmt,
               }}
             />
           ) : (

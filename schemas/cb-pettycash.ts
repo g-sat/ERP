@@ -111,6 +111,12 @@ export const CbPettyCashDtSchema = (
     paymentNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     seqNo: z.number().min(1, "Sequence No must be at least 1"),
+
+    invoiceDate: z.union([z.date(), z.string()]).optional(),
+    invoiceNo: z.string().optional(),
+    supplierName: z.string().optional(),
+    gstNo: z.string().optional(),
+
     // GL Fields
     glId: required?.m_GLId
       ? z.number().min(1, "Chart of Account is required")
@@ -184,6 +190,33 @@ export const CbPettyCashDtSchema = (
         ? z.number().min(1, "Voyage is required")
         : z.number().optional(),
     voyageNo: z.string().optional(),
+
+    // Job Order Fields
+    jobOrderId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Job Order is required")
+        : z.number().optional(),
+    jobOrderNo: z.string().optional(),
+
+    // Task Fields
+    taskId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Task is required")
+        : z.number().optional(),
+    taskName: z.string().optional(),
+
+    // Service Fields
+    serviceId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Service is required")
+        : z.number().optional(),
+    serviceName: z.string().optional(),
+
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
+    serviceTypeName: z.string().optional(),
 
     editVersion: z.number().optional(),
   })

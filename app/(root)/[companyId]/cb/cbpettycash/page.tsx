@@ -81,7 +81,7 @@ export default function CbPettyCashPage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbpettycash
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -829,6 +829,18 @@ export default function CbPettyCashPage() {
               bargeName: detail.bargeName ?? "",
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
+              invoiceDate: detail.invoiceDate ?? "",
+              invoiceNo: detail.invoiceNo ?? "",
+              supplierName: detail.supplierName ?? "",
+              gstNo: detail.gstNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
+              serviceTypeId: detail.serviceTypeId ?? 0,
+              serviceTypeName: detail.serviceTypeName ?? "",
               editVersion: detail.editVersion ?? 0,
             }) as unknown as CbPettyCashDtSchemaType
         ) || [],
@@ -974,6 +986,18 @@ export default function CbPettyCashPage() {
                   bargeName: detail.bargeName ?? "",
                   voyageId: detail.voyageId ?? 0,
                   voyageNo: detail.voyageNo ?? "",
+                  invoiceDate: detail.invoiceDate ?? "",
+                  invoiceNo: detail.invoiceNo ?? "",
+                  supplierName: detail.supplierName ?? "",
+                  gstNo: detail.gstNo ?? "",
+                  jobOrderId: detail.jobOrderId ?? 0,
+                  jobOrderNo: detail.jobOrderNo ?? "",
+                  taskId: detail.taskId ?? 0,
+                  taskName: detail.taskName ?? "",
+                  serviceId: detail.serviceId ?? 0,
+                  serviceName: detail.serviceName ?? "",
+                  serviceTypeId: detail.serviceTypeId ?? 0,
+                  serviceTypeName: detail.serviceTypeName ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
@@ -1182,6 +1206,18 @@ export default function CbPettyCashPage() {
                   bargeName: detail.bargeName ?? "",
                   voyageId: detail.voyageId ?? 0,
                   voyageNo: detail.voyageNo ?? "",
+                  invoiceDate: detail.invoiceDate ?? "",
+                  invoiceNo: detail.invoiceNo ?? "",
+                  supplierName: detail.supplierName ?? "",
+                  gstNo: detail.gstNo ?? "",
+                  jobOrderId: detail.jobOrderId ?? 0,
+                  jobOrderNo: detail.jobOrderNo ?? "",
+                  taskId: detail.taskId ?? 0,
+                  taskName: detail.taskName ?? "",
+                  serviceId: detail.serviceId ?? 0,
+                  serviceName: detail.serviceName ?? "",
+                  serviceTypeId: detail.serviceTypeId ?? 0,
+                  serviceTypeName: detail.serviceTypeName ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
