@@ -994,7 +994,7 @@ export const CbBankTransfer = {
 }
 
 // General Ledger Journal Endpoints
-export const GLJournalEntry = {
+export const GLJournal = {
   get: "/account/getgljournal",
   getByIdNo: "/account/getgljournalbyidno",
   add: "/account/savegljournal",

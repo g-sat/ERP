@@ -1,20 +1,42 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { IGLJournalFilter, IGLJournalHd } from "@/interfaces/gl-journalentry"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import {
+  mathRound,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/gl-journal-calculations"
+import { IGLJournalDt, IGLJournalFilter, IGLJournalHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   GLJournalDtSchemaType,
   GLJournalHdSchema,
   GLJournalHdSchemaType,
-} from "@/schemas/gl-journalentry"
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -23,22 +45,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { GLJournalEntry } from "@/lib/api-routes"
+import { BasicSetting, GLJournal } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { GLTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -46,41 +65,132 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
+import { getDefaultValues } from "./components/glJournal-defaultvalues"
+import GLJournalTable from "./components/glJournal-table"
 import History from "./components/history"
-import { defaultJournal } from "./components/journalentry-defaultvalues"
-import JournalTable from "./components/journalentry-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
 
-export default function JournalEntryPage() {
+export default function GLJournalPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.gl
   const transactionId = GLTransactionId.journalentry
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingJournal, setIsLoadingJournal] = useState(false)
-  const [isSelectingJournal, setIsSelectingJournal] = useState(false)
+  const [isLoadingGLJournal, setIsLoadingGLJournal] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [journal, setJournal] = useState<GLJournalHdSchemaType | null>(null)
+  const [glJournal, setGLJournal] = useState<GLJournalHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleGLJournalSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/gl/glJournal`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<IGLJournalFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "journalNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const defaultGLJournalValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultGLJournal,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -99,38 +209,38 @@ export default function JournalEntryPage() {
   // Add form state management
   const form = useForm<GLJournalHdSchemaType>({
     resolver: zodResolver(GLJournalHdSchema(required, visible)),
-    defaultValues: journal
+    defaultValues: glJournal
       ? {
-          journalId: journal.journalId?.toString() ?? "0",
-          journalNo: journal.journalNo ?? "",
-          referenceNo: journal.referenceNo ?? "",
-          trnDate: journal.trnDate ?? new Date(),
-          accountDate: journal.accountDate ?? new Date(),
-          currencyId: journal.currencyId ?? 0,
-          exhRate: journal.exhRate ?? 0,
-          ctyExhRate: journal.ctyExhRate ?? 0,
-          totAmt: journal.totAmt ?? 0,
-          totLocalAmt: journal.totLocalAmt ?? 0,
-          totCtyAmt: journal.totCtyAmt ?? 0,
-          gstClaimDate: journal.gstClaimDate ?? new Date(),
-          gstAmt: journal.gstAmt ?? 0,
-          gstLocalAmt: journal.gstLocalAmt ?? 0,
-          gstCtyAmt: journal.gstCtyAmt ?? 0,
-          totAmtAftGst: journal.totAmtAftGst ?? 0,
-          totLocalAmtAftGst: journal.totLocalAmtAftGst ?? 0,
-          totCtyAmtAftGst: journal.totCtyAmtAftGst ?? 0,
-          remarks: journal.remarks ?? "",
-          isReverse: journal.isReverse ?? false,
-          isRecurrency: journal.isRecurrency ?? false,
-          revDate: journal.revDate ?? new Date(),
-          recurrenceUntil: journal.recurrenceUntil ?? new Date(),
-          moduleFrom: journal.moduleFrom ?? "",
-          editVersion: journal.editVersion ?? 0,
+          journalId: glJournal.journalId?.toString() ?? "0",
+          journalNo: glJournal.journalNo ?? "",
+          referenceNo: glJournal.referenceNo ?? "",
+          trnDate: glJournal.trnDate ?? new Date(),
+          accountDate: glJournal.accountDate ?? new Date(),
+          gstClaimDate: glJournal.gstClaimDate ?? new Date(),
+          currencyId: glJournal.currencyId ?? 0,
+          exhRate: glJournal.exhRate ?? 0,
+          ctyExhRate: glJournal.ctyExhRate ?? 0,
+          totAmt: glJournal.totAmt ?? 0,
+          totLocalAmt: glJournal.totLocalAmt ?? 0,
+          totCtyAmt: glJournal.totCtyAmt ?? 0,
+          gstAmt: glJournal.gstAmt ?? 0,
+          gstLocalAmt: glJournal.gstLocalAmt ?? 0,
+          gstCtyAmt: glJournal.gstCtyAmt ?? 0,
+          totAmtAftGst: glJournal.totAmtAftGst ?? 0,
+          totLocalAmtAftGst: glJournal.totLocalAmtAftGst ?? 0,
+          totCtyAmtAftGst: glJournal.totCtyAmtAftGst ?? 0,
+          moduleFrom: glJournal.moduleFrom ?? "",
+          remarks: glJournal.remarks ?? "",
+          isReverse: glJournal.isReverse ?? false,
+          isRecurrency: glJournal.isRecurrency ?? false,
+          revDate: glJournal.revDate ?? new Date(),
+          recurrenceUntil: glJournal.recurrenceUntil ?? new Date(),
+          editVersion: glJournal.editVersion ?? 0,
           data_details:
-            journal.data_details?.map((detail) => ({
+            glJournal.data_details?.map((detail) => ({
               ...detail,
               journalId: detail.journalId?.toString() ?? "0",
-              journalNo: detail.journalNo ?? "",
+              journalNo: detail.journalNo?.toString() ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -138,26 +248,72 @@ export default function JournalEntryPage() {
               gstLocalAmt: detail.gstLocalAmt ?? 0,
               gstCtyAmt: detail.gstCtyAmt ?? 0,
               remarks: detail.remarks ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultJournal,
-        },
+      : (() => {
+          // For new glJournal, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultGLJournalValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to JournalTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentGLJournalId = form.getValues("journalId") || "0"
+    if (
+      (glJournal && glJournal.journalId && glJournal.journalId !== "0") ||
+      currentGLJournalId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultGLJournalValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultGLJournalValues,
+    decimals,
+    form,
+    glJournal,
+    isDirty,
+    user,
+  ])
 
   // Mutations
-  const saveMutation = usePersist<GLJournalHdSchemaType>(
-    `${GLJournalEntry.add}`
-  )
-  const updateMutation = usePersist<GLJournalHdSchemaType>(
-    `${GLJournalEntry.add}`
-  )
-  const deleteMutation = useDelete(`${GLJournalEntry.delete}`)
+  const saveMutation = usePersist<GLJournalHdSchemaType>(`${GLJournal.add}`)
+  const updateMutation = usePersist<GLJournalHdSchemaType>(`${GLJournal.add}`)
+  const deleteMutation = useDeleteWithRemarks(`${GLJournal.delete}`)
+
+  // Remove the useGetGLJournalById hook for selection
+  // const { data: glJournalByIdData, refetch: refetchGLJournalById } = ...
 
   // Handle Save
-  const handleSaveJournal = async () => {
+  const handleSaveGLJournal = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -181,9 +337,7 @@ export default function JournalEntryPage() {
 
         // Set field-level errors on the form so FormMessage components can display them
         validationResult.error.issues.forEach((error) => {
-          const fieldPath = error.path.join(
-            "."
-          ) as keyof GlJournalEntryHdSchemaType
+          const fieldPath = error.path.join(".") as keyof GLJournalHdSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,
@@ -194,207 +348,441 @@ export default function JournalEntryPage() {
         return
       }
 
-      //check totamt and totlocalamt should not be zero
+      //check totamt and totlocalamt should be zero
       if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
         return
       }
 
-      //check in details sum of isdebit=true should be equal to sum of isdebit=false
-      const totalDebit = formValues.data_details
-        .filter((detail) => detail.isDebit)
-        .reduce((acc, detail) => acc + detail.totAmt, 0)
-      const totalCredit = formValues.data_details
-        .filter((detail) => !detail.isDebit)
-        .reduce((acc, detail) => acc + detail.totAmt, 0)
+      console.log("handleSaveGLJournal formValues", formValues)
 
-      if (totalDebit !== totalCredit) {
-        toast.error("Total Debit and Total Credit should be equal")
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.journalId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
+
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
+        }
+
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
+
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
         return
       }
 
-      console.log(formValues)
+      {
+        const response =
+          Number(formValues.journalId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
 
-      const response =
-        Number(formValues.journalId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+        if (response.result === 1) {
+          const glJournalData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response.result === 1) {
-        const journalData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+          // Transform API response back to form values
+          if (glJournalData) {
+            const updatedSchemaType = transformToSchemaType(
+              glJournalData as unknown as IGLJournalHd
+            )
 
-        // Transform API response back to form values
-        if (journalData) {
-          const updatedSchemaType = transformToSchemaType(
-            journalData as unknown as IGLJournalHd
-          )
-          setIsSelectingJournal(true)
-          setJournal(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+            setSearchNo(updatedSchemaType.journalNo || "")
+            setGLJournal(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by GLJournalTable component
+        } else {
+          toast.error(response.message || "Failed to save glJournal")
         }
-
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
-
-        // Data refresh handled by JournalTable component
-      } else {
-        toast.error(response.message || "Failed to save Journal Entry")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving Journal Entry")
+      toast.error("Network error while saving glJournal")
     } finally {
       setIsSaving(false)
-      setIsSelectingJournal(false)
     }
   }
 
   // Handle Clone
-  const handleCloneJournal = () => {
-    if (journal) {
+  const handleCloneGLJournal = async () => {
+    if (glJournal) {
       // Create a proper clone with form values
-      const clonedJournal: GLJournalHdSchemaType = {
-        ...journal,
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
+      const clonedGLJournal: GLJournalHdSchemaType = {
+        ...glJournal,
         journalId: "0",
         journalNo: "",
-        // Reset amounts for new journal
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
-        // Reset data details
-        data_details: [],
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        gstClaimDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: dateStr,
+        editDate: "",
+        cancelDate: "",
+        // Keep data details - do not remove
+        data_details:
+          glJournal.data_details?.map((detail) => ({
+            ...detail,
+            journalId: "0",
+            journalNo: "",
+            editVersion: 0,
+          })) || [],
       }
-      setJournal(clonedJournal)
-      form.reset(clonedJournal)
-      toast.success("Journal Entry cloned successfully")
+
+      // Calculate totals from details with proper rounding
+      const amtDec = decimals[0]?.amtDec || 2
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+      const details = clonedGLJournal.data_details || []
+      if (details.length > 0) {
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
+
+        clonedGLJournal.totAmt = mathRound(totAmt, amtDec)
+        clonedGLJournal.gstAmt = mathRound(gstAmt, amtDec)
+        clonedGLJournal.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedGLJournal.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedGLJournal.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedGLJournal.totLocalAmtAftGst = mathRound(
+          totLocalAmt + gstLocalAmt,
+          locAmtDec
+        )
+        clonedGLJournal.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedGLJournal.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedGLJournal.totCtyAmtAftGst = mathRound(
+          totCtyAmt + gstCtyAmt,
+          ctyAmtDec
+        )
+      } else {
+        // Reset amounts if no details
+        clonedGLJournal.totAmt = 0
+        clonedGLJournal.totLocalAmt = 0
+        clonedGLJournal.totCtyAmt = 0
+        clonedGLJournal.gstAmt = 0
+        clonedGLJournal.gstLocalAmt = 0
+        clonedGLJournal.gstCtyAmt = 0
+        clonedGLJournal.totAmtAftGst = 0
+        clonedGLJournal.totLocalAmtAftGst = 0
+        clonedGLJournal.totCtyAmtAftGst = 0
+      }
+
+      setGLJournal(clonedGLJournal)
+      form.reset(clonedGLJournal)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedGLJournal.currencyId && clonedGLJournal.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IGLJournalDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as GLJournalDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const totals = calculateTotalAmounts(
+              updatedDetails as unknown as IGLJournalDt[],
+              amtDec
+            )
+            form.setValue("totAmt", totals.totAmt)
+            form.setValue("gstAmt", totals.gstAmt)
+            form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+            const localAmounts = calculateLocalAmounts(
+              updatedDetails as unknown as IGLJournalDt[],
+              locAmtDec
+            )
+            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+            if (visible?.m_CtyCurr) {
+              const countryAmounts = calculateCountryAmounts(
+                updatedDetails as unknown as IGLJournalDt[],
+                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+              )
+              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+            }
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedGLJournal.journalId && clonedGLJournal.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
+      toast.success("GLJournal cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleJournalDelete = async () => {
-    if (!journal) return
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleGLJournalDelete = async (cancelRemarks: string) => {
+    if (!glJournal) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        journal.journalId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("GLJournal ID:", glJournal.journalId)
+      console.log("GLJournal No:", glJournal.journalNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: glJournal.journalId?.toString() ?? "",
+        documentNo: glJournal.journalNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
-        setJournal(null)
+        setGLJournal(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultJournal,
+          ...defaultGLJournalValues,
           data_details: [],
         })
-        // Data refresh handled by JournalTable component
+        toast.success(`GLJournal ${glJournal.journalNo} deleted successfully`)
+        // Data refresh handled by GLJournalTable component
       } else {
-        toast.error(response.message || "Failed to delete Journal Entry")
+        toast.error(response.message || "Failed to delete glJournal")
       }
     } catch {
-      toast.error("Network error while deleting Journal Entry")
+      toast.error("Network error while deleting glJournal")
     }
   }
 
   // Handle Reset
-  const handleJournalReset = () => {
-    setJournal(null)
+  const handleGLJournalReset = () => {
+    setGLJournal(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new glJournal)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultJournal,
+      ...defaultGLJournalValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
-    toast.success("Journal Entry reset successfully")
+    toast.success("GLJournal reset successfully")
   }
 
   // Helper function to transform IGLJournalHd to GLJournalHdSchemaType
   const transformToSchemaType = (
-    apiJournal: IGLJournalHd
+    apiGLJournal: IGLJournalHd
   ): GLJournalHdSchemaType => {
     return {
-      journalId: apiJournal.journalId?.toString() ?? "0",
-      journalNo: apiJournal.journalNo ?? "",
-      referenceNo: apiJournal.referenceNo ?? "",
-      trnDate: apiJournal.trnDate
+      journalId: apiGLJournal.journalId?.toString() ?? "0",
+      journalNo: apiGLJournal.journalNo ?? "",
+      referenceNo: apiGLJournal.referenceNo ?? "",
+      trnDate: apiGLJournal.trnDate
         ? format(
-            parseDate(apiJournal.trnDate as string) || new Date(),
-            clientDateFormat
+            parseDate(apiGLJournal.trnDate as string) || new Date(),
+            dateFormat
           )
-        : clientDateFormat,
-      accountDate: apiJournal.accountDate
+        : dateFormat,
+      accountDate: apiGLJournal.accountDate
         ? format(
-            parseDate(apiJournal.accountDate as string) || new Date(),
-            clientDateFormat
+            parseDate(apiGLJournal.accountDate as string) || new Date(),
+            dateFormat
           )
-        : clientDateFormat,
-      currencyId: apiJournal.currencyId ?? 0,
-      exhRate: apiJournal.exhRate ?? 0,
-      ctyExhRate: apiJournal.ctyExhRate ?? 0,
-      totAmt: apiJournal.totAmt ?? 0,
-      totLocalAmt: apiJournal.totLocalAmt ?? 0,
-      totCtyAmt: apiJournal.totCtyAmt ?? 0,
-      gstClaimDate: apiJournal.gstClaimDate
+        : dateFormat,
+      gstClaimDate: apiGLJournal.gstClaimDate
         ? format(
-            parseDate(apiJournal.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            parseDate(apiGLJournal.gstClaimDate as string) || new Date(),
+            dateFormat
           )
-        : clientDateFormat,
-      gstAmt: apiJournal.gstAmt ?? 0,
-      gstLocalAmt: apiJournal.gstLocalAmt ?? 0,
-      gstCtyAmt: apiJournal.gstCtyAmt ?? 0,
-      totAmtAftGst: apiJournal.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiJournal.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiJournal.totCtyAmtAftGst ?? 0,
-      remarks: apiJournal.remarks ?? "",
-      isReverse: apiJournal.isReverse ?? false,
-      isRecurrency: apiJournal.isRecurrency ?? false,
-      revDate: apiJournal.revDate
+        : dateFormat,
+      currencyId: apiGLJournal.currencyId ?? 0,
+      exhRate: apiGLJournal.exhRate ?? 0,
+      ctyExhRate: apiGLJournal.ctyExhRate ?? 0,
+      totAmt: apiGLJournal.totAmt ?? 0,
+      totLocalAmt: apiGLJournal.totLocalAmt ?? 0,
+      totCtyAmt: apiGLJournal.totCtyAmt ?? 0,
+      gstAmt: apiGLJournal.gstAmt ?? 0,
+      gstLocalAmt: apiGLJournal.gstLocalAmt ?? 0,
+      gstCtyAmt: apiGLJournal.gstCtyAmt ?? 0,
+      totAmtAftGst: apiGLJournal.totAmtAftGst ?? 0,
+      totLocalAmtAftGst: apiGLJournal.totLocalAmtAftGst ?? 0,
+      totCtyAmtAftGst: apiGLJournal.totCtyAmtAftGst ?? 0,
+      remarks: apiGLJournal.remarks ?? "",
+      isReverse: apiGLJournal.isReverse ?? false,
+      isRecurrency: apiGLJournal.isRecurrency ?? false,
+      revDate: apiGLJournal.revDate
         ? format(
-            parseDate(apiJournal.revDate as string) || new Date(),
-            clientDateFormat
+            parseDate(apiGLJournal.revDate as string) || new Date(),
+            dateFormat
           )
-        : clientDateFormat,
-      recurrenceUntil: apiJournal.recurrenceUntil
+        : dateFormat,
+      recurrenceUntil: apiGLJournal.recurrenceUntil
         ? format(
-            parseDate(apiJournal.recurrenceUntil as string) || new Date(),
-            clientDateFormat
+            parseDate(apiGLJournal.recurrenceUntil as string) || new Date(),
+            dateFormat
           )
-        : clientDateFormat,
-      moduleFrom: apiJournal.moduleFrom ?? "",
-      createBy: apiJournal.createBy ?? "",
-      editBy: apiJournal.editBy ?? "",
-      cancelBy: apiJournal.cancelBy ?? "",
-      postBy: apiJournal.postBy ?? "",
-      appBy: apiJournal.appBy ?? "",
-      createDate: apiJournal.createDate
-        ? parseDate(apiJournal.createDate as string) || new Date()
-        : new Date(),
-      editDate: apiJournal.editDate
-        ? parseDate(apiJournal.editDate as unknown as string) || null
-        : null,
-      cancelDate: apiJournal.cancelDate
-        ? parseDate(apiJournal.cancelDate as unknown as string) || null
-        : null,
-      cancelRemarks: apiJournal.cancelRemarks ?? null,
-      editVersion: apiJournal.editVersion ?? 0,
-      isPost: apiJournal.isPost ?? false,
-      postDate: apiJournal.postDate
-        ? parseDate(apiJournal.postDate as unknown as string) || null
-        : null,
-      appStatusId: apiJournal.appStatusId ?? null,
-      appById: apiJournal.appById ?? null,
-      appDate: apiJournal.appDate
-        ? parseDate(apiJournal.appDate as unknown as string) || null
-        : null,
+        : dateFormat,
+      moduleFrom: apiGLJournal.moduleFrom ?? "",
+      editVersion: apiGLJournal.editVersion ?? 0,
+      createBy: apiGLJournal.createBy ?? "",
+      editBy: apiGLJournal.editBy ?? "",
+      cancelBy: apiGLJournal.cancelBy ?? "",
+      createDate: apiGLJournal.createDate
+        ? format(
+            parseDate(apiGLJournal.createDate as string) || new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+
+      editDate: apiGLJournal.editDate
+        ? format(
+            parseDate(apiGLJournal.editDate as unknown as string) || new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+      cancelDate: apiGLJournal.cancelDate
+        ? format(
+            parseDate(apiGLJournal.cancelDate as unknown as string) ||
+              new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+      isCancel: apiGLJournal.isCancel ?? false,
+      cancelRemarks: apiGLJournal.cancelRemarks ?? "",
       data_details:
-        apiJournal.data_details?.map(
+        apiGLJournal.data_details?.map(
           (detail) =>
             ({
               ...detail,
@@ -405,14 +793,10 @@ export default function JournalEntryPage() {
               glId: detail.glId ?? 0,
               glCode: detail.glCode ?? "",
               glName: detail.glName ?? "",
-              remarks: detail.remarks ?? "",
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              isDebit: detail.isDebit ?? false,
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
               gstId: detail.gstId ?? 0,
               gstName: detail.gstName ?? "",
               gstPercentage: detail.gstPercentage ?? 0,
@@ -436,6 +820,10 @@ export default function JournalEntryPage() {
               bargeName: detail.bargeName ?? "",
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
+              productId: detail.productId ?? 0,
+              productCode: detail.productCode ?? "",
+              productName: detail.productName ?? "",
+              isDebit: detail.isDebit ?? false,
               jobOrderId: detail.jobOrderId ?? 0,
               jobOrderNo: detail.jobOrderNo ?? "",
               taskId: detail.taskId ?? 0,
@@ -448,57 +836,215 @@ export default function JournalEntryPage() {
     }
   }
 
-  const handleJournalSelect = async (
-    selectedJournal: IGLJournalHd | undefined
+  const handleGLJournalSelect = async (
+    selectedGLJournal: IGLJournalHd | undefined
   ) => {
-    if (!selectedJournal) return
-
-    setIsSelectingJournal(true)
+    if (!selectedGLJournal) return
 
     try {
-      // Fetch journal details directly using selected journal's values
+      // Fetch glJournal details directly using selected glJournal's values
       const response = await getById(
-        `${GLJournalEntry.getByIdNo}/${selectedJournal.journalId}/${selectedJournal.journalNo}`
+        `${GLJournal.getByIdNo}/${selectedGLJournal.journalId}/${selectedGLJournal.journalNo}`
       )
 
       if (response?.result === 1) {
-        const detailedJournal = Array.isArray(response.data)
+        const detailedGLJournal = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedJournal) {
-          const updatedJournal = transformToSchemaType(detailedJournal)
-          setJournal(updatedJournal)
-          form.reset(updatedJournal)
+        if (detailedGLJournal) {
+          {
+            const parsed = parseDate(detailedGLJournal.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedGLJournal.accountDate as string)
+            )
+          }
+          // Parse dates properly
+          const updatedGLJournal = {
+            ...detailedGLJournal,
+            journalId: detailedGLJournal.journalId?.toString() ?? "0",
+            journalNo: detailedGLJournal.journalNo ?? "",
+            referenceNo: detailedGLJournal.referenceNo ?? "",
+            trnDate: detailedGLJournal.trnDate
+              ? format(
+                  parseDate(detailedGLJournal.trnDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            accountDate: detailedGLJournal.accountDate
+              ? format(
+                  parseDate(detailedGLJournal.accountDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            gstClaimDate: detailedGLJournal.gstClaimDate
+              ? format(
+                  parseDate(detailedGLJournal.gstClaimDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+
+            currencyId: detailedGLJournal.currencyId ?? 0,
+            exhRate: detailedGLJournal.exhRate ?? 0,
+            ctyExhRate: detailedGLJournal.ctyExhRate ?? 0,
+            isReverse: detailedGLJournal.isReverse ?? false,
+            isRecurrency: detailedGLJournal.isRecurrency ?? false,
+            revDate: detailedGLJournal.revDate
+              ? format(
+                  parseDate(detailedGLJournal.revDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            recurrenceUntil: detailedGLJournal.recurrenceUntil
+              ? format(
+                  parseDate(detailedGLJournal.recurrenceUntil as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            totAmt: detailedGLJournal.totAmt ?? 0,
+            totLocalAmt: detailedGLJournal.totLocalAmt ?? 0,
+            totCtyAmt: detailedGLJournal.totCtyAmt ?? 0,
+            gstAmt: detailedGLJournal.gstAmt ?? 0,
+            gstLocalAmt: detailedGLJournal.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedGLJournal.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedGLJournal.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedGLJournal.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedGLJournal.totCtyAmtAftGst ?? 0,
+            remarks: detailedGLJournal.remarks ?? "",
+            moduleFrom: detailedGLJournal.moduleFrom ?? "",
+            editVersion: detailedGLJournal.editVersion ?? 0,
+            createBy: detailedGLJournal.createBy ?? "",
+            createDate: detailedGLJournal.createDate
+              ? format(
+                  parseDate(detailedGLJournal.createDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            editBy: detailedGLJournal.editBy ?? "",
+            editDate: detailedGLJournal.editDate
+              ? format(
+                  parseDate(detailedGLJournal.editDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            cancelBy: detailedGLJournal.cancelBy ?? "",
+            cancelDate: detailedGLJournal.cancelDate
+              ? format(
+                  parseDate(detailedGLJournal.cancelDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            isCancel: detailedGLJournal.isCancel ?? false,
+            cancelRemarks: detailedGLJournal.cancelRemarks ?? "",
+            data_details:
+              detailedGLJournal.data_details?.map((detail: IGLJournalDt) => ({
+                journalId: detail.journalId?.toString() ?? "0",
+                journalNo: detail.journalNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                isDebit: detail.isDebit ?? false,
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+
+                editVersion: detail.editVersion ?? 0,
+              })) || [],
+          }
+
+          //setGLJournal(updatedGLJournal as GLJournalHdSchemaType)
+          setGLJournal(transformToSchemaType(updatedGLJournal))
+          form.reset(updatedGLJournal)
           form.trigger()
+
+          // Set the glJournal number in search input
+          setSearchNo(updatedGLJournal.journalNo || "")
 
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Journal Entry ${selectedJournal.journalNo} loaded successfully`
-          )
         }
       } else {
-        toast.error(
-          response?.message || "Failed to fetch Journal Entry details"
-        )
+        toast.error(response?.message || "Failed to fetch glJournal details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching Journal Entry details:", error)
-      toast.error("Error loading Journal Entry. Please try again.")
+      console.error("Error fetching glJournal details:", error)
+      toast.error("Error loading glJournal. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingJournal(false)
+      // Selection completed
     }
   }
 
-  // Handle filter changes
+  // Remove direct refetchGLJournals from handleFilterChange
   const handleFilterChange = (newFilters: IGLJournalFilter) => {
     setFilters(newFilters)
+    // Data refresh handled by GLJournalTable component
   }
 
-  // Data refresh handled by JournalTable component
+  // Data refresh handled by GLJournalTable component
+
+  // Set createBy and createDate for new glJournals on page load/refresh
+  useEffect(() => {
+    if (!glJournal && user && decimals.length > 0) {
+      const currentGLJournalId = form.getValues("journalId")
+      const currentGLJournalNo = form.getValues("journalNo")
+      const isNewGLJournal =
+        !currentGLJournalId || currentGLJournalId === "0" || !currentGLJournalNo
+
+      if (isNewGLJournal) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [glJournal, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -530,51 +1076,200 @@ export default function JournalEntryPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handleJournalSearch = async (value: string) => {
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
+
+  const handleGLJournalSearch = async (value: string) => {
     if (!value) return
 
-    setIsLoadingJournal(true)
+    setIsLoadingGLJournal(true)
 
     try {
-      const response = await getById(`${GLJournalEntry.getByIdNo}/0/${value}`)
+      const response = await getById(`${GLJournal.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
-        const detailedJournal = Array.isArray(response.data)
+        const detailedGLJournal = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedJournal) {
-          const updatedJournal = transformToSchemaType(detailedJournal)
-          setJournal(updatedJournal)
-          form.reset(updatedJournal)
+        if (detailedGLJournal) {
+          {
+            const parsed = parseDate(detailedGLJournal.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedGLJournal.accountDate as string)
+            )
+          }
+          // Parse dates properly
+          const updatedGLJournal = {
+            ...detailedGLJournal,
+            journalId: detailedGLJournal.journalId?.toString() ?? "0",
+            journalNo: detailedGLJournal.journalNo ?? "",
+            referenceNo: detailedGLJournal.referenceNo ?? "",
+            trnDate: detailedGLJournal.trnDate
+              ? format(
+                  parseDate(detailedGLJournal.trnDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            accountDate: detailedGLJournal.accountDate
+              ? format(
+                  parseDate(detailedGLJournal.accountDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+
+            gstClaimDate: detailedGLJournal.gstClaimDate
+              ? format(
+                  parseDate(detailedGLJournal.gstClaimDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+
+            currencyId: detailedGLJournal.currencyId ?? 0,
+            exhRate: detailedGLJournal.exhRate ?? 0,
+            ctyExhRate: detailedGLJournal.ctyExhRate ?? 0,
+            totAmt: detailedGLJournal.totAmt ?? 0,
+            totLocalAmt: detailedGLJournal.totLocalAmt ?? 0,
+            totCtyAmt: detailedGLJournal.totCtyAmt ?? 0,
+            gstAmt: detailedGLJournal.gstAmt ?? 0,
+            gstLocalAmt: detailedGLJournal.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedGLJournal.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedGLJournal.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedGLJournal.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedGLJournal.totCtyAmtAftGst ?? 0,
+            remarks: detailedGLJournal.remarks ?? "",
+            isReverse: detailedGLJournal.isReverse ?? false,
+            isRecurrency: detailedGLJournal.isRecurrency ?? false,
+            revDate: detailedGLJournal.revDate
+              ? format(
+                  parseDate(detailedGLJournal.revDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            recurrenceUntil: detailedGLJournal.recurrenceUntil
+              ? format(
+                  parseDate(detailedGLJournal.recurrenceUntil as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            moduleFrom: detailedGLJournal.moduleFrom ?? "",
+            editVersion: detailedGLJournal.editVersion ?? 0,
+            isCancel: detailedGLJournal.isCancel ?? false,
+            cancelRemarks: detailedGLJournal.cancelRemarks ?? "",
+
+            data_details:
+              detailedGLJournal.data_details?.map((detail: IGLJournalDt) => ({
+                journalId: detail.journalId?.toString() ?? "0",
+                journalNo: detail.journalNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                isDebit: detail.isDebit ?? false,
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                editVersion: detail.editVersion ?? 0,
+              })) || [],
+          }
+
+          //setGLJournal(updatedGLJournal as GLJournalHdSchemaType)
+          setGLJournal(transformToSchemaType(updatedGLJournal))
+          form.reset(updatedGLJournal)
           form.trigger()
 
+          // Set the glJournal number in search input to the actual glJournal number from database
+          setSearchNo(updatedGLJournal.journalNo || "")
+
           // Show success message
-          toast.success(`Journal Entry ${value} loaded successfully`)
+          toast.success(
+            `GLJournal ${updatedGLJournal.journalNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
-          response?.message || "Failed to fetch Journal Entry details (direct)"
+          response?.message || "Failed to fetch glJournal details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for Journal Entry")
+      toast.error("Error searching for glJournal")
     } finally {
-      setIsLoadingJournal(false)
+      setIsLoadingGLJournal(false)
     }
   }
 
-  // Determine mode and journal ID from URL
+  handleGLJournalSearchRef.current = handleGLJournalSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleGLJournalSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
+
+  // Determine mode and glJournal ID from URL
   const journalNo = form.getValues("journalNo")
   const isEdit = Boolean(journalNo)
+  const isCancelled = glJournal?.isCancel === true
 
   // Compose title text
   const titleText = isEdit
-    ? `GL Journal Entry (Edit) - ${journalNo}`
-    : "GL Journal Entry (New)"
+    ? `GLJournal (Edit)- v[${glJournal?.editVersion}] - ${journalNo}`
+    : "GLJournal (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -583,7 +1278,7 @@ export default function JournalEntryPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading Journal Entry form...
+            Loading glJournal form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -602,49 +1297,76 @@ export default function JournalEntryPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {glJournal?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {glJournal.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (glJournal?.journalNo) {
+                    setSearchNo(glJournal.journalNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingGLJournal}
+                className="h-4 w-4 p-0"
+                title="Refresh glJournal data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
-              placeholder="Search Journal No"
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
+              placeholder="Search GLJournal No"
               className="h-8 text-sm"
-              readOnly={!!journal?.journalId && journal.journalId !== "0"}
-              disabled={!!journal?.journalId && journal.journalId !== "0"}
+              readOnly={!!glJournal?.journalId && glJournal.journalId !== "0"}
+              disabled={!!glJournal?.journalId && glJournal.journalId !== "0"}
             />
             <Button
               variant="outline"
@@ -661,7 +1383,13 @@ export default function JournalEntryPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -684,7 +1412,7 @@ export default function JournalEntryPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!journal || journal.journalId === "0"}
+              disabled={!glJournal || glJournal.journalId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -694,6 +1422,7 @@ export default function JournalEntryPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
+              //disabled={!glJournal}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -703,7 +1432,9 @@ export default function JournalEntryPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!journal || journal.journalId === "0"}
+              disabled={
+                !glJournal || glJournal.journalId === "0" || isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -714,9 +1445,12 @@ export default function JournalEntryPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
-                !journal ||
-                journal.journalId === "0" ||
-                deleteMutation.isPending
+                !canView ||
+                !glJournal ||
+                glJournal.journalId === "0" ||
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -724,7 +1458,7 @@ export default function JournalEntryPage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -733,17 +1467,18 @@ export default function JournalEntryPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveJournal()
+              handleSaveGLJournal()
             }}
             isEdit={isEdit}
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -756,53 +1491,33 @@ export default function JournalEntryPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by JournalTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  GL Journal Entry List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing Journal Entries from the list
-                  below. Use search to filter records or create new Journal
-                  Entries.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              GLJournal List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing glJournals from the list below. Use
+              search to filter records or create new glJournals.
+            </p>
+          </div>
 
-          {isSelectingJournal ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingJournal
-                    ? "Loading Journal Entry details..."
-                    : "Loading Journal Entries..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingJournal
-                    ? "Please wait while we fetch the complete Journal Entry data"
-                    : "Please wait while we fetch the Journal Entry list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <JournalTable
-              onJournalSelect={handleJournalSelect}
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <GLJournalTable
+              onGLJournalSelect={handleGLJournalSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -810,46 +1525,59 @@ export default function JournalEntryPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveJournal}
-        itemName={journal?.journalNo || "New Journal Entry"}
+        onConfirm={handleSaveGLJournal}
+        itemName={glJournal?.journalNo || "New GLJournal"}
         operationType={
-          journal?.journalId && journal.journalId !== "0" ? "update" : "create"
+          glJournal?.journalId && glJournal.journalId !== "0"
+            ? "update"
+            : "create"
         }
         isSaving={
           isSaving || saveMutation.isPending || updateMutation.isPending
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleJournalDelete}
-        itemName={journal?.journalNo}
-        title="Delete Journal Entry"
-        description="This action cannot be undone. All Journal Entry details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        onConfirm={() => handleDeleteConfirmation()}
+        itemName={glJournal?.journalNo}
+        title="Delete GLJournal"
+        description="Are you sure you want to delete this glJournal? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleGLJournalDelete}
+        itemName={glJournal?.journalNo}
+        title="Cancel GLJournal"
+        description="Please provide a reason for cancelling this glJournal."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleJournalSearch(searchNo)}
+        onLoad={() => handleGLJournalSearch(searchNo)}
         code={searchNo}
-        typeLabel="Journal Entry"
+        typeLabel="GLJournal"
         showDetails={false}
-        description={`Do you want to load Journal Entry ${searchNo}?`}
-        isLoading={isLoadingJournal}
+        description={`Do you want to load GLJournal ${searchNo}?`}
+        isLoading={isLoadingGLJournal}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleJournalReset}
-        itemName={journal?.journalNo}
-        title="Reset Journal Entry"
+        onConfirm={handleGLJournalReset}
+        itemName={glJournal?.journalNo}
+        title="Reset GLJournal"
         description="This will clear all unsaved changes."
       />
 
@@ -857,10 +1585,10 @@ export default function JournalEntryPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneJournal}
-        itemName={journal?.journalNo}
-        title="Clone Journal Entry"
-        description="This will create a copy as a new Journal Entry."
+        onConfirm={handleCloneGLJournal}
+        itemName={glJournal?.journalNo}
+        title="Clone GLJournal"
+        description="This will create a copy as a new glJournal."
       />
     </div>
   )

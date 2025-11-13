@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { IGLJournalDt, IGLJournalHd } from "@/interfaces"
+import { useEffect, useState } from "react"
+import { IGLJournalHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetGLJournalEntryHistoryDetails,
   useGetGLJournalEntryHistoryList,
 } from "@/hooks/use-gl"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -20,35 +22,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+import { EditVersionDetailsForm } from "./edit-version-details-form"
+
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
 interface EditVersionDetailsProps {
-  invoiceId: string
+  journalId: string
 }
 
 export default function EditVersionDetails({
-  invoiceId,
+  journalId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.gl
   const transactionId = GLTransactionId.journalentry
 
-  const [selectedJournalEntry, setSelectedJournalEntry] =
+  const [selectedGLJournal, setSelectedGLJournal] =
     useState<IGLJournalHd | null>(null)
+  const canViewGLJournalHistory = hasPermission(
+    moduleId,
+    transactionId,
+    "isRead"
+  )
 
-  const { data: journalEntryHistoryData, refetch: refetchHistory } =
-    useGetGLJournalEntryHistoryList<IGLJournalHd[]>(invoiceId)
+  useEffect(() => {
+    if (!canViewGLJournalHistory) {
+      setSelectedGLJournal(null)
+    }
+  }, [canViewGLJournalHistory])
 
-  const { data: journalDetailsData, refetch: refetchDetails } =
+  const { data: glJournalHistoryData, refetch: refetchHistory } =
+    //useGetARGLJournalHistoryList<IGLJournalHd[]>("14120250100024")
+    useGetGLJournalEntryHistoryList<IGLJournalHd[]>(journalId)
+
+  const { data: glJournalDetailsData, refetch: refetchDetails } =
     useGetGLJournalEntryHistoryDetails<IGLJournalHd>(
-      selectedJournalEntry?.journalId || "",
-      selectedJournalEntry?.editVersion?.toString() || ""
+      selectedGLJournal?.journalId || "",
+      selectedGLJournal?.editVersion?.toString() || ""
     )
 
   function isIGLJournalHdArray(arr: unknown): arr is IGLJournalHd[] {
@@ -61,24 +82,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: IGLJournalHd[] =
-    journalEntryHistoryData?.result === 1 &&
-    isIGLJournalHdArray(journalEntryHistoryData?.data)
-      ? journalEntryHistoryData.data
+    glJournalHistoryData?.result === 1 &&
+    isIGLJournalHdArray(glJournalHistoryData?.data)
+      ? glJournalHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: IGLJournalHd | undefined =
-    journalDetailsData?.result === 1 &&
-    journalDetailsData?.data &&
-    typeof journalDetailsData.data === "object" &&
-    journalDetailsData.data !== null &&
-    !Array.isArray(journalDetailsData.data)
-      ? (journalDetailsData.data as IGLJournalHd)
+    glJournalDetailsData?.result === 1 &&
+    glJournalDetailsData?.data &&
+    typeof glJournalDetailsData.data === "object" &&
+    glJournalDetailsData.data !== null &&
+    !Array.isArray(glJournalDetailsData.data)
+      ? (glJournalDetailsData.data as IGLJournalHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = journalEntryHistoryData?.result === -1
-  const hasDetailsError = journalDetailsData?.result === -1
+  const hasHistoryError = glJournalHistoryData?.result === -1
+  const hasDetailsError = glJournalDetailsData?.result === -1
 
   const columns: ColumnDef<IGLJournalHd>[] = [
     {
@@ -87,7 +108,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "journalNo",
-      header: "Journal No",
+      header: "GLJournal No",
     },
     {
       accessorKey: "referenceNo",
@@ -113,16 +134,7 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+
     {
       accessorKey: "currencyCode",
       header: "Currency Code",
@@ -137,7 +149,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -148,55 +160,35 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
             : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "isReverse",
-      header: "Reverse Entry",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.isReverse ? "Yes" : "No"}
-        </div>
-      ),
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
     },
     {
-      accessorKey: "revDate",
-      header: "Reversal Date",
-      cell: ({ row }) => {
-        const date = row.original.revDate
-          ? new Date(row.original.revDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
     },
     {
-      accessorKey: "isRecurrency",
-      header: "Recurring Entry",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.isRecurrency ? "Yes" : "No"}
-        </div>
-      ),
+      accessorKey: "bankCode",
+      header: "Bank Code",
     },
     {
-      accessorKey: "recurrenceUntil",
-      header: "Recurrence Until",
-      cell: ({ row }) => {
-        const date = row.original.recurrenceUntil
-          ? new Date(row.original.recurrenceUntil)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "bankName",
+      header: "Bank Name",
     },
     {
       accessorKey: "totAmt",
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -206,7 +198,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -216,7 +208,9 @@ export default function EditVersionDetails({
       header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -226,7 +220,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -237,7 +231,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
+            ? formatNumber(row.original.totAmtAftGst, amtDec)
             : "-"}
         </div>
       ),
@@ -248,7 +242,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmtAftGst, locAmtDec)
             : "-"}
         </div>
       ),
@@ -258,12 +252,16 @@ export default function EditVersionDetails({
       header: "Remarks",
     },
     {
-      accessorKey: "moduleFrom",
-      header: "Module From",
+      accessorKey: "status",
+      header: "Status",
     },
     {
-      accessorKey: "createBy",
-      header: "Created By",
+      accessorKey: "createByCode",
+      header: "Created By Code",
+    },
+    {
+      accessorKey: "createByName",
+      header: "Created By Name",
     },
     {
       accessorKey: "createDate",
@@ -276,8 +274,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editBy",
-      header: "Edited By",
+      accessorKey: "editByCode",
+      header: "Edited By Code",
+    },
+    {
+      accessorKey: "editByName",
+      header: "Edited By Name",
     },
     {
       accessorKey: "editDate",
@@ -289,51 +291,6 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "isPost",
-      header: "Posted",
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.isPost ? "Yes" : "No"}</div>
-      ),
-    },
-    {
-      accessorKey: "postBy",
-      header: "Posted By",
-    },
-    {
-      accessorKey: "postDate",
-      header: "Post Date",
-      cell: ({ row }) => {
-        const date = row.original.postDate
-          ? new Date(row.original.postDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-  ]
-
-  const detailsColumns: ColumnDef<IGLJournalDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "glCode", header: "GL Code" },
-    { accessorKey: "glName", header: "GL Name" },
-    {
-      accessorKey: "isDebit",
-      header: "Type",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.isDebit ? "Debit" : "Credit"}
-        </div>
-      ),
-    },
-    { accessorKey: "productName", header: "Product" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "totLocalAmt", header: "Total Local Amount" },
-    { accessorKey: "gstName", header: "GST" },
-    { accessorKey: "gstAmt", header: "GST Amount" },
-    { accessorKey: "departmentName", header: "Department" },
-    { accessorKey: "employeeName", header: "Employee" },
-    { accessorKey: "jobOrderNo", header: "Job Order" },
-    { accessorKey: "remarks", header: "Remarks" },
   ]
 
   const handleRefresh = async () => {
@@ -341,13 +298,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        journalEntryHistoryData?.message !== "Data does not exist"
+        glJournalHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        journalDetailsData?.message !== "Data does not exist"
+        glJournalDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -363,118 +320,65 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                journalEntryHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {journalEntryHistoryData?.message === "Data does not exist"
-                  ? "No Journal Entry history found for this Journal Entry."
-                  : `Failed to load Journal Entry history: ${journalEntryHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.glJournalHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(journalEntry) =>
-              setSelectedJournalEntry(journalEntry)
+            onRowSelect={
+              canViewGLJournalHistory
+                ? (glJournal) => setSelectedGLJournal(glJournal)
+                : undefined
             }
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedJournalEntry}
-        onOpenChange={() => setSelectedJournalEntry(null)}
+        open={!!selectedGLJournal}
+        onOpenChange={() => setSelectedGLJournal(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Journal Entry Details</DialogTitle>
+            <DialogTitle>
+              GLJournal Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.journalNo} : v {selectedGLJournal?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                journalDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {journalDetailsData?.message === "Data does not exist"
-                  ? "No Journal Entry details found for this version."
-                  : `Failed to load Journal Entry details: ${journalDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                transactionAmount: dialogData?.totAmt,
+                localAmount: dialogData?.totLocalAmt,
+                gstAmount: dialogData?.gstAmt,
+                localGstAmount: dialogData?.gstLocalAmt,
+                totalAmount: dialogData?.totAmtAftGst,
+                localTotalAmount: dialogData?.totLocalAmtAftGst,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading glJournal details"
+                : "No glJournal details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Journal Entry Header</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) =>
-                      key !== "data_details" ? (
-                        <div key={key} className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-sm">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
-                          <span className="font-medium">{String(value)}</span>
-                        </div>
-                      ) : null
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading Journal Entry details"
-                      : "No Journal Entry details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Journal Entry Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BasicTable
-                  data={dialogData?.data_details || []}
-                  columns={detailsColumns}
-                  moduleId={moduleId}
-                  transactionId={transactionId}
-                  tableName={TableName.journalEntryHistory}
-                  emptyMessage="No Journal Entry details available"
-                  onRefresh={handleRefresh}
-                  showHeader={true}
-                  showFooter={false}
-                  maxHeight="300px"
-                />
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>

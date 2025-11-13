@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultJournalDetails = {
+const buildDefaultGLJournalDetails = (dateFormat: string) => ({
   journalId: "0",
   journalNo: "",
   itemNo: 0,
@@ -10,14 +10,10 @@ const defaultJournalDetails = {
   glId: 0,
   glCode: "",
   glName: "",
-  remarks: "",
-  productId: 0,
-  productCode: "",
-  productName: "",
-  isDebit: false,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
+  remarks: "",
   gstId: 0,
   gstName: "",
   gstPercentage: 0,
@@ -41,6 +37,10 @@ const defaultJournalDetails = {
   bargeName: "",
   voyageId: 0,
   voyageNo: "",
+  productId: 0,
+  productCode: "",
+  productName: "",
+  isDebit: false,
   jobOrderId: 0,
   jobOrderNo: "",
   taskId: 0,
@@ -48,22 +48,22 @@ const defaultJournalDetails = {
   serviceId: 0,
   serviceName: "",
   editVersion: 0,
-}
+})
 
-const defaultJournal = {
+const buildDefaultGLJournal = (dateFormat: string) => ({
   companyId: 0,
   journalId: "0",
   journalNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  gstClaimDate: format(new Date(), clientDateFormat),
+  gstClaimDate: format(new Date(), dateFormat),
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
@@ -73,42 +73,36 @@ const defaultJournal = {
   remarks: "",
   isReverse: false,
   isRecurrency: false,
-  revDate: format(new Date(), clientDateFormat),
-  recurrenceUntil: format(new Date(), clientDateFormat),
+  revDate: format(new Date(), dateFormat),
+  recurrenceUntil: format(new Date(), dateFormat),
   moduleFrom: "",
-  createDate: format(new Date(), clientDateFormat),
-  editDate: null,
+  createById: 0,
+  createDate: format(new Date(), dateFormat),
+  editById: "",
+  editDate: "",
   isCancel: false,
-  cancelDate: null,
-  cancelRemarks: null,
+  cancelById: 0,
+  cancelDate: "",
+  cancelRemarks: "",
   createBy: "",
   editBy: "",
   cancelBy: "",
-  postBy: "",
-  appBy: "",
   editVersion: 0,
   isPost: false,
-  postDate: null,
-  appStatusId: null,
-  appById: null,
-  appDate: null,
+  postById: "",
+  postDate: "",
+  appStatusId: "",
+  appById: "",
+  appDate: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultJournal: {
-      ...defaultJournal,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      gstClaimDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultJournalDetails: {
-      ...defaultJournalDetails,
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultGLJournal: buildDefaultGLJournal(dateFormat),
+  defaultGLJournalDetails: buildDefaultGLJournalDetails(dateFormat),
+})
 
-export { defaultJournal, defaultJournalDetails }
+export const defaultGLJournal = buildDefaultGLJournal(clientDateFormat)
+export const defaultGLJournalDetails =
+  buildDefaultGLJournalDetails(clientDateFormat)

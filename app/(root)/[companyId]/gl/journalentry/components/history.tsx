@@ -1,6 +1,6 @@
 "use client"
 
-import { GLJournalHdSchemaType } from "@/schemas/gl-journalentry"
+import { GLJournalHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -17,23 +17,22 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
   const { decimals } = useAuthStore()
   const _dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
 
-  const formValues = form.getValues()
   const accountDetails = {
-    createBy: formValues.createBy || "",
-    createDate: (formValues.createDate || "").toString(),
-    editBy: formValues.editBy || "",
-    editDate: formValues.editDate ? formValues.editDate?.toString() : "",
-    cancelBy: formValues.cancelBy || "",
-    cancelDate: formValues.cancelDate ? formValues.cancelDate?.toString() : "",
-    appBy: formValues.appBy || "",
-    appDate: formValues.appDate ? formValues.appDate?.toString() : "",
+    createBy: form.getValues().createBy || "", // Default value since createBy doesn't exist in form schema
+    createDate: form.getValues().createDate || "", // Default value since createDate doesn't exist in form schema
+    editBy: form.getValues().editBy || "", // Default value since editBy doesn't exist in form schema
+    editDate: form.getValues().editDate || "", // Default value since editDate doesn't exist in form schema
+    cancelBy: form.getValues().cancelBy || "", // Default value since cancelBy doesn't exist in form schema
+    cancelDate: form.getValues().cancelDate || "", // Default value since cancelDate doesn't exist in form schema
+    appBy: form.getValues().appBy || "", // Default value since appBy doesn't exist in form schema
+    appDate: form.getValues().appDate || "", // Default value since appDate doesn't exist in form schema
   }
 
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <GLPostDetails invoiceId={form.getValues().journalId || ""} />
-      <EditVersionDetails invoiceId={form.getValues().journalId || ""} />
+      <GLPostDetails journalId={form.getValues().journalId || ""} />
+      <EditVersionDetails journalId={form.getValues().journalId || ""} />
     </div>
   )
 }

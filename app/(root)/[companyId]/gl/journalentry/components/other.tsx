@@ -1,7 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { GLJournalHdSchemaType } from "@/schemas/gl-journalentry"
+import { IVisibleFields } from "@/interfaces/setting"
+import { GLJournalHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { GLTransactionId, ModuleId } from "@/lib/utils"
@@ -9,9 +10,10 @@ import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<GLJournalHdSchemaType>
+  visible?: IVisibleFields
 }
 
-export default function Other({ form }: OtherProps) {
+export default function Other({ form, visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 
@@ -19,8 +21,8 @@ export default function Other({ form }: OtherProps) {
   const journalNo = form.getValues("journalNo") || ""
 
   return (
-    <div className="space-y-4">
-      {/* Document Upload Section - Only show after journal entry is saved */}
+    <div className="space-y-1">
+      {/* Document Upload Section - Only show after glJournal is saved */}
       {journalId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.gl}

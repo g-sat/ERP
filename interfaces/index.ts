@@ -92,7 +92,6 @@ export * from "./ap-docsetoff"
 //account-cb
 export * from "./cb-genpayment"
 export * from "./cb-genreceipt"
-export * from "./cb-batchpayment"
 export * from "./cb-banktransfer"
 export * from "./cb-bankrecon"
 export * from "./cb-banktransferctm"
@@ -100,6 +99,6 @@ export * from "./cb-pettycash"
 
 //account-gl
 export * from "./gl-periodclose"
-export * from "./gl-journalentry"
+export * from "./gl-journal"
 export * from "./gl-arapcontra"
 export * from "./outtransaction"

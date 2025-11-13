@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react"
-import { IGLJournalDt } from "@/interfaces/gl-journalentry"
+import { IGLJournalDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface JournalDetailsTableProps {
+interface GLJournalDetailsTableProps {
   data: IGLJournalDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
@@ -17,9 +19,10 @@ interface JournalDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IGLJournalDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
-export default function JournalDetailsTable({
+export default function GLJournalDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -28,8 +31,12 @@ export default function JournalDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: JournalDetailsTableProps) {
+  isCancelled = false,
+}: GLJournalDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -59,6 +66,23 @@ export default function JournalDetailsTable({
       ),
     },
     {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 60,
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+        <div className="text-right">{row.original.seqNo}</div>
+      ),
+    },
+    ...(visible?.m_ProductId
+      ? [
+          {
+            accessorKey: "productName",
+            header: "Product",
+            size: 100,
+          },
+        ]
+      : []),
+    {
       accessorKey: "glCode",
       header: "Code",
       size: 100,
@@ -68,45 +92,6 @@ export default function JournalDetailsTable({
       header: "Account",
       size: 100,
     },
-    {
-      accessorKey: "isDebit",
-      header: "Type",
-      size: 80,
-      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="flex justify-center">
-          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
-            {row.original.isDebit ? "Debit" : "Credit"}
-          </Badge>
-        </div>
-      ),
-    },
-    ...(visible?.m_ProductId
-      ? [
-          {
-            accessorKey: "productName",
-            header: "Product",
-            size: 120,
-          },
-        ]
-      : []),
-    ...(visible?.m_DepartmentId
-      ? [
-          {
-            accessorKey: "departmentName",
-            header: "Department",
-            size: 120,
-          },
-        ]
-      : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "JobOrder",
-            size: 140,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -116,69 +101,102 @@ export default function JournalDetailsTable({
           },
         ]
       : []),
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      size: 100,
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+        <div className="flex justify-center">
+          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+            {row.original.isDebit ? "Debit" : "Credit"}
+          </Badge>
+        </div>
+      ),
+    },
 
     {
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
-    ...(visible?.m_GstId
+    {
+      accessorKey: "gstPercentage",
+      header: "GST %",
+      size: 50,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstAmt",
+      header: "GST Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: "totLocalAmt",
+      header: "Local Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    ...(visible?.m_DepartmentId
       ? [
           {
-            accessorKey: "gstPercentage",
-            header: "GST %",
-            size: 50,
-            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-              <div className="text-right">{row.original.gstPercentage}</div>
-            ),
-          },
-          {
-            accessorKey: "gstAmt",
-            header: "GST Amount",
+            accessorKey: "departmentName",
+            header: "Department",
             size: 100,
-            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-              <div className="text-right">{row.original.gstAmt}</div>
-            ),
           },
         ]
       : []),
     ...(visible?.m_JobOrderId
       ? [
           {
+            accessorKey: "jobOrderNo",
+            header: "Job Order No",
+            size: 100,
+          },
+          {
             accessorKey: "taskName",
             header: "Task Name",
-            size: 200,
+            size: 100,
           },
           {
             accessorKey: "serviceName",
             header: "Service Name",
-            size: 200,
+            size: 100,
           },
         ]
       : []),
 
-    {
-      accessorKey: "totLocalAmt",
-      header: "Local Amount",
-      size: 100,
-      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
-      ),
-    },
     ...(visible?.m_CtyCurr
       ? [
           {
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IGLJournalDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -188,26 +206,30 @@ export default function JournalDetailsTable({
             header: "Gst",
             size: 100,
           },
-          {
-            accessorKey: "gstLocalAmt",
-            header: "GST Local Amount",
-            size: 100,
-            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-              <div className="text-right">{row.original.gstLocalAmt}</div>
-            ),
-          },
         ]
       : []),
-    ...(visible?.m_CtyCurr && visible?.m_GstId
+    {
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    ...(visible?.m_CtyCurr
       ? [
           {
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IGLJournalDt>,
         ]
       : []),
 
@@ -250,21 +272,12 @@ export default function JournalDetailsTable({
     ...(visible?.m_VoyageId
       ? [
           {
-            accessorKey: "voyageNo",
+            accessorKey: "voyageName",
             header: "Voyage",
             size: 200,
           },
         ]
       : []),
-
-    {
-      accessorKey: "seqNo",
-      header: "Seq No",
-      size: 60,
-      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="text-right">{row.original.seqNo}</div>
-      ),
-    },
   ]
 
   if (!mounted) {
@@ -272,14 +285,14 @@ export default function JournalDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}
         moduleId={ModuleId.gl}
         transactionId={GLTransactionId.journalentry}
-        tableName={TableName.journalEntryDt}
-        emptyMessage="No Journal Entry details found."
+        tableName={TableName.glJournalDt}
+        emptyMessage="No glJournal details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
@@ -290,9 +303,9 @@ export default function JournalDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

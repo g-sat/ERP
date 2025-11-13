@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react"
 
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBBankTransferHistoryDetails,
-  useGetCBBankTransferHistoryList,
+  useGetCbBankHistoryDetails,
+  useGetCbBankHistoryList,
 } from "@/hooks/use-cb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,10 +42,10 @@ export default function EditVersionDetails({
     useState<ICbBankTransfer | null>(null)
 
   const { data: bankTransferHistoryData, refetch: refetchHistory } =
-    useGetCBBankTransferHistoryList<ICbBankTransfer[]>(invoiceId)
+    useGetCbBankHistoryList<ICbBankTransfer[]>(invoiceId)
 
   const { data: bankTransferDetailsData, refetch: refetchDetails } =
-    useGetCBBankTransferHistoryDetails<ICbBankTransfer>(
+    useGetCbBankHistoryDetails<ICbBankTransfer>(
       selectedBankTransfer?.transferId?.toString() || "",
       selectedBankTransfer?.editVersion?.toString() || ""
     )

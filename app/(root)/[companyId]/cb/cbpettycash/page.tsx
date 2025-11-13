@@ -145,7 +145,7 @@ export default function CbPettyCashPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/cbPettyCash`,
+    () => `history-doc:/${companyId}/cb/cbPettyCash`,
     [companyId]
   )
 

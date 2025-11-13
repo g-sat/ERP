@@ -10,6 +10,7 @@ export interface IGLJournalHd {
   currencyName: null | string
   exhRate: number
   ctyExhRate: number
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -20,34 +21,34 @@ export interface IGLJournalHd {
   totAmtAftGst: number
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
+
   remarks: string
+
   isReverse: boolean
   isRecurrency: boolean
-  revDate: Date | string | null
-  recurrenceUntil: Date | string | null
+  revDate: Date | string
+  recurrenceUntil: Date | string
+
   moduleFrom: string
   createById: number
   createDate: Date | string
   editById: null | number
-  editDate: null | Date | string
-  editVersion: number
-  isCancel: boolean
-  cancelById: null | number
-  cancelDate: null | Date | string
+  editDate: null | Date
+  isCancel: false
+  cancelById: number
+  cancelDate: Date | null
   cancelRemarks: null | string
-  isPost: boolean | null
-  postById: null | number
-  postDate: null | Date | string
-  appStatusId: null | number
-  appById: null | number
-  appDate: null | Date | string
-  // Audit lookup fields
   createBy: string
   editBy: string
   cancelBy: string
-  postBy: string
-  appBy: string
-  // Nested details
+  editVersion: number
+  isPost: boolean
+  postById: null | number
+  postDate: null | Date
+  appStatusId: null | number
+  appById: null | number
+  appDate: null | Date
+
   data_details: IGLJournalDt[]
 }
 
@@ -69,20 +70,20 @@ export interface IGLJournalDt {
   glId: number
   glCode: string
   glName: string
-  remarks: string
-  productId: number
-  productCode: string
-  productName: string
-  isDebit: boolean
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
+  remarks: string
   gstId: number
   gstName: string
   gstPercentage: number
   gstAmt: number
   gstLocalAmt: number
   gstCtyAmt: number
+  productId: number
+  productCode: string
+  isDebit: boolean
+  productName: string
   departmentId: number
   departmentCode: string
   departmentName: string
@@ -100,11 +101,11 @@ export interface IGLJournalDt {
   bargeName: string
   voyageId: number
   voyageNo: string
-  editVersion: number
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
+  editVersion: number
 }

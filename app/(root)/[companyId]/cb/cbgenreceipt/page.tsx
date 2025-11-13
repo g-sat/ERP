@@ -145,7 +145,7 @@ export default function CbGenReceiptPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/cbGenReceipt`,
+    () => `history-doc:/${companyId}/cb/cbGenReceipt`,
     [companyId]
   )
 

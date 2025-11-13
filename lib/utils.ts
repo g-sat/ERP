@@ -507,8 +507,9 @@ export enum TableName {
   cbBankTransferCtmDt = "cbBankTransferCtmDt",
   cbBankTransferCtmHistory = "cbBankTransferCtmHistory",
   //GL
-  journalEntry = "journalEntry",
-  journalEntryDt = "journalEntryDt",
+  glJournal = "glJournal",
+  glJournalDt = "glJournalDt",
+  glJournalHistory = "glJournalHistory",
   journalEntryHistory = "journalEntryHistory",
   glArapContra = "glArapContra",
   glArapContraDt = "glArapContraDt",

@@ -1,26 +1,24 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/gl-journalentry-calculations"
-import { IGLJournalDt } from "@/interfaces/gl-journalentry"
+} from "@/helpers/gl-journal-calculations"
+import { IGLJournalDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  GLJournalDtSchemaType,
-  GLJournalHdSchemaType,
-} from "@/schemas/gl-journalentry"
+import { GLJournalDtSchemaType, GLJournalHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import JournalDetailsForm from "./journalentry-details-form"
-import JournalDetailsTable from "./journalentry-details-table"
-import JournalForm from "./journalentry-form"
+import GLJournalDetailsForm from "./glJournal-details-form"
+import GLJournalDetailsTable from "./glJournal-details-table"
+import GLJournalForm from "./glJournal-form"
 
 interface MainProps {
   form: UseFormReturn<GLJournalHdSchemaType>
@@ -29,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -38,11 +37,15 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+  // Get user settings with defaults for all modules
+  const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
     useState<GLJournalDtSchemaType | null>(null)
@@ -54,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousGLJournalKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentGLJournalId = form.watch("journalId")
+  const currentGLJournalNo = form.watch("journalNo")
+
+  useEffect(() => {
+    const currentKey = `${currentGLJournalId ?? ""}::${currentGLJournalNo ?? ""}`
+    if (previousGLJournalKeyRef.current === currentKey) {
+      return
+    }
+
+    previousGLJournalKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentGLJournalId, currentGLJournalNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -64,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IGLJournalDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailGLJournalId = `${detail.journalId ?? ""}`
+      const editingGLJournalId = `${editingDetail.journalId ?? ""}`
+      const detailGLJournalNo = detail.journalNo ?? ""
+      const editingGLJournalNo = editingDetail.journalNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailGLJournalId === editingGLJournalId &&
+        detailGLJournalNo === editingGLJournalNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -108,8 +152,21 @@ export default function Main({
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+
+    // Trigger form validation to update UI
+    form.trigger([
+      "totAmt",
+      "gstAmt",
+      "totAmtAftGst",
+      "totLocalAmt",
+      "gstLocalAmt",
+      "totLocalAmtAftGst",
+      "totCtyAmt",
+      "gstCtyAmt",
+      "totCtyAmtAftGst",
+    ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
+  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
   const handleAddRow = (rowData: IGLJournalDt) => {
     const currentData = form.getValues("data_details") || []
@@ -205,16 +262,17 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <JournalForm
+      <GLJournalForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
         visible={visible}
         required={required}
         companyId={companyId}
+        defaultCurrencyId={defaults.cb.currencyId}
       />
 
-      <JournalDetailsForm
+      <GLJournalDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -223,9 +281,12 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as GLJournalDtSchemaType[]}
+        defaultGlId={defaults.ap.invoiceGlId}
+        defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
-      <JournalDetailsTable
+      <GLJournalDetailsTable
         key={tableKey}
         data={(dataDetails as unknown as IGLJournalDt[]) || []}
         visible={visible}
@@ -235,6 +296,7 @@ export default function Main({
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={handleDataReorder as (newData: IGLJournalDt[]) => void}
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

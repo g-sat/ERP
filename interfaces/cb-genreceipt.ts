@@ -30,10 +30,6 @@ export interface ICbGenReceiptHd {
   totAmtAftGst: number
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
-  balAmt: number
-  balLocalAmt: number
-  payAmt: number
-  payLocalAmt: number
   remarks: string
   payeeTo: string
   moduleFrom: string

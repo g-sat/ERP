@@ -258,3 +258,98 @@ export function useGetCbBankHistoryDetails<T>(
     ...options,
   })
 }
+
+/**
+ * 1.4 Get AP Adjustment History List
+ */
+export function useGetCbBankTransferCtmHistoryList<T>(
+  bankId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-transfer-ctm-history-list", bankId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${CbBankTransferCtm.history}/${bankId}`)
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.5 Get AP Adjustment History Details
+ */
+export function useGetCbBankTransferCtmHistoryDetails<T>(
+  bankId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-transfer-ctm-history-details", bankId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${CbBankTransferCtm.historyDetails}/${bankId}/${editVersion}`
+      )
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.4 Get AP Adjustment History List
+ */
+export function useGetCbBankReconHistoryList<T>(bankId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-recon-history-list", bankId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${CbBankRecon.history}/${bankId}`)
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.5 Get AP Adjustment History Details
+ */
+export function useGetCbBankReconHistoryDetails<T>(
+  bankId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-recon-history-details", bankId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${CbBankRecon.historyDetails}/${bankId}/${editVersion}`
+      )
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}

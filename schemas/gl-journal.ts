@@ -1,15 +1,15 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const cbBatchPaymentHdSchema = (
+export const GLJournalHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    companyId: z.number().optional(),
-    paymentId: z.string().optional(),
-    paymentNo: z.string().optional(),
+
+    journalId: z.string().optional(),
+    journalNo: z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -18,27 +18,15 @@ export const cbBatchPaymentHdSchema = (
 
     // Currency Fields
     currencyId: z.number().min(1, "Currency is required"),
-    currencyCode: z.string().optional().nullable(),
-    currencyName: z.string().optional().nullable(),
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
-
-    // Bank Fields
-    bankId:
-      required?.m_BankId && visible?.m_BankId
-        ? z.number().min(1, "Bank is required")
-        : z.number().optional(),
-    bankCode: z.union([z.string(), z.number()]).optional().nullable(),
-    bankName: z.string().optional().nullable(),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
-
-    // GST Fields
     gstClaimDate: z.union([z.date(), z.string()]).optional(),
     gstAmt: z.number().optional(),
     gstLocalAmt: z.number().optional(),
@@ -49,73 +37,61 @@ export const cbBatchPaymentHdSchema = (
       ? z.number().min(0)
       : z.number().optional(),
 
-    // Additional Fields
+    // Order Details
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
 
+    isReverse: z.boolean().optional(),
+    isRecurrency: z.boolean().optional(),
+    revDate: z.union([z.date(), z.string()]).optional(),
+    recurrenceUntil: z.union([z.date(), z.string()]).optional(),
+
+    // Customer Details
     moduleFrom: z.string().optional(),
 
-    // Audit Fields
-    createById: z.number().optional(),
-    createDate: z.union([z.date(), z.string()]).optional(),
-    editById: z.number().optional().nullable(),
-    editDate: z.union([z.date(), z.null()]).optional(),
-    isCancel: z.boolean().optional(),
-    cancelById: z.number().optional(),
-    cancelDate: z.union([z.date(), z.null()]).optional(),
-    cancelRemarks: z.string().optional().nullable(),
-    createBy: z.string().optional(),
-    editBy: z.string().optional(),
-    cancelBy: z.string().optional(),
     editVersion: z.number().optional(),
-    isPost: z.boolean().optional(),
-    postById: z.number().optional().nullable(),
-    postDate: z.union([z.date(), z.null()]).optional(),
-    appStatusId: z.number().optional().nullable(),
-    appById: z.number().optional().nullable(),
+    createBy: z.string().optional(),
+    createDate: z.string().optional(),
+    editBy: z.string().optional(),
+    editDate: z.string().optional(),
+    cancelBy: z.string().optional(),
+    cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
+    cancelRemarks: z.string().optional(),
     appBy: z.string().optional(),
-    appDate: z.union([z.date(), z.null()]).optional(),
+    appDate: z.string().optional(),
+    appStatusId: z.string().optional(),
 
     // Nested Details
     data_details: z
-      .array(cbBatchPaymentDtSchema(required, visible))
+      .array(GLJournalDtSchema(required, visible))
       .min(1, "At least one payment detail is required"),
   })
 }
 
-export type CbBatchPaymentHdSchemaType = z.infer<
-  ReturnType<typeof cbBatchPaymentHdSchema>
+export type GLJournalHdSchemaType = z.infer<
+  ReturnType<typeof GLJournalHdSchema>
 >
 
-export const cbBatchPaymentHdFiltersSchema = z.object({
-  startDate: z.union([z.date(), z.string()]),
-  endDate: z.union([z.date(), z.string()]),
+export const GLJournalHdFiltersSchema = z.object({
+  isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
-  sortBy: z.string().optional(),
-  pageNumber: z.number().optional(),
-  pageSize: z.number().optional(),
 })
 
-export type CbBatchPaymentHdFiltersValues = z.infer<
-  typeof cbBatchPaymentHdFiltersSchema
->
+export type GLJournalHdFiltersValues = z.infer<typeof GLJournalHdFiltersSchema>
 
-export const cbBatchPaymentDtSchema = (
+export const GLJournalDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    paymentId: z.string().optional(),
-    paymentNo: z.string().optional(),
+    journalId: z.string().optional(),
+    journalNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     seqNo: z.number().min(1, "Sequence No must be at least 1"),
-    invoiceDate: z.union([z.date(), z.string()]).optional(),
-    invoiceNo: z.string().optional(),
-    supplierName: z.string().optional(),
-
     // GL Fields
     glId: required?.m_GLId
       ? z.number().min(1, "Chart of Account is required")
@@ -123,7 +99,6 @@ export const cbBatchPaymentDtSchema = (
     glCode: z.string().optional(),
     glName: z.string().optional(),
 
-    // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().min(0),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -191,6 +166,15 @@ export const cbBatchPaymentDtSchema = (
         : z.number().optional(),
     voyageNo: z.string().optional(),
 
+    // Product Fields
+    productId:
+      required?.m_ProductId && visible?.m_ProductId
+        ? z.number().min(1, "Product is required")
+        : z.number().optional(),
+    productCode: z.string().optional(),
+    productName: z.string().optional(),
+    isDebit: z.boolean().optional(),
+
     // Job Order Fields
     jobOrderId:
       required?.m_JobOrderId && visible?.m_JobOrderId
@@ -212,27 +196,18 @@ export const cbBatchPaymentDtSchema = (
         : z.number().optional(),
     serviceName: z.string().optional(),
 
-    // Service Type Fields
-    serviceTypeId: visible?.m_ServiceTypeId
-      ? z.number().min(1, "Service Type is required")
-      : z.number().optional(),
-    serviceTypeName: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
-export type CbBatchPaymentDtSchemaType = z.infer<
-  ReturnType<typeof cbBatchPaymentDtSchema>
+export type GLJournalDtSchemaType = z.infer<
+  ReturnType<typeof GLJournalDtSchema>
 >
 
-export const cbBatchPaymentDtFiltersSchema = z.object({
+export const GLJournalDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type CbBatchPaymentDtFiltersValues = z.infer<
-  typeof cbBatchPaymentDtFiltersSchema
->
+export type GLJournalDtFiltersValues = z.infer<typeof GLJournalDtFiltersSchema>

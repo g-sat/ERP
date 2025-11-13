@@ -145,7 +145,7 @@ export default function CbGenPaymentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/cbGenPayment`,
+    () => `history-doc:/${companyId}/cb/cbGenPayment`,
     [companyId]
   )
 
