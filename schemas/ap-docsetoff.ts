@@ -52,7 +52,9 @@ export const ApDocSetOffHdSchema = (
     appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(ApDocSetOffDtSchema(required, visible)).optional(),
+    data_details: z
+      .array(ApDocSetOffDtSchema(required, visible))
+      .min(1, "At least one doc set off detail is required"),
   })
 }
 

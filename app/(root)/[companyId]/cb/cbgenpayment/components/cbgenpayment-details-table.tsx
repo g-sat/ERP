@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react"
 import { ICbGenPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface GenPaymentDetailsTableProps {
+interface CbGenPaymentDetailsTableProps {
   data: ICbGenPaymentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
@@ -16,9 +18,10 @@ interface GenPaymentDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbGenPaymentDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
-export default function GenPaymentDetailsTable({
+export default function CbGenPaymentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,8 +30,12 @@ export default function GenPaymentDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: GenPaymentDetailsTableProps) {
+  isCancelled = false,
+}: CbGenPaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -58,6 +65,23 @@ export default function GenPaymentDetailsTable({
       ),
     },
     {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 60,
+      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+        <div className="text-right">{row.original.seqNo}</div>
+      ),
+    },
+    ...(visible?.m_ProductId
+      ? [
+          {
+            accessorKey: "productName",
+            header: "Product",
+            size: 100,
+          },
+        ]
+      : []),
+    {
       accessorKey: "glCode",
       header: "Code",
       size: 100,
@@ -76,7 +100,6 @@ export default function GenPaymentDetailsTable({
           },
         ]
       : []),
-
     ...(visible?.m_Remarks
       ? [
           {
@@ -91,8 +114,10 @@ export default function GenPaymentDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -100,16 +125,20 @@ export default function GenPaymentDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -117,8 +146,10 @@ export default function GenPaymentDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -127,10 +158,12 @@ export default function GenPaymentDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<ICbGenPaymentDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -146,8 +179,10 @@ export default function GenPaymentDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -156,10 +191,12 @@ export default function GenPaymentDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<ICbGenPaymentDt>,
         ]
       : []),
 
@@ -202,21 +239,12 @@ export default function GenPaymentDetailsTable({
     ...(visible?.m_VoyageId
       ? [
           {
-            accessorKey: "voyageNo",
+            accessorKey: "voyageName",
             header: "Voyage",
             size: 200,
           },
         ]
       : []),
-
-    {
-      accessorKey: "seqNo",
-      header: "Seq No",
-      size: 60,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
-        <div className="text-right">{row.original.seqNo}</div>
-      ),
-    },
   ]
 
   if (!mounted) {
@@ -224,14 +252,14 @@ export default function GenPaymentDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={ModuleId.ap}
+        moduleId={ModuleId.cb}
         transactionId={CBTransactionId.cbgenpayment}
         tableName={TableName.cbGenPaymentDt}
-        emptyMessage="No Gen Payment details found."
+        emptyMessage="No cbGenPayment details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
@@ -242,9 +270,9 @@ export default function GenPaymentDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultReceiptDetails = {
+const buildDefaultCbGenReceiptDetails = (dateFormat: string) => ({
   receiptId: "0",
   receiptNo: "",
   itemNo: 0,
@@ -37,27 +37,22 @@ const defaultReceiptDetails = {
   bargeName: "",
   voyageId: 0,
   voyageNo: "",
-  jobOrderId: 0,
-  jobOrderNo: "",
-  taskId: 0,
-  taskName: "",
-  serviceId: 0,
-  serviceName: "",
   editVersion: 0,
-}
+})
 
-const defaultReceipt = {
+const buildDefaultCbGenReceipt = (dateFormat: string) => ({
   companyId: 0,
   receiptId: "0",
   receiptNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  suppCbGenReceiptNo: "",
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
-  paymentTypeId: 0,
   bankId: 0,
+  paymentTypeId: 0,
   chequeNo: "",
   chequeDate: "",
   bankChgGLId: 0,
@@ -66,7 +61,7 @@ const defaultReceipt = {
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  gstClaimDate: format(new Date(), clientDateFormat),
+  gstClaimDate: format(new Date(), dateFormat),
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
@@ -76,38 +71,33 @@ const defaultReceipt = {
   remarks: "",
   payeeTo: "",
   moduleFrom: "",
-  createDate: format(new Date(), clientDateFormat),
-  editDate: null,
+  createById: 0,
+  createDate: format(new Date(), dateFormat),
+  editById: "",
+  editDate: "",
   isCancel: false,
-  cancelDate: null,
-  cancelRemarks: null,
+  cancelById: 0,
+  cancelDate: "",
+  cancelRemarks: "",
   createBy: "",
   editBy: "",
   cancelBy: "",
   editVersion: 0,
   isPost: false,
-  postDate: null,
-  appStatusId: null,
-  appById: null,
-  appDate: null,
+  postById: "",
+  postDate: "",
+  appStatusId: "",
+  appById: "",
+  appDate: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultReceipt: {
-      ...defaultReceipt,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: "",
-      gstClaimDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultReceiptDetails: {
-      ...defaultReceiptDetails,
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultCbGenReceipt: buildDefaultCbGenReceipt(dateFormat),
+  defaultCbGenReceiptDetails: buildDefaultCbGenReceiptDetails(dateFormat),
+})
 
-export { defaultReceipt, defaultReceiptDetails }
+export const defaultCbGenReceipt = buildDefaultCbGenReceipt(clientDateFormat)
+export const defaultCbGenReceiptDetails =
+  buildDefaultCbGenReceiptDetails(clientDateFormat)

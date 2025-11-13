@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultGenPaymentDetails = {
+const buildDefaultCbGenPaymentDetails = (dateFormat: string) => ({
   paymentId: "0",
   paymentNo: "",
   itemNo: 0,
@@ -38,20 +38,21 @@ const defaultGenPaymentDetails = {
   voyageId: 0,
   voyageNo: "",
   editVersion: 0,
-}
+})
 
-const defaultGenPayment = {
+const buildDefaultCbGenPayment = (dateFormat: string) => ({
   companyId: 0,
   paymentId: "0",
   paymentNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  suppCbGenPaymentNo: "",
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
-  paymentTypeId: 0,
   bankId: 0,
+  paymentTypeId: 0,
   chequeNo: "",
   chequeDate: "",
   bankChgGLId: 0,
@@ -60,7 +61,7 @@ const defaultGenPayment = {
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  gstClaimDate: format(new Date(), clientDateFormat),
+  gstClaimDate: format(new Date(), dateFormat),
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
@@ -70,38 +71,33 @@ const defaultGenPayment = {
   remarks: "",
   payeeTo: "",
   moduleFrom: "",
-  createDate: format(new Date(), clientDateFormat),
-  editDate: null,
+  createById: 0,
+  createDate: format(new Date(), dateFormat),
+  editById: "",
+  editDate: "",
   isCancel: false,
-  cancelDate: null,
-  cancelRemarks: null,
+  cancelById: 0,
+  cancelDate: "",
+  cancelRemarks: "",
   createBy: "",
   editBy: "",
   cancelBy: "",
   editVersion: 0,
   isPost: false,
-  postDate: null,
-  appStatusId: null,
-  appById: null,
-  appDate: null,
+  postById: "",
+  postDate: "",
+  appStatusId: "",
+  appById: "",
+  appDate: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultGenPayment: {
-      ...defaultGenPayment,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: "",
-      gstClaimDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultGenPaymentDetails: {
-      ...defaultGenPaymentDetails,
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultCbGenPayment: buildDefaultCbGenPayment(dateFormat),
+  defaultCbGenPaymentDetails: buildDefaultCbGenPaymentDetails(dateFormat),
+})
 
-export { defaultGenPayment, defaultGenPaymentDetails }
+export const defaultCbGenPayment = buildDefaultCbGenPayment(clientDateFormat)
+export const defaultCbGenPaymentDetails =
+  buildDefaultCbGenPaymentDetails(clientDateFormat)

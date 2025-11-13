@@ -84,7 +84,9 @@ export const ArRefundHdSchema = (
     appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(ArRefundDtSchema(required, visible)).optional(),
+    data_details: z
+      .array(ArRefundDtSchema(required, visible))
+      .min(1, "At least one refund detail is required"),
   })
 }
 

@@ -1,39 +1,84 @@
 import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById, getData } from "@/lib/api-client"
 import {
   CbBankRecon,
   CbBankTransfer,
   CbBankTransferCtm,
-  CbBatchPayment,
-  CbPayment,
+  CbGenPayment,
+  CbGenReceipt,
   CbPettyCash,
-  CbReceipt,
 } from "@/lib/api-routes"
 
-const NO_CACHE_QUERY_OPTIONS = {
-  gcTime: 0,
-  staleTime: 0,
+/**
+ * 1. CB Gen Payment Management
+ * -------------------
+ * 1.1 Get CB Gen Payment by ID
+ * @param {string} baseUrl - Base URL for the API endpoint
+ * @param {string} queryKey - Key for caching the query
+ * @param {string} paymentId - Payment ID
+ * @param {string} invoiceNo - Invoice number
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice data
+ */
+export function useGetCbGenPaymentById<T>(
+  baseUrl: string,
+  queryKey: string,
+  paymentId: string,
+  paymentNo: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, paymentId, paymentNo],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      const cleanUrl = baseUrl.replace(/\/+/g, "/")
+      return await getById(`${cleanUrl}/${paymentId}/${paymentNo}`)
+    },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
 }
 
-// CB Gen Payment History Hooks
-export function useGetCBGenPaymentHistoryList<T>(
+/**
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetCBCbGenPaymentHistoryList<T>(
   paymentId: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-genpayment-history-list", paymentId],
     queryFn: async () => {
-      return await getData(`${CbPayment.history}/${paymentId}`)
+      // Clean up the URL by removing any double slashes
+      return await getData(`${CbGenPayment.history}/${paymentId}`)
     },
     enabled: !!paymentId && paymentId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
-export function useGetCBGenPaymentHistoryDetails<T>(
+/**
+ * 1.3 Get AP Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetCBCbGenPaymentHistoryDetails<T>(
   paymentId: string,
   editVersion: string,
   options = {}
@@ -41,33 +86,55 @@ export function useGetCBGenPaymentHistoryDetails<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-genpayment-history-details", paymentId, editVersion],
     queryFn: async () => {
+      // Clean up the URL by removing any double slashes
       return await getData(
-        `${CbPayment.historyDetails}/${paymentId}/${editVersion}`
+        `${CbGenPayment.historyDetails}/${paymentId}/${editVersion}`
       )
     },
-    enabled: !!paymentId && paymentId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
+    enabled: !!paymentId && paymentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
-// CB Gen Receipt History Hooks
-export function useGetCBGenReceiptHistoryList<T>(
+/**
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetCbGenReceiptHistoryList<T>(
   receiptId: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-genreceipt-history-list", receiptId],
     queryFn: async () => {
-      return await getData(`${CbReceipt.history}/${receiptId}`)
+      // Clean up the URL by removing any double slashes
+      return await getData(`${CbGenReceipt.history}/${receiptId}`)
     },
     enabled: !!receiptId && receiptId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
-export function useGetCBGenReceiptHistoryDetails<T>(
+/**
+ * 1.3 Get AP Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetCbGenReceiptHistoryDetails<T>(
   receiptId: string,
   editVersion: string,
   options = {}
@@ -75,166 +142,55 @@ export function useGetCBGenReceiptHistoryDetails<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-genreceipt-history-details", receiptId, editVersion],
     queryFn: async () => {
+      // Clean up the URL by removing any double slashes
       return await getData(
-        `${CbReceipt.historyDetails}/${receiptId}/${editVersion}`
+        `${CbGenReceipt.historyDetails}/${receiptId}/${editVersion}`
       )
     },
-    enabled: !!receiptId && receiptId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
+    enabled: !!receiptId && receiptId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
-// CB Batch Payment History Hooks
-export function useGetCBBatchPaymentHistoryList<T>(
-  paymentId: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-batchpayment-history-list", paymentId],
-    queryFn: async () => {
-      return await getData(`${CbBatchPayment.history}/${paymentId}`)
-    },
-    enabled: !!paymentId && paymentId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-export function useGetCBBatchPaymentHistoryDetails<T>(
-  paymentId: string,
-  editVersion: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-batchpayment-history-details", paymentId, editVersion],
-    queryFn: async () => {
-      return await getData(
-        `${CbBatchPayment.historyDetails}/${paymentId}/${editVersion}`
-      )
-    },
-    enabled: !!paymentId && paymentId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-// CB Gen Bank Transfer History Hooks
-export function useGetCBBankTransferHistoryList<T>(
-  transferId: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-banktransfer-history-list", transferId],
-    queryFn: async () => {
-      return await getData(`${CbBankTransfer.history}/${transferId}`)
-    },
-    enabled: !!transferId && transferId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-export function useGetCBBankTransferHistoryDetails<T>(
-  transferId: string,
-  editVersion: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-banktransfer-history-details", transferId, editVersion],
-    queryFn: async () => {
-      return await getData(
-        `${CbBankTransfer.historyDetails}/${transferId}/${editVersion}`
-      )
-    },
-    enabled: !!transferId && transferId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-// CB Gen Bank Transfer Ctm History Hooks
-export function useGetCBBankTransferCtmHistoryList<T>(
-  transferId: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-banktransferctm-history-list", transferId],
-    queryFn: async () => {
-      return await getData(`${CbBankTransferCtm.history}/${transferId}`)
-    },
-    enabled: !!transferId && transferId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-export function useGetCBBankTransferCtmHistoryDetails<T>(
-  transferId: string,
-  editVersion: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-banktransferctm-history-details", transferId, editVersion],
-    queryFn: async () => {
-      return await getData(
-        `${CbBankTransferCtm.historyDetails}/${transferId}/${editVersion}`
-      )
-    },
-    enabled: !!transferId && transferId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-// CB Gen Bank Recon History Hooks
-export function useGetCBBankReconHistoryList<T>(reconId: string, options = {}) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-bankrecon-history-list", reconId],
-    queryFn: async () => {
-      return await getData(`${CbBankRecon.history}/${reconId}`)
-    },
-    enabled: !!reconId && reconId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-export function useGetCBBankReconHistoryDetails<T>(
-  reconId: string,
-  editVersion: string,
-  options = {}
-) {
-  return useQuery<ApiResponse<T>>({
-    queryKey: ["cb-bankrecon-history-details", reconId, editVersion],
-    queryFn: async () => {
-      return await getData(
-        `${CbBankRecon.historyDetails}/${reconId}/${editVersion}`
-      )
-    },
-    enabled: !!reconId && reconId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
-    ...options,
-  })
-}
-
-// CB Gen Receipt History Hooks
-export function useGetCBPettyCashHistoryList<T>(
+/**
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetCbPettyCashHistoryList<T>(
   pettyCashId: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-pettycash-history-list", pettyCashId],
     queryFn: async () => {
+      // Clean up the URL by removing any double slashes
       return await getData(`${CbPettyCash.history}/${pettyCashId}`)
     },
     enabled: !!pettyCashId && pettyCashId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
-export function useGetCBPettyCashHistoryDetails<T>(
+/**
+ * 1.3 Get AP Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetCbPettyCashHistoryDetails<T>(
   pettyCashId: string,
   editVersion: string,
   options = {}
@@ -242,12 +198,63 @@ export function useGetCBPettyCashHistoryDetails<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: ["cb-pettycash-history-details", pettyCashId, editVersion],
     queryFn: async () => {
+      // Clean up the URL by removing any double slashes
       return await getData(
         `${CbPettyCash.historyDetails}/${pettyCashId}/${editVersion}`
       )
     },
-    enabled: !!pettyCashId && pettyCashId !== "0" && !!editVersion,
-    ...NO_CACHE_QUERY_OPTIONS,
+    enabled: !!pettyCashId && pettyCashId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.4 Get AP Adjustment History List
+ */
+export function useGetCbBankHistoryList<T>(bankId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-history-list", bankId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${CbBankTransfer.history}/${bankId}`)
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.5 Get AP Adjustment History Details
+ */
+export function useGetCbBankHistoryDetails<T>(
+  bankId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bank-history-details", bankId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${CbBankTransfer.historyDetails}/${bankId}/${editVersion}`
+      )
+    },
+    enabled: !!bankId && bankId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     ...options,
   })
 }

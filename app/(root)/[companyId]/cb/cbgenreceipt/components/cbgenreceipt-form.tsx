@@ -1,43 +1,45 @@
 "use client"
 
 import * as React from "react"
-import { setExchangeRate, setExchangeRateLocal } from "@/helpers/account"
+import {
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+  setGSTPercentage,
+} from "@/helpers/account"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
 } from "@/helpers/cb-genreceipt-calculations"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { ICbGenReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-} from "@/schemas/cb-genreceipt"
+import { CbGenReceiptDtSchemaType, CbGenReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { clientDateFormat } from "@/lib/date-utils"
 import {
   BankAutocomplete,
-  BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import PayeeSelectionDialog from "@/components/common/payee-selection-dialog"
+import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
-import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface ReceiptFormProps {
+interface CbGenReceiptFormProps {
   form: UseFormReturn<CbGenReceiptHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
@@ -47,59 +49,130 @@ interface ReceiptFormProps {
   defaultCurrencyId?: number
 }
 
-export default function ReceiptForm({
+export default function CbGenReceiptForm({
   form,
   onSuccessAction,
-  isEdit: _isEdit,
+  isEdit,
   visible,
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
-}: ReceiptFormProps) {
+}: CbGenReceiptFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
-  const { data: paymentTypes = [] } = usePaymentTypeLookup()
-
-  // State to track if payment type is cheque
-  const [isChequePayment, setIsChequePayment] = React.useState(false)
+  // State to track if receipt type is cheque
+  const [_isChequeReceipt, setIsChequeReceipt] = React.useState(false)
 
   // State to control payee selection dialog
   const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
 
-  // Watch paymentTypeId and update cheque payment state
-  React.useEffect(() => {
-    const paymentTypeId = form.watch("paymentTypeId")
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
 
-    if (paymentTypeId && paymentTypes.length > 0) {
-      const selectedPaymentType = paymentTypes.find(
-        (pt) => pt.paymentTypeId === paymentTypeId
-      )
+  // Refs to store original values on focus for comparison on change
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalCtyExhRateRef = React.useRef<number>(0)
 
-      if (selectedPaymentType) {
-        const isCheque =
-          selectedPaymentType.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
+  const onSubmit = async () => {
+    await onSuccessAction("save")
+  }
 
-        setIsChequePayment(isCheque)
-      } else {
-        setIsChequePayment(false)
+  // Handle transaction date selection
+  const handleTrnDateChange = React.useCallback(
+    async (_selectedTrnDate: Date | null) => {
+      // Additional logic when transaction date changes
+      const { trnDate } = form?.getValues()
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), dateFormat)
+
+      form.setValue("gstClaimDate", trnDateStr)
+      form?.trigger("gstClaimDate")
+      form.setValue("accountDate", trnDateStr)
+
+      form?.trigger("accountDate")
+
+      await setExchangeRate(form, exhRateDec, visible)
+      if (visible?.m_CtyCurr) {
+        await setExchangeRateLocal(form, exhRateDec)
       }
-    } else {
-      setIsChequePayment(false)
-    }
-  }, [form, paymentTypes])
+      await setGSTPercentage(
+        form,
+        form.getValues("data_details"),
+        decimals[0],
+        visible
+      )
+      await setDueDate(form)
+    },
+    [decimals, exhRateDec, form, visible, dateFormat]
+  )
+
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Format account date to string if it's a Date object
+        const accountDateStr =
+          typeof accountDate === "string"
+            ? accountDate
+            : format(accountDate, dateFormat)
+
+        // Set gstClaimDate and deliveryDate to the new account date (as strings)
+        form.setValue("gstClaimDate", accountDateStr)
+        form?.trigger("gstClaimDate")
+
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, dateFormat)
+          form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
+        }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+      }
+    },
+    [exhRateDec, form, visible, dateFormat]
+  )
+
+  // Handle add payee to button click
+  const handleAddPayeeTo = React.useCallback(() => {
+    setIsPayeeDialogOpen(true)
+  }, [])
+
+  // Handle bank selection
+  const handleBankChange = React.useCallback(
+    (_selectedBank: IBankLookup | null) => {
+      // Additional logic when bank changes
+    },
+    []
+  )
 
   // Set default currency when form is initialized (not in edit mode)
   React.useEffect(() => {
-    if (!_isEdit && defaultCurrencyId > 0) {
+    // Only run when defaultCurrencyId is loaded and we're not in edit mode
+    if (!isEdit && defaultCurrencyId > 0) {
       const currentCurrencyId = form.getValues("currencyId")
-
       // Only set default if no currency is set
       if (!currentCurrencyId || currentCurrencyId === 0) {
         form.setValue("currencyId", defaultCurrencyId)
@@ -110,105 +183,9 @@ export default function ReceiptForm({
         }
       }
     }
+    // Only depend on values that should trigger this effect
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultCurrencyId, _isEdit])
-
-  const onSubmit = async () => {
-    await onSuccessAction("save")
-  }
-
-  // Handle transaction date selection
-  const handleTrnDateChange = React.useCallback(
-    async (_selectedTrnDate: Date | null) => {
-      const { trnDate } = form?.getValues()
-      form.setValue("gstClaimDate", trnDate)
-      form?.trigger("gstClaimDate")
-      form.setValue("accountDate", trnDate)
-      form?.trigger("accountDate")
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      // Note: GST percentage is handled at detail level in CB modules
-      // No need to call setGSTPercentage here as it expects individual detail forms
-    },
-    [exhRateDec, form, visible]
-  )
-
-  // Handle account date change
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
-
-      // Update chequeDate to accountDate if not cheque payment
-      if (!isChequePayment) {
-        form.setValue("chequeDate", accountDate)
-        form?.trigger("chequeDate")
-      }
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      // Note: GST percentage is handled at detail level in CB modules
-      // No need to call setGSTPercentage here as it expects individual detail forms
-    },
-    [exhRateDec, form, isChequePayment, visible]
-  )
-
-  // Handle payment type change
-  const handlePaymentTypeChange = React.useCallback(
-    (selectedPaymentType: IPaymentTypeLookup | null) => {
-      if (selectedPaymentType) {
-        // Check if payment type is "Cheque"
-        const isCheque =
-          selectedPaymentType?.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-
-        // Set chequeDate to accountDate if not cheque payment
-        if (!isCheque) {
-          form.setValue("chequeNo", "")
-          const accountDate = form.getValues("accountDate")
-          form.setValue("chequeDate", accountDate || "")
-        }
-      } else {
-        // No payment type selected, set chequeDate to accountDate
-        setIsChequePayment(false)
-        form.setValue("chequeNo", "")
-        const accountDate = form.getValues("accountDate")
-        form.setValue("chequeDate", accountDate || "")
-      }
-    },
-    [form]
-  )
-
-  // Handle bank selection
-  const handleBankChange = React.useCallback(
-    (_selectedBank: IBankLookup | null) => {
-      // Additional logic when bank changes if needed
-    },
-    []
-  )
-
-  // Handle add payee to button click
-  const handleAddPayeeTo = React.useCallback(() => {
-    setIsPayeeDialogOpen(true)
-  }, [])
-
-  // Handle payee selection from dialog
-  const handlePayeeSelect = React.useCallback(
-    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
-      form.setValue("payeeTo", payeeName)
-      form.trigger("payeeTo")
-    },
-    [form]
-  )
+  }, [defaultCurrencyId, isEdit])
 
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
@@ -239,7 +216,7 @@ export default function ReceiptForm({
     form.setValue("gstAmt", totals.gstAmt)
     form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals
+    // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
       formDetails as unknown as ICbGenReceiptDt[],
       locAmtDec
@@ -248,7 +225,8 @@ export default function ReceiptForm({
     form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
     form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
-    // Calculate country currency totals
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
       formDetails as unknown as ICbGenReceiptDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
@@ -261,23 +239,28 @@ export default function ReceiptForm({
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
+      // Additional logic when currency changes
       const currencyId = selectedCurrency?.currencyId || 0
       const accountDate = form.getValues("accountDate")
 
       if (currencyId && accountDate) {
+        // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
         if (visible?.m_CtyCurr) {
           await setExchangeRateLocal(form, exhRateDec)
         }
 
+        // Get current details and ensure they exist
         const formDetails = form.getValues("data_details")
         if (!formDetails || formDetails.length === 0) {
           return
         }
 
+        // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
+        // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
           formDetails as unknown as ICbGenReceiptDt[],
           exchangeRate,
@@ -286,24 +269,52 @@ export default function ReceiptForm({
           !!visible?.m_CtyCurr
         )
 
+        // Update form with recalculated details
         form.setValue(
           "data_details",
           updatedDetails as unknown as CbGenReceiptDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
+        // Recalculate header totals from updated details
         recalculateHeaderTotals()
       }
     },
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
+    (value: number) => {
+      const exchangeRate = value || 0
+      const originalExhRate = originalExhRateRef.current
 
+      console.log("handleExchangeRateChange", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("Exchange Rate changed - recalculating amounts")
+
+      const formDetails = form.getValues("data_details")
+
+      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
       if (!visible?.m_CtyCurr) {
         cityExchangeRate = exchangeRate
@@ -314,6 +325,7 @@ export default function ReceiptForm({
         return
       }
 
+      // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
         formDetails as unknown as ICbGenReceiptDt[],
         exchangeRate,
@@ -322,28 +334,56 @@ export default function ReceiptForm({
         !!visible?.m_CtyCurr
       )
 
+      // Update form with recalculated details
       form.setValue(
         "data_details",
         updatedDetails as unknown as CbGenReceiptDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
+      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCityExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
+  }, [form])
+
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const cityExchangeRate = value || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      console.log("handleCityExchangeRateChange", {
+        newValue: cityExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: cityExchangeRate !== originalCtyExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        console.log("City Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("City Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
       }
 
+      // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
         formDetails as unknown as ICbGenReceiptDt[],
         exchangeRate,
@@ -352,15 +392,54 @@ export default function ReceiptForm({
         !!visible?.m_CtyCurr
       )
 
+      // Update form with recalculated details
       form.setValue(
         "data_details",
         updatedDetails as unknown as CbGenReceiptDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
+      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+  )
+
+  // Handle payment type change
+  const handlePaymentTypeChange = React.useCallback(
+    (selectedPaymentType: IPaymentTypeLookup | null) => {
+      if (selectedPaymentType) {
+        // Check if receipt type is "Cheque"
+        const isCheque =
+          selectedPaymentType?.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
+
+        setIsChequeReceipt(isCheque)
+
+        // Clear cheque fields if not cheque receipt
+        if (!isCheque) {
+          form.setValue("chequeNo", "")
+          form.setValue("chequeDate", "")
+        }
+      } else {
+        // No receipt type selected, hide cheque fields
+        setIsChequeReceipt(false)
+        form.setValue("chequeNo", "")
+        form.setValue("chequeDate", "")
+      }
+    },
+    [form]
+  )
+
+  // Handle payee selection from dialog
+  const handlePayeeSelect = React.useCallback(
+    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
+      form.setValue("payeeTo", payeeName)
+      form.trigger("payeeTo")
+    },
+    [form]
   )
 
   return (
@@ -369,7 +448,7 @@ export default function ReceiptForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-2">
+        <div className="col-span-10 grid grid-cols-6 gap-1 gap-y-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -399,7 +478,7 @@ export default function ReceiptForm({
             label="Payee To"
             isRequired={true}
             className="col-span-2"
-            buttonText="Add"
+            buttonText=""
             buttonIcon={<PlusIcon className="h-4 w-4" />}
             buttonPosition="right"
             onButtonClick={handleAddPayeeTo}
@@ -426,35 +505,21 @@ export default function ReceiptForm({
             />
           )}
 
-          {/* Payment Type */}
+          {/* Receipt Type */}
           <PaymentTypeAutocomplete
             form={form}
             name="paymentTypeId"
-            label="Payment Type"
+            label="Pay"
             isRequired={true}
             onChangeEvent={handlePaymentTypeChange}
           />
-
-          {/* Cheque No - Only show when payment type is cheque */}
-          {isChequePayment && (
-            <CustomInput
-              form={form}
-              name="chequeNo"
-              label="Cheque No"
-              isRequired={true}
-            />
-          )}
-
-          {/* Cheque Date - Only show when payment type is cheque */}
-          {isChequePayment && (
-            <CustomDateNew
-              form={form}
-              name="chequeDate"
-              label="Cheque Date"
-              isRequired={true}
-              isFutureShow={true}
-            />
-          )}
+          <CustomInput form={form} name="chequeNo" label="Pay No" />
+          <CustomDateNew
+            form={form}
+            name="chequeDate"
+            label="Pay Date"
+            isFutureShow={true}
+          />
 
           {/* Currency */}
           <CurrencyAutocomplete
@@ -473,9 +538,9 @@ export default function ReceiptForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
-            onBlurEvent={handleExchangeRateChange}
+            onFocusEvent={handleExchangeRateFocus}
+            onChangeEvent={handleExchangeRateChange}
           />
-
           {visible?.m_CtyCurr && (
             <>
               {/* City Exchange Rate */}
@@ -486,7 +551,8 @@ export default function ReceiptForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onBlurEvent={handleCityExchangeRateChange}
+                onFocusEvent={handleCityExchangeRateFocus}
+                onChangeEvent={handleCityExchangeRateChange}
               />
             </>
           )}
@@ -509,59 +575,40 @@ export default function ReceiptForm({
                 form={form}
                 name="totCtyAmt"
                 label="Total Country Amount"
-                round={ctyAmtDec}
+                round={amtDec}
                 isDisabled={true}
                 className="text-right"
               />
+            </>
+          )}
 
+          {visible?.m_CtyCurr && (
+            <>
               {/* GST Country Amount */}
               <CustomNumberInput
                 form={form}
                 name="gstCtyAmt"
                 label="GST Country Amount"
                 isDisabled={true}
-                round={ctyAmtDec}
+                round={amtDec}
                 className="text-right"
               />
+            </>
+          )}
 
+          {visible?.m_CtyCurr && (
+            <>
               {/* Total Country Amount After GST */}
               <CustomNumberInput
                 form={form}
                 name="totCtyAmtAftGst"
                 label="Total Country Amount After GST"
                 isDisabled={true}
-                round={ctyAmtDec}
+                round={amtDec}
                 className="text-right"
               />
             </>
           )}
-
-          {/* Bank Charge GL */}
-          <BankChartOfAccountAutocomplete
-            form={form}
-            name="bankChgGLId"
-            label="Bank Charge GL"
-            companyId={_companyId}
-          />
-
-          {/* Bank Charge Amount */}
-          <CustomNumberInput
-            form={form}
-            name="bankChgAmt"
-            label="Bank Charge Amount"
-            round={amtDec}
-            className="text-right"
-          />
-
-          {/* Bank Charge Local Amount */}
-          <CustomNumberInput
-            form={form}
-            name="bankChgLocalAmt"
-            label="Bank Charge Local Amount"
-            round={locAmtDec}
-            isDisabled={true}
-            className="text-right"
-          />
 
           {/* Remarks */}
           <CustomTextarea
@@ -573,7 +620,9 @@ export default function ReceiptForm({
           />
         </div>
 
-        {/* Summary Box */}
+        {/* {form.watch("receiptId") != "0" && (
+          <>
+            {/* Summary Box */}
         {/* Right Section: Summary Box */}
         <div className="col-span-2 ml-2 flex flex-col justify-start">
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">

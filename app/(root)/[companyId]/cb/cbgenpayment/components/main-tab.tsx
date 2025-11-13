@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -16,9 +16,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import GenPaymentDetailsForm from "./cbgenpayment-details-form"
-import GenPaymentDetailsTable from "./cbgenpayment-details-table"
-import GenPaymentForm from "./cbgenpayment-form"
+import CbGenPaymentDetailsForm from "./cbGenPayment-details-form"
+import CbGenPaymentDetailsTable from "./cbGenPayment-details-table"
+import CbGenPaymentForm from "./cbGenPayment-form"
 
 interface MainProps {
   form: UseFormReturn<CbGenPaymentHdSchemaType>
@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -55,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousCbGenPaymentKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentCbGenPaymentId = form.watch("paymentId")
+  const currentCbGenPaymentNo = form.watch("paymentNo")
+
+  useEffect(() => {
+    const currentKey = `${currentCbGenPaymentId ?? ""}::${currentCbGenPaymentNo ?? ""}`
+    if (previousCbGenPaymentKeyRef.current === currentKey) {
+      return
+    }
+
+    previousCbGenPaymentKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentCbGenPaymentId, currentCbGenPaymentNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -65,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as ICbGenPaymentDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailCbGenPaymentId = `${detail.paymentId ?? ""}`
+      const editingCbGenPaymentId = `${editingDetail.paymentId ?? ""}`
+      const detailCbGenPaymentNo = detail.paymentNo ?? ""
+      const editingCbGenPaymentNo = editingDetail.paymentNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailCbGenPaymentId === editingCbGenPaymentId &&
+        detailCbGenPaymentNo === editingCbGenPaymentNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -109,6 +152,19 @@ export default function Main({
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+
+    // Trigger form validation to update UI
+    form.trigger([
+      "totAmt",
+      "gstAmt",
+      "totAmtAftGst",
+      "totLocalAmt",
+      "gstLocalAmt",
+      "totLocalAmtAftGst",
+      "totCtyAmt",
+      "gstCtyAmt",
+      "totCtyAmtAftGst",
+    ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
@@ -206,7 +262,7 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <GenPaymentForm
+      <CbGenPaymentForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -216,7 +272,7 @@ export default function Main({
         defaultCurrencyId={defaults.cb.currencyId}
       />
 
-      <GenPaymentDetailsForm
+      <CbGenPaymentDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -225,12 +281,12 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as CbGenPaymentDtSchemaType[]}
-        defaultGlId={0}
-        defaultUomId={defaults.common.uomId}
+        defaultGlId={defaults.ap.invoiceGlId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
-      <GenPaymentDetailsTable
+      <CbGenPaymentDetailsTable
         key={tableKey}
         data={(dataDetails as unknown as ICbGenPaymentDt[]) || []}
         visible={visible}
@@ -242,6 +298,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: ICbGenPaymentDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

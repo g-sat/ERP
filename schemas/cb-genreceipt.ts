@@ -1,13 +1,13 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const cbGenReceiptHdSchema = (
+export const CbGenReceiptHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    companyId: z.number().optional(),
+
     receiptId: z.string().optional(),
     receiptNo: z.string().optional(),
     referenceNo: required?.m_ReferenceNo
@@ -21,31 +21,32 @@ export const cbGenReceiptHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
-
-    // Payment Type Fields
-    paymentTypeId: z.number().min(1, "Payment Type is required"),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
-    chequeNo: z.string().optional(),
-    chequeDate: z.union([z.date(), z.string(), z.null()]).optional(),
 
-    // Bank Charge Fields
-    bankChgGLId: z.number().optional(),
-    bankChgAmt: z.number().optional(),
-    bankChgLocalAmt: z.number().optional(),
+    // Payment Type Fields
+    paymentTypeId: z.number().min(1, "Payment Type is required"),
+    // Cheque Fields
+    chequeNo: z.string().optional(),
+    chequeDate: z.union([z.date(), z.string()]),
+
+    // Bank Charge GL Fields
+    bankChgGLId: visible?.m_BankChgGLId
+      ? z.number().min(0, "Bank Charge GL is required")
+      : z.number().optional(),
+    bankChgAmt: z.number().min(0, "Bank Charges Amount is required"),
+    bankChgLocalAmt: z.number().min(0, "Bank Charges Local Amount is required"),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
-
-    // GST Fields
-    gstClaimDate: z.union([z.date(), z.string(), z.null()]).optional(),
+    gstClaimDate: z.union([z.date(), z.string()]).optional(),
     gstAmt: z.number().optional(),
     gstLocalAmt: z.number().optional(),
     gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -55,57 +56,52 @@ export const cbGenReceiptHdSchema = (
       ? z.number().min(0)
       : z.number().optional(),
 
-    // Additional Fields
+    // Order Details
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
-    payeeTo: z.string().min(1, "Payee To is required"),
 
+    // Address and Contact
+    payeeTo: z.string().optional(),
+
+    // Customer Details
     moduleFrom: z.string().optional(),
 
-    // Audit Fields
-    createDate: z.union([z.date(), z.string()]).optional(),
-    editDate: z.union([z.date(), z.null()]).optional(),
-    isCancel: z.boolean().optional(),
-    cancelDate: z.union([z.date(), z.null()]).optional(),
-    cancelRemarks: z.string().optional().nullable(),
-    createBy: z.string().optional(),
-    editBy: z.string().optional(),
-    cancelBy: z.string().optional(),
     editVersion: z.number().optional(),
-    isPost: z.boolean().optional(),
-    postDate: z.union([z.date(), z.null()]).optional(),
-    appStatusId: z.number().optional().nullable(),
-    appById: z.number().optional().nullable(),
+    createBy: z.string().optional(),
+    createDate: z.string().optional(),
+    editBy: z.string().optional(),
+    editDate: z.string().optional(),
+    cancelBy: z.string().optional(),
+    cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
+    cancelRemarks: z.string().optional(),
     appBy: z.string().optional(),
-    appDate: z.union([z.date(), z.null()]).optional(),
+    appDate: z.string().optional(),
+    appStatusId: z.string().optional(),
 
     // Nested Details
     data_details: z
-      .array(cbGenReceiptDtSchema(required, visible))
-      .min(1, "At least one receipt detail is required"),
+      .array(CbGenReceiptDtSchema(required, visible))
+      .min(1, "At least one payment detail is required"),
   })
 }
 
 export type CbGenReceiptHdSchemaType = z.infer<
-  ReturnType<typeof cbGenReceiptHdSchema>
+  ReturnType<typeof CbGenReceiptHdSchema>
 >
 
-export const cbGenReceiptHdFiltersSchema = z.object({
-  startDate: z.union([z.date(), z.string()]),
-  endDate: z.union([z.date(), z.string()]),
+export const CbGenReceiptHdFiltersSchema = z.object({
+  isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
-  sortBy: z.string().optional(),
-  pageNumber: z.number().optional(),
-  pageSize: z.number().optional(),
 })
 
 export type CbGenReceiptHdFiltersValues = z.infer<
-  typeof cbGenReceiptHdFiltersSchema
+  typeof CbGenReceiptHdFiltersSchema
 >
 
-export const cbGenReceiptDtSchema = (
+export const CbGenReceiptDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -115,7 +111,6 @@ export const cbGenReceiptDtSchema = (
     receiptNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     seqNo: z.number().min(1, "Sequence No must be at least 1"),
-
     // GL Fields
     glId: required?.m_GLId
       ? z.number().min(1, "Chart of Account is required")
@@ -123,7 +118,6 @@ export const cbGenReceiptDtSchema = (
     glCode: z.string().optional(),
     glName: z.string().optional(),
 
-    // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().min(0),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -191,42 +185,20 @@ export const cbGenReceiptDtSchema = (
         : z.number().optional(),
     voyageNo: z.string().optional(),
 
-    // Job Order Fields
-    jobOrderId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Job Order is required")
-        : z.number().optional(),
-    jobOrderNo: z.string().optional(),
-
-    // Task Fields
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
-    taskName: z.string().optional(),
-
-    // Service Fields
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
-    serviceName: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
 export type CbGenReceiptDtSchemaType = z.infer<
-  ReturnType<typeof cbGenReceiptDtSchema>
+  ReturnType<typeof CbGenReceiptDtSchema>
 >
 
-export const cbGenReceiptDtFiltersSchema = z.object({
+export const CbGenReceiptDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type CbGenReceiptDtFiltersValues = z.infer<
-  typeof cbGenReceiptDtFiltersSchema
+  typeof CbGenReceiptDtFiltersSchema
 >

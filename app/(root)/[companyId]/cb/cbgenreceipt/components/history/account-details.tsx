@@ -3,6 +3,7 @@
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 
+import { parseDate } from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -36,14 +37,30 @@ export default function AccountDetails({
     formatStr = "yyyy-MM-dd HH:mm"
   ) => {
     if (!dateValue) return "" // if null, undefined, or empty
-    const date = new Date(dateValue)
-    return isNaN(date.getTime()) ? "" : format(date, formatStr)
+
+    // If it's already a Date object, use it directly
+    if (dateValue instanceof Date) {
+      return isNaN(dateValue.getTime()) ? "" : format(dateValue, formatStr)
+    }
+
+    // Handle ISO datetime strings (e.g., "2025-11-04T08:29:51.19")
+    // Native Date constructor can parse ISO strings correctly
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      const isoDate = new Date(dateValue)
+      if (!isNaN(isoDate.getTime())) {
+        return format(isoDate, formatStr)
+      }
+    }
+
+    // Parse the date string using parseDate which handles multiple formats correctly
+    const date = parseDate(dateValue as string)
+    return date ? format(date, formatStr) : ""
   }
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Details</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold">Account Details</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="bg-card rounded-lg border p-4">

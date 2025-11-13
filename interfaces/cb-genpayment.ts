@@ -10,17 +10,16 @@ export interface ICbGenPaymentHd {
   currencyName: null | string
   exhRate: number
   ctyExhRate: number
-  paymentTypeId: number
-  paymentTypeCode: null | string
-  paymentTypeName: null | string
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+  paymentTypeId: number
   chequeNo: string | null
   chequeDate: Date | string
   bankChgGLId: number
   bankChgAmt: number
   bankChgLocalAmt: number
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -31,6 +30,10 @@ export interface ICbGenPaymentHd {
   totAmtAftGst: number
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
+  balAmt: number
+  balLocalAmt: number
+  payAmt: number
+  payLocalAmt: number
   remarks: string
   payeeTo: string
   moduleFrom: string
@@ -52,6 +55,7 @@ export interface ICbGenPaymentHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
   data_details: ICbGenPaymentDt[]
 }
 

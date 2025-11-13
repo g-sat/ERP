@@ -1,27 +1,24 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
 } from "@/helpers/cb-genreceipt-calculations"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { ICbGenReceiptDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-} from "@/schemas/cb-genreceipt"
+import { CbGenReceiptDtSchemaType, CbGenReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import ReceiptDetailsForm from "./cbgenreceipt-details-form"
-import ReceiptDetailsTable from "./cbgenreceipt-details-table"
-import ReceiptForm from "./cbgenreceipt-form"
+import CbGenReceiptDetailsForm from "./cbGenReceipt-details-form"
+import CbGenReceiptDetailsTable from "./cbGenReceipt-details-table"
+import CbGenReceiptForm from "./cbGenReceipt-form"
 
 interface MainProps {
   form: UseFormReturn<CbGenReceiptHdSchemaType>
@@ -30,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -39,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -58,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousCbGenReceiptKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentCbGenReceiptId = form.watch("receiptId")
+  const currentCbGenReceiptNo = form.watch("receiptNo")
+
+  useEffect(() => {
+    const currentKey = `${currentCbGenReceiptId ?? ""}::${currentCbGenReceiptNo ?? ""}`
+    if (previousCbGenReceiptKeyRef.current === currentKey) {
+      return
+    }
+
+    previousCbGenReceiptKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentCbGenReceiptId, currentCbGenReceiptNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -68,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as ICbGenReceiptDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailCbGenReceiptId = `${detail.receiptId ?? ""}`
+      const editingCbGenReceiptId = `${editingDetail.receiptId ?? ""}`
+      const detailCbGenReceiptNo = detail.receiptNo ?? ""
+      const editingCbGenReceiptNo = editingDetail.receiptNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailCbGenReceiptId === editingCbGenReceiptId &&
+        detailCbGenReceiptNo === editingCbGenReceiptNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -112,6 +152,19 @@ export default function Main({
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+
+    // Trigger form validation to update UI
+    form.trigger([
+      "totAmt",
+      "gstAmt",
+      "totAmtAftGst",
+      "totLocalAmt",
+      "gstLocalAmt",
+      "totLocalAmtAftGst",
+      "totCtyAmt",
+      "gstCtyAmt",
+      "totCtyAmtAftGst",
+    ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
@@ -209,7 +262,7 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <ReceiptForm
+      <CbGenReceiptForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -219,7 +272,7 @@ export default function Main({
         defaultCurrencyId={defaults.cb.currencyId}
       />
 
-      <ReceiptDetailsForm
+      <CbGenReceiptDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -228,12 +281,12 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
-        defaultGlId={0}
-        defaultUomId={defaults.common.uomId}
+        defaultGlId={defaults.ap.invoiceGlId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
-      <ReceiptDetailsTable
+      <CbGenReceiptDetailsTable
         key={tableKey}
         data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
         visible={visible}
@@ -245,6 +298,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: ICbGenReceiptDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

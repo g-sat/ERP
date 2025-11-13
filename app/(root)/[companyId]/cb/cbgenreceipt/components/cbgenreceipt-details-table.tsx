@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { ICbGenReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface ReceiptDetailsTableProps {
+interface CbGenReceiptDetailsTableProps {
   data: ICbGenReceiptDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
@@ -16,9 +18,10 @@ interface ReceiptDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbGenReceiptDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
-export default function ReceiptDetailsTable({
+export default function CbGenReceiptDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,8 +30,12 @@ export default function ReceiptDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: ReceiptDetailsTableProps) {
+  isCancelled = false,
+}: CbGenReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -58,6 +65,23 @@ export default function ReceiptDetailsTable({
       ),
     },
     {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 60,
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+        <div className="text-right">{row.original.seqNo}</div>
+      ),
+    },
+    ...(visible?.m_ProductId
+      ? [
+          {
+            accessorKey: "productName",
+            header: "Product",
+            size: 100,
+          },
+        ]
+      : []),
+    {
       accessorKey: "glCode",
       header: "Code",
       size: 100,
@@ -76,15 +100,6 @@ export default function ReceiptDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "JobOrder",
-            size: 100,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -99,8 +114,10 @@ export default function ReceiptDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -108,39 +125,31 @@ export default function ReceiptDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
       ),
     },
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "taskName",
-            header: "Task Name",
-            size: 200,
-          },
-          {
-            accessorKey: "serviceName",
-            header: "Service Name",
-            size: 200,
-          },
-        ]
-      : []),
 
     {
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -149,10 +158,12 @@ export default function ReceiptDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<ICbGenReceiptDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -168,8 +179,10 @@ export default function ReceiptDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -178,10 +191,12 @@ export default function ReceiptDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<ICbGenReceiptDt>,
         ]
       : []),
 
@@ -224,21 +239,12 @@ export default function ReceiptDetailsTable({
     ...(visible?.m_VoyageId
       ? [
           {
-            accessorKey: "voyageNo",
+            accessorKey: "voyageName",
             header: "Voyage",
             size: 200,
           },
         ]
       : []),
-
-    {
-      accessorKey: "seqNo",
-      header: "Seq No",
-      size: 60,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.seqNo}</div>
-      ),
-    },
   ]
 
   if (!mounted) {
@@ -246,14 +252,14 @@ export default function ReceiptDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}
         moduleId={ModuleId.cb}
         transactionId={CBTransactionId.cbgenreceipt}
         tableName={TableName.cbGenReceiptDt}
-        emptyMessage="No Gen Receipt details found."
+        emptyMessage="No cbGenReceipt details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
@@ -264,9 +270,9 @@ export default function ReceiptDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>
