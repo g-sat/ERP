@@ -11,8 +11,8 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetGLJournalEntryHistoryDetails,
-  useGetGLJournalEntryHistoryList,
+  useGetGLJournalHistoryDetails,
+  useGetGLJournalHistoryList,
 } from "@/hooks/use-gl"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,10 +64,10 @@ export default function EditVersionDetails({
 
   const { data: glJournalHistoryData, refetch: refetchHistory } =
     //useGetARGLJournalHistoryList<IGLJournalHd[]>("14120250100024")
-    useGetGLJournalEntryHistoryList<IGLJournalHd[]>(journalId)
+    useGetGLJournalHistoryList<IGLJournalHd[]>(journalId)
 
   const { data: glJournalDetailsData, refetch: refetchDetails } =
-    useGetGLJournalEntryHistoryDetails<IGLJournalHd>(
+    useGetGLJournalHistoryDetails<IGLJournalHd>(
       selectedGLJournal?.journalId || "",
       selectedGLJournal?.editVersion?.toString() || ""
     )

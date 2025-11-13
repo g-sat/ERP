@@ -15,6 +15,10 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
+    if (!detail.isDebit) {
+      return
+    }
+
     totals.totAmt += Number(detail.totAmt) || 0
     totals.gstAmt += Number(detail.gstAmt) || 0
   })
@@ -40,6 +44,10 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
+    if (!detail.isDebit) {
+      return
+    }
+
     totals.totLocalAmt += Number(detail.totLocalAmt) || 0
     totals.gstLocalAmt += Number(detail.gstLocalAmt) || 0
   })
@@ -68,6 +76,10 @@ export const calculateCountryAmounts = (
   }
 
   details.forEach((detail) => {
+    if (!detail.isDebit) {
+      return
+    }
+
     totals.totCtyAmt += Number(detail.totCtyAmt) || 0
     totals.gstCtyAmt += Number(detail.gstCtyAmt) || 0
   })

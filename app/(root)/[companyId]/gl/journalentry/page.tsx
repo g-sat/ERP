@@ -354,6 +354,32 @@ export default function GLJournalPage() {
         return
       }
 
+      const details = formValues.data_details || []
+      const amtDec = decimals[0]?.amtDec || 2
+      const debitTotal = mathRound(
+        details.reduce((sum, detail) => {
+          if (!detail.isDebit) {
+            return sum
+          }
+          return sum + (Number(detail.totAmt) || 0)
+        }, 0),
+        amtDec
+      )
+      const creditTotal = mathRound(
+        details.reduce((sum, detail) => {
+          if (detail.isDebit) {
+            return sum
+          }
+          return sum + (Number(detail.totAmt) || 0)
+        }, 0),
+        amtDec
+      )
+
+      if (debitTotal !== creditTotal) {
+        toast.error("Debit and Credit totals must be equal before saving")
+        return
+      }
+
       console.log("handleSaveGLJournal formValues", formValues)
 
       // Check GL period closed before saving (supports previous account date)
@@ -480,24 +506,30 @@ export default function GLJournalPage() {
 
       const details = clonedGLJournal.data_details || []
       if (details.length > 0) {
-        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
-        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
-        const totLocalAmt = details.reduce(
-          (sum, d) => sum + (d.totLocalAmt || 0),
-          0
-        )
-        const gstLocalAmt = details.reduce(
-          (sum, d) => sum + (d.gstLocalAmt || 0),
-          0
-        )
-        const totCtyAmt = details.reduce(
-          (sum, d) => sum + (d.totCtyAmt || 0),
-          0
-        )
-        const gstCtyAmt = details.reduce(
-          (sum, d) => sum + (d.gstCtyAmt || 0),
-          0
-        )
+        const totAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.totAmt || 0)
+        }, 0)
+        const gstAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.gstAmt || 0)
+        }, 0)
+        const totLocalAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.totLocalAmt || 0)
+        }, 0)
+        const gstLocalAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.gstLocalAmt || 0)
+        }, 0)
+        const totCtyAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.totCtyAmt || 0)
+        }, 0)
+        const gstCtyAmt = details.reduce((sum, d) => {
+          if (!d.isDebit) return sum
+          return sum + (d.gstCtyAmt || 0)
+        }, 0)
 
         clonedGLJournal.totAmt = mathRound(totAmt, amtDec)
         clonedGLJournal.gstAmt = mathRound(gstAmt, amtDec)
