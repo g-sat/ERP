@@ -85,7 +85,6 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   ctyExhRate: 0,
   creditTermId: 0,
   bankId: 0,
-  isDebit: false,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,

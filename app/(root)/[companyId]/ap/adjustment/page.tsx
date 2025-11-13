@@ -399,6 +399,8 @@ export default function AdjustmentPage() {
         return
       }
 
+      console.log("formValues", formValues)
+
       //check totamt and totlocalamt should be zero
       if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
