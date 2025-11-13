@@ -33,7 +33,7 @@ export const CbGenReceiptHdSchema = (
     paymentTypeId: z.number().min(1, "Payment Type is required"),
     // Cheque Fields
     chequeNo: z.string().optional(),
-    chequeDate: z.union([z.date(), z.string()]),
+    chequeDate: z.union([z.date(), z.string()]).optional(),
 
     // Bank Charge GL Fields
     bankChgGLId: visible?.m_BankChgGLId

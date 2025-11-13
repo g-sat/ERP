@@ -238,7 +238,7 @@ export default function CbGenPaymentPage() {
           moduleFrom: cbGenPayment.moduleFrom ?? "",
           paymentTypeId: cbGenPayment.paymentTypeId ?? 0,
           chequeNo: cbGenPayment.chequeNo ?? "",
-          chequeDate: cbGenPayment.chequeDate ?? "",
+          chequeDate: cbGenPayment.chequeDate ?? new Date(),
           bankChgGLId: cbGenPayment.bankChgGLId ?? 0,
           bankChgAmt: cbGenPayment.bankChgAmt ?? 0,
           bankChgLocalAmt: cbGenPayment.bankChgLocalAmt ?? 0,
@@ -477,7 +477,7 @@ export default function CbGenPaymentPage() {
         createBy: "",
         editBy: "",
         cancelBy: "",
-        createDate: "",
+        createDate: dateStr,
         editDate: "",
         cancelDate: "",
         // Keep data details - do not remove
@@ -752,7 +752,12 @@ export default function CbGenPaymentPage() {
       bankId: apiCbGenPayment.bankId ?? 0,
       paymentTypeId: apiCbGenPayment.paymentTypeId ?? 0,
       chequeNo: apiCbGenPayment.chequeNo ?? "",
-      chequeDate: apiCbGenPayment.chequeDate ?? "",
+      chequeDate: apiCbGenPayment.chequeDate
+        ? format(
+            parseDate(apiCbGenPayment.chequeDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
       bankChgGLId: apiCbGenPayment.bankChgGLId ?? 0,
       bankChgAmt: apiCbGenPayment.bankChgAmt ?? 0,
       bankChgLocalAmt: apiCbGenPayment.bankChgLocalAmt ?? 0,
@@ -899,7 +904,13 @@ export default function CbGenPaymentPage() {
             bankId: detailedCbGenPayment.bankId ?? 0,
             paymentTypeId: detailedCbGenPayment.paymentTypeId ?? 0,
             chequeNo: detailedCbGenPayment.chequeNo ?? "",
-            chequeDate: detailedCbGenPayment.chequeDate ?? "",
+            chequeDate: detailedCbGenPayment.chequeDate
+              ? format(
+                  parseDate(detailedCbGenPayment.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbGenPayment.bankChgGLId ?? 0,
             bankChgAmt: detailedCbGenPayment.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbGenPayment.bankChgLocalAmt ?? 0,
@@ -1130,7 +1141,13 @@ export default function CbGenPaymentPage() {
             bankId: detailedCbGenPayment.bankId ?? 0,
             paymentTypeId: detailedCbGenPayment.paymentTypeId ?? 0,
             chequeNo: detailedCbGenPayment.chequeNo ?? "",
-            chequeDate: detailedCbGenPayment.chequeDate ?? "",
+            chequeDate: detailedCbGenPayment.chequeDate
+              ? format(
+                  parseDate(detailedCbGenPayment.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbGenPayment.bankChgGLId ?? 0,
             bankChgAmt: detailedCbGenPayment.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbGenPayment.bankChgLocalAmt ?? 0,

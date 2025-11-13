@@ -54,7 +54,7 @@ const buildDefaultCbGenReceipt = (dateFormat: string) => ({
   bankId: 0,
   paymentTypeId: 0,
   chequeNo: "",
-  chequeDate: "",
+  chequeDate: format(new Date(), dateFormat),
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,

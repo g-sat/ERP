@@ -238,7 +238,7 @@ export default function CbPettyCashPage() {
           moduleFrom: cbPettyCash.moduleFrom ?? "",
           paymentTypeId: cbPettyCash.paymentTypeId ?? 0,
           chequeNo: cbPettyCash.chequeNo ?? "",
-          chequeDate: cbPettyCash.chequeDate ?? "",
+          chequeDate: cbPettyCash.chequeDate ?? new Date(),
           bankChgGLId: cbPettyCash.bankChgGLId ?? 0,
           bankChgAmt: cbPettyCash.bankChgAmt ?? 0,
           bankChgLocalAmt: cbPettyCash.bankChgLocalAmt ?? 0,
@@ -249,6 +249,7 @@ export default function CbPettyCashPage() {
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo?.toString() ?? "",
+              invoiceDate: detail.invoiceDate ?? new Date(),
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -481,6 +482,7 @@ export default function CbPettyCashPage() {
             ...detail,
             paymentId: "0",
             paymentNo: "",
+            invoiceDate: dateStr,
             editVersion: 0,
           })) || [],
       }
@@ -747,7 +749,12 @@ export default function CbPettyCashPage() {
       bankId: apiCbPettyCash.bankId ?? 0,
       paymentTypeId: apiCbPettyCash.paymentTypeId ?? 0,
       chequeNo: apiCbPettyCash.chequeNo ?? "",
-      chequeDate: apiCbPettyCash.chequeDate ?? "",
+      chequeDate: apiCbPettyCash.chequeDate
+        ? format(
+            parseDate(apiCbPettyCash.chequeDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
       bankChgGLId: apiCbPettyCash.bankChgGLId ?? 0,
       bankChgAmt: apiCbPettyCash.bankChgAmt ?? 0,
       bankChgLocalAmt: apiCbPettyCash.bankChgLocalAmt ?? 0,
@@ -829,7 +836,12 @@ export default function CbPettyCashPage() {
               bargeName: detail.bargeName ?? "",
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
-              invoiceDate: detail.invoiceDate ?? "",
+              invoiceDate: detail.invoiceDate
+                ? format(
+                    parseDate(detail.invoiceDate as string) || new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
               invoiceNo: detail.invoiceNo ?? "",
               supplierName: detail.supplierName ?? "",
               gstNo: detail.gstNo ?? "",
@@ -906,7 +918,13 @@ export default function CbPettyCashPage() {
             bankId: detailedCbPettyCash.bankId ?? 0,
             paymentTypeId: detailedCbPettyCash.paymentTypeId ?? 0,
             chequeNo: detailedCbPettyCash.chequeNo ?? "",
-            chequeDate: detailedCbPettyCash.chequeDate ?? "",
+            chequeDate: detailedCbPettyCash.chequeDate
+              ? format(
+                  parseDate(detailedCbPettyCash.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbPettyCash.bankChgGLId ?? 0,
             bankChgAmt: detailedCbPettyCash.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbPettyCash.bankChgLocalAmt ?? 0,
@@ -986,7 +1004,12 @@ export default function CbPettyCashPage() {
                   bargeName: detail.bargeName ?? "",
                   voyageId: detail.voyageId ?? 0,
                   voyageNo: detail.voyageNo ?? "",
-                  invoiceDate: detail.invoiceDate ?? "",
+                  invoiceDate: detail.invoiceDate
+                    ? format(
+                        parseDate(detail.invoiceDate as string) || new Date(),
+                        dateFormat
+                      )
+                    : dateFormat,
                   invoiceNo: detail.invoiceNo ?? "",
                   supplierName: detail.supplierName ?? "",
                   gstNo: detail.gstNo ?? "",
@@ -1149,7 +1172,13 @@ export default function CbPettyCashPage() {
             bankId: detailedCbPettyCash.bankId ?? 0,
             paymentTypeId: detailedCbPettyCash.paymentTypeId ?? 0,
             chequeNo: detailedCbPettyCash.chequeNo ?? "",
-            chequeDate: detailedCbPettyCash.chequeDate ?? "",
+            chequeDate: detailedCbPettyCash.chequeDate
+              ? format(
+                  parseDate(detailedCbPettyCash.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbPettyCash.bankChgGLId ?? 0,
             bankChgAmt: detailedCbPettyCash.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbPettyCash.bankChgLocalAmt ?? 0,
@@ -1206,7 +1235,12 @@ export default function CbPettyCashPage() {
                   bargeName: detail.bargeName ?? "",
                   voyageId: detail.voyageId ?? 0,
                   voyageNo: detail.voyageNo ?? "",
-                  invoiceDate: detail.invoiceDate ?? "",
+                  invoiceDate: detail.invoiceDate
+                    ? format(
+                        parseDate(detail.invoiceDate as string) || new Date(),
+                        dateFormat
+                      )
+                    : dateFormat,
                   invoiceNo: detail.invoiceNo ?? "",
                   supplierName: detail.supplierName ?? "",
                   gstNo: detail.gstNo ?? "",

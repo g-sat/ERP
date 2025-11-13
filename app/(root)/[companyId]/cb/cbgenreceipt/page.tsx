@@ -238,7 +238,7 @@ export default function CbGenReceiptPage() {
           moduleFrom: cbGenReceipt.moduleFrom ?? "",
           paymentTypeId: cbGenReceipt.paymentTypeId ?? 0,
           chequeNo: cbGenReceipt.chequeNo ?? "",
-          chequeDate: cbGenReceipt.chequeDate ?? "",
+          chequeDate: cbGenReceipt.chequeDate ?? new Date(),
           bankChgGLId: cbGenReceipt.bankChgGLId ?? 0,
           bankChgAmt: cbGenReceipt.bankChgAmt ?? 0,
           bankChgLocalAmt: cbGenReceipt.bankChgLocalAmt ?? 0,
@@ -752,7 +752,12 @@ export default function CbGenReceiptPage() {
       bankId: apiCbGenReceipt.bankId ?? 0,
       paymentTypeId: apiCbGenReceipt.paymentTypeId ?? 0,
       chequeNo: apiCbGenReceipt.chequeNo ?? "",
-      chequeDate: apiCbGenReceipt.chequeDate ?? "",
+      chequeDate: apiCbGenReceipt.chequeDate
+        ? format(
+            parseDate(apiCbGenReceipt.chequeDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
       bankChgGLId: apiCbGenReceipt.bankChgGLId ?? 0,
       bankChgAmt: apiCbGenReceipt.bankChgAmt ?? 0,
       bankChgLocalAmt: apiCbGenReceipt.bankChgLocalAmt ?? 0,
@@ -899,7 +904,13 @@ export default function CbGenReceiptPage() {
             bankId: detailedCbGenReceipt.bankId ?? 0,
             paymentTypeId: detailedCbGenReceipt.paymentTypeId ?? 0,
             chequeNo: detailedCbGenReceipt.chequeNo ?? "",
-            chequeDate: detailedCbGenReceipt.chequeDate ?? "",
+            chequeDate: detailedCbGenReceipt.chequeDate
+              ? format(
+                  parseDate(detailedCbGenReceipt.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbGenReceipt.bankChgGLId ?? 0,
             bankChgAmt: detailedCbGenReceipt.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbGenReceipt.bankChgLocalAmt ?? 0,
@@ -1130,7 +1141,13 @@ export default function CbGenReceiptPage() {
             bankId: detailedCbGenReceipt.bankId ?? 0,
             paymentTypeId: detailedCbGenReceipt.paymentTypeId ?? 0,
             chequeNo: detailedCbGenReceipt.chequeNo ?? "",
-            chequeDate: detailedCbGenReceipt.chequeDate ?? "",
+            chequeDate: detailedCbGenReceipt.chequeDate
+              ? format(
+                  parseDate(detailedCbGenReceipt.chequeDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
             bankChgGLId: detailedCbGenReceipt.bankChgGLId ?? 0,
             bankChgAmt: detailedCbGenReceipt.bankChgAmt ?? 0,
             bankChgLocalAmt: detailedCbGenReceipt.bankChgLocalAmt ?? 0,
