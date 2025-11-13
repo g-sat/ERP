@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -971,6 +971,13 @@ export default function CbPettyCashDetailsForm({
     form.setValue("gstAmt", value)
   }
 
+  const gstPercentage = form.watch("gstPercentage")
+
+  const isServiceTypeRequired = useCallback(() => {
+    const value = Number(gstPercentage ?? 0)
+    return value > 0
+  }, [gstPercentage])
+
   return (
     <>
       {/* Display form errors only after submit attempt */}
@@ -1063,22 +1070,22 @@ export default function CbPettyCashDetailsForm({
           )}
 
           {/* Supplier Name */}
-          {visible?.m_SupplierName && (
+          {visible?.m_InvoiceNo && (
             <CustomInput
               form={form}
-              name="supplierName"
-              label="Supplier Name"
+              name="invoiceNo"
+              label="Invoice No"
               isRequired={true}
               onChangeEvent={checkDuplicateOnChange}
             />
           )}
 
-          {/* GST No */}
-          {visible?.m_GstNo && (
+          {/* Supplier Name */}
+          {visible?.m_SupplierName && (
             <CustomInput
               form={form}
-              name="gstNo"
-              label="GST No"
+              name="supplierName"
+              label="Supplier Name"
               isRequired={true}
               onChangeEvent={checkDuplicateOnChange}
             />
@@ -1306,13 +1313,23 @@ export default function CbPettyCashDetailsForm({
             />
           )}
 
+          {/* GST No */}
+          {visible?.m_GstNo && (
+            <CustomInput
+              form={form}
+              name="gstNo"
+              label="GST No"
+              isRequired={isServiceTypeRequired()}
+            />
+          )}
+
           {/* Service Type */}
           {visible?.m_ServiceTypeId && (
             <ServiceTypeAutocomplete
               form={form}
               name="serviceTypeId"
               label="Service Type"
-              isRequired={visible?.m_ServiceTypeId}
+              isRequired={isServiceTypeRequired()}
               onChangeEvent={handleServiceTypeChange}
             />
           )}

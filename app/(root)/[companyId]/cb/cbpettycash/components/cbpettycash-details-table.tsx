@@ -72,15 +72,6 @@ export default function CbPettyCashDetailsTable({
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
-    ...(visible?.m_ProductId
-      ? [
-          {
-            accessorKey: "productName",
-            header: "Product",
-            size: 100,
-          },
-        ]
-      : []),
     {
       accessorKey: "glCode",
       header: "Code",
@@ -91,15 +82,35 @@ export default function CbPettyCashDetailsTable({
       header: "Account",
       size: 100,
     },
-    ...(visible?.m_DepartmentId
+
+    ...(visible?.m_InvoiceDate
       ? [
           {
-            accessorKey: "departmentName",
-            header: "Department",
+            accessorKey: "invoiceDate",
+            header: "Invoice Date",
             size: 100,
           },
         ]
       : []),
+    ...(visible?.m_InvoiceNo
+      ? [
+          {
+            accessorKey: "invoiceNo",
+            header: "Invoice No",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_SupplierName
+      ? [
+          {
+            accessorKey: "supplierName",
+            header: "Supplier Name",
+            size: 100,
+          },
+        ]
+      : []),
+
     ...(visible?.m_Remarks
       ? [
           {
@@ -152,6 +163,34 @@ export default function CbPettyCashDetailsTable({
         </div>
       ),
     },
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "Job Order No",
+            size: 100,
+          },
+          {
+            accessorKey: "taskName",
+            header: "Task Name",
+            size: 100,
+          },
+          {
+            accessorKey: "serviceName",
+            header: "Service Name",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_DepartmentId
+      ? [
+          {
+            accessorKey: "departmentName",
+            header: "Department",
+            size: 100,
+          },
+        ]
+      : []),
     ...(visible?.m_CtyCurr
       ? [
           {
@@ -241,6 +280,25 @@ export default function CbPettyCashDetailsTable({
           {
             accessorKey: "voyageName",
             header: "Voyage",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_GstNo
+      ? [
+          {
+            accessorKey: "gstNo",
+            header: "GST No",
+            size: 100,
+          },
+        ]
+      : []),
+
+    ...(visible?.m_ServiceTypeId
+      ? [
+          {
+            accessorKey: "serviceTypeName",
+            header: "Service Type",
             size: 200,
           },
         ]

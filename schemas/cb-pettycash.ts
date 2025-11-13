@@ -214,7 +214,7 @@ export const CbPettyCashDtSchema = (
 
     // Service Type Fields
     serviceTypeId: visible?.m_ServiceTypeId
-      ? z.number().min(1, "Service Type is required")
+      ? z.number().optional()
       : z.number().optional(),
     serviceTypeName: z.string().optional(),
 
