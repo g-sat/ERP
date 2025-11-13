@@ -1,18 +1,11 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
-import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/ap-adjustment-calculations"
+import { useEffect, useRef, useState } from "react"
+import { calculateAdjustmentHeaderTotals } from "@/helpers/ap-adjustment-calculations"
 import { IApAdjustmentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  ApAdjustmentDtSchemaType,
-  ApAdjustmentHdSchemaType,
-} from "@/schemas/ap-adjustment"
+import { ApAdjustmentDtSchemaType, ApAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -30,6 +23,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -39,6 +33,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -58,9 +53,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousAdjustmentKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentAdjustmentId = form.watch("adjustmentId")
+  const currentAdjustmentNo = form.watch("adjustmentNo")
+
+  useEffect(() => {
+    const currentKey = `${currentAdjustmentId ?? ""}::${currentAdjustmentNo ?? ""}`
+    if (previousAdjustmentKeyRef.current === currentKey) {
+      return
+    }
+
+    previousAdjustmentKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentAdjustmentId, currentAdjustmentNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -68,6 +81,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IApAdjustmentDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailAdjustmentId = `${detail.adjustmentId ?? ""}`
+      const editingAdjustmentId = `${editingDetail.adjustmentId ?? ""}`
+      const detailAdjustmentNo = detail.adjustmentNo ?? ""
+      const editingAdjustmentNo = editingDetail.adjustmentNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailAdjustmentId === editingAdjustmentId &&
+        detailAdjustmentNo === editingAdjustmentNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -82,36 +118,32 @@ export default function Main({
       form.setValue("totCtyAmt", 0)
       form.setValue("gstCtyAmt", 0)
       form.setValue("totCtyAmtAftGst", 0)
+      form.setValue("isDebit", false)
       return
     }
 
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    const headerTotals = calculateAdjustmentHeaderTotals(
       dataDetails as unknown as IApAdjustmentDt[],
-      amtDec
+      decimals[0],
+      !!visible?.m_CtyCurr
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IApAdjustmentDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as IApAdjustmentDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+    form.setValue("isDebit", headerTotals.isDebit)
+    form.setValue("totAmt", headerTotals.totAmt)
+    form.setValue("gstAmt", headerTotals.gstAmt)
+    form.setValue("totAmtAftGst", headerTotals.totAmtAftGst)
+    form.setValue("totLocalAmt", headerTotals.totLocalAmt)
+    form.setValue("gstLocalAmt", headerTotals.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", headerTotals.totLocalAmtAftGst)
+    if (visible?.m_CtyCurr) {
+      form.setValue("totCtyAmt", headerTotals.totCtyAmt)
+      form.setValue("gstCtyAmt", headerTotals.gstCtyAmt)
+      form.setValue("totCtyAmtAftGst", headerTotals.totCtyAmtAftGst)
+    } else {
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
+    }
 
     // Trigger form validation to update UI
     form.trigger([
@@ -124,6 +156,7 @@ export default function Main({
       "totCtyAmt",
       "gstCtyAmt",
       "totCtyAmtAftGst",
+      "isDebit",
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
@@ -229,8 +262,9 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.ap.currencyId}
+        defaultCurrencyId={defaults.ar.currencyId}
       />
+
       <AdjustmentDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
@@ -240,9 +274,10 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as ApAdjustmentDtSchemaType[]}
-        defaultGlId={defaults.ap.creditNoteGlId}
+        defaultGlId={defaults.ar.adjustmentGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <AdjustmentDetailsTable
@@ -257,6 +292,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: IApAdjustmentDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

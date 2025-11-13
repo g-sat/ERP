@@ -1,6 +1,6 @@
 "use client"
 
-import { ApAdjustmentHdSchemaType } from "@/schemas/ap-adjustment"
+import { ApAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 

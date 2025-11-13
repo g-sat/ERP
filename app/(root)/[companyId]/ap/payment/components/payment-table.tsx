@@ -1,15 +1,18 @@
-import { useState } from "react"
-import { IApPaymentFilter, IApPaymentHd } from "@/interfaces/ap-payment"
+import { useEffect, useMemo, useState } from "react"
+import { IApPaymentFilter, IApPaymentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, subMonths } from "date-fns"
+import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
+import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ApPayment } from "@/lib/api-routes"
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetWithDates } from "@/hooks/use-common"
+import { useGetWithDatesAndPagination } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
@@ -17,66 +20,169 @@ export interface PaymentTableProps {
   onPaymentSelect: (selectedPayment: IApPaymentHd | undefined) => void
   onFilterChange: (filters: IApPaymentFilter) => void
   initialFilters?: IApPaymentFilter
+  pageSize: number
+  onClose?: () => void
 }
 
 export default function PaymentTable({
   onPaymentSelect,
   onFilterChange,
   initialFilters,
+  pageSize: _pageSize,
+  onClose,
 }: PaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 9
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.payment
 
+  const today = useMemo(() => new Date(), [])
+  const defaultStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const form = useForm({
     defaultValues: {
-      startDate:
-        initialFilters?.startDate ||
-        format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-      endDate: initialFilters?.endDate || format(new Date(), "yyyy-MM-dd"),
+      startDate: initialFilters?.startDate || defaultStartDate,
+      endDate: initialFilters?.endDate || defaultEndDate,
     },
   })
 
   const [searchQuery] = useState("")
-  const [currentPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(_pageSize)
 
-  // Data fetching - only when table is opened
+  // State to track if search has been clicked
+  const [hasSearched, setHasSearched] = useState(false)
+  // Store the actual search dates - initialize from initialFilters if available
+  const [searchStartDate, setSearchStartDate] = useState<string | undefined>(
+    initialFilters?.startDate?.toString() || defaultStartDate
+  )
+  const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
+    initialFilters?.endDate?.toString() || defaultEndDate
+  )
+
+  // Update form values when initialFilters change (when dialog reopens)
+  useEffect(() => {
+    form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
+    form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
+
+    setSearchStartDate(
+      initialFilters?.startDate?.toString() || defaultStartDate
+    )
+    setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
+  }, [initialFilters, form, defaultStartDate, defaultEndDate])
+
+  // Data fetching - only after search button is clicked OR if dates are already set
   const {
     data: paymentsResponse,
     isLoading: isLoadingPayments,
     isRefetching: isRefetchingPayments,
     refetch: refetchPayments,
-  } = useGetWithDates<IApPaymentHd>(
+  } = useGetWithDatesAndPagination<IApPaymentHd>(
     `${ApPayment.get}`,
     TableName.apPayment,
     searchQuery,
-    form.watch("startDate")?.toString(),
-    form.watch("endDate")?.toString(),
+    searchStartDate,
+    searchEndDate,
+    currentPage,
+    pageSize,
     undefined, // options
-    true // enabled: Fetch when table is opened
+    hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
   const data = paymentsResponse?.data || []
+  const totalRecords = paymentsResponse?.totalRecords || data.length
   const isLoading = isLoadingPayments || isRefetchingPayments
 
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
+  const getPaymentStatus = (
+    balAmt: number,
+    payAmt: number,
+    isCancel: boolean
+  ) => {
+    if (isCancel) {
+      return "Cancelled"
+    }
+    // if (balAmt === 0 && payAmt > 0) {
+    //   return "Fully Paid"
+    // } else if (balAmt > 0 && payAmt > 0) {
+    //   return "Partially Paid"
+    // } else if (balAmt > 0 && payAmt === 0) {
+    //   return "Not Paid"
+    // }
+    // else if (balAmt === 0 && payAmt === 0) {
+    //   return "Cancelled"
+    // }
+    return ""
   }
 
   const columns: ColumnDef<IApPaymentHd>[] = [
     {
       accessorKey: "paymentNo",
       header: "Payment No",
+    },
+    {
+      accessorKey: "paymentStatus",
+      header: "Payment Status",
+      cell: ({ row }) => {
+        const balAmt = row.original.unAllocTotAmt ?? 0
+        const payAmt = row.original.allocTotAmt ?? 0
+        const isCancel = row.original.isCancel ?? false
+        const status = getPaymentStatus(balAmt, payAmt, isCancel)
+
+        const getStatusStyle = (status: string) => {
+          switch (status) {
+            // case "Fully Paid":
+            //   return "bg-green-100 text-green-800"
+            // case "Partially Paid":
+            //   return "bg-orange-100 text-orange-800"
+            // case "Not Paid":
+            //   return "bg-red-100 text-red-800"
+            case "Cancelled":
+              return "bg-gray-100 text-gray-800"
+            default:
+              return "bg-gray-100 text-gray-800"
+          }
+        }
+
+        const getStatusDot = (status: string) => {
+          switch (status) {
+            // case "Fully Paid":
+            //   return "bg-green-400"
+            // case "Partially Paid":
+            //   return "bg-orange-400"
+            // case "Not Paid":
+            //   return "bg-red-400"
+            case "Cancelled":
+              return "bg-gray-400"
+            default:
+              return "bg-gray-400"
+          }
+        }
+
+        return (
+          <div className="flex justify-center">
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(status)}`}
+            >
+              <span
+                className={`mr-1 h-2 w-2 rounded-full ${getStatusDot(status)}`}
+              ></span>
+              {status}
+            </span>
+          </div>
+        )
+      },
     },
     {
       accessorKey: "referenceNo",
@@ -291,16 +397,60 @@ export default function PaymentTable({
   ]
 
   const handleSearchPayment = () => {
+    const startDate = form.getValues("startDate")
+    const endDate = form.getValues("endDate")
+
+    // Store the search dates (convert to string if needed)
+    setSearchStartDate(startDate?.toString())
+    setSearchEndDate(endDate?.toString())
+    setHasSearched(true) // Enable the query
+    setCurrentPage(1) // Reset to first page when searching
+
     const newFilters: IApPaymentFilter = {
-      startDate: form.getValues("startDate"),
-      endDate: form.getValues("endDate"),
+      startDate: startDate,
+      endDate: endDate,
       search: searchQuery,
       sortBy: "paymentNo",
       sortOrder: "asc",
-      pageNumber: currentPage,
+      pageNumber: 1, // Always start from page 1 when searching
       pageSize: pageSize,
     }
     onFilterChange(newFilters)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IApPaymentFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "paymentNo",
+        sortOrder: "asc",
+        pageNumber: page,
+        pageSize: pageSize,
+      }
+      onFilterChange(newFilters)
+    }
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IApPaymentFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "paymentNo",
+        sortOrder: "asc",
+        pageNumber: 1,
+        pageSize: size,
+      }
+      onFilterChange(newFilters)
+    }
   }
 
   const handleDialogFilterChange = (filters: {
@@ -321,53 +471,70 @@ export default function PaymentTable({
     }
   }
 
-  // Show loading spinner while data is loading
-  if (isLoadingPayments) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading payments...</p>
-          <p className="mt-2 text-xs text-gray-500">
-            Please wait while we fetch the payment list
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="w-full overflow-auto">
-      <FormProvider {...form}>
-        <div className="mb-4 flex items-center gap-2">
-          {/* From Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">From Date:</span>
-            <CustomDateNew
-              form={form}
-              name="startDate"
-              isRequired={true}
-              size="sm"
-            />
-          </div>
+      {/* Compact Filter Section */}
+      <div className="bg-card mb-2 rounded-lg border p-3">
+        <FormProvider {...form}>
+          <div className="flex items-center gap-3">
+            {/* Date Filters */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  From:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="startDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  To:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="endDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+            </div>
 
-          {/* To Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">To Date:</span>
-            <CustomDateNew
-              form={form}
-              name="endDate"
-              isRequired={true}
+            {/* Search Button */}
+            <Button
+              variant="default"
               size="sm"
-            />
-          </div>
+              onClick={handleSearchPayment}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Loading...
+                </>
+              ) : (
+                "Search"
+              )}
+            </Button>
 
-          <Button variant="outline" size="sm" onClick={handleSearchPayment}>
-            Search Payment
-          </Button>
-        </div>
-      </FormProvider>
-      <Separator className="mb-4" />
+            {/* Close Button */}
+            {onClose && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="ml-auto"
+              >
+                <X className="mr-1 h-4 w-4" />
+                Close
+              </Button>
+            )}
+          </div>
+        </FormProvider>
+      </div>
 
       <DialogDataTable
         data={data}
@@ -376,10 +543,17 @@ export default function PaymentTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.apPayment}
-        emptyMessage="No data found."
+        emptyMessage="No payments found matching your criteria. Try adjusting the date range or search terms."
         onRefresh={() => refetchPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
+        // Pagination props
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalRecords={totalRecords}
+        serverSidePagination={true}
       />
     </div>
   )

@@ -1,189 +1,402 @@
-import { mathRound } from "@/helpers/account"
+import {
+  calculateDivisionAmount,
+  calculateMultiplierAmount,
+  calculateSubtractionAmount,
+} from "@/helpers/account"
 import { IApRefundDt, IDecimal } from "@/interfaces"
 
-/**
- * Calculate total amounts (base currency)
- */
-export const calculateTotalAmounts = (
-  details: IApRefundDt[],
-  amtDec: number
-) => {
-  const totals = {
-    totAmt: 0,
-  }
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-  details.forEach((detail) => {
-    totals.totAmt += Number(detail.docTotAmt) || 0
-  })
-
-  return {
-    totAmt: mathRound(totals.totAmt, amtDec),
-  }
+export const validateAllocation = (details: IApRefundDt[]): boolean => {
+  return details.length > 0
 }
 
-/**
- * Calculate local currency amounts
- */
-export const calculateLocalAmounts = (
-  details: IApRefundDt[],
-  locAmtDec: number
-) => {
-  const totals = {
-    totLocalAmt: 0,
-  }
-
-  details.forEach((detail) => {
-    totals.totLocalAmt += Number(detail.docTotLocalAmt) || 0
-  })
-
-  return {
-    totLocalAmt: mathRound(totals.totLocalAmt, locAmtDec),
-  }
-}
+// ============================================================================
+// HEADER CALCULATIONS
+// ============================================================================
 
 /**
- * Calculate country currency amounts
+ * Same Currency scenario
+ * Inputs: totAmt, exhRate
+ * Outputs: { totAmt, totLocalAmt, payTotAmt, payTotLocalAmt }
  */
-export const calculateCountryAmounts = (
-  details: IApRefundDt[],
-  ctyAmtDec: number
-) => {
-  const totals = {
-    totCtyAmt: 0,
-  }
-
-  details.forEach((detail) => {
-    totals.totCtyAmt += Number(detail.docTotAmt) || 0
-  })
-
-  return {
-    totCtyAmt: mathRound(totals.totCtyAmt, ctyAmtDec),
-  }
-}
-
-/**
- * Calculate GST amount based on total amount and GST percentage
- */
-export const calculateGstAmount = (
+export const calculateSameCurrency = (
   totAmt: number,
-  gstPercentage: number,
+  exhRate: number,
   decimals: IDecimal
 ) => {
-  const gstAmt = (totAmt * gstPercentage) / 100
-  return mathRound(gstAmt, decimals.amtDec)
-}
-
-/**
- * Calculate local amount based on total amount and exchange rate
- */
-export const calculateLocalAmount = (
-  totAmt: number,
-  exchangeRate: number,
-  decimals: IDecimal
-) => {
-  const localAmt = totAmt * exchangeRate
-  return mathRound(localAmt, decimals.locAmtDec)
-}
-
-/**
- * Calculate country amount based on total amount and city exchange rate
- */
-export const calculateCountryAmount = (
-  totAmt: number,
-  cityExchangeRate: number,
-  decimals: IDecimal
-) => {
-  const countryAmt = totAmt * cityExchangeRate
-  return mathRound(countryAmt, decimals.ctyAmtDec)
-}
-
-/**
- * Calculate total amount based on quantity and unit price
- */
-export const calculateTotalAmount = (
-  qty: number,
-  unitPrice: number,
-  decimals: IDecimal
-) => {
-  const totAmt = qty * unitPrice
-  return mathRound(totAmt, decimals.amtDec)
-}
-
-/**
- * Recalculate all amounts for a detail row based on exchange rates
- */
-export const recalculateDetailAmounts = (
-  detail: IApRefundDt,
-  exchangeRate: number,
-  decimals: IDecimal
-) => {
-  const totAmt = detail.docTotAmt || 0
-
-  // Calculate local amounts
-  const totLocalAmt = calculateLocalAmount(totAmt, exchangeRate, decimals)
+  const totLocalAmt = calculateMultiplierAmount(
+    totAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+  const payTotAmt = totAmt
+  const payTotLocalAmt = totLocalAmt
 
   return {
-    ...detail,
+    totAmt,
+    totLocalAmt,
+    payTotAmt,
+    payTotLocalAmt,
+  }
+}
+
+/**
+ * Different Currency scenario
+ * Inputs: payTotAmt, payExhRate, exhRate
+ * Outputs: { payTotAmt, payTotLocalAmt, totAmt, totLocalAmt }
+ */
+export const calculateDiffCurrency = (
+  payTotAmt: number,
+  payExhRate: number,
+  exhRate: number,
+  decimals: IDecimal
+) => {
+  const payTotLocalAmt = calculateMultiplierAmount(
+    payTotAmt,
+    payExhRate,
+    decimals.locAmtDec
+  )
+  const totAmt = calculateDivisionAmount(
+    payTotLocalAmt,
+    exhRate,
+    decimals.amtDec
+  )
+  const totLocalAmt = calculateMultiplierAmount(
+    totAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+
+  return {
+    payTotAmt,
+    payTotLocalAmt,
+    totAmt,
     totLocalAmt,
   }
 }
 
+// ============================================================================
+// AUTO ALLOCATION
+// ============================================================================
+
 /**
- * Recalculate all amounts for all detail rows based on exchange rates
+ * Auto allocation over details.
+ * Conditions:
+ * 1) If totAmt == 0: set allocAmt = docBalAmt for all rows
+ * 2) If totAmt > 0: sort rows placing negative docBalAmt first, then allocate
+ *    by consuming remaining amount across positives; negatives are fully taken first
+ * After allocation, computes local amounts, doc allocations, gain/loss, sums.
  */
-export const recalculateAllDetailAmounts = (
+export const autoAllocateAmounts = (
   details: IApRefundDt[],
-  exchangeRate: number,
-  decimals: IDecimal
+  totAmt: number,
+  decimals?: IDecimal
 ) => {
-  return details.map((detail) =>
-    recalculateDetailAmounts(detail, exchangeRate, decimals)
-  )
-}
+  const updatedDetails = (details || []).map((d) => ({ ...d }))
 
-/**
- * Calculate allocation amounts and exchange gain/loss for auto-allocated transactions
- */
-export const calculateAllocationAmounts = (
-  allocAmt: number,
-  exhRate: number,
-  docExhRate: number,
-  docTotLocalAmt: number,
-  decimals: IDecimal
-) => {
-  // Calculate allocation amounts
-  const allocLocalAmt = mathRound(allocAmt * exhRate, decimals.locAmtDec)
-  const docAllocAmt = allocAmt
-  const docAllocLocalAmt = mathRound(allocAmt * docExhRate, decimals.locAmtDec)
+  if (totAmt === 0) {
+    // Rule 1: totAmt == 0 → allocAmt = docBalAmt for all
+    updatedDetails.forEach((row) => {
+      const balanceAmount = Number(row.docBalAmt) || 0
+      row.allocAmt = balanceAmount
+    })
+  } else {
+    // Rule 2: totAmt <> 0 → allocate with negatives first
+    let remainingAllocationAmt = Number(totAmt) || 0
 
-  // Calculate cent difference
-  const centDiff = mathRound(
-    docAllocLocalAmt - allocLocalAmt,
-    decimals.locAmtDec
-  )
+    // Keep original order reference
+    const byItemNo = new Map<number, IApRefundDt>()
+    updatedDetails.forEach((r) => byItemNo.set(r.itemNo, r))
 
-  // Exchange gain/loss equals cent difference
-  const exhGainLoss = centDiff
+    // Sort: negatives first, keep relative order otherwise
+    const sorted = [...updatedDetails].sort((a, b) => {
+      const aBal = Number(a.docBalAmt) || 0
+      const bBal = Number(b.docBalAmt) || 0
+      if (aBal < 0 && bBal >= 0) return -1
+      if (aBal >= 0 && bBal < 0) return 1
+      return 0
+    })
+
+    sorted.forEach((row) => {
+      const balanceAmount = Number(row.docBalAmt) || 0
+
+      if (balanceAmount < 0) {
+        // Fully take negatives first; increases remaining
+        row.allocAmt = balanceAmount
+        remainingAllocationAmt = decimals
+          ? calculateSubtractionAmount(
+              remainingAllocationAmt,
+              balanceAmount,
+              decimals.amtDec
+            )
+          : remainingAllocationAmt - balanceAmount // subtracting a negative adds
+        return
+      }
+
+      if (remainingAllocationAmt <= 0) {
+        row.allocAmt = 0
+        return
+      }
+
+      if (remainingAllocationAmt >= balanceAmount) {
+        row.allocAmt = balanceAmount
+        remainingAllocationAmt = decimals
+          ? calculateSubtractionAmount(
+              remainingAllocationAmt,
+              balanceAmount,
+              decimals.amtDec
+            )
+          : remainingAllocationAmt - balanceAmount
+      } else {
+        row.allocAmt = remainingAllocationAmt
+        remainingAllocationAmt = 0
+      }
+    })
+
+    // Write back allocations to objects in original order
+    sorted.forEach((r) => {
+      const target = byItemNo.get(r.itemNo)
+      if (target) target.allocAmt = r.allocAmt
+    })
+  }
 
   return {
-    allocLocalAmt,
-    docAllocAmt,
-    docAllocLocalAmt,
-    centDiff,
-    exhGainLoss,
+    updatedDetails,
   }
 }
 
-/**
- * Calculate total exchange gain/loss from all details
- */
-export const calculateTotalExchangeGainLoss = (
+export const calauteLocalAmtandGainLoss = (
   details: IApRefundDt[],
+  rowNumber: number,
+  exhRate: number,
   decimals: IDecimal
 ) => {
-  const totalExhGainLoss = details.reduce((sum, detail) => {
-    return sum + (Number(detail.exhGainLoss) || 0)
-  }, 0)
+  if (!details || rowNumber < 0 || rowNumber >= details.length) {
+    return details?.[rowNumber]
+  }
 
-  return mathRound(totalExhGainLoss, decimals.amtDec)
+  const allocAmt = Number(details[rowNumber].allocAmt) || 0
+  if (allocAmt === 0) {
+    details[rowNumber].allocLocalAmt = 0
+    details[rowNumber].docAllocAmt = 0
+    details[rowNumber].docAllocLocalAmt = 0
+    details[rowNumber].centDiff = 0
+    details[rowNumber].exhGainLoss = 0
+    return details[rowNumber]
+  }
+
+  const allocLocalAmt = calculateMultiplierAmount(
+    allocAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+  const docAllocAmt = allocAmt
+  const docAllocLocalAmt = calculateMultiplierAmount(
+    allocAmt,
+    details[rowNumber].docExhRate,
+    decimals.locAmtDec
+  )
+  const exhGainLoss = calculateSubtractionAmount(
+    docAllocLocalAmt,
+    allocLocalAmt,
+    decimals.locAmtDec
+  )
+  // centDiff is always set to 0
+  const centDiff = 0
+
+  details[rowNumber].allocLocalAmt = allocLocalAmt
+  details[rowNumber].docAllocAmt = docAllocAmt
+  details[rowNumber].docAllocLocalAmt = docAllocLocalAmt
+  details[rowNumber].centDiff = centDiff
+  details[rowNumber].exhGainLoss = exhGainLoss
+  return details[rowNumber]
+}
+
+export const calculateManualAllocation = (
+  details: IApRefundDt[],
+  rowNumber: number,
+  allocAmt: number,
+  totAmt?: number,
+  decimals?: IDecimal
+): { result: IApRefundDt; wasAutoSetToZero: boolean } => {
+  // console.log(
+  //   "calculateManualAllocation",
+  //   details,
+  //   rowNumber,
+  //   allocAmt,
+  //   totAmt,
+  //   decimals
+  // )
+  if (!details || rowNumber < 0 || rowNumber >= details.length) {
+    //console.log("calculateManualAllocation not valid", details, rowNumber)
+    return { result: details[rowNumber], wasAutoSetToZero: false }
+  }
+
+  const currentBalance = Number(details[rowNumber].docBalAmt) || 0
+  //console.log("calculateManualAllocation currentBalance", currentBalance)
+  let finalAllocation = Number(allocAmt) || 0
+  const originalRequestedAllocation = finalAllocation
+  let wasAutoSetToZero = false
+  //console.log("calculateManualAllocation finalAllocation", finalAllocation)
+
+  // Helper function to subtract amount from remaining with decimals support
+  const subtractFromRemaining = (remaining: number, amount: number) => {
+    return decimals
+      ? calculateSubtractionAmount(remaining, amount, decimals.amtDec)
+      : remaining - amount
+  }
+
+  // Helper function to validate and clamp allocation to balance limits
+  const clampAllocationToBalance = (allocation: number, balance: number) => {
+    //console.log("clampAllocationToBalance", allocation, balance)
+    if (balance === 0) return 0
+
+    const maxAbsBalance = Math.abs(balance)
+    const absAllocation = Math.abs(allocation)
+    if (absAllocation > maxAbsBalance) {
+      return Math.sign(balance) * maxAbsBalance
+    }
+    return allocation
+  }
+
+  // If totAmt is provided, calculate with negatives-first logic
+  if (totAmt !== undefined && totAmt > 0) {
+    //console.log("calculateManualAllocation totAmt", totAmt)
+    let remainingAllocationAmt = Number(totAmt) || 0
+    //console.log(
+    //  "calculateManualAllocation remainingAllocationAmt",
+    //  remainingAllocationAmt
+    //)
+
+    // Process all other rows to calculate remaining allocation
+    details.forEach((row, idx) => {
+      if (idx === rowNumber) return // Skip current row
+
+      const rowBalance = Number(row.docBalAmt) || 0
+      const rowAllocatedAmt = Number(row.allocAmt) || 0
+      //console.log("calculateManualAllocation rowBalance", rowBalance)
+      //console.log("calculateManualAllocation rowAllocatedAmt", rowAllocatedAmt)
+
+      // First, handle unallocated negative balances (adds to remaining)
+      if (rowBalance < 0 && rowAllocatedAmt === 0) {
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          rowBalance
+        )
+      }
+
+      // Then, subtract already allocated amounts
+      if (rowAllocatedAmt !== 0) {
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          rowAllocatedAmt
+        )
+      }
+    })
+
+    // Handle current row based on its balance type
+    if (currentBalance < 0) {
+      console.log(
+        "calculateManualAllocation currentBalance < 0",
+        finalAllocation,
+        currentBalance
+      )
+      // For negative balance, take it fully if desired amount allows
+      if (finalAllocation < 0) {
+        console.log(
+          "calculateManualAllocation finalAllocation < 0",
+          finalAllocation,
+          currentBalance
+        )
+        finalAllocation = currentBalance // Take full negative balance
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          finalAllocation
+        )
+      } else {
+        finalAllocation = 0 // Don't take if trying to allocate positive to negative
+        console.log(
+          "calculateManualAllocation finalAllocation > 0",
+          finalAllocation,
+          currentBalance
+        )
+      }
+    } else if (currentBalance > 0) {
+      console.log(
+        "calculateManualAllocation currentBalance > 0",
+        finalAllocation,
+        currentBalance
+      )
+      // For positive balance, validate against remaining amount
+      finalAllocation = clampAllocationToBalance(
+        finalAllocation,
+        currentBalance
+      )
+      console.log(
+        "calculateManualAllocation finalAllocation after clamp",
+        finalAllocation,
+        currentBalance
+      )
+
+      // Check if allocation is valid against remaining amount
+      if (
+        remainingAllocationAmt <= 0 ||
+        finalAllocation > remainingAllocationAmt
+      ) {
+        // Only mark as auto-set if user actually requested an allocation
+        if (originalRequestedAllocation > 0 && remainingAllocationAmt <= 0) {
+          wasAutoSetToZero = true
+        }
+        finalAllocation = 0
+        wasAutoSetToZero = true
+        console.log(
+          "calculateManualAllocation wasAutoSetToZero",
+          wasAutoSetToZero
+        )
+        console.log(
+          "calculateManualAllocation finalAllocation after remainingAllocationAmt <= 0",
+          finalAllocation,
+          remainingAllocationAmt
+        )
+      } else {
+        console.log(
+          "calculateManualAllocation finalAllocation after remainingAllocationAmt > 0",
+          finalAllocation,
+          remainingAllocationAmt
+        )
+        // Valid allocation, reduce remaining
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          finalAllocation
+        )
+      }
+    } else {
+      // currentBalance === 0, no allocation
+      console.log(
+        "calculateManualAllocation currentBalance === 0",
+        finalAllocation,
+        currentBalance
+      )
+      finalAllocation = 0
+    }
+  } else {
+    // No totAmt validation, just enforce basic constraints
+    console.log(
+      "calculateManualAllocation no totAmt",
+      finalAllocation,
+      currentBalance
+    )
+    finalAllocation = clampAllocationToBalance(finalAllocation, currentBalance)
+    console.log(
+      "calculateManualAllocation finalAllocation after clamp",
+      finalAllocation,
+      currentBalance
+    )
+  }
+
+  details[rowNumber].allocAmt = finalAllocation
+  return { result: details[rowNumber], wasAutoSetToZero }
 }

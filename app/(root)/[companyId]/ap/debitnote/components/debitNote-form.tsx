@@ -15,7 +15,7 @@ import {
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
 } from "@/helpers/ap-debitNote-calculations"
-import { IApDebitNoteDt } from "@/interfaces"
+import { IApDebitNoteDt, IApSupplierInvoice } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
@@ -25,16 +25,23 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ApDebitNoteDtSchemaType, ApDebitNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
-import { FormProvider, UseFormReturn } from "react-hook-form"
+import { format, isValid, parse } from "date-fns"
+import { PlusIcon } from "lucide-react"
+import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
+import { toast } from "sonner"
 
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
-  CompanySupplierAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
+  DynamicSupplierAutocomplete,
+  SupplierAutocomplete,
 } from "@/components/autocomplete"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
+import InvoiceSelectionDialog from "@/components/common/ap-invoice-selection-dialog"
+import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -65,19 +72,150 @@ export default function DebitNoteForm({
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
+
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = React.useCallback(
+    (value: string): Date | null => {
+      if (!value) return null
+
+      const parsedByDateFormat = parse(value, dateFormat, new Date())
+      if (isValid(parsedByDateFormat)) {
+        return parsedByDateFormat
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  // Watch account date to use as minDate for due date
+  const accountDateValue = useWatch({
+    control: form.control,
+    name: "accountDate",
+  })
+  const supplierIdValue = useWatch({
+    control: form.control,
+    name: "supplierId",
+  })
+  const currencyIdValue = useWatch({
+    control: form.control,
+    name: "currencyId",
+  })
+  const invoiceIdValue = useWatch({
+    control: form.control,
+    name: "invoiceId",
+  })
+  const dueDateMinDate = React.useMemo(() => {
+    if (!accountDateValue) return new Date()
+
+    // Parse account date string to Date object if needed
+    const accountDateObj =
+      typeof accountDateValue === "string"
+        ? parseWithFallback(accountDateValue)
+        : accountDateValue
+
+    return accountDateObj && !isNaN(accountDateObj.getTime())
+      ? accountDateObj
+      : new Date()
+  }, [accountDateValue, parseWithFallback])
+
+  const isSupplierCurrencyLocked = React.useMemo(() => {
+    if (invoiceIdValue === undefined || invoiceIdValue === null) {
+      return false
+    }
+
+    if (typeof invoiceIdValue === "string") {
+      const trimmed = invoiceIdValue.trim()
+      return trimmed.length > 0 && trimmed !== "0"
+    }
+
+    if (typeof invoiceIdValue === "number") {
+      return invoiceIdValue !== 0
+    }
+
+    return Boolean(invoiceIdValue)
+  }, [invoiceIdValue])
+
+  const supplierIdNumeric = React.useMemo(
+    () => Number(supplierIdValue || 0),
+    [supplierIdValue]
+  )
+  const currencyIdNumeric = React.useMemo(
+    () => Number(currencyIdValue || 0),
+    [currencyIdValue]
+  )
+  const canSelectInvoice = React.useMemo(
+    () => supplierIdNumeric > 0 && currencyIdNumeric > 0,
+    [supplierIdNumeric, currencyIdNumeric]
+  )
+
+  // Refs to store original values on focus for comparison on change
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalCtyExhRateRef = React.useRef<number>(0)
+
+  const [showInvoiceDialog, setShowInvoiceDialog] = React.useState(false)
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
+
+  // Helper function to calculate and set due date
+  const calculateAndSetDueDate = React.useCallback(async () => {
+    const creditTermId = form.getValues("creditTermId")
+    const accountDate = form.getValues("accountDate")
+    const deliveryDate = form.getValues("deliveryDate")
+
+    console.log("creditTermId", creditTermId)
+    console.log("accountDate", accountDate)
+    console.log("deliveryDate", deliveryDate)
+    if (creditTermId && creditTermId > 0) {
+      console.log(
+        "Credit term available - calculate due date based on credit term"
+      )
+      // Credit term available - calculate due date based on credit term
+      await setDueDate(form)
+    } else if (accountDate) {
+      console.log("No credit term - set due date to account date")
+      // No credit term - set due date to account date
+      const dueDateValue =
+        typeof accountDate === "string"
+          ? accountDate
+          : format(accountDate, dateFormat)
+      form.setValue("dueDate", dueDateValue)
+      form.trigger("dueDate")
+    } else {
+      console.log("No account date either - set to today")
+      // No account date either - set to today
+      const todayValue = format(new Date(), dateFormat)
+      form.setValue("dueDate", todayValue)
+      form.trigger("dueDate")
+    }
+    console.log("dueDate", form.getValues("dueDate"))
+  }, [form, dateFormat])
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("gstClaimDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), dateFormat)
+
+      form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
-      form.setValue("accountDate", trnDate)
-      form.setValue("deliveryDate", trnDate)
+      form.setValue("accountDate", trnDateStr)
+      form.setValue("deliveryDate", trnDateStr)
       form?.trigger("accountDate")
       form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
@@ -92,10 +230,55 @@ export default function DebitNoteForm({
       )
       await setDueDate(form)
     },
-    [decimals, exhRateDec, form, visible]
+    [decimals, exhRateDec, form, visible, dateFormat]
   )
 
-  // Handle customer selection
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Format account date to string if it's a Date object
+        const accountDateStr =
+          typeof accountDate === "string"
+            ? accountDate
+            : format(accountDate, dateFormat)
+
+        // Set gstClaimDate and deliveryDate to the new account date (as strings)
+        form.setValue("gstClaimDate", accountDateStr)
+        form?.trigger("gstClaimDate")
+
+        form.setValue("deliveryDate", accountDateStr)
+        form?.trigger("deliveryDate")
+
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, dateFormat)
+          form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
+        }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Calculate and set due date
+        await calculateAndSetDueDate()
+      }
+    },
+    [exhRateDec, form, visible, calculateAndSetDueDate, dateFormat]
+  )
+
+  // Handle supplier selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
       if (selectedSupplier) {
@@ -106,10 +289,12 @@ export default function DebitNoteForm({
           form.setValue("bankId", selectedSupplier.bankId || 0)
         }
 
-        await setDueDate(form)
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
         await setAddressContactDetails(form, EntityType.SUPPLIER)
+
+        // Calculate and set due date after supplier fields are set
+        await calculateAndSetDueDate()
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
@@ -123,8 +308,8 @@ export default function DebitNoteForm({
         form.setValue("exhRate", 0)
         form.setValue("ctyExhRate", 0)
 
-        // Clear due date
-        form.setValue("dueDate", format(new Date(), clientDateFormat))
+        // Calculate and set due date (will use account date if available, otherwise today)
+        await calculateAndSetDueDate()
 
         // Clear address fields
         form.setValue("addressId", 0)
@@ -147,39 +332,23 @@ export default function DebitNoteForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
+    [
+      exhRateDec,
+      form,
+      isEdit,
+      visible,
+      defaultCurrencyId,
+      calculateAndSetDueDate,
+    ]
   )
 
-  // Handle transaction date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
-      await setDueDate(form)
+  // Handle credit term selection
+  const handleCreditTermChange = React.useCallback(
+    async (_selectedCreditTerm: ICreditTermLookup | null) => {
+      // Calculate and set due date when credit term changes
+      await calculateAndSetDueDate()
     },
-    [decimals, exhRateDec, form, visible]
-  )
-
-  // Handle debit term selection
-  const handleDebitTermChange = React.useCallback(
-    (_selectedDebitTerm: ICreditTermLookup | null) => {
-      // Additional logic when debit term changes
-      setDueDate(form)
-    },
-    [form]
+    [calculateAndSetDueDate]
   )
 
   // Handle bank selection
@@ -329,11 +498,97 @@ export default function DebitNoteForm({
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
+
+  // Handle add invoice no to button click
+  const handleAddInvoiceNo = React.useCallback(() => {
+    const selectedSupplierId = Number(form.getValues("supplierId") || 0)
+    if (!selectedSupplierId) {
+      toast.error("Select supplier", {
+        description: "Choose a supplier before selecting an invoice.",
+      })
+      return
+    }
+
+    const selectedCurrencyId = Number(form.getValues("currencyId") || 0)
+    if (!selectedCurrencyId) {
+      toast.error("Select currency", {
+        description: "Choose a currency before selecting an invoice.",
+      })
+      return
+    }
+
+    setShowInvoiceDialog(true)
+  }, [form])
+
+  const handleInvoiceInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value ?? ""
+      if (value.trim().length === 0) {
+        form.setValue("invoiceId", "0", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+        form.setValue("invoiceNo", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+      } else {
+        form.setValue("invoiceId", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+      }
+    },
+    [form]
+  )
+
+  const handleInvoiceSelected = React.useCallback(
+    (invoice: IApSupplierInvoice) => {
+      const invoiceId = invoice.invoiceId ? String(invoice.invoiceId) : ""
+      const invoiceNo = invoice.invoiceNo ?? ""
+
+      form.setValue("invoiceId", invoiceId, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.setValue("invoiceNo", invoiceNo, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.trigger(["invoiceId", "invoiceNo"])
+    },
+    [form]
+  )
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const exchangeRate = value || 0
+      const originalExhRate = originalExhRateRef.current
+
+      console.log("handleExchangeRateChange", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
 
       // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -368,12 +623,37 @@ export default function DebitNoteForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCityExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
+  }, [form])
+
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const cityExchangeRate = value || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      console.log("handleCityExchangeRateChange", {
+        newValue: cityExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: cityExchangeRate !== originalCtyExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        console.log("City Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("City Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -407,7 +687,7 @@ export default function DebitNoteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-2">
+        <div className="col-span-10 grid grid-cols-6 gap-1 gap-y-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -430,15 +710,37 @@ export default function DebitNoteForm({
             isFutureShow={false}
           />
 
-          {/* Supplier */}
-          <CompanySupplierAutocomplete
+          {/* Supplier by company*/}
+          {/* <CompanySupplierAutocomplete
             form={form}
             name="supplierId"
             label="Supplier"
             isRequired={true}
             onChangeEvent={handleSupplierChange}
             companyId={_companyId}
-          />
+          /> */}
+
+          {/* Supplier */}
+          {isDynamicSupplier ? (
+            <DynamicSupplierAutocomplete
+              form={form}
+              name="supplierId"
+              label="Supplier-D"
+              isRequired={true}
+              onChangeEvent={handleSupplierChange}
+              isDisabled={isSupplierCurrencyLocked}
+            />
+          ) : (
+            <SupplierAutocomplete
+              form={form}
+              name="supplierId"
+              label="Supplier-S"
+              isRequired={true}
+              onChangeEvent={handleSupplierChange}
+              isDisabled={isSupplierCurrencyLocked}
+            />
+          )}
+
           {/* supplierDebitNoteNo */}
           <CustomInput
             form={form}
@@ -455,13 +757,13 @@ export default function DebitNoteForm({
             isRequired={required?.m_ReferenceNo}
           />
 
-          {/* Debit Terms */}
+          {/* Credit Terms */}
           <CreditTermAutocomplete
             form={form}
             name="creditTermId"
-            label="Debit Terms"
+            label="Credit Terms"
             isRequired={true}
-            onChangeEvent={handleDebitTermChange}
+            onChangeEvent={handleCreditTermChange}
           />
 
           {/* Due Date */}
@@ -471,6 +773,7 @@ export default function DebitNoteForm({
             label="Due Date"
             isRequired={true}
             isFutureShow={true}
+            minDate={dueDateMinDate}
           />
 
           {/* Bank */}
@@ -491,6 +794,7 @@ export default function DebitNoteForm({
             label="Currency"
             isRequired={true}
             onChangeEvent={handleCurrencyChange}
+            isDisabled={isSupplierCurrencyLocked}
           />
 
           {/* Exchange Rate */}
@@ -501,7 +805,8 @@ export default function DebitNoteForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
-            onBlurEvent={handleExchangeRateChange}
+            onFocusEvent={handleExchangeRateFocus}
+            onChangeEvent={handleExchangeRateChange}
           />
           {visible?.m_CtyCurr && (
             <>
@@ -513,10 +818,26 @@ export default function DebitNoteForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onBlurEvent={handleCityExchangeRateChange}
+                onFocusEvent={handleCityExchangeRateFocus}
+                onChangeEvent={handleCityExchangeRateChange}
               />
             </>
           )}
+
+          {/* Invoice */}
+          <CustomInputGroup
+            form={form}
+            name="invoiceNo"
+            label="Invoice"
+            isRequired={false}
+            buttonText=""
+            buttonIcon={<PlusIcon className="h-4 w-4" />}
+            buttonPosition="right"
+            onButtonClick={handleAddInvoiceNo}
+            buttonVariant="default"
+            buttonDisabled={!canSelectInvoice}
+            onChangeEvent={handleInvoiceInputChange}
+          />
 
           {/* Delivery Date */}
           {visible?.m_DeliveryDate && (
@@ -583,6 +904,16 @@ export default function DebitNoteForm({
             </>
           )}
 
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={true}
+            />
+          )}
+
           {/* Remarks */}
           <CustomTextarea
             form={form}
@@ -593,7 +924,9 @@ export default function DebitNoteForm({
           />
         </div>
 
-        {/* Summary Box */}
+        {/* {form.watch("debitNoteId") != "0" && (
+          <>
+            {/* Summary Box */}
         {/* Right Section: Summary Box */}
         <div className="col-span-2 ml-2 flex flex-col justify-start">
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
@@ -692,6 +1025,13 @@ export default function DebitNoteForm({
           </div>
         </div>
       </form>
+      <InvoiceSelectionDialog
+        open={showInvoiceDialog}
+        onOpenChange={setShowInvoiceDialog}
+        supplierId={supplierIdNumeric}
+        currencyId={currencyIdNumeric}
+        onSelect={handleInvoiceSelected}
+      />
     </FormProvider>
   )
 }

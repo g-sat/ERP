@@ -15,29 +15,27 @@ import {
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
 } from "@/helpers/ap-invoice-calculations"
-import { IApInvoiceDt } from "@/interfaces/ap-invoice"
+import { IApInvoiceDt } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
   ICurrencyLookup,
-  IServiceTypeLookup,
   ISupplierLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  ApInvoiceDtSchemaType,
-  ApInvoiceHdSchemaType,
-} from "@/schemas/ap-invoice"
+import { ApInvoiceDtSchemaType, ApInvoiceHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
-import { FormProvider, UseFormReturn } from "react-hook-form"
+import { format, isValid, parse } from "date-fns"
+import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
-  CompanySupplierAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
+  DynamicSupplierAutocomplete,
+  SupplierAutocomplete,
 } from "@/components/autocomplete"
 import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -70,19 +68,106 @@ export default function InvoiceForm({
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
+
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = React.useCallback(
+    (value: string): Date | null => {
+      if (!value) return null
+
+      const parsedByDateFormat = parse(value, dateFormat, new Date())
+      if (isValid(parsedByDateFormat)) {
+        return parsedByDateFormat
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  // Watch account date to use as minDate for due date
+  const accountDateValue = useWatch({
+    control: form.control,
+    name: "accountDate",
+  })
+  const dueDateMinDate = React.useMemo(() => {
+    if (!accountDateValue) return new Date()
+
+    // Parse account date string to Date object if needed
+    const accountDateObj =
+      typeof accountDateValue === "string"
+        ? parseWithFallback(accountDateValue)
+        : accountDateValue
+
+    return accountDateObj && !isNaN(accountDateObj.getTime())
+      ? accountDateObj
+      : new Date()
+  }, [accountDateValue, parseWithFallback])
+
+  // Refs to store original values on focus for comparison on change
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalCtyExhRateRef = React.useRef<number>(0)
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
+
+  // Helper function to calculate and set due date
+  const calculateAndSetDueDate = React.useCallback(async () => {
+    const creditTermId = form.getValues("creditTermId")
+    const accountDate = form.getValues("accountDate")
+    const deliveryDate = form.getValues("deliveryDate")
+
+    console.log("creditTermId", creditTermId)
+    console.log("accountDate", accountDate)
+    console.log("deliveryDate", deliveryDate)
+    if (creditTermId && creditTermId > 0) {
+      console.log(
+        "Credit term available - calculate due date based on credit term"
+      )
+      // Credit term available - calculate due date based on credit term
+      await setDueDate(form)
+    } else if (accountDate) {
+      console.log("No credit term - set due date to account date")
+      // No credit term - set due date to account date
+      const dueDateValue =
+        typeof accountDate === "string"
+          ? accountDate
+          : format(accountDate, dateFormat)
+      form.setValue("dueDate", dueDateValue)
+      form.trigger("dueDate")
+    } else {
+      console.log("No account date either - set to today")
+      // No account date either - set to today
+      const todayValue = format(new Date(), dateFormat)
+      form.setValue("dueDate", todayValue)
+      form.trigger("dueDate")
+    }
+    console.log("dueDate", form.getValues("dueDate"))
+  }, [form, dateFormat])
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("gstClaimDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), dateFormat)
+
+      form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
-      form.setValue("accountDate", trnDate)
-      form.setValue("deliveryDate", trnDate)
+      form.setValue("accountDate", trnDateStr)
+      form.setValue("deliveryDate", trnDateStr)
       form?.trigger("accountDate")
       form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
@@ -97,10 +182,55 @@ export default function InvoiceForm({
       )
       await setDueDate(form)
     },
-    [decimals, exhRateDec, form, visible]
+    [decimals, exhRateDec, form, visible, dateFormat]
   )
 
-  // Handle customer selection
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Format account date to string if it's a Date object
+        const accountDateStr =
+          typeof accountDate === "string"
+            ? accountDate
+            : format(accountDate, dateFormat)
+
+        // Set gstClaimDate and deliveryDate to the new account date (as strings)
+        form.setValue("gstClaimDate", accountDateStr)
+        form?.trigger("gstClaimDate")
+
+        form.setValue("deliveryDate", accountDateStr)
+        form?.trigger("deliveryDate")
+
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, dateFormat)
+          form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
+        }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Calculate and set due date
+        await calculateAndSetDueDate()
+      }
+    },
+    [exhRateDec, form, visible, calculateAndSetDueDate, dateFormat]
+  )
+
+  // Handle supplier selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
       if (selectedSupplier) {
@@ -111,10 +241,12 @@ export default function InvoiceForm({
           form.setValue("bankId", selectedSupplier.bankId || 0)
         }
 
-        await setDueDate(form)
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
-        await setAddressContactDetails(form, EntityType.SUPPLIER)
+        await setAddressContactDetails(form, EntityType.CUSTOMER)
+
+        // Calculate and set due date after supplier fields are set
+        await calculateAndSetDueDate()
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
@@ -128,8 +260,8 @@ export default function InvoiceForm({
         form.setValue("exhRate", 0)
         form.setValue("ctyExhRate", 0)
 
-        // Clear due date
-        form.setValue("dueDate", format(new Date(), clientDateFormat))
+        // Calculate and set due date (will use account date if available, otherwise today)
+        await calculateAndSetDueDate()
 
         // Clear address fields
         form.setValue("addressId", 0)
@@ -152,39 +284,23 @@ export default function InvoiceForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
-  )
-
-  // Handle transaction date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
-      await setDueDate(form)
-    },
-    [decimals, exhRateDec, form, visible]
+    [
+      exhRateDec,
+      form,
+      isEdit,
+      visible,
+      defaultCurrencyId,
+      calculateAndSetDueDate,
+    ]
   )
 
   // Handle credit term selection
   const handleCreditTermChange = React.useCallback(
-    (_selectedCreditTerm: ICreditTermLookup | null) => {
-      // Additional logic when credit term changes
-      setDueDate(form)
+    async (_selectedCreditTerm: ICreditTermLookup | null) => {
+      // Calculate and set due date when credit term changes
+      await calculateAndSetDueDate()
     },
-    [form]
+    [calculateAndSetDueDate]
   )
 
   // Handle bank selection
@@ -334,11 +450,36 @@ export default function InvoiceForm({
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const exchangeRate = value || 0
+      const originalExhRate = originalExhRateRef.current
+
+      console.log("handleExchangeRateChange", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
 
       // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -373,12 +514,37 @@ export default function InvoiceForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCityExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
+  }, [form])
+
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const cityExchangeRate = value || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      console.log("handleCityExchangeRateChange", {
+        newValue: cityExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: cityExchangeRate !== originalCtyExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        console.log("City Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("City Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -406,27 +572,13 @@ export default function InvoiceForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
-  // Handle service type change
-  const handleServiceTypeChange = (
-    selectedOption: IServiceTypeLookup | null
-  ) => {
-    if (selectedOption) {
-      form.setValue("serviceTypeId", selectedOption.serviceTypeId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-    } else {
-      form.setValue("serviceTypeId", 0, { shouldValidate: true })
-    }
-  }
-
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-2">
+        <div className="col-span-10 grid grid-cols-6 gap-1 gap-y-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -449,15 +601,35 @@ export default function InvoiceForm({
             isFutureShow={false}
           />
 
-          {/* Supplier */}
-          <CompanySupplierAutocomplete
+          {/* Supplier by company*/}
+          {/* <CompanySupplierAutocomplete
             form={form}
             name="supplierId"
             label="Supplier"
             isRequired={true}
             onChangeEvent={handleSupplierChange}
             companyId={_companyId}
-          />
+          /> */}
+
+          {/* Supplier */}
+          {isDynamicSupplier ? (
+            <DynamicSupplierAutocomplete
+              form={form}
+              name="supplierId"
+              label="Supplier-D"
+              isRequired={true}
+              onChangeEvent={handleSupplierChange}
+            />
+          ) : (
+            <SupplierAutocomplete
+              form={form}
+              name="supplierId"
+              label="Supplier-S"
+              isRequired={true}
+              onChangeEvent={handleSupplierChange}
+            />
+          )}
+
           {/* supplierInvoiceNo */}
           <CustomInput
             form={form}
@@ -490,6 +662,7 @@ export default function InvoiceForm({
             label="Due Date"
             isRequired={true}
             isFutureShow={true}
+            minDate={dueDateMinDate}
           />
 
           {/* Bank */}
@@ -520,7 +693,8 @@ export default function InvoiceForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
-            onBlurEvent={handleExchangeRateChange}
+            onFocusEvent={handleExchangeRateFocus}
+            onChangeEvent={handleExchangeRateChange}
           />
           {visible?.m_CtyCurr && (
             <>
@@ -532,7 +706,8 @@ export default function InvoiceForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onBlurEvent={handleCityExchangeRateChange}
+                onFocusEvent={handleCityExchangeRateFocus}
+                onChangeEvent={handleCityExchangeRateChange}
               />
             </>
           )}
@@ -609,7 +784,6 @@ export default function InvoiceForm({
               name="serviceTypeId"
               label="Service Type"
               isRequired={true}
-              onChangeEvent={handleServiceTypeChange}
             />
           )}
 

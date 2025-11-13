@@ -1,24 +1,42 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import {
-  IApInvoiceDt,
-  IApInvoiceFilter,
-  IApInvoiceHd,
-} from "@/interfaces/ap-invoice"
+  mathRound,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ap-invoice-calculations"
+import { IApInvoiceDt, IApInvoiceFilter, IApInvoiceHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApInvoiceDtSchemaType,
+  ApInvoiceHdSchema,
   ApInvoiceHdSchemaType,
-  apinvoiceHdSchema,
-} from "@/schemas/ap-invoice"
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -27,17 +45,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApInvoice } from "@/lib/api-routes"
+import { ApInvoice, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -46,40 +66,131 @@ import {
 } from "@/components/confirmation"
 
 import History from "./components/history"
-import { defaultInvoice } from "./components/invoice-defaultvalues"
+import { getDefaultValues } from "./components/invoice-defaultvalues"
 import InvoiceTable from "./components/invoice-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
 
 export default function InvoicePage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.invoice
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false)
-  const [_isSelectingInvoice, setIsSelectingInvoice] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [invoice, setInvoice] = useState<ApInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleInvoiceSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/creditnote`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<IApInvoiceFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "invoiceNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const defaultInvoiceValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultInvoice,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -97,12 +208,13 @@ export default function InvoicePage() {
 
   // Add form state management
   const form = useForm<ApInvoiceHdSchemaType>({
-    resolver: zodResolver(apinvoiceHdSchema(required, visible)),
+    resolver: zodResolver(ApInvoiceHdSchema(required, visible)),
     defaultValues: invoice
       ? {
           invoiceId: invoice.invoiceId?.toString() ?? "0",
           invoiceNo: invoice.invoiceNo ?? "",
           referenceNo: invoice.referenceNo ?? "",
+          suppInvoiceNo: invoice.suppInvoiceNo ?? "",
           trnDate: invoice.trnDate ?? new Date(),
           accountDate: invoice.accountDate ?? new Date(),
           dueDate: invoice.dueDate ?? new Date(),
@@ -143,7 +255,6 @@ export default function InvoicePage() {
           mobileNo: invoice.mobileNo ?? "",
           emailAdd: invoice.emailAdd ?? "",
           moduleFrom: invoice.moduleFrom ?? "",
-          suppInvoiceNo: invoice.suppInvoiceNo ?? "",
           customerName: invoice.customerName ?? "",
           addressId: invoice.addressId ?? 0,
           contactId: invoice.contactId ?? 0,
@@ -167,22 +278,65 @@ export default function InvoicePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custInvoiceNo: detail.custInvoiceNo ?? "",
-              suppInvoiceNo: detail.suppInvoiceNo ?? "",
+              arInvoiceId: detail.arInvoiceId ?? "0",
+              arInvoiceNo: detail.arInvoiceNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultInvoice,
-        },
+      : (() => {
+          // For new invoice, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultInvoiceValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to InvoiceTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentInvoiceId = form.getValues("invoiceId") || "0"
+    if (
+      (invoice && invoice.invoiceId && invoice.invoiceId !== "0") ||
+      currentInvoiceId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultInvoiceValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultInvoiceValues, decimals, form, invoice, isDirty, user])
 
   // Mutations
   const saveMutation = usePersist<ApInvoiceHdSchemaType>(`${ApInvoice.add}`)
   const updateMutation = usePersist<ApInvoiceHdSchemaType>(`${ApInvoice.add}`)
-  const deleteMutation = useDelete(`${ApInvoice.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApInvoice.delete}`)
 
   // Remove the useGetInvoiceById hook for selection
   // const { data: invoiceByIdData, refetch: refetchInvoiceById } = ...
@@ -203,7 +357,7 @@ export default function InvoicePage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = apinvoiceHdSchema(required, visible).safeParse(
+      const validationResult = ApInvoiceHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -229,102 +383,348 @@ export default function InvoicePage() {
         return
       }
 
-      const response =
-        Number(formValues.invoiceId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      console.log("handleSaveInvoice formValues", formValues)
 
-      if (response.result === 1) {
-        const invoiceData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.invoiceId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (invoiceData) {
-          const updatedSchemaType = transformToSchemaType(
-            invoiceData as unknown as IApInvoiceHd
-          )
-          setIsSelectingInvoice(true)
-          setInvoice(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
-        // Check if this was a new invoice or update
-        const wasNewInvoice = Number(formValues.invoiceId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewInvoice) {
-          //toast.success(
-          // `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+
+      {
+        const response =
+          Number(formValues.invoiceId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const invoiceData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (invoiceData) {
+            const updatedSchemaType = transformToSchemaType(
+              invoiceData as unknown as IApInvoiceHd
+            )
+
+            setSearchNo(updatedSchemaType.invoiceNo || "")
+            setInvoice(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Check if this was a new invoice or update
+          const wasNewInvoice = Number(formValues.invoiceId) === 0
+
+          if (wasNewInvoice) {
+            //toast.success(
+            // `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("Invoice updated successfully")
+          }
+
+          // Data refresh handled by InvoiceTable component
         } else {
-          //toast.success("Invoice updated successfully")
+          toast.error(response.message || "Failed to save invoice")
         }
-
-        // Data refresh handled by InvoiceTable component
-      } else {
-        toast.error(response.message || "Failed to save invoice")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving invoice")
     } finally {
       setIsSaving(false)
-      setIsSelectingInvoice(false)
     }
   }
 
   // Handle Clone
-  const handleCloneInvoice = () => {
+  const handleCloneInvoice = async () => {
     if (invoice) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedInvoice: ApInvoiceHdSchemaType = {
         ...invoice,
         invoiceId: "0",
         invoiceNo: "",
-        // Reset amounts for new invoice
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        deliveryDate: dateStr,
+        gstClaimDate: dateStr,
+        // dueDate will be calculated based on accountDate and credit terms
+        dueDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all balance and payment amounts
         balAmt: 0,
         balLocalAmt: 0,
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Reset data details
-        data_details: [],
+        // Clear AP invoice link
+        arInvoiceId: "0",
+        arInvoiceNo: "",
+        // Keep data details - do not remove
+        data_details:
+          invoice.data_details?.map((detail) => ({
+            ...detail,
+            invoiceId: "0",
+            invoiceNo: "",
+            arInvoiceId: "0",
+            arInvoiceNo: "",
+            editVersion: 0,
+          })) || [],
       }
+
+      // Calculate totals from details with proper rounding
+      const amtDec = decimals[0]?.amtDec || 2
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+      const details = clonedInvoice.data_details || []
+      if (details.length > 0) {
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
+
+        clonedInvoice.totAmt = mathRound(totAmt, amtDec)
+        clonedInvoice.gstAmt = mathRound(gstAmt, amtDec)
+        clonedInvoice.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedInvoice.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedInvoice.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedInvoice.totLocalAmtAftGst = mathRound(
+          totLocalAmt + gstLocalAmt,
+          locAmtDec
+        )
+        clonedInvoice.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedInvoice.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedInvoice.totCtyAmtAftGst = mathRound(
+          totCtyAmt + gstCtyAmt,
+          ctyAmtDec
+        )
+      } else {
+        // Reset amounts if no details
+        clonedInvoice.totAmt = 0
+        clonedInvoice.totLocalAmt = 0
+        clonedInvoice.totCtyAmt = 0
+        clonedInvoice.gstAmt = 0
+        clonedInvoice.gstLocalAmt = 0
+        clonedInvoice.gstCtyAmt = 0
+        clonedInvoice.totAmtAftGst = 0
+        clonedInvoice.totLocalAmtAftGst = 0
+        clonedInvoice.totCtyAmtAftGst = 0
+      }
+
       setInvoice(clonedInvoice)
       form.reset(clonedInvoice)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedInvoice.currencyId && clonedInvoice.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IApInvoiceDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as ApInvoiceDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const totals = calculateTotalAmounts(
+              updatedDetails as unknown as IApInvoiceDt[],
+              amtDec
+            )
+            form.setValue("totAmt", totals.totAmt)
+            form.setValue("gstAmt", totals.gstAmt)
+            form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+            const localAmounts = calculateLocalAmounts(
+              updatedDetails as unknown as IApInvoiceDt[],
+              locAmtDec
+            )
+            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+            if (visible?.m_CtyCurr) {
+              const countryAmounts = calculateCountryAmounts(
+                updatedDetails as unknown as IApInvoiceDt[],
+                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+              )
+              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+            }
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedInvoice.creditTermId && clonedInvoice.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Invoice cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleInvoiceDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleInvoiceDelete = async (cancelRemarks: string) => {
     if (!invoice) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        invoice.invoiceId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Invoice ID:", invoice.invoiceId)
+      console.log("Invoice No:", invoice.invoiceNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: invoice.invoiceId?.toString() ?? "",
+        documentNo: invoice.invoiceNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setInvoice(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultInvoice,
+          ...defaultInvoiceValues,
           data_details: [],
         })
-        //toast.success("Invoice deleted successfully")
+        toast.success(`Invoice ${invoice.invoiceNo} deleted successfully`)
         // Data refresh handled by InvoiceTable component
       } else {
         toast.error(response.message || "Failed to delete invoice")
@@ -338,8 +738,18 @@ export default function InvoicePage() {
   const handleInvoiceReset = () => {
     setInvoice(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new invoice)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultInvoice,
+      ...defaultInvoiceValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Invoice reset successfully")
@@ -357,33 +767,33 @@ export default function InvoicePage() {
       trnDate: apiInvoice.trnDate
         ? format(
             parseDate(apiInvoice.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiInvoice.accountDate
         ? format(
             parseDate(apiInvoice.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       dueDate: apiInvoice.dueDate
         ? format(
             parseDate(apiInvoice.dueDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       deliveryDate: apiInvoice.deliveryDate
         ? format(
             parseDate(apiInvoice.deliveryDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       gstClaimDate: apiInvoice.gstClaimDate
         ? format(
             parseDate(apiInvoice.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       supplierId: apiInvoice.supplierId ?? 0,
       currencyId: apiInvoice.currencyId ?? 0,
       exhRate: apiInvoice.exhRate ?? 0,
@@ -427,30 +837,32 @@ export default function InvoicePage() {
       editVersion: apiInvoice.editVersion ?? 0,
       purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
       purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
+
+      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
       createBy: apiInvoice.createBy ?? "",
       editBy: apiInvoice.editBy ?? "",
       cancelBy: apiInvoice.cancelBy ?? "",
       createDate: apiInvoice.createDate
         ? format(
             parseDate(apiInvoice.createDate as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
 
       editDate: apiInvoice.editDate
         ? format(
             parseDate(apiInvoice.editDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelDate: apiInvoice.cancelDate
         ? format(
             parseDate(apiInvoice.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
+      isCancel: apiInvoice.isCancel ?? false,
       cancelRemarks: apiInvoice.cancelRemarks ?? "",
-      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
       data_details:
         apiInvoice.data_details?.map(
           (detail) =>
@@ -486,7 +898,7 @@ export default function InvoicePage() {
               deliveryDate: detail.deliveryDate
                 ? format(
                     parseDate(detail.deliveryDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               departmentId: detail.departmentId ?? 0,
@@ -517,10 +929,11 @@ export default function InvoicePage() {
               opRefNo: detail.opRefNo ?? "",
               purchaseOrderId: detail.purchaseOrderId ?? "",
               purchaseOrderNo: detail.purchaseOrderNo ?? "",
+
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               customerName: detail.customerName ?? "",
@@ -538,8 +951,6 @@ export default function InvoicePage() {
   ) => {
     if (!selectedInvoice) return
 
-    setIsSelectingInvoice(true)
-
     try {
       // Fetch invoice details directly using selected invoice's values
       const response = await getById(
@@ -552,6 +963,14 @@ export default function InvoicePage() {
           : response.data
 
         if (detailedInvoice) {
+          {
+            const parsed = parseDate(detailedInvoice.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedInvoice.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedInvoice = {
             ...detailedInvoice,
@@ -562,36 +981,36 @@ export default function InvoicePage() {
             trnDate: detailedInvoice.trnDate
               ? format(
                   parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedInvoice.accountDate
               ? format(
                   parseDate(detailedInvoice.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedInvoice.dueDate
               ? format(
                   parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedInvoice.deliveryDate
               ? format(
                   parseDate(detailedInvoice.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedInvoice.gstClaimDate
               ? format(
                   parseDate(detailedInvoice.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedInvoice.supplierId ?? 0,
             currencyId: detailedInvoice.currencyId ?? 0,
@@ -636,14 +1055,30 @@ export default function InvoicePage() {
             editVersion: detailedInvoice.editVersion ?? 0,
             purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
-            createBy: detailedInvoice.createBy ?? "",
-            createDate: detailedInvoice.createDate ?? "",
-            editBy: detailedInvoice.editBy ?? "",
-            editDate: detailedInvoice.editDate ?? "",
-            cancelBy: detailedInvoice.cancelBy ?? "",
-            cancelDate: detailedInvoice.cancelDate ?? "",
-            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
             serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
+            createBy: detailedInvoice.createBy ?? "",
+            createDate: detailedInvoice.createDate
+              ? format(
+                  parseDate(detailedInvoice.createDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            editBy: detailedInvoice.editBy ?? "",
+            editDate: detailedInvoice.editDate
+              ? format(
+                  parseDate(detailedInvoice.editDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            cancelBy: detailedInvoice.cancelBy ?? "",
+            cancelDate: detailedInvoice.cancelDate
+              ? format(
+                  parseDate(detailedInvoice.cancelDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            isCancel: detailedInvoice.isCancel ?? false,
+            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
             data_details:
               detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
                 invoiceId: detail.invoiceId?.toString() ?? "0",
@@ -676,12 +1111,13 @@ export default function InvoicePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
                 departmentCode: detail.departmentCode ?? "",
                 departmentName: detail.departmentName ?? "",
+
                 jobOrderId: detail.jobOrderId ?? 0,
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
@@ -710,7 +1146,7 @@ export default function InvoicePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 customerName: detail.customerName ?? "",
@@ -726,11 +1162,11 @@ export default function InvoicePage() {
           form.reset(updatedInvoice)
           form.trigger()
 
+          // Set the invoice number in search input
+          setSearchNo(updatedInvoice.invoiceNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Invoice ${selectedInvoice.invoiceNo} loaded successfully`
-          )
         }
       } else {
         toast.error(response?.message || "Failed to fetch invoice details")
@@ -741,7 +1177,7 @@ export default function InvoicePage() {
       toast.error("Error loading invoice. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingInvoice(false)
+      // Selection completed
     }
   }
 
@@ -752,6 +1188,26 @@ export default function InvoicePage() {
   }
 
   // Data refresh handled by InvoiceTable component
+
+  // Set createBy and createDate for new invoices on page load/refresh
+  useEffect(() => {
+    if (!invoice && user && decimals.length > 0) {
+      const currentInvoiceId = form.getValues("invoiceId")
+      const currentInvoiceNo = form.getValues("invoiceNo")
+      const isNewInvoice =
+        !currentInvoiceId || currentInvoiceId === "0" || !currentInvoiceNo
+
+      if (isNewInvoice) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [invoice, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -777,12 +1233,16 @@ export default function InvoicePage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
@@ -798,6 +1258,14 @@ export default function InvoicePage() {
           : response.data
 
         if (detailedInvoice) {
+          {
+            const parsed = parseDate(detailedInvoice.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedInvoice.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedInvoice = {
             ...detailedInvoice,
@@ -808,36 +1276,36 @@ export default function InvoicePage() {
             trnDate: detailedInvoice.trnDate
               ? format(
                   parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedInvoice.accountDate
               ? format(
                   parseDate(detailedInvoice.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedInvoice.dueDate
               ? format(
                   parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedInvoice.deliveryDate
               ? format(
                   parseDate(detailedInvoice.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedInvoice.gstClaimDate
               ? format(
                   parseDate(detailedInvoice.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedInvoice.supplierId ?? 0,
             currencyId: detailedInvoice.currencyId ?? 0,
@@ -883,6 +1351,9 @@ export default function InvoicePage() {
             purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
             serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
+            isCancel: detailedInvoice.isCancel ?? false,
+            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
+
             data_details:
               detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
                 invoiceId: detail.invoiceId?.toString() ?? "0",
@@ -915,7 +1386,7 @@ export default function InvoicePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
@@ -949,7 +1420,7 @@ export default function InvoicePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 customerName: detail.customerName ?? "",
@@ -965,13 +1436,20 @@ export default function InvoicePage() {
           form.reset(updatedInvoice)
           form.trigger()
 
+          // Set the invoice number in search input to the actual invoice number from database
+          setSearchNo(updatedInvoice.invoiceNo || "")
+
           // Show success message
-          toast.success(`Invoice ${value} loaded successfully`)
+          toast.success(
+            `Invoice ${updatedInvoice.invoiceNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
           response?.message || "Failed to fetch invoice details (direct)"
         )
@@ -983,13 +1461,46 @@ export default function InvoicePage() {
     }
   }
 
+  handleInvoiceSearchRef.current = handleInvoiceSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleInvoiceSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
+
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
   const isCancelled = invoice?.isCancel === true
 
+  // Calculate payment status only if not cancelled
+  const balAmt = invoice?.balAmt ?? 0
+  const payAmt = invoice?.payAmt ?? 0
+
+  const paymentStatus = isCancelled
+    ? ""
+    : balAmt === 0 && payAmt > 0
+      ? "Fully Paid"
+      : balAmt > 0 && payAmt > 0
+        ? "Partially Paid"
+        : balAmt > 0 && payAmt === 0
+          ? "Not Paid"
+          : ""
+
   // Compose title text
-  const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
+  const titleText = isEdit
+    ? `Invoice (Edit)- v[${invoice?.editVersion}] - ${invoiceNo}`
+    : "Invoice (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1015,45 +1526,92 @@ export default function InvoicePage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
-              <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
-              >
-                {titleText}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {invoice?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {invoice.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Status Badge - Only show if not cancelled */}
+            {!isCancelled && paymentStatus === "Not Paid" && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                Not Paid
               </span>
-            </span>
-          </h1>
+            )}
+            {!isCancelled && paymentStatus === "Partially Paid" && (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
+                Partially Paid
+              </span>
+            )}
+            {!isCancelled && paymentStatus === "Fully Paid" && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
+                Fully Paid
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
+              <span
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
+              >
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
+              </span>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (invoice?.invoiceNo) {
+                    setSearchNo(invoice.invoiceNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingInvoice}
+                className="h-4 w-4 p-0"
+                title="Refresh invoice data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search Invoice No"
               className="h-8 text-sm"
               readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
@@ -1074,7 +1632,14 @@ export default function InvoicePage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1117,7 +1682,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!invoice || invoice.invoiceId === "0"}
+              disabled={!invoice || invoice.invoiceId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1128,9 +1693,13 @@ export default function InvoicePage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !invoice ||
                 invoice.invoiceId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -1138,7 +1707,7 @@ export default function InvoicePage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -1158,7 +1727,7 @@ export default function InvoicePage() {
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -1171,9 +1740,6 @@ export default function InvoicePage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by InvoiceTable component
-          }
         }}
       >
         <DialogContent
@@ -1197,6 +1763,8 @@ export default function InvoicePage() {
               onInvoiceSelect={handleInvoiceSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>
@@ -1216,15 +1784,26 @@ export default function InvoicePage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleInvoiceDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={invoice?.invoiceNo}
         title="Delete Invoice"
-        description="This action cannot be undone. All invoice details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this invoice? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleInvoiceDelete}
+        itemName={invoice?.invoiceNo}
+        title="Cancel Invoice"
+        description="Please provide a reason for cancelling this invoice."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

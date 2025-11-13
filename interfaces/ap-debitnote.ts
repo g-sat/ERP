@@ -22,8 +22,10 @@ export interface IApDebitNoteHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+
   invoiceId: string
   invoiceNo: string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -82,6 +84,9 @@ export interface IApDebitNoteHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
+  serviceTypeId: number
+  serviceTypeName: string
   data_details: IApDebitNoteDt[]
 }
 
@@ -127,12 +132,14 @@ export interface IApDebitNoteDt {
   departmentId: number
   departmentCode: string
   departmentName: string
+
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
+
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -154,7 +161,7 @@ export interface IApDebitNoteDt {
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arDebitNoteId: number | string
+  arDebitNoteId: string
   arDebitNoteNo: string
   custDebitNoteNo: string
   editVersion: number

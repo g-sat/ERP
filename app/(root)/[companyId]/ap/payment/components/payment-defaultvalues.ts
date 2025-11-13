@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultPaymentDetails = {
+const buildDefaultPaymentDetails = (dateFormat: string) => ({
   companyId: 0,
   paymentId: 0,
   paymentNo: "",
@@ -13,8 +13,8 @@ const defaultPaymentDetails = {
   referenceNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
-  docAccountDate: format(new Date(), clientDateFormat),
-  docDueDate: format(new Date(), clientDateFormat),
+  docAccountDate: format(new Date(), dateFormat),
+  docDueDate: format(new Date(), dateFormat),
   docTotAmt: 0,
   docTotLocalAmt: 0,
   docBalAmt: 0,
@@ -26,23 +26,22 @@ const defaultPaymentDetails = {
   centDiff: 0,
   exhGainLoss: 0,
   editVersion: 0,
-}
+})
 
-const defaultPayment = {
+const buildDefaultPayment = (dateFormat: string) => ({
   paymentId: "0",
   paymentNo: "",
-  suppInvoiceNo: "",
+  supplierId: 0,
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   bankId: 0,
   paymentTypeId: 0,
   chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
+  chequeDate: format(new Date(), dateFormat),
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
-  supplierId: 0,
   currencyId: 0,
   exhRate: 0,
   totAmt: 0,
@@ -67,29 +66,18 @@ const defaultPayment = {
   editBy: "",
   editDate: "",
   isCancel: false,
-  cancelById: 0,
   cancelBy: "",
   cancelDate: "",
   cancelRemarks: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultPayment: {
-      ...defaultPayment,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultPaymentDetails: {
-      ...defaultPaymentDetails,
-      docAccountDate: format(new Date(), dateFormat),
-      docDueDate: format(new Date(), dateFormat),
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultPayment: buildDefaultPayment(dateFormat),
+  defaultPaymentDetails: buildDefaultPaymentDetails(dateFormat),
+})
 
-export { defaultPayment, defaultPaymentDetails }
+export const defaultPayment = buildDefaultPayment(clientDateFormat)
+export const defaultPaymentDetails =
+  buildDefaultPaymentDetails(clientDateFormat)

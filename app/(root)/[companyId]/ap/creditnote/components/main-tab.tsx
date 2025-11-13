@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -55,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousCreditNoteKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentCreditNoteId = form.watch("creditNoteId")
+  const currentCreditNoteNo = form.watch("creditNoteNo")
+
+  useEffect(() => {
+    const currentKey = `${currentCreditNoteId ?? ""}::${currentCreditNoteNo ?? ""}`
+    if (previousCreditNoteKeyRef.current === currentKey) {
+      return
+    }
+
+    previousCreditNoteKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentCreditNoteId, currentCreditNoteNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -65,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IApCreditNoteDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailCreditNoteId = `${detail.creditNoteId ?? ""}`
+      const editingCreditNoteId = `${editingDetail.creditNoteId ?? ""}`
+      const detailCreditNoteNo = detail.creditNoteNo ?? ""
+      const editingCreditNoteNo = editingDetail.creditNoteNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailCreditNoteId === editingCreditNoteId &&
+        detailCreditNoteNo === editingCreditNoteNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -226,8 +269,9 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.ap.currencyId}
+        defaultCurrencyId={defaults.ar.currencyId}
       />
+
       <CreditNoteDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
@@ -237,9 +281,10 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as ApCreditNoteDtSchemaType[]}
-        defaultGlId={defaults.ap.creditNoteGlId}
+        defaultGlId={defaults.ar.creditNoteGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <CreditNoteDetailsTable
@@ -254,6 +299,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: IApCreditNoteDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

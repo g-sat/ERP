@@ -1,16 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { IApDocsetoffDt, IApDocsetoffHd } from "@/interfaces"
+import { IApDocSetOffDt, IApDocSetOffHd } from "@/interfaces/ap-docsetoff"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
+  useGetARReceiptHistoryDetails,
+  useGetARReceiptHistoryList,
 } from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,26 +35,26 @@ export default function EditVersionDetails({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.docsetoff
 
-  const [selectedPayment, setSelectedPayment] = useState<IApDocsetoffHd | null>(
+  const [selectedReceipt, setSelectedReceipt] = useState<IApDocSetOffHd | null>(
     null
   )
 
-  const { data: paymentHistoryData, refetch: refetchHistory } =
-    useGetAPInvoiceHistoryList<IApDocsetoffHd[]>(setoffId)
+  const { data: receiptHistoryData, refetch: refetchHistory } =
+    useGetARReceiptHistoryList<IApDocSetOffHd[]>(setoffId)
 
-  const { data: paymentDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IApDocsetoffHd>(
-      selectedPayment?.setoffId || "",
-      selectedPayment?.editVersion?.toString() || ""
+  const { data: receiptDetailsData, refetch: refetchDetails } =
+    useGetARReceiptHistoryDetails<IApDocSetOffHd>(
+      selectedReceipt?.setoffId || "",
+      selectedReceipt?.editVersion?.toString() || ""
     )
 
-  function isIApDocsetoffHdArray(arr: unknown): arr is IApDocsetoffHd[] {
+  function isIApDocSetOffHdArray(arr: unknown): arr is IApDocSetOffHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 || (typeof arr[0] === "object" && "setoffId" in arr[0]))
@@ -60,41 +62,34 @@ export default function EditVersionDetails({
   }
 
   // Check if history data is successful and has valid data
-  const tableData: IApDocsetoffHd[] =
-    paymentHistoryData?.result === 1 &&
-    isIApDocsetoffHdArray(paymentHistoryData?.data)
-      ? paymentHistoryData.data
+  const tableData: IApDocSetOffHd[] =
+    receiptHistoryData?.result === 1 &&
+    isIApDocSetOffHdArray(receiptHistoryData?.data)
+      ? receiptHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: IApDocsetoffHd | undefined =
-    paymentDetailsData?.result === 1 &&
-    paymentDetailsData?.data &&
-    typeof paymentDetailsData.data === "object" &&
-    paymentDetailsData.data !== null &&
-    !Array.isArray(paymentDetailsData.data)
-      ? (paymentDetailsData.data as IApDocsetoffHd)
+  const dialogData: IApDocSetOffHd | undefined =
+    receiptDetailsData?.result === 1 &&
+    receiptDetailsData?.data &&
+    typeof receiptDetailsData.data === "object" &&
+    receiptDetailsData.data !== null &&
+    !Array.isArray(receiptDetailsData.data)
+      ? (receiptDetailsData.data as IApDocSetOffHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = paymentHistoryData?.result === -1
-  const hasDetailsError = paymentDetailsData?.result === -1
+  const hasHistoryError = receiptHistoryData?.result === -1
+  const hasDetailsError = receiptDetailsData?.result === -1
 
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  }
-
-  const columns: ColumnDef<IApDocsetoffHd>[] = [
+  const columns: ColumnDef<IApDocSetOffHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
       accessorKey: "setoffNo",
-      header: "Docsetoff No",
+      header: "DocSetOff No",
     },
     {
       accessorKey: "referenceNo",
@@ -142,74 +137,31 @@ export default function EditVersionDetails({
       header: "Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhRate"), exhRateDec)}
-        </div>
-      ),
-    },
-
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
-    },
-    {
-      accessorKey: "paymentTypeCode",
-      header: "Docsetoff Type Code",
-    },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Docsetoff Type Name",
-    },
-    {
-      accessorKey: "chequeNo",
-      header: "Cheque No",
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "totAmt",
-      header: "Total Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
+          {row.original.exhRate
+            ? formatNumber(row.original.exhRate, exhRateDec)
+            : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "totLocalAmt",
-      header: "Total Local Amount",
+      accessorKey: "allocTotAmt",
+      header: "Allocated Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+          {row.original.allocTotAmt
+            ? formatNumber(row.original.allocTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "payTotAmt",
-      header: "Pay Total Amount",
+      accessorKey: "balTotAmt",
+      header: "Balanced Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotAmt"), amtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "payTotLocalAmt",
-      header: "Pay Total Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+          {row.original.balTotAmt
+            ? formatNumber(row.original.balTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -218,43 +170,21 @@ export default function EditVersionDetails({
       header: "Unallocated Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {row.original.unAllocTotAmt
+            ? formatNumber(row.original.unAllocTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
-    {
-      accessorKey: "unAllocTotLocalAmt",
-      header: "Unallocated Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "exhGainLoss",
       header: "Exchange Gain/Loss",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgAmt",
-      header: "Bank Charges Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgLocalAmt",
-      header: "Bank Charges Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -304,14 +234,87 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<IApDocsetoffDt>[] = [
+  const detailsColumns: ColumnDef<IApDocSetOffDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
+    { accessorKey: "documentNo", header: "Document No" },
+    { accessorKey: "referenceNo", header: "Reference No" },
+    {
+      accessorKey: "docTotAmt",
+      header: "Document Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotAmt
+            ? formatNumber(row.original.docTotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docTotLocalAmt",
+      header: "Document Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotLocalAmt
+            ? formatNumber(row.original.docTotLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocAmt",
+      header: "Allocated Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocAmt
+            ? formatNumber(row.original.allocAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocLocalAmt",
+      header: "Allocated Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocLocalAmt
+            ? formatNumber(row.original.allocLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalAmt",
+      header: "Document Balance Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalAmt
+            ? formatNumber(row.original.docBalAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalLocalAmt",
+      header: "Document Balance Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalLocalAmt
+            ? formatNumber(row.original.docBalLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
   ]
 
   const handleRefresh = async () => {
@@ -319,13 +322,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        paymentHistoryData?.message !== "Data does not exist"
+        receiptHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        paymentDetailsData?.message !== "Data does not exist"
+        receiptDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -341,54 +344,36 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                paymentHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {paymentHistoryData?.message === "Data does not exist"
-                  ? "No docsetoff history found for this docsetoff."
-                  : `Failed to load docsetoff history: ${paymentHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.apDocSetOffHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(docsetoff) => setSelectedPayment(docsetoff)}
+            onRowSelect={(docSetOff) => setSelectedReceipt(docSetOff)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedPayment}
-        onOpenChange={() => setSelectedPayment(null)}
+        open={!!selectedReceipt}
+        onOpenChange={() => setSelectedReceipt(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Docsetoff Details</DialogTitle>
+            <DialogTitle>DocSetOff Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                paymentDetailsData?.message === "Data does not exist"
+                receiptDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -396,9 +381,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {paymentDetailsData?.message === "Data does not exist"
-                  ? "No docsetoff details found for this version."
-                  : `Failed to load docsetoff details: ${paymentDetailsData?.message || "Unknown error"}`}
+                {receiptDetailsData?.message === "Data does not exist"
+                  ? "No docSetOff details found for this version."
+                  : `Failed to load docSetOff details: ${receiptDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -406,7 +391,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Docsetoff Header</CardTitle>
+                <CardTitle>DocSetOff Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -425,15 +410,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading docsetoff details"
-                      : "No docsetoff details available"}
+                      ? "Error loading docSetOff details"
+                      : "No docSetOff details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Docsetoff Details</CardTitle>
+                <CardTitle>DocSetOff Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -441,8 +426,8 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.apPaymentHistory}
-                  emptyMessage="No docsetoff details available"
+                  tableName={TableName.apDocSetOffHistory}
+                  emptyMessage="No docSetOff details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

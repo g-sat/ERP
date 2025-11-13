@@ -7,7 +7,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
@@ -114,7 +114,7 @@ export default function ApOutStandingTransactionsTable({
 
     {
       accessorKey: "supplierName",
-      header: "Supplier Name",
+      header: "Customer Name",
       size: 150,
     },
     {
@@ -235,8 +235,8 @@ export default function ApOutStandingTransactionsTable({
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IApOutTransaction>[]}
-        moduleId={26}
-        transactionId={2}
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.payment}
         tableName={TableName.apOutTransaction}
         emptyMessage="No outstanding transactions found."
         accessorId="documentId"

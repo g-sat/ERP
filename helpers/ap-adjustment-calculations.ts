@@ -185,3 +185,209 @@ export const recalculateAllDetailAmounts = (
     )
   )
 }
+
+// type AdjustmentTotalsAccumulator = {
+//   totAmt: number
+//   gstAmt: number
+//   totLocalAmt: number
+//   gstLocalAmt: number
+//   totCtyAmt: number
+//   gstCtyAmt: number
+// }
+
+// const createEmptyAccumulator = (): AdjustmentTotalsAccumulator => ({
+//   totAmt: 0,
+//   gstAmt: 0,
+//   totLocalAmt: 0,
+//   gstLocalAmt: 0,
+//   totCtyAmt: 0,
+//   gstCtyAmt: 0,
+// })
+
+// const accumulateTotals = (
+//   accumulator: AdjustmentTotalsAccumulator,
+//   detail: IApAdjustmentDt
+// ) => {
+//   accumulator.totAmt += Number(detail.totAmt) || 0
+//   accumulator.gstAmt += Number(detail.gstAmt) || 0
+//   accumulator.totLocalAmt += Number(detail.totLocalAmt) || 0
+//   accumulator.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+//   accumulator.totCtyAmt += Number(detail.totCtyAmt) || 0
+//   accumulator.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+// }
+
+// export const calculateAdjustmentHeaderTotals = (
+//   details: IApAdjustmentDt[],
+//   decimals: IDecimal,
+//   hasCountryCurrency: boolean
+// ) => {
+//   if (!details || details.length === 0) {
+//     return {
+//       isDebit: false,
+//       totAmt: 0,
+//       gstAmt: 0,
+//       totAmtAftGst: 0,
+//       totLocalAmt: 0,
+//       gstLocalAmt: 0,
+//       totLocalAmtAftGst: 0,
+//       totCtyAmt: 0,
+//       gstCtyAmt: 0,
+//       totCtyAmtAftGst: 0,
+//     }
+//   }
+
+//   const debitTotals = createEmptyAccumulator()
+//   const creditTotals = createEmptyAccumulator()
+
+//   details.forEach((detail) => {
+//     if (detail.isDebit) {
+//       accumulateTotals(debitTotals, detail)
+//     } else {
+//       accumulateTotals(creditTotals, detail)
+//     }
+//   })
+
+//   const net = {
+//     totAmt: debitTotals.totAmt - creditTotals.totAmt,
+//     gstAmt: debitTotals.gstAmt - creditTotals.gstAmt,
+//     totLocalAmt: debitTotals.totLocalAmt - creditTotals.totLocalAmt,
+//     gstLocalAmt: debitTotals.gstLocalAmt - creditTotals.gstLocalAmt,
+//     totCtyAmt: debitTotals.totCtyAmt - creditTotals.totCtyAmt,
+//     gstCtyAmt: debitTotals.gstCtyAmt - creditTotals.gstCtyAmt,
+//   }
+
+//   const amtDec = decimals.amtDec ?? 2
+//   const locDec = decimals.locAmtDec ?? amtDec
+//   const ctyDec = decimals.ctyAmtDec ?? locDec
+
+//   const isDebit = net.totAmt < 0
+
+//   const normalized = {
+//     totAmt: mathRound(Math.abs(net.totAmt), amtDec),
+//     gstAmt: mathRound(Math.abs(net.gstAmt), amtDec),
+//     totAmtAftGst: mathRound(Math.abs(net.totAmt + net.gstAmt), amtDec),
+//     totLocalAmt: mathRound(Math.abs(net.totLocalAmt), locDec),
+//     gstLocalAmt: mathRound(Math.abs(net.gstLocalAmt), locDec),
+//     totLocalAmtAftGst: mathRound(
+//       Math.abs(net.totLocalAmt + net.gstLocalAmt),
+//       locDec
+//     ),
+//     totCtyAmt: hasCountryCurrency
+//       ? mathRound(Math.abs(net.totCtyAmt), ctyDec)
+//       : 0,
+//     gstCtyAmt: hasCountryCurrency
+//       ? mathRound(Math.abs(net.gstCtyAmt), ctyDec)
+//       : 0,
+//     totCtyAmtAftGst: hasCountryCurrency
+//       ? mathRound(Math.abs(net.totCtyAmt + net.gstCtyAmt), ctyDec)
+//       : 0,
+//   }
+
+//   return {
+//     isDebit,
+//     ...normalized,
+//   }
+// }
+
+type AdjustmentTotalsAccumulator = {
+  totAmt: number
+  gstAmt: number
+  totLocalAmt: number
+  gstLocalAmt: number
+  totCtyAmt: number
+  gstCtyAmt: number
+}
+
+const createEmptyAccumulator = (): AdjustmentTotalsAccumulator => ({
+  totAmt: 0,
+  gstAmt: 0,
+  totLocalAmt: 0,
+  gstLocalAmt: 0,
+  totCtyAmt: 0,
+  gstCtyAmt: 0,
+})
+
+const accumulateTotals = (
+  accumulator: AdjustmentTotalsAccumulator,
+  detail: IApAdjustmentDt
+) => {
+  accumulator.totAmt += Number(detail.totAmt) || 0
+  accumulator.gstAmt += Number(detail.gstAmt) || 0
+  accumulator.totLocalAmt += Number(detail.totLocalAmt) || 0
+  accumulator.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+  accumulator.totCtyAmt += Number(detail.totCtyAmt) || 0
+  accumulator.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+}
+
+export const calculateAdjustmentHeaderTotals = (
+  details: IApAdjustmentDt[],
+  decimals: IDecimal,
+  hasCountryCurrency: boolean
+) => {
+  if (!details || details.length === 0) {
+    return {
+      isDebit: false,
+      totAmt: 0,
+      gstAmt: 0,
+      totAmtAftGst: 0,
+      totLocalAmt: 0,
+      gstLocalAmt: 0,
+      totLocalAmtAftGst: 0,
+      totCtyAmt: 0,
+      gstCtyAmt: 0,
+      totCtyAmtAftGst: 0,
+    }
+  }
+
+  const debitTotals = createEmptyAccumulator()
+  const creditTotals = createEmptyAccumulator()
+
+  details.forEach((detail) => {
+    if (detail.isDebit) {
+      accumulateTotals(debitTotals, detail)
+    } else {
+      accumulateTotals(creditTotals, detail)
+    }
+  })
+
+  const net = {
+    totAmt: debitTotals.totAmt - creditTotals.totAmt,
+    gstAmt: debitTotals.gstAmt - creditTotals.gstAmt,
+    totLocalAmt: debitTotals.totLocalAmt - creditTotals.totLocalAmt,
+    gstLocalAmt: debitTotals.gstLocalAmt - creditTotals.gstLocalAmt,
+    totCtyAmt: debitTotals.totCtyAmt - creditTotals.totCtyAmt,
+    gstCtyAmt: debitTotals.gstCtyAmt - creditTotals.gstCtyAmt,
+  }
+
+  const amtDec = decimals.amtDec ?? 2
+  const locDec = decimals.locAmtDec ?? amtDec
+  const ctyDec = decimals.ctyAmtDec ?? locDec
+
+  const isDebit = net.totAmt < 0
+
+  const normalized = {
+    totAmt: mathRound(Math.abs(net.totAmt), amtDec),
+    gstAmt: mathRound(Math.abs(net.gstAmt), amtDec),
+    totAmtAftGst: mathRound(Math.abs(net.totAmt + net.gstAmt), amtDec),
+    totLocalAmt: mathRound(Math.abs(net.totLocalAmt), locDec),
+    gstLocalAmt: mathRound(Math.abs(net.gstLocalAmt), locDec),
+    totLocalAmtAftGst: mathRound(
+      Math.abs(net.totLocalAmt + net.gstLocalAmt),
+      locDec
+    ),
+    totCtyAmt: hasCountryCurrency
+      ? mathRound(Math.abs(net.totCtyAmt), ctyDec)
+      : 0,
+    gstCtyAmt: hasCountryCurrency
+      ? mathRound(Math.abs(net.gstCtyAmt), ctyDec)
+      : 0,
+    totCtyAmtAftGst: hasCountryCurrency
+      ? mathRound(Math.abs(net.totCtyAmt + net.gstCtyAmt), ctyDec)
+      : 0,
+  }
+
+  return {
+    isDebit,
+    ...normalized,
+  }
+}

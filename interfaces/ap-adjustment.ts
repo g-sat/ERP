@@ -22,8 +22,9 @@ export interface IApAdjustmentHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
-  invoiceId: number
-  invoiceNo: string
+
+  isDebit: boolean
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -34,7 +35,6 @@ export interface IApAdjustmentHd {
   totAmtAftGst: number
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
-  isDebit: boolean
   balAmt: number
   balLocalAmt: number
   payAmt: number
@@ -83,6 +83,8 @@ export interface IApAdjustmentHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+  serviceTypeId: number
+  serviceTypeName: string
   data_details: IApAdjustmentDt[]
 }
 
@@ -129,12 +131,14 @@ export interface IApAdjustmentDt {
   departmentId: number
   departmentCode: string
   departmentName: string
+
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
+
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -156,7 +160,7 @@ export interface IApAdjustmentDt {
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arAdjustmentId: number | string
+  arAdjustmentId: string
   arAdjustmentNo: string
   custAdjustmentNo: string
   editVersion: number

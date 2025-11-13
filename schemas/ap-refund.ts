@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const aprefundHdSchema = (
+export const ApRefundHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -10,9 +10,6 @@ export const aprefundHdSchema = (
 
     refundId: z.string().optional(),
     refundNo: z.string().optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
-      : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -31,7 +28,9 @@ export const aprefundHdSchema = (
     chequeDate: z.union([z.date(), z.string()]),
 
     // Bank Charge GL Fields
-    bankChgGLId: z.number().min(0, "Bank Charge GL is required"),
+    bankChgGLId: visible?.m_BankChgGLId
+      ? z.number().min(0, "Bank Charge GL is required")
+      : z.number().optional(),
     bankChgAmt: z.number().min(0, "Bank Charges Amount is required"),
     bankChgLocalAmt: z.number().min(0, "Bank Charges Local Amount is required"),
 
@@ -43,29 +42,18 @@ export const aprefundHdSchema = (
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
 
-    // Payment Currency Fields
-    payCurrencyId: z.number().min(1, "Payment Currency is required"),
-    payExhRate: z.number().min(0, "Payment Exchange Rate is required"),
-    payTotAmt: z.number().min(0, "Payment Total Amount is required"),
-    payTotLocalAmt: z.number().min(0, "Payment Total Local Amount is required"),
+    // Paying Currency Fields
+    payCurrencyId: z.number().min(1, "Paying Currency is required"),
+    payExhRate: z.number().min(0, "Paying Exchange Rate is required"),
+    payTotAmt: z.number().min(0, "Paying Total Amount is required"),
+    payTotLocalAmt: z.number().min(0, "Paying Total Local Amount is required"),
 
-    // Unallocated Amount Fields
-    unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
-    unAllocTotLocalAmt: z
-      .number()
-      .min(0, "Unallocated Total Local Amount is required"),
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
 
-    // Document Fields
-    docExhRate: z.number().min(0, "Document Exchange Rate is required"),
-    docTotAmt: z.number().min(0, "Document Total Amount is required"),
-    docTotLocalAmt: z
-      .number()
-      .min(0, "Document Total Local Amount is required"),
     // Allocated Amount Fields
     allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
     allocTotLocalAmt: z
@@ -81,29 +69,30 @@ export const aprefundHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+    appBy: z.string().optional(),
+    appDate: z.string().optional(),
+    appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z
-      .array(aprefundDtSchema(required, visible))
-      .min(1, "At least one invoice detail is required"),
+    data_details: z.array(ApRefundDtSchema(required, visible)).optional(),
   })
 }
 
-export type ApRefundHdSchemaType = z.infer<ReturnType<typeof aprefundHdSchema>>
+export type ApRefundHdSchemaType = z.infer<ReturnType<typeof ApRefundHdSchema>>
 
-export const aprefundHdFiltersSchema = z.object({
+export const ApRefundHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApRefundHdFiltersValues = z.infer<typeof aprefundHdFiltersSchema>
+export type ApRefundHdFiltersValues = z.infer<typeof ApRefundHdFiltersSchema>
 
-export const aprefundDtSchema = (
+export const ApRefundDtSchema = (
   _required: IMandatoryFields,
   _visible: IVisibleFields
 ) => {
@@ -144,12 +133,12 @@ export const aprefundDtSchema = (
   })
 }
 
-export type ApRefundDtSchemaType = z.infer<ReturnType<typeof aprefundDtSchema>>
+export type ApRefundDtSchemaType = z.infer<ReturnType<typeof ApRefundDtSchema>>
 
-export const aprefundDtFiltersSchema = z.object({
+export const ApRefundDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApRefundDtFiltersValues = z.infer<typeof aprefundDtFiltersSchema>
+export type ApRefundDtFiltersValues = z.infer<typeof ApRefundDtFiltersSchema>

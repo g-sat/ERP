@@ -1,33 +1,42 @@
-// main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  calculateAllocationAmounts,
-  calculateTotalExchangeGainLoss,
-} from "@/helpers/ap-docsetoff-calculations"
-import { IApDocsetoffDt, IApOutTransaction } from "@/interfaces"
+  autoAllocateAmounts,
+  calauteLocalAmtandGainLoss,
+  calculateManualAllocation,
+  calculateUnallocated,
+  validateAllocation as validateAllocationHelper,
+} from "@/helpers/ap-docSetOff-calculations"
+import { IApOutTransaction } from "@/interfaces"
+import { IApDocSetOffDt } from "@/interfaces/ap-docsetoff"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ApDocsetoffDtSchemaType, ApDocsetoffHdSchemaType } from "@/schemas"
+import {
+  ApDocSetOffDtSchemaType,
+  ApDocSetOffHdSchemaType,
+} from "@/schemas/ap-docsetoff"
 import { useAuthStore } from "@/stores/auth-store"
+import { Plus, RotateCcw, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
 import { APTransactionId } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
+import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 
-import PaymentDetailsTable from "./docsetoff-details-table"
-import PaymentForm from "./docsetoff-form"
+import DocSetOffDetailsTable from "./docSetOff-details-table"
+import DocSetOffForm from "./docSetOff-form"
 
 interface MainProps {
-  form: UseFormReturn<ApDocsetoffHdSchemaType>
+  form: UseFormReturn<ApDocSetOffHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -37,34 +46,67 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showTransactionDialog, setShowTransactionDialog] = useState(false)
   const [isAllocated, setIsAllocated] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [dataDetails, setDataDetails] = useState<ApDocSetOffDtSchemaType[]>([])
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [pendingBulkDeleteItemNos, setPendingBulkDeleteItemNos] = useState<
+    number[]
+  >([])
   const dialogParamsRef = useRef<{
-    supplierId: number
-    currencyId: number
-    accountDate: string
-    isRefund: boolean
-    documentId: string
+    supplierId?: number
+    currencyId?: number
+    accountDate?: string
+    isRefund?: boolean
+    documentId?: string
     transactionId: number
   } | null>(null)
 
-  // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const watchedDataDetails = form.watch("data_details")
 
-  // Calculate sum of allocAmt and allocLocalAmt
-  const totalAllocAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocAmt || 0),
-    0
-  )
-  const totalAllocLocalAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocLocalAmt || 0),
-    0
-  )
+  useEffect(() => {
+    setDataDetails(watchedDataDetails || [])
+  }, [watchedDataDetails])
+
+  // Calculate sum of balTotAmt (balance amounts) from docSetOff details
+  const totalBalanceAmt = useMemo(() => {
+    return dataDetails.reduce((sum, detail) => {
+      const balTotAmt =
+        Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
+      return sum + balTotAmt
+    }, 0)
+  }, [dataDetails])
+
+  const allocationTotals = useMemo(() => {
+    const arr = (dataDetails as unknown as IApDocSetOffDt[]) || []
+    let positive = 0
+    let negativeAbs = 0
+
+    arr.forEach((detail) => {
+      const value = Number((detail as unknown as IApDocSetOffDt).allocAmt) || 0
+      if (value > 0) {
+        positive += value
+      } else if (value < 0) {
+        negativeAbs += Math.abs(value)
+      }
+    })
+
+    return {
+      positive,
+      negativeAbs,
+      matched:
+        positive - negativeAbs === 0
+          ? Math.min(positive, negativeAbs)
+          : positive - negativeAbs,
+      totalSetOff: positive - negativeAbs,
+    }
+  }, [dataDetails])
 
   // Clear dialog params when dialog closes
   useEffect(() => {
@@ -72,28 +114,6 @@ export default function Main({
       dialogParamsRef.current = null
     }
   }, [showTransactionDialog])
-
-  // Update header exhGainLoss when details change
-  useEffect(() => {
-    if (dataDetails.length > 0) {
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
-        dataDetails as unknown as IApDocsetoffDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
-      )
-      form.setValue("exhGainLoss", totalExhGainLoss)
-    } else {
-      form.setValue("exhGainLoss", 0)
-    }
-  }, [dataDetails, form, decimals])
 
   // Check allocation status when data details change
   useEffect(() => {
@@ -109,419 +129,413 @@ export default function Main({
     setIsAllocated(hasAllocations)
   }, [dataDetails])
 
-  // Watch currency and docsetoff total fields
-  const currencyId = form.watch("currencyId")
-  const payCurrencyId = form.watch("payCurrencyId")
-  const payTotAmt = form.watch("payTotAmt")
-  const payTotLocalAmt = form.watch("payTotLocalAmt")
+  const removeReceiptDetails = useCallback(
+    (itemNos: number[]) => {
+      if (!itemNos || itemNos.length === 0) return
 
-  // Sync totals when currencyId and payCurrencyId are the same
-  useEffect(() => {
-    if (currencyId && payCurrencyId && currencyId === payCurrencyId) {
-      if (payTotAmt !== undefined && payTotAmt !== null) {
-        form.setValue("totAmt", payTotAmt, { shouldDirty: true })
+      const normalizedItemNos = itemNos
+        .map((item) => Number(item))
+        .filter((item) => Number.isFinite(item))
+      if (normalizedItemNos.length === 0) return
+
+      const itemsToRemove = new Set(normalizedItemNos)
+      const currentData = form.getValues("data_details") || []
+      const updatedData = currentData.filter(
+        (item) => !itemsToRemove.has(item.itemNo)
+      )
+
+      if (updatedData.length === currentData.length) {
+        return
       }
-      if (payTotLocalAmt !== undefined && payTotLocalAmt !== null) {
-        form.setValue("totLocalAmt", payTotLocalAmt, { shouldDirty: true })
+
+      const resetData = updatedData.map((item) => ({
+        ...item,
+        allocAmt: 0,
+      }))
+      const resetArr = resetData as unknown as IApDocSetOffDt[]
+
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      const exhRate = Number(form.getValues("exhRate")) || 1
+      for (let i = 0; i < resetArr.length; i++) {
+        calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
       }
-    }
-  }, [currencyId, payCurrencyId, payTotAmt, payTotLocalAmt, form])
+
+      const finalResetData: ApDocSetOffDtSchemaType[] = resetData.map(
+        (item, index) => ({
+          ...item,
+          allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
+          exhGainLoss: resetArr[index]?.exhGainLoss || 0,
+        })
+      )
+
+      form.setValue("data_details", finalResetData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(finalResetData)
+      form.setValue("allocTotAmt", 0, { shouldDirty: true })
+      form.setValue("exhGainLoss", 0, { shouldDirty: true })
+      form.setValue("balTotAmt", 0, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", 0, { shouldDirty: true })
+      setIsAllocated(false)
+      form.trigger("data_details")
+      setRefreshKey((prev) => prev + 1)
+    },
+    [decimals, form]
+  )
 
   const handleDelete = (itemNo: number) => {
-    const currentData = form.getValues("data_details") || []
-    const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
-    form.setValue("data_details", updatedData)
-    form.trigger("data_details")
+    removeReceiptDetails([itemNo])
   }
 
   const handleBulkDelete = (selectedItemNos: number[]) => {
-    const currentData = form.getValues("data_details") || []
-    const updatedData = currentData.filter(
-      (item) => !selectedItemNos.includes(item.itemNo)
+    const validItemNos = selectedItemNos.filter((itemNo) =>
+      Number.isFinite(itemNo)
     )
-    form.setValue("data_details", updatedData)
-    form.trigger("data_details")
+    if (validItemNos.length === 0) return
+
+    const uniqueItemNos = Array.from(new Set(validItemNos))
+    setPendingBulkDeleteItemNos(uniqueItemNos)
+    setIsBulkDeleteDialogOpen(true)
   }
 
-  const handleDataReorder = (newData: IApDocsetoffDt[]) => {
+  const handleBulkDeleteConfirm = useCallback(() => {
+    if (pendingBulkDeleteItemNos.length === 0) return
+    removeReceiptDetails(pendingBulkDeleteItemNos)
+    setPendingBulkDeleteItemNos([])
+  }, [pendingBulkDeleteItemNos, removeReceiptDetails])
+
+  const handleBulkDeleteCancel = useCallback(() => {
+    setPendingBulkDeleteItemNos([])
+  }, [])
+
+  const handleBulkDeleteDialogChange = useCallback((open: boolean) => {
+    setIsBulkDeleteDialogOpen(open)
+    if (!open) {
+      setPendingBulkDeleteItemNos([])
+    }
+  }, [])
+
+  const bulkDeleteItemName = useMemo(() => {
+    if (pendingBulkDeleteItemNos.length === 0) return undefined
+
+    const matches = dataDetails.filter((detail) =>
+      pendingBulkDeleteItemNos.includes(detail.itemNo)
+    )
+
+    if (matches.length === 0) {
+      return `Selected items (${pendingBulkDeleteItemNos.length})`
+    }
+
+    const lines = matches.slice(0, 10).map((detail) => {
+      const docNo = detail.documentNo ? detail.documentNo.toString().trim() : ""
+      return docNo ? `Document ${docNo}` : `Item No ${detail.itemNo}`
+    })
+
+    if (matches.length > 10) {
+      lines.push(`...and ${matches.length - 10} more`)
+    }
+
+    return lines.join("<br/>")
+  }, [dataDetails, pendingBulkDeleteItemNos])
+
+  const handleDataReorder = (newData: IApDocSetOffDt[]) => {
     form.setValue(
       "data_details",
-      newData as unknown as ApDocsetoffDtSchemaType[]
+      newData as unknown as ApDocSetOffDtSchemaType[]
     )
+    setDataDetails(newData as unknown as ApDocSetOffDtSchemaType[])
   }
 
-  // ==================== SMALL REUSABLE FUNCTIONS (SEQUENCE) ====================
+  // ==================== HELPER FUNCTIONS ====================
 
-  // 1. Validation Function
-  const validateAllocation = useCallback((data: ApDocsetoffDtSchemaType[]) => {
-    if (data.length === 0) {
-      toast.warning("No docsetoff details to allocate")
+  const validateAllocation = useCallback((data: ApDocSetOffDtSchemaType[]) => {
+    if (!validateAllocationHelper(data as unknown as IApDocSetOffDt[])) {
       return false
     }
     return true
   }, [])
 
-  // 2. Calculate Allocation Amounts (docAllocAmt, docAllocLocal, centDiff, exhGainLoss)
-  const calculateItemAllocation = useCallback(
-    (item: ApDocsetoffDtSchemaType, allocAmt: number) => {
-      const allocationResults = calculateAllocationAmounts(
-        allocAmt,
-        item.docExhRate || 1,
-        item.docExhRate || 1,
-        item.docTotLocalAmt || 0,
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
-      )
-
-      return {
-        docAllocAmt: allocationResults.docAllocAmt,
-        docAllocLocalAmt: allocationResults.docAllocLocalAmt,
-        centDiff: allocationResults.centDiff,
-        exhGainLoss: allocationResults.exhGainLoss,
-        allocLocalAmt: allocationResults.allocLocalAmt,
-      }
-    },
-    [decimals]
-  )
-
-  // 3. Update Totals in Badges (Total Alloc, Total Local)
-  const calculateTotalAllocations = useCallback(
-    (data: ApDocsetoffDtSchemaType[]) => {
-      const totalAllocAmt = data.reduce(
-        (sum, item) => sum + (item.allocAmt || 0),
-        0
-      )
-      const totalAllocLocalAmt = data.reduce(
-        (sum, item) => sum + (item.allocLocalAmt || 0),
-        0
-      )
-      return { totalAllocAmt, totalAllocLocalAmt }
-    },
-    []
-  )
-
-  // 4. Update Header Amounts
-  const updateHeaderAmounts = useCallback(
+  // Helper function to update allocation calculations
+  const updateAllocationCalculations = useCallback(
     (
-      data: ApDocsetoffDtSchemaType[],
-      totAmt?: number,
-      totLocalAmt?: number
-    ) => {
-      const { totalAllocAmt, totalAllocLocalAmt } =
-        calculateTotalAllocations(data)
+      updatedData: ApDocSetOffDtSchemaType[],
+      rowIndex: number,
+      allocValue: number
+    ): number | undefined => {
+      const arr = updatedData as unknown as IApDocSetOffDt[]
+      if (rowIndex === -1 || rowIndex >= arr.length) return
 
-      // If totAmt and totLocalAmt are provided, use them; otherwise use calculated totals
-      const headerTotAmt = totAmt !== undefined ? totAmt : totalAllocAmt
-      const headerTotLocalAmt =
-        totLocalAmt !== undefined ? totLocalAmt : totalAllocLocalAmt
+      const exhRate = Number(form.getValues("exhRate"))
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      const balTotAmt = Number(form.getValues("balTotAmt")) || 0
 
-      form.setValue("totAmt", headerTotAmt)
-      form.setValue("totLocalAmt", headerTotLocalAmt)
-      form.setValue("payTotAmt", headerTotAmt)
-      form.setValue("payTotLocalAmt", headerTotLocalAmt)
+      // console.log(
+      //   "updateAllocationCalculations",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
 
-      // Calculate and update exchange gain/loss
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
-        data as unknown as IApDocsetoffDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
+      const { result, wasAutoSetToZero } = calculateManualAllocation(
+        arr,
+        rowIndex,
+        allocValue,
+        dec
       )
-      form.setValue("exhGainLoss", totalExhGainLoss)
+
+      // Show toast if allocation was auto-set to zero due to remaining amount <= 0
+      if (wasAutoSetToZero) {
+        console.log(
+          "updateAllocationCalculations wasAutoSetToZero",
+          wasAutoSetToZero
+        )
+        toast.error("Now it's auto set to zero. Please check the allocation.")
+      }
+
+      const clampedValue =
+        typeof result?.allocAmt === "number"
+          ? Number(result.allocAmt)
+          : Number(arr[rowIndex]?.allocAmt) || 0
+
+      // Clamp to the absolute balance of the current row as a final safety check
+      const balanceLimit = Math.abs(Number(arr[rowIndex]?.docBalAmt) || 0)
+      const adjustedValue =
+        Math.abs(clampedValue) > balanceLimit
+          ? Math.sign(clampedValue) * balanceLimit
+          : clampedValue
+
+      if (adjustedValue !== clampedValue) {
+        arr[rowIndex].allocAmt = adjustedValue
+        if (adjustedValue === 0) {
+          toast.error(
+            "Allocation exceeds remaining balance. It has been reset."
+          )
+        }
+      }
+
+      // console.log(
+      //   "updateAllocationCalculations calculateManualAllocation",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
+
+      calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
+
+      const totalPositiveAlloc = arr.reduce(
+        (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
+        0
+      )
+      const totalNegativeAllocAbs = arr.reduce(
+        (sum, r) =>
+          sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
+        0
+      )
+      const matchedAllocation = Math.min(
+        totalPositiveAlloc,
+        totalNegativeAllocAbs
+      )
+      const sumAllocAmt = arr.reduce(
+        (sum, r) => sum + (Number(r.allocAmt) || 0),
+        0
+      )
+      const sumExhGainLoss = arr.reduce(
+        (s, r) => s + (Number(r.exhGainLoss) || 0),
+        0
+      )
+
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(updatedData)
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+
+      const { unAllocAmt } = calculateUnallocated(
+        balTotAmt,
+        matchedAllocation,
+        dec
+      )
+      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+      form.trigger("data_details")
+      setRefreshKey((prev) => prev + 1)
+
+      return arr[rowIndex].allocAmt as number
     },
-    [form, decimals, calculateTotalAllocations]
+    [form, decimals]
   )
 
-  // Handle cell edit for editable columns (FOLLOWS SAME SEQUENCE AS AUTO ALLOCATION)
+  // Handle cell edit for allocAmt field
   const handleCellEdit = useCallback(
     (itemNo: number, field: string, value: number) => {
+      if (field !== "allocAmt") return
+
+      // console.log("handleCellEdit", itemNo, field, value)
+
       const currentData = form.getValues("data_details") || []
+      const currentItem = currentData.find((item) => item.itemNo === itemNo)
+      const currentValue = currentItem?.allocAmt || 0
 
-      // SEQUENCE 1: Validation (implicit - data exists)
+      if (currentValue === value) {
+        return currentValue
+      }
 
-      // SEQUENCE 2 & 3: Update allocAmt and calculate all related values
-      const updatedData = currentData.map((item) => {
-        if (item.itemNo === itemNo) {
-          // If editing allocAmt, recalculate all dependent fields
-          if (field === "allocAmt") {
-            const calculatedValues = calculateItemAllocation(item, value)
-            return {
-              ...item,
-              allocAmt: value,
-              allocLocalAmt: calculatedValues.allocLocalAmt,
-              docAllocAmt: calculatedValues.docAllocAmt,
-              docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-              centDiff: calculatedValues.centDiff,
-              exhGainLoss: calculatedValues.exhGainLoss,
-            }
-          }
-          // If editing allocLocalAmt, just update it (allocAmt is primary)
-          else if (field === "allocLocalAmt") {
-            return { ...item, allocLocalAmt: value }
-          }
-          // For other fields, just update the field
-          else {
-            return { ...item, [field]: value }
-          }
-        }
-        return item
-      })
+      // Don't allow manual entry when totAmt = 0
+      const headerBalAmt = Number(form.getValues("balTotAmt")) || 0
+      if (headerBalAmt === 0) {
+        toast.error(
+          "Balance Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Balance Amount."
+        )
+        // Set amount to 0
+        const updatedData = [...currentData]
 
-      // SEQUENCE 4 & 5: Update badges and calculate totals (happens in updateHeaderAmounts)
-      // SEQUENCE 6: Update headers
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      updateHeaderAmounts(updatedData)
+        const arr = updatedData as unknown as IApDocSetOffDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
 
-      form.trigger("data_details")
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          0
+        )
+        return finalValue ?? 0
+      } else {
+        // console.log("handleCellEdit else", itemNo, field, value)
+        // When balTotAmt > 0, allow manual entry with validation
+        const updatedData = [...currentData]
+        const arr = updatedData as unknown as IApDocSetOffDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
+
+        // console.log(
+        //   "handleCellEdit else updateAllocationCalculations",
+        //   rowIndex,
+        //   value
+        // )
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          value
+        )
+        return finalValue
+      }
     },
-    [form, calculateItemAllocation, updateHeaderAmounts]
+    [form, updateAllocationCalculations]
   )
 
-  // ==================== HELPER FUNCTIONS ====================
+  // ==================== MAIN FUNCTIONS ====================
 
-  const calculateAmountSums = useCallback((data: ApDocsetoffDtSchemaType[]) => {
-    const positiveSum = data.reduce(
-      (sum, item) => sum + (item.docBalAmt > 0 ? item.docBalAmt : 0),
-      0
-    )
-    const negativeSum = data.reduce(
-      (sum, item) => sum + (item.docBalAmt < 0 ? item.docBalAmt : 0),
-      0
-    )
-    return { positiveSum, negativeSum }
-  }, [])
-
-  const resetHeaderAmounts = useCallback(() => {
-    form.setValue("totAmt", 0)
-    form.setValue("totLocalAmt", 0)
-    form.setValue("payTotAmt", 0)
-    form.setValue("payTotLocalAmt", 0)
-    form.setValue("exhGainLoss", 0)
-  }, [form])
-
-  // Helper: Full allocation (Case 1: totAmt = 0)
-  const allocateFullAmounts = useCallback(
-    (data: ApDocsetoffDtSchemaType[]) => {
-      return data.map((item) => {
-        const allocAmt = item.docBalAmt || 0
-
-        // Use the reusable calculation function
-        const calculatedValues = calculateItemAllocation(item, allocAmt)
-
-        return {
-          ...item,
-          allocAmt,
-          allocLocalAmt: calculatedValues.allocLocalAmt,
-          docAllocAmt: calculatedValues.docAllocAmt,
-          docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-          centDiff: calculatedValues.centDiff,
-          exhGainLoss: calculatedValues.exhGainLoss,
-        }
-      })
-    },
-    [calculateItemAllocation]
-  )
-
-  // Helper: Proportional allocation (Case 2: totAmt > 0)
-  const allocateProportionally = useCallback(
-    (
-      data: ApDocsetoffDtSchemaType[],
-      totAmt: number,
-      _totLocalAmt: number,
-      usePositive: boolean
-    ) => {
-      let remainingAmt = totAmt
-
-      return data.map((item, index) => {
-        const docBalAmt = item.docBalAmt || 0
-
-        // Skip items that don't match the selected type
-        if (usePositive && docBalAmt < 0) {
-          const calculatedValues = calculateItemAllocation(item, docBalAmt)
-          return {
-            ...item,
-            allocAmt: docBalAmt,
-            allocLocalAmt: calculatedValues.allocLocalAmt,
-            docAllocAmt: calculatedValues.docAllocAmt,
-            docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-            centDiff: calculatedValues.centDiff,
-            exhGainLoss: calculatedValues.exhGainLoss,
-          }
-        }
-        if (!usePositive && docBalAmt >= 0) {
-          return {
-            ...item,
-            allocAmt: 0,
-            allocLocalAmt: 0,
-            docAllocAmt: 0,
-            docAllocLocalAmt: 0,
-            centDiff: 0,
-            exhGainLoss: 0,
-          }
-        }
-
-        // Check if this is the last item matching the selected type
-        const isLastMatchingItem =
-          index === data.length - 1 ||
-          data
-            .slice(index + 1)
-            .every((nextItem) =>
-              usePositive ? nextItem.docBalAmt < 0 : nextItem.docBalAmt >= 0
-            )
-
-        let allocAmt: number
-
-        // Allocate amounts
-        if (isLastMatchingItem) {
-          allocAmt = usePositive
-            ? Math.min(remainingAmt, docBalAmt)
-            : Math.max(remainingAmt, docBalAmt)
-        } else {
-          allocAmt = docBalAmt
-        }
-
-        // Deduct from remaining
-        remainingAmt -= allocAmt
-
-        // Use the reusable calculation function
-        const calculatedValues = calculateItemAllocation(item, allocAmt)
-
-        return {
-          ...item,
-          allocAmt,
-          allocLocalAmt: calculatedValues.allocLocalAmt,
-          docAllocAmt: calculatedValues.docAllocAmt,
-          docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-          centDiff: calculatedValues.centDiff,
-          exhGainLoss: calculatedValues.exhGainLoss,
-        }
-      })
-    },
-    [calculateItemAllocation]
-  )
-
-  // Main Auto Allocation Function (USES SMALL FUNCTIONS IN SEQUENCE)
   const handleAutoAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
-    const totAmt = form.getValues("totAmt") || 0
 
-    // SEQUENCE 1: Validation
     if (!validateAllocation(currentData)) return
 
-    // Case 1: Full allocation (totAmt = 0)
-    if (totAmt === 0) {
-      // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
-      const updatedData = allocateFullAmounts(currentData)
+    const balTotAmt = Number(form.getValues("balTotAmt")) || 0
+    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+    const { updatedDetails: details, appliedTotal } = autoAllocateAmounts(
+      currentData as unknown as IApDocSetOffDt[],
+      dec
+    )
+    const updatedData = details as unknown as ApDocSetOffDtSchemaType[]
 
-      // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
-      // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateFullAmounts)
-      // SEQUENCE 6: Update headers
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      updateHeaderAmounts(updatedData)
-
-      setIsAllocated(true)
-      toast.success("Auto allocation completed")
-      return
+    const arr = updatedData as unknown as IApDocSetOffDt[]
+    const exhRate = Number(form.getValues("exhRate")) || 1
+    for (let i = 0; i < arr.length; i++) {
+      calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-
-    // Case 2: Proportional allocation (totAmt > 0)
-    const { positiveSum, negativeSum } = calculateAmountSums(currentData)
-    const usePositive = Math.abs(positiveSum) >= Math.abs(negativeSum)
-    const totLocalAmt = form.getValues("totLocalAmt") || totAmt
-
-    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
-    const updatedData = allocateProportionally(
-      currentData,
-      totAmt,
-      totLocalAmt,
-      usePositive
+    const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
+    const totalPositiveAlloc = arr.reduce(
+      (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
+      0
+    )
+    const totalNegativeAllocAbs = arr.reduce(
+      (sum, r) =>
+        sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
+      0
+    )
+    const sumExhGainLoss = arr.reduce(
+      (s, r) => s + (Number(r.exhGainLoss) || 0),
+      0
     )
 
-    // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
-    // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateProportionally)
-    // SEQUENCE 6: Update headers
+    const matchedAllocation =
+      appliedTotal ?? Math.min(totalPositiveAlloc, totalNegativeAllocAbs)
+
+    // If balTotAmt was 0, update it with the calculated allocation total
+    const finalBalAmt = balTotAmt === 0 ? matchedAllocation : balTotAmt
+
+    const { unAllocAmt } = calculateUnallocated(
+      finalBalAmt,
+      matchedAllocation,
+      dec
+    )
+
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
       shouldTouch: true,
     })
-    updateHeaderAmounts(updatedData, totAmt, totLocalAmt)
+    setDataDetails(updatedData)
 
+    form.setValue("allocTotAmt", matchedAllocation, { shouldDirty: true })
+    form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    form.trigger("data_details")
+    setRefreshKey((prev) => prev + 1)
     setIsAllocated(true)
-    toast.success("Auto allocation completed")
-  }, [
-    form,
-    validateAllocation,
-    allocateFullAmounts,
-    calculateAmountSums,
-    allocateProportionally,
-    updateHeaderAmounts,
-  ])
+  }, [form, validateAllocation, decimals])
 
-  // Reset Allocation Function
   const handleResetAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
 
     if (currentData.length === 0) {
-      toast.warning("No docsetoff details to reset")
       return
     }
 
-    // Reset all allocation amounts to 0
     const updatedData = currentData.map((item) => ({
       ...item,
       allocAmt: 0,
-      allocLocalAmt: 0,
-      docAllocAmt: 0,
-      docAllocLocalAmt: 0,
-      centDiff: 0,
-      exhGainLoss: 0,
     }))
+    const arr = updatedData as unknown as IApDocSetOffDt[]
+    const exhRate = Number(form.getValues("exhRate")) || 1
+    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+    for (let i = 0; i < arr.length; i++) {
+      calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
+    }
+    const sumAllocAmt = 0
+    const sumExhGainLoss = 0
+    const balTotAmt = Number(form.getValues("balTotAmt")) || 0
+    const { unAllocAmt } = calculateUnallocated(balTotAmt, sumAllocAmt, dec)
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
       shouldTouch: true,
     })
-
-    // Reset all header amounts
-    resetHeaderAmounts()
-
+    setDataDetails(updatedData)
+    form.setValue("allocTotAmt", allocationTotals.matched, {
+      shouldDirty: true,
+    })
+    form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    form.trigger("data_details")
+    setRefreshKey((prev) => prev + 1)
     setIsAllocated(false)
-    toast.success(
-      `Reset ${currentData.length} allocation(s) and all header amounts to 0`
-    )
-  }, [form, resetHeaderAmounts])
+  }, [form, decimals])
+
+  // Check if supplier is selected
+  const supplierId = form.watch("supplierId")
+  const currencyId = form.watch("currencyId")
+  const accountDate = form.watch("accountDate")
+  const isSupplierSelected = supplierId && supplierId > 0
 
   const handleSelectTransaction = useCallback(() => {
-    const supplierId = form.getValues("supplierId")
-    const currencyId = form.getValues("currencyId")
-    const accountDate = form.getValues("accountDate")
-    const paymentTypeId = form.getValues("paymentTypeId")
-
-    if (!supplierId || !currencyId || !accountDate || !paymentTypeId) {
-      toast.warning(
-        "Please select Supplier, Currency, Account Date and Docsetoff Type first"
-      )
+    if (!supplierId || !currencyId || !accountDate) {
       return
     }
 
@@ -530,12 +544,12 @@ export default function Main({
       currencyId,
       accountDate: accountDate?.toString() || "",
       isRefund: false,
-      documentId: form.getValues("setoffId")?.toString() || "",
+      documentId: form.getValues("setoffId") || "0",
       transactionId: APTransactionId.docsetoff,
     }
 
     setShowTransactionDialog(true)
-  }, [form])
+  }, [supplierId, currencyId, accountDate, form])
 
   const handleAddSelectedTransactions = useCallback(
     (transactions: IApOutTransaction[]) => {
@@ -545,7 +559,7 @@ export default function Main({
           ? Math.max(...currentData.map((d) => d.itemNo)) + 1
           : 1
 
-      const newDetails: ApDocsetoffDtSchemaType[] = transactions.map(
+      const newDetails: ApDocSetOffDtSchemaType[] = transactions.map(
         (transaction, index) => ({
           companyId: companyId,
           setoffId: form.getValues("setoffId") || "0",
@@ -575,75 +589,142 @@ export default function Main({
       )
 
       const updatedData = [...currentData, ...newDetails]
+
+      const positiveTotal = updatedData.reduce((sum, detail) => {
+        const bal = Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
+        return bal > 0 ? sum + bal : sum
+      }, 0)
+
+      const negativeTotalAbs = updatedData.reduce((sum, detail) => {
+        const bal = Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
+        return bal < 0 ? sum + Math.abs(bal) : sum
+      }, 0)
+
+      const limitingTotal = Math.min(positiveTotal, negativeTotalAbs)
+
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
         shouldTouch: true,
       })
+      form.setValue("balTotAmt", limitingTotal, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", limitingTotal, { shouldDirty: true })
+      form.setValue("allocTotAmt", 0, { shouldDirty: true })
+      form.setValue("exhGainLoss", 0, { shouldDirty: true })
+
+      setDataDetails(updatedData)
       form.trigger("data_details")
+      setShowTransactionDialog(false)
     },
     [form, companyId]
   )
 
   return (
     <div className="w-full">
-      <PaymentForm
+      <DocSetOffForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
         visible={visible}
         required={required}
         companyId={companyId}
+        isCancelled={isCancelled}
+        dataDetails={dataDetails}
       />
 
       <div className="px-2 pt-1">
         {/* Control Row */}
-        <div className="mb-2 flex items-center gap-2">
-          <Button onClick={handleSelectTransaction}>Select Transaction</Button>
+        <div className="mb-2 flex flex-wrap items-center gap-1">
           <Button
-            onClick={handleAutoAllocation}
-            disabled={isAllocated}
-            className={isAllocated ? "cursor-not-allowed opacity-50" : ""}
+            size="sm"
+            onClick={handleSelectTransaction}
+            disabled={!isSupplierSelected}
+            className={
+              !isSupplierSelected
+                ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                : "px-3 py-1 text-xs"
+            }
+            title="Select outstanding transactions"
           >
-            Auto Allocation
+            <Plus className="h-4 w-4" />
+            Select Txn
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAutoAllocation}
+            // disabled={isAllocated || dataDetails.length === 0}
+            // className={
+            //   isAllocated || dataDetails.length === 0
+            //     ? "cursor-not-allowed opacity-50"
+            //     : ""
+            // }
+            className="px-3 py-1 text-xs"
+            title="Auto allocate amounts"
+          >
+            <Zap className="h-4 w-4" />
+            Auto Alloc
           </Button>
           <Button
             variant="destructive"
+            size="sm"
             onClick={handleResetAllocation}
             disabled={!isAllocated}
-            className={!isAllocated ? "cursor-not-allowed opacity-50" : ""}
+            className={
+              !isAllocated
+                ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                : "px-3 py-1 text-xs"
+            }
+            title="Reset all allocations"
           >
-            Reset Allocation
+            <RotateCcw className="h-4 w-4" />
+            Reset Alloc
           </Button>
           <Badge
             variant="secondary"
             className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
           >
-            Total Alloc: {totalAllocAmt.toFixed(amtDec)}
+            Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+          </Badge>
+          <Badge
+            variant="secondary"
+            className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
+          >
+            Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
           </Badge>
           <Badge
             variant="outline"
-            className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
+            className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
           >
-            Total Local: {totalAllocLocalAmt.toFixed(locAmtDec)}
+            Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
           </Badge>
         </div>
-        <PaymentDetailsTable
-          data={(dataDetails as unknown as IApDocsetoffDt[]) || []}
+
+        <DocSetOffDetailsTable
+          key={refreshKey}
+          data={(dataDetails as unknown as IApDocSetOffDt[]) || []}
           visible={visible}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
           onDataReorder={
-            handleDataReorder as (newData: IApDocsetoffDt[]) => void
+            handleDataReorder as (newData: IApDocSetOffDt[]) => void
           }
           onCellEdit={handleCellEdit}
         />
       </div>
 
+      <DeleteConfirmation
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={handleBulkDeleteDialogChange}
+        onConfirm={handleBulkDeleteConfirm}
+        onCancel={handleBulkDeleteCancel}
+        itemName={bulkDeleteItemName}
+        description="Selected docSetOff details will be removed. This action cannot be undone."
+      />
+
       {/* Transaction Selection Dialog */}
       {showTransactionDialog && dialogParamsRef.current && (
-        <ApOutStandingTransactionsDialog
+        <ArOutStandingTransactionsDialog
           open={showTransactionDialog}
-          onOpenChangeAction={(open) => setShowTransactionDialog(open)}
+          onOpenChangeAction={setShowTransactionDialog}
           supplierId={dialogParamsRef.current.supplierId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}

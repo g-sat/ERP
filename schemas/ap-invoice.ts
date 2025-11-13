@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const apinvoiceHdSchema = (
+export const ApInvoiceHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -30,7 +30,7 @@ export const apinvoiceHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
     // Credit Terms
     creditTermId: z.number().min(1, "Credit Term is required"),
@@ -104,17 +104,16 @@ export const apinvoiceHdSchema = (
     moduleFrom: z.string().optional(),
 
     customerName: z.string().optional(),
-
-    arInvoiceId: z.union([z.string(), z.number()]).optional(),
+    arInvoiceId: z.string().optional(),
     arInvoiceNo: z.string().optional(),
     editVersion: z.number().optional(),
     createBy: z.string().optional(),
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
 
     // Service Type Fields
@@ -124,24 +123,24 @@ export const apinvoiceHdSchema = (
 
     // Nested Details
     data_details: z
-      .array(apinvoiceDtSchema(required, visible))
+      .array(ApInvoiceDtSchema(required, visible))
       .min(1, "At least one invoice detail is required"),
   })
 }
 
 export type ApInvoiceHdSchemaType = z.infer<
-  ReturnType<typeof apinvoiceHdSchema>
+  ReturnType<typeof ApInvoiceHdSchema>
 >
 
-export const apinvoiceHdFiltersSchema = z.object({
+export const ApInvoiceHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApInvoiceHdFiltersValues = z.infer<typeof apinvoiceHdFiltersSchema>
+export type ApInvoiceHdFiltersValues = z.infer<typeof ApInvoiceHdFiltersSchema>
 
-export const apinvoiceDtSchema = (
+export const ApInvoiceDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -221,10 +220,7 @@ export const apinvoiceDtSchema = (
     departmentName: z.string().optional(),
 
     // Job Order Fields
-    jobOrderId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Job Order is required")
-        : z.number().optional(),
+    jobOrderId: z.number().optional(),
     jobOrderNo: z.string().optional(),
 
     // Task Fields
@@ -292,23 +288,20 @@ export const apinvoiceDtSchema = (
     // Supplier Details
     customerName: z.string().optional(),
     custInvoiceNo: z.string().optional(),
-    suppInvoiceNo: z.string().optional(),
-    arInvoiceId: z.union([z.string(), z.number()]).optional(),
+    arInvoiceId: z.string().optional(),
     arInvoiceNo: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
 export type ApInvoiceDtSchemaType = z.infer<
-  ReturnType<typeof apinvoiceDtSchema>
+  ReturnType<typeof ApInvoiceDtSchema>
 >
 
-export const apinvoiceDtFiltersSchema = z.object({
+export const ApInvoiceDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApInvoiceDtFiltersValues = z.infer<typeof apinvoiceDtFiltersSchema>
+export type ApInvoiceDtFiltersValues = z.infer<typeof ApInvoiceDtFiltersSchema>

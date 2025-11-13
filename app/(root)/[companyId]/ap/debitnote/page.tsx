@@ -1,7 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import {
+  mathRound,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ap-debitNote-calculations"
 import {
   IApDebitNoteDt,
   IApDebitNoteFilter,
@@ -10,15 +22,25 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApDebitNoteDtSchemaType,
+  ApDebitNoteHdSchema,
   ApDebitNoteHdSchemaType,
-  apDebitNoteHdSchema,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -27,22 +49,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApDebitNote } from "@/lib/api-routes"
+import { ApDebitNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -50,7 +69,7 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultDebitNote } from "./components/debitNote-defaultvalues"
+import { getDefaultValues } from "./components/debitNote-defaultvalues"
 import DebitNoteTable from "./components/debitNote-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
@@ -58,35 +77,126 @@ import Other from "./components/other"
 
 export default function DebitNotePage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.debitNote
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingDebitNote, setIsLoadingDebitNote] = useState(false)
-  const [isSelectingDebitNote, setIsSelectingDebitNote] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [debitNote, setDebitNote] = useState<ApDebitNoteHdSchemaType | null>(
     null
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleDebitNoteSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/creditnote`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<IApDebitNoteFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "debitNoteNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const defaultDebitNoteValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultDebitNote,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -104,12 +214,13 @@ export default function DebitNotePage() {
 
   // Add form state management
   const form = useForm<ApDebitNoteHdSchemaType>({
-    resolver: zodResolver(apDebitNoteHdSchema(required, visible)),
+    resolver: zodResolver(ApDebitNoteHdSchema(required, visible)),
     defaultValues: debitNote
       ? {
           debitNoteId: debitNote.debitNoteId?.toString() ?? "0",
           debitNoteNo: debitNote.debitNoteNo ?? "",
           referenceNo: debitNote.referenceNo ?? "",
+          suppDebitNoteNo: debitNote.suppDebitNoteNo ?? "",
           trnDate: debitNote.trnDate ?? new Date(),
           accountDate: debitNote.accountDate ?? new Date(),
           dueDate: debitNote.dueDate ?? new Date(),
@@ -121,8 +232,6 @@ export default function DebitNotePage() {
           ctyExhRate: debitNote.ctyExhRate ?? 0,
           creditTermId: debitNote.creditTermId ?? 0,
           bankId: debitNote.bankId ?? 0,
-          invoiceId: debitNote.invoiceId ?? "0",
-          invoiceNo: debitNote.invoiceNo ?? "",
           totAmt: debitNote.totAmt ?? 0,
           totLocalAmt: debitNote.totLocalAmt ?? 0,
           totCtyAmt: debitNote.totCtyAmt ?? 0,
@@ -152,7 +261,6 @@ export default function DebitNotePage() {
           mobileNo: debitNote.mobileNo ?? "",
           emailAdd: debitNote.emailAdd ?? "",
           moduleFrom: debitNote.moduleFrom ?? "",
-          suppDebitNoteNo: debitNote.suppDebitNoteNo ?? "",
           customerName: debitNote.customerName ?? "",
           addressId: debitNote.addressId ?? 0,
           contactId: debitNote.contactId ?? 0,
@@ -161,6 +269,7 @@ export default function DebitNotePage() {
           editVersion: debitNote.editVersion ?? 0,
           purchaseOrderId: debitNote.purchaseOrderId ?? 0,
           purchaseOrderNo: debitNote.purchaseOrderNo ?? "",
+          serviceTypeId: debitNote.serviceTypeId ?? 0,
           data_details:
             debitNote.data_details?.map((detail) => ({
               ...detail,
@@ -175,25 +284,75 @@ export default function DebitNotePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custDebitNoteNo: detail.custDebitNoteNo ?? "",
-              arDebitNoteId: detail.arDebitNoteId ?? "",
+              arDebitNoteId: detail.arDebitNoteId ?? "0",
               arDebitNoteNo: detail.arDebitNoteNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultDebitNote,
-        },
+      : (() => {
+          // For new debitNote, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultDebitNoteValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to DebitNoteTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentDebitNoteId = form.getValues("debitNoteId") || "0"
+    if (
+      (debitNote && debitNote.debitNoteId && debitNote.debitNoteId !== "0") ||
+      currentDebitNoteId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultDebitNoteValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultDebitNoteValues,
+    decimals,
+    form,
+    debitNote,
+    isDirty,
+    user,
+  ])
 
   // Mutations
   const saveMutation = usePersist<ApDebitNoteHdSchemaType>(`${ApDebitNote.add}`)
   const updateMutation = usePersist<ApDebitNoteHdSchemaType>(
     `${ApDebitNote.add}`
   )
-  const deleteMutation = useDelete(`${ApDebitNote.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApDebitNote.delete}`)
 
   // Remove the useGetDebitNoteById hook for selection
   // const { data: debitNoteByIdData, refetch: refetchDebitNoteById } = ...
@@ -214,7 +373,7 @@ export default function DebitNotePage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = apDebitNoteHdSchema(required, visible).safeParse(
+      const validationResult = ApDebitNoteHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -242,102 +401,348 @@ export default function DebitNotePage() {
         return
       }
 
-      const response =
-        Number(formValues.debitNoteId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      console.log("handleSaveDebitNote formValues", formValues)
 
-      if (response.result === 1) {
-        const debitNoteData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.debitNoteId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (debitNoteData) {
-          const updatedSchemaType = transformToSchemaType(
-            debitNoteData as unknown as IApDebitNoteHd
-          )
-          setIsSelectingDebitNote(true)
-          setDebitNote(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
-        // Check if this was a new debitNote or update
-        const wasNewDebitNote = Number(formValues.debitNoteId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewDebitNote) {
-          //toast.success(
-          // `DebitNote ${debitNoteData?.debitNoteNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+
+      {
+        const response =
+          Number(formValues.debitNoteId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const debitNoteData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (debitNoteData) {
+            const updatedSchemaType = transformToSchemaType(
+              debitNoteData as unknown as IApDebitNoteHd
+            )
+
+            setSearchNo(updatedSchemaType.debitNoteNo || "")
+            setDebitNote(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Check if this was a new debitNote or update
+          const wasNewDebitNote = Number(formValues.debitNoteId) === 0
+
+          if (wasNewDebitNote) {
+            //toast.success(
+            // `DebitNote ${debitNoteData?.debitNoteNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("DebitNote updated successfully")
+          }
+
+          // Data refresh handled by DebitNoteTable component
         } else {
-          //toast.success("DebitNote updated successfully")
+          toast.error(response.message || "Failed to save debitNote")
         }
-
-        // Data refresh handled by DebitNoteTable component
-      } else {
-        toast.error(response.message || "Failed to save debitNote")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving debitNote")
     } finally {
       setIsSaving(false)
-      setIsSelectingDebitNote(false)
     }
   }
 
   // Handle Clone
-  const handleCloneDebitNote = () => {
+  const handleCloneDebitNote = async () => {
     if (debitNote) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedDebitNote: ApDebitNoteHdSchemaType = {
         ...debitNote,
         debitNoteId: "0",
         debitNoteNo: "",
-        // Reset amounts for new debitNote
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        deliveryDate: dateStr,
+        gstClaimDate: dateStr,
+        // dueDate will be calculated based on accountDate and credit terms
+        dueDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all balance and payment amounts
         balAmt: 0,
         balLocalAmt: 0,
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Reset data details
-        data_details: [],
+        // Clear AP debitNote link
+        arDebitNoteId: "0",
+        arDebitNoteNo: "",
+        // Keep data details - do not remove
+        data_details:
+          debitNote.data_details?.map((detail) => ({
+            ...detail,
+            debitNoteId: "0",
+            debitNoteNo: "",
+            arDebitNoteId: "0",
+            arDebitNoteNo: "",
+            editVersion: 0,
+          })) || [],
       }
+
+      // Calculate totals from details with proper rounding
+      const amtDec = decimals[0]?.amtDec || 2
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+      const details = clonedDebitNote.data_details || []
+      if (details.length > 0) {
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
+
+        clonedDebitNote.totAmt = mathRound(totAmt, amtDec)
+        clonedDebitNote.gstAmt = mathRound(gstAmt, amtDec)
+        clonedDebitNote.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedDebitNote.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedDebitNote.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedDebitNote.totLocalAmtAftGst = mathRound(
+          totLocalAmt + gstLocalAmt,
+          locAmtDec
+        )
+        clonedDebitNote.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedDebitNote.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedDebitNote.totCtyAmtAftGst = mathRound(
+          totCtyAmt + gstCtyAmt,
+          ctyAmtDec
+        )
+      } else {
+        // Reset amounts if no details
+        clonedDebitNote.totAmt = 0
+        clonedDebitNote.totLocalAmt = 0
+        clonedDebitNote.totCtyAmt = 0
+        clonedDebitNote.gstAmt = 0
+        clonedDebitNote.gstLocalAmt = 0
+        clonedDebitNote.gstCtyAmt = 0
+        clonedDebitNote.totAmtAftGst = 0
+        clonedDebitNote.totLocalAmtAftGst = 0
+        clonedDebitNote.totCtyAmtAftGst = 0
+      }
+
       setDebitNote(clonedDebitNote)
       form.reset(clonedDebitNote)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedDebitNote.currencyId && clonedDebitNote.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IApDebitNoteDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as ApDebitNoteDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const totals = calculateTotalAmounts(
+              updatedDetails as unknown as IApDebitNoteDt[],
+              amtDec
+            )
+            form.setValue("totAmt", totals.totAmt)
+            form.setValue("gstAmt", totals.gstAmt)
+            form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+            const localAmounts = calculateLocalAmounts(
+              updatedDetails as unknown as IApDebitNoteDt[],
+              locAmtDec
+            )
+            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+            if (visible?.m_CtyCurr) {
+              const countryAmounts = calculateCountryAmounts(
+                updatedDetails as unknown as IApDebitNoteDt[],
+                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+              )
+              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+            }
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedDebitNote.creditTermId && clonedDebitNote.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("DebitNote cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleDebitNoteDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleDebitNoteDelete = async (cancelRemarks: string) => {
     if (!debitNote) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        debitNote.debitNoteId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("DebitNote ID:", debitNote.debitNoteId)
+      console.log("DebitNote No:", debitNote.debitNoteNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: debitNote.debitNoteId?.toString() ?? "",
+        documentNo: debitNote.debitNoteNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setDebitNote(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultDebitNote,
+          ...defaultDebitNoteValues,
           data_details: [],
         })
-        //toast.success("DebitNote deleted successfully")
+        toast.success(`DebitNote ${debitNote.debitNoteNo} deleted successfully`)
         // Data refresh handled by DebitNoteTable component
       } else {
         toast.error(response.message || "Failed to delete debitNote")
@@ -351,8 +756,18 @@ export default function DebitNotePage() {
   const handleDebitNoteReset = () => {
     setDebitNote(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new debitNote)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultDebitNote,
+      ...defaultDebitNoteValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("DebitNote reset successfully")
@@ -370,41 +785,39 @@ export default function DebitNotePage() {
       trnDate: apiDebitNote.trnDate
         ? format(
             parseDate(apiDebitNote.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiDebitNote.accountDate
         ? format(
             parseDate(apiDebitNote.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       dueDate: apiDebitNote.dueDate
         ? format(
             parseDate(apiDebitNote.dueDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       deliveryDate: apiDebitNote.deliveryDate
         ? format(
             parseDate(apiDebitNote.deliveryDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       gstClaimDate: apiDebitNote.gstClaimDate
         ? format(
             parseDate(apiDebitNote.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       supplierId: apiDebitNote.supplierId ?? 0,
       currencyId: apiDebitNote.currencyId ?? 0,
       exhRate: apiDebitNote.exhRate ?? 0,
       ctyExhRate: apiDebitNote.ctyExhRate ?? 0,
       creditTermId: apiDebitNote.creditTermId ?? 0,
       bankId: apiDebitNote.bankId ?? 0,
-      invoiceId: apiDebitNote.invoiceId ?? "0",
-      invoiceNo: apiDebitNote.invoiceNo ?? "",
       totAmt: apiDebitNote.totAmt ?? 0,
       totLocalAmt: apiDebitNote.totLocalAmt ?? 0,
       totCtyAmt: apiDebitNote.totCtyAmt ?? 0,
@@ -442,29 +855,32 @@ export default function DebitNotePage() {
       editVersion: apiDebitNote.editVersion ?? 0,
       purchaseOrderId: apiDebitNote.purchaseOrderId ?? 0,
       purchaseOrderNo: apiDebitNote.purchaseOrderNo ?? "",
+
+      serviceTypeId: apiDebitNote.serviceTypeId ?? 0,
       createBy: apiDebitNote.createBy ?? "",
       editBy: apiDebitNote.editBy ?? "",
       cancelBy: apiDebitNote.cancelBy ?? "",
       createDate: apiDebitNote.createDate
         ? format(
             parseDate(apiDebitNote.createDate as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
 
       editDate: apiDebitNote.editDate
         ? format(
             parseDate(apiDebitNote.editDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelDate: apiDebitNote.cancelDate
         ? format(
             parseDate(apiDebitNote.cancelDate as unknown as string) ||
               new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
+      isCancel: apiDebitNote.isCancel ?? false,
       cancelRemarks: apiDebitNote.cancelRemarks ?? "",
       data_details:
         apiDebitNote.data_details?.map(
@@ -501,7 +917,7 @@ export default function DebitNotePage() {
               deliveryDate: detail.deliveryDate
                 ? format(
                     parseDate(detail.deliveryDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               departmentId: detail.departmentId ?? 0,
@@ -532,10 +948,11 @@ export default function DebitNotePage() {
               opRefNo: detail.opRefNo ?? "",
               purchaseOrderId: detail.purchaseOrderId ?? "",
               purchaseOrderNo: detail.purchaseOrderNo ?? "",
+
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               customerName: detail.customerName ?? "",
@@ -553,8 +970,6 @@ export default function DebitNotePage() {
   ) => {
     if (!selectedDebitNote) return
 
-    setIsSelectingDebitNote(true)
-
     try {
       // Fetch debitNote details directly using selected debitNote's values
       const response = await getById(
@@ -567,6 +982,14 @@ export default function DebitNotePage() {
           : response.data
 
         if (detailedDebitNote) {
+          {
+            const parsed = parseDate(detailedDebitNote.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedDebitNote.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedDebitNote = {
             ...detailedDebitNote,
@@ -577,36 +1000,36 @@ export default function DebitNotePage() {
             trnDate: detailedDebitNote.trnDate
               ? format(
                   parseDate(detailedDebitNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedDebitNote.accountDate
               ? format(
                   parseDate(detailedDebitNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedDebitNote.dueDate
               ? format(
                   parseDate(detailedDebitNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedDebitNote.deliveryDate
               ? format(
                   parseDate(detailedDebitNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedDebitNote.gstClaimDate
               ? format(
                   parseDate(detailedDebitNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedDebitNote.supplierId ?? 0,
             currencyId: detailedDebitNote.currencyId ?? 0,
@@ -614,8 +1037,6 @@ export default function DebitNotePage() {
             ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
             creditTermId: detailedDebitNote.creditTermId ?? 0,
             bankId: detailedDebitNote.bankId ?? 0,
-            invoiceId: detailedDebitNote.invoiceId ?? "0",
-            invoiceNo: detailedDebitNote.invoiceNo ?? "",
             totAmt: detailedDebitNote.totAmt ?? 0,
             totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
             totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,
@@ -653,12 +1074,31 @@ export default function DebitNotePage() {
             editVersion: detailedDebitNote.editVersion ?? 0,
             purchaseOrderId: detailedDebitNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedDebitNote.purchaseOrderNo ?? "",
+            serviceTypeId: detailedDebitNote.serviceTypeId ?? 0,
             createBy: detailedDebitNote.createBy ?? "",
-            createDate: detailedDebitNote.createDate ?? "",
+            createDate: detailedDebitNote.createDate
+              ? format(
+                  parseDate(detailedDebitNote.createDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             editBy: detailedDebitNote.editBy ?? "",
-            editDate: detailedDebitNote.editDate ?? "",
+            editDate: detailedDebitNote.editDate
+              ? format(
+                  parseDate(detailedDebitNote.editDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             cancelBy: detailedDebitNote.cancelBy ?? "",
-            cancelDate: detailedDebitNote.cancelDate ?? "",
+            cancelDate: detailedDebitNote.cancelDate
+              ? format(
+                  parseDate(detailedDebitNote.cancelDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            isCancel: detailedDebitNote.isCancel ?? false,
             cancelRemarks: detailedDebitNote.cancelRemarks ?? "",
             data_details:
               detailedDebitNote.data_details?.map((detail: IApDebitNoteDt) => ({
@@ -692,12 +1132,13 @@ export default function DebitNotePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
                 departmentCode: detail.departmentCode ?? "",
                 departmentName: detail.departmentName ?? "",
+
                 jobOrderId: detail.jobOrderId ?? 0,
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
@@ -726,7 +1167,7 @@ export default function DebitNotePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 customerName: detail.customerName ?? "",
@@ -742,11 +1183,11 @@ export default function DebitNotePage() {
           form.reset(updatedDebitNote)
           form.trigger()
 
+          // Set the debitNote number in search input
+          setSearchNo(updatedDebitNote.debitNoteNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `DebitNote ${selectedDebitNote.debitNoteNo} loaded successfully`
-          )
         }
       } else {
         toast.error(response?.message || "Failed to fetch debitNote details")
@@ -757,7 +1198,7 @@ export default function DebitNotePage() {
       toast.error("Error loading debitNote. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingDebitNote(false)
+      // Selection completed
     }
   }
 
@@ -768,6 +1209,26 @@ export default function DebitNotePage() {
   }
 
   // Data refresh handled by DebitNoteTable component
+
+  // Set createBy and createDate for new debitNotes on page load/refresh
+  useEffect(() => {
+    if (!debitNote && user && decimals.length > 0) {
+      const currentDebitNoteId = form.getValues("debitNoteId")
+      const currentDebitNoteNo = form.getValues("debitNoteNo")
+      const isNewDebitNote =
+        !currentDebitNoteId || currentDebitNoteId === "0" || !currentDebitNoteNo
+
+      if (isNewDebitNote) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [debitNote, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -793,12 +1254,16 @@ export default function DebitNotePage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handleDebitNoteSearch = async (value: string) => {
     if (!value) return
@@ -814,6 +1279,14 @@ export default function DebitNotePage() {
           : response.data
 
         if (detailedDebitNote) {
+          {
+            const parsed = parseDate(detailedDebitNote.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedDebitNote.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedDebitNote = {
             ...detailedDebitNote,
@@ -824,36 +1297,36 @@ export default function DebitNotePage() {
             trnDate: detailedDebitNote.trnDate
               ? format(
                   parseDate(detailedDebitNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedDebitNote.accountDate
               ? format(
                   parseDate(detailedDebitNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedDebitNote.dueDate
               ? format(
                   parseDate(detailedDebitNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedDebitNote.deliveryDate
               ? format(
                   parseDate(detailedDebitNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedDebitNote.gstClaimDate
               ? format(
                   parseDate(detailedDebitNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedDebitNote.supplierId ?? 0,
             currencyId: detailedDebitNote.currencyId ?? 0,
@@ -861,8 +1334,6 @@ export default function DebitNotePage() {
             ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
             creditTermId: detailedDebitNote.creditTermId ?? 0,
             bankId: detailedDebitNote.bankId ?? 0,
-            invoiceId: detailedDebitNote.invoiceId ?? "0",
-            invoiceNo: detailedDebitNote.invoiceNo ?? "",
             totAmt: detailedDebitNote.totAmt ?? 0,
             totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
             totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,
@@ -900,6 +1371,9 @@ export default function DebitNotePage() {
             editVersion: detailedDebitNote.editVersion ?? 0,
             purchaseOrderId: detailedDebitNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedDebitNote.purchaseOrderNo ?? "",
+            serviceTypeId: detailedDebitNote.serviceTypeId ?? 0,
+            isCancel: detailedDebitNote.isCancel ?? false,
+            cancelRemarks: detailedDebitNote.cancelRemarks ?? "",
 
             data_details:
               detailedDebitNote.data_details?.map((detail: IApDebitNoteDt) => ({
@@ -933,7 +1407,7 @@ export default function DebitNotePage() {
                 deliveryDate: detail.deliveryDate
                   ? format(
                       parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 departmentId: detail.departmentId ?? 0,
@@ -967,7 +1441,7 @@ export default function DebitNotePage() {
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 customerName: detail.customerName ?? "",
@@ -983,13 +1457,20 @@ export default function DebitNotePage() {
           form.reset(updatedDebitNote)
           form.trigger()
 
+          // Set the debitNote number in search input to the actual debitNote number from database
+          setSearchNo(updatedDebitNote.debitNoteNo || "")
+
           // Show success message
-          toast.success(`DebitNote ${value} loaded successfully`)
+          toast.success(
+            `DebitNote ${updatedDebitNote.debitNoteNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
           response?.message || "Failed to fetch debitNote details (direct)"
         )
@@ -1001,13 +1482,45 @@ export default function DebitNotePage() {
     }
   }
 
+  handleDebitNoteSearchRef.current = handleDebitNoteSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleDebitNoteSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
+
   // Determine mode and debitNote ID from URL
   const debitNoteNo = form.getValues("debitNoteNo")
   const isEdit = Boolean(debitNoteNo)
+  const isCancelled = debitNote?.isCancel === true
+
+  // Calculate payment status only if not cancelled
+  const balAmt = debitNote?.balAmt ?? 0
+  const payAmt = debitNote?.payAmt ?? 0
+
+  const paymentStatus = isCancelled
+    ? ""
+    : balAmt === 0 && payAmt > 0
+      ? "Fully Paid"
+      : balAmt > 0 && payAmt > 0
+        ? "Partially Paid"
+        : balAmt > 0 && payAmt === 0
+          ? "Not Paid"
+          : ""
 
   // Compose title text
   const titleText = isEdit
-    ? `DebitNote (Edit) - ${debitNoteNo}`
+    ? `DebitNote (Edit)- v[${debitNote?.editVersion}] - ${debitNoteNo}`
     : "DebitNote (New)"
 
   // Show loading spinner while essential data is loading
@@ -1036,45 +1549,92 @@ export default function DebitNotePage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
-              <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
-              >
-                {titleText}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {debitNote?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {debitNote.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Status Badge - Only show if not cancelled */}
+            {!isCancelled && paymentStatus === "Not Paid" && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                Not Paid
               </span>
-            </span>
-          </h1>
+            )}
+            {!isCancelled && paymentStatus === "Partially Paid" && (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
+                Partially Paid
+              </span>
+            )}
+            {!isCancelled && paymentStatus === "Fully Paid" && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
+                Fully Paid
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
+              <span
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
+              >
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
+              </span>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (debitNote?.debitNoteNo) {
+                    setSearchNo(debitNote.debitNoteNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingDebitNote}
+                className="h-4 w-4 p-0"
+                title="Refresh debitNote data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search DebitNote No"
               className="h-8 text-sm"
               readOnly={
@@ -1099,7 +1659,14 @@ export default function DebitNotePage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1142,7 +1709,9 @@ export default function DebitNotePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!debitNote || debitNote.debitNoteId === "0"}
+              disabled={
+                !debitNote || debitNote.debitNoteId === "0" || isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1153,9 +1722,13 @@ export default function DebitNotePage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !debitNote ||
                 debitNote.debitNoteId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -1163,7 +1736,7 @@ export default function DebitNotePage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -1178,11 +1751,12 @@ export default function DebitNotePage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -1195,52 +1769,33 @@ export default function DebitNotePage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by DebitNoteTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  DebitNote List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing debitNotes from the list below. Use
-                  search to filter records or create new debitNotes.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              DebitNote List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing debitNotes from the list below. Use
+              search to filter records or create new debitNotes.
+            </p>
+          </div>
 
-          {isSelectingDebitNote ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingDebitNote
-                    ? "Loading debitNote details..."
-                    : "Loading debitNotes..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingDebitNote
-                    ? "Please wait while we fetch the complete debitNote data"
-                    : "Please wait while we fetch the debitNote list"}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
             <DebitNoteTable
               onDebitNoteSelect={handleDebitNoteSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1260,15 +1815,26 @@ export default function DebitNotePage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleDebitNoteDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={debitNote?.debitNoteNo}
         title="Delete DebitNote"
-        description="This action cannot be undone. All debitNote details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this debitNote? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleDebitNoteDelete}
+        itemName={debitNote?.debitNoteNo}
+        title="Cancel DebitNote"
+        description="Please provide a reason for cancelling this debitNote."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

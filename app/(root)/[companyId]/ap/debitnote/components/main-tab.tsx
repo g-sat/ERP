@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -55,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousDebitNoteKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentDebitNoteId = form.watch("debitNoteId")
+  const currentDebitNoteNo = form.watch("debitNoteNo")
+
+  useEffect(() => {
+    const currentKey = `${currentDebitNoteId ?? ""}::${currentDebitNoteNo ?? ""}`
+    if (previousDebitNoteKeyRef.current === currentKey) {
+      return
+    }
+
+    previousDebitNoteKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentDebitNoteId, currentDebitNoteNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -65,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IApDebitNoteDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailDebitNoteId = `${detail.debitNoteId ?? ""}`
+      const editingDebitNoteId = `${editingDetail.debitNoteId ?? ""}`
+      const detailDebitNoteNo = detail.debitNoteNo ?? ""
+      const editingDebitNoteNo = editingDetail.debitNoteNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailDebitNoteId === editingDebitNoteId &&
+        detailDebitNoteNo === editingDebitNoteNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -226,8 +269,9 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.ap.currencyId}
+        defaultCurrencyId={defaults.ar.currencyId}
       />
+
       <DebitNoteDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
@@ -237,9 +281,10 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as ApDebitNoteDtSchemaType[]}
-        defaultGlId={defaults.ap.debitNoteGlId}
+        defaultGlId={defaults.ar.debitNoteGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <DebitNoteDetailsTable
@@ -252,6 +297,7 @@ export default function Main({
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={handleDataReorder as (newData: IApDebitNoteDt[]) => void}
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

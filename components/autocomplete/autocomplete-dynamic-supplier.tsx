@@ -30,7 +30,7 @@ interface FieldOption {
   label: string
 }
 
-export default function SupplierAutocomplete<
+export default function DynamicSupplierAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -50,9 +50,8 @@ export default function SupplierAutocomplete<
   onChangeEvent?: (selectedOption: ISupplierLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
-  const [selectedSupplier, setSelectedSupplier] = useState<ISupplierLookup | null>(
-    null
-  )
+  const [selectedSupplier, setSelectedSupplier] =
+    useState<ISupplierLookup | null>(null)
   const [justSelected, setJustSelected] = useState(false)
 
   // Get supplier name field from id
@@ -346,7 +345,7 @@ export default function SupplierAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -361,7 +360,7 @@ export default function SupplierAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -380,7 +379,7 @@ export default function SupplierAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -412,7 +411,7 @@ export default function SupplierAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {

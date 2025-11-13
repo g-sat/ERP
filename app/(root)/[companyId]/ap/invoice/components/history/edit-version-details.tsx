@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { IApInvoiceDt, IApInvoiceHd } from "@/interfaces/ap-invoice"
+import { useEffect, useState } from "react"
+import { IApInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetAPInvoiceHistoryDetails,
   useGetAPInvoiceHistoryList,
 } from "@/hooks/use-ap"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -20,8 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
+
+import { EditVersionDetailsForm } from "./edit-version-details-form"
 
 // Extended column definition with hide property
 type _ExtendedColumnDef<T> = ColumnDef<T> & {
@@ -36,9 +39,10 @@ export default function EditVersionDetails({
   invoiceId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ap
@@ -47,6 +51,13 @@ export default function EditVersionDetails({
   const [selectedInvoice, setSelectedInvoice] = useState<IApInvoiceHd | null>(
     null
   )
+  const canViewInvoiceHistory = hasPermission(moduleId, transactionId, "isRead")
+
+  useEffect(() => {
+    if (!canViewInvoiceHistory) {
+      setSelectedInvoice(null)
+    }
+  }, [canViewInvoiceHistory])
 
   const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARInvoiceHistoryList<IApInvoiceHd[]>("14120250100024")
@@ -141,12 +152,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "currencyCode",
@@ -162,7 +173,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -173,7 +184,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -199,7 +210,9 @@ export default function EditVersionDetails({
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -209,7 +222,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -219,7 +232,9 @@ export default function EditVersionDetails({
       header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -229,7 +244,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -240,7 +255,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
+            ? formatNumber(row.original.totAmtAftGst, amtDec)
             : "-"}
         </div>
       ),
@@ -251,7 +266,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmtAftGst, locAmtDec)
             : "-"}
         </div>
       ),
@@ -302,16 +317,6 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<IApInvoiceDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
-  ]
-
   const handleRefresh = async () => {
     try {
       // Only refetch if we don't have a "Data does not exist" error
@@ -345,12 +350,16 @@ export default function EditVersionDetails({
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.arInvoiceHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
+            onRowSelect={
+              canViewInvoiceHistory
+                ? (invoice) => setSelectedInvoice(invoice)
+                : undefined
+            }
           />
         </CardContent>
       </Card>
@@ -361,76 +370,43 @@ export default function EditVersionDetails({
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle>
+              Invoice Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.invoiceNo} : v {selectedInvoice?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                invoiceDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {invoiceDetailsData?.message === "Data does not exist"
-                  ? "No invoice details found for this version."
-                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                transactionAmount: dialogData?.totAmt,
+                localAmount: dialogData?.totLocalAmt,
+                gstAmount: dialogData?.gstAmt,
+                localGstAmount: dialogData?.gstLocalAmt,
+                totalAmount: dialogData?.totAmtAftGst,
+                localTotalAmount: dialogData?.totLocalAmtAftGst,
+                paymentAmount: dialogData?.payAmt,
+                localPaymentAmount: dialogData?.payLocalAmt,
+                balanceAmount: dialogData?.balAmt,
+                localBalanceAmount: dialogData?.balLocalAmt,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading invoice details"
+                : "No invoice details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Header</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) =>
-                      key !== "data_details" ? (
-                        <div key={key} className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-sm">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
-                          <span className="font-medium">{String(value)}</span>
-                        </div>
-                      ) : null
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading invoice details"
-                      : "No invoice details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BasicTable
-                  data={dialogData?.data_details || []}
-                  columns={detailsColumns}
-                  moduleId={moduleId}
-                  transactionId={transactionId}
-                  tableName={TableName.apInvoiceHistory}
-                  emptyMessage="No invoice details available"
-                  onRefresh={handleRefresh}
-                  showHeader={true}
-                  showFooter={false}
-                  maxHeight="300px"
-                />
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>

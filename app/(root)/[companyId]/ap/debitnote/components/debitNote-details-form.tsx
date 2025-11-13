@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -25,17 +25,19 @@ import {
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
+  ApDebitNoteDtSchema,
   ApDebitNoteDtSchemaType,
   ApDebitNoteHdSchemaType,
-  apDebitNoteDtSchema,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import {
   useChartOfAccountLookup,
+  useGetDynamicLookup,
   useGstLookup,
   useUomLookup,
 } from "@/hooks/use-lookup"
@@ -45,6 +47,7 @@ import {
   BargeAutocomplete,
   ChartOfAccountAutocomplete,
   DepartmentAutocomplete,
+  DynamicJobOrderAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
   JobOrderAutocomplete,
@@ -59,7 +62,7 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultDebitNoteDetails } from "./debitNote-defaultvalues"
+import { getDefaultValues } from "./debitNote-defaultvalues"
 
 interface DebitNoteDetailsFormProps {
   Hdform: UseFormReturn<ApDebitNoteHdSchemaType>
@@ -73,6 +76,7 @@ interface DebitNoteDetailsFormProps {
   defaultGlId?: number
   defaultUomId?: number
   defaultGstId?: number
+  isCancelled?: boolean
 }
 
 export default function DebitNoteDetailsForm({
@@ -87,18 +91,33 @@ export default function DebitNoteDetailsForm({
   defaultGlId = 0,
   defaultUomId = 0,
   defaultGstId = 0,
+  isCancelled = false,
 }: DebitNoteDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+  const defaultDebitNoteDetails = useMemo(
+    () => getDefaultValues(dateFormat).defaultDebitNoteDetails,
+    [dateFormat]
+  )
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicLookup = dynamicLookup?.isJobOrder ?? false
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
 
-  // Lookup hooks
-  const { data: chartOfAccounts } = useChartOfAccountLookup(companyId)
-  const { data: uoms } = useUomLookup()
-  const { data: gsts } = useGstLookup()
+  // Track if submit was attempted to show errors only after submit
+  const [submitAttempted, setSubmitAttempted] = useState(false)
+
+  // Refs to store original values on focus for comparison on change
+  const originalTotAmtRef = useRef<number>(0)
+  const originalUnitPriceRef = useRef<number>(0)
+  const originalGstPercentageRef = useRef<number>(0)
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -108,19 +127,36 @@ export default function DebitNoteDetailsForm({
   }
 
   // Factory function to create default values with dynamic itemNo and defaults
-  const createDefaultValues = (itemNo: number): ApDebitNoteDtSchemaType => ({
-    ...defaultDebitNoteDetails,
-    itemNo,
-    seqNo: itemNo,
-    docItemNo: itemNo,
-    glId: defaultGlId || defaultDebitNoteDetails.glId,
-    uomId: defaultUomId || defaultDebitNoteDetails.uomId,
-    gstId: defaultGstId || defaultDebitNoteDetails.gstId,
-  })
+  const createDefaultValues = (itemNo: number): ApDebitNoteDtSchemaType => {
+    // Use defaults if available, otherwise use defaultDebitNoteDetails values
+    const glId =
+      defaultGlId && defaultGlId > 0
+        ? defaultGlId
+        : defaultDebitNoteDetails.glId
+    const uomId =
+      defaultUomId && defaultUomId > 0
+        ? defaultUomId
+        : defaultDebitNoteDetails.uomId
+    const gstId =
+      defaultGstId && defaultGstId > 0
+        ? defaultGstId
+        : defaultDebitNoteDetails.gstId
+
+    return {
+      ...defaultDebitNoteDetails,
+      itemNo,
+      seqNo: itemNo,
+      docItemNo: itemNo,
+      glId,
+      uomId,
+      gstId,
+    }
+  }
 
   const form = useForm<ApDebitNoteDtSchemaType>({
-    resolver: zodResolver(apDebitNoteDtSchema(required, visible)),
-    mode: "onBlur",
+    resolver: zodResolver(ApDebitNoteDtSchema(required, visible)),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: editingDetail
       ? {
           debitNoteId: editingDetail.debitNoteId ?? "0",
@@ -154,12 +190,14 @@ export default function DebitNoteDetailsForm({
           departmentId: editingDetail.departmentId ?? 0,
           departmentCode: editingDetail.departmentCode ?? "",
           departmentName: editingDetail.departmentName ?? "",
+
           jobOrderId: editingDetail.jobOrderId ?? 0,
           jobOrderNo: editingDetail.jobOrderNo ?? "",
           taskId: editingDetail.taskId ?? 0,
           taskName: editingDetail.taskName ?? "",
           serviceId: editingDetail.serviceId ?? 0,
           serviceName: editingDetail.serviceName ?? "",
+
           employeeId: editingDetail.employeeId ?? 0,
           employeeCode: editingDetail.employeeCode ?? "",
           employeeName: editingDetail.employeeName ?? "",
@@ -188,6 +226,11 @@ export default function DebitNoteDetailsForm({
         }
       : createDefaultValues(getNextItemNo()),
   })
+
+  // Fetch lookup data for autocomplete fields
+  const { data: chartOfAccounts } = useChartOfAccountLookup(companyId)
+  const { data: uoms } = useUomLookup()
+  const { data: gsts } = useGstLookup()
 
   // Function to populate code/name fields from lookup data
   const populateCodeNameFields = (
@@ -265,22 +308,16 @@ export default function DebitNoteDetailsForm({
     }, 300)
   }
 
-  const handleFormReset = () => {
-    const nextItemNo = getNextItemNo()
-    const defaultValues = createDefaultValues(nextItemNo)
-    const populatedValues = populateCodeNameFields(defaultValues)
-    form.reset(populatedValues)
-    toast.info("Form reset")
-    focusFirstVisibleField()
-  }
-
+  // Handler for cancel edit
   const handleCancelEdit = () => {
     _onCancelEdit?.()
     const nextItemNo = getNextItemNo()
     const defaultValues = createDefaultValues(nextItemNo)
     const populatedValues = populateCodeNameFields(defaultValues)
     form.reset(populatedValues)
-    toast.info("Edit cancelled")
+    // Reset submit attempted flag when canceling
+    setSubmitAttempted(false)
+    toast.info("Detail cancelled")
     focusFirstVisibleField()
   }
 
@@ -290,53 +327,53 @@ export default function DebitNoteDetailsForm({
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
 
-  // Set default glId, uomId, and gstId when defaults become available (not in edit mode)
+  // Apply default IDs when they become available (only for new records)
   useEffect(() => {
-    // Only run when defaults are loaded and we're not editing an existing row
-    if (!editingDetail) {
+    if (editingDetail) return // Skip for edit mode
+
+    // Wait a bit to ensure form is reset before applying defaults
+    const timeoutId = setTimeout(() => {
       const currentGlId = form.getValues("glId")
       const currentUomId = form.getValues("uomId")
       const currentGstId = form.getValues("gstId")
 
-      console.log("DebitNote Details Form - Checking defaults:", {
-        currentGlId,
-        currentUomId,
-        currentGstId,
-        defaultGlId,
-        defaultUomId,
-        defaultGstId,
-        editingDetail,
-      })
+      // Set default GL ID if not already set
+      if (
+        defaultGlId &&
+        defaultGlId > 0 &&
+        (!currentGlId || currentGlId === 0)
+      ) {
+        form.setValue("glId", defaultGlId, { shouldValidate: false })
+      }
 
-      // Only set defaults if current values are 0 and defaults are available
-      if (defaultGlId > 0 && (!currentGlId || currentGlId === 0)) {
-        console.log(
-          "DebitNote Details Form - Setting default glId:",
-          defaultGlId
-        )
-        form.setValue("glId", defaultGlId)
+      // Set default UOM ID if not already set
+      if (
+        defaultUomId &&
+        defaultUomId > 0 &&
+        (!currentUomId || currentUomId === 0)
+      ) {
+        form.setValue("uomId", defaultUomId, { shouldValidate: false })
       }
-      if (defaultUomId > 0 && (!currentUomId || currentUomId === 0)) {
-        console.log(
-          "DebitNote Details Form - Setting default uomId:",
-          defaultUomId
-        )
-        form.setValue("uomId", defaultUomId)
+
+      // Set default GST ID if not already set
+      if (
+        defaultGstId &&
+        defaultGstId > 0 &&
+        (!currentGstId || currentGstId === 0)
+      ) {
+        form.setValue("gstId", defaultGstId, { shouldValidate: false })
       }
-      if (defaultGstId > 0 && (!currentGstId || currentGstId === 0)) {
-        console.log(
-          "DebitNote Details Form - Setting default gstId:",
-          defaultGstId
-        )
-        form.setValue("gstId", defaultGstId)
-        // Trigger GST percentage calculation after setting default GST
-        setGSTPercentage(Hdform, form, decimals[0], visible)
-      }
-    }
-    // Only depend on values that should trigger this effect
-    // form, Hdform, decimals, visible are used inside but are stable references
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultGlId, defaultUomId, defaultGstId, editingDetail])
+  }, [
+    defaultGlId,
+    defaultUomId,
+    defaultGstId,
+    editingDetail,
+    existingDetails.length,
+  ])
 
   // Populate code/name fields when defaults are applied (only for new records)
   useEffect(() => {
@@ -424,22 +461,6 @@ export default function DebitNoteDetailsForm({
 
     if (editingDetail) {
       // Determine if editing detail is job-specific or department-specific
-      // Infer initial mode from existing data
-      const hasJobOrder = (editingDetail.jobOrderId ?? 0) > 0
-      const hasDepartment = (editingDetail.departmentId ?? 0) > 0
-
-      if (hasJobOrder) {
-        setIsJobSpecific(true)
-      } else if (hasDepartment) {
-        setIsJobSpecific(false)
-      } else {
-        // Both are 0: Default to department mode
-        // The Chart of Account autocomplete already has the COA data loaded
-        // When it renders, it will trigger handleChartOfAccountChange if needed
-        // which will auto-correct the mode based on the COA's isJobSpecific property
-        setIsJobSpecific(false)
-      }
-
       form.reset({
         debitNoteId: editingDetail.debitNoteId ?? "0",
         debitNoteNo: editingDetail.debitNoteNo ?? "",
@@ -472,12 +493,14 @@ export default function DebitNoteDetailsForm({
         departmentId: editingDetail.departmentId ?? 0,
         departmentCode: editingDetail.departmentCode ?? "",
         departmentName: editingDetail.departmentName ?? "",
+
         jobOrderId: editingDetail.jobOrderId ?? 0,
         jobOrderNo: editingDetail.jobOrderNo ?? "",
         taskId: editingDetail.taskId ?? 0,
         taskName: editingDetail.taskName ?? "",
         serviceId: editingDetail.serviceId ?? 0,
         serviceName: editingDetail.serviceName ?? "",
+
         employeeId: editingDetail.employeeId ?? 0,
         employeeCode: editingDetail.employeeCode ?? "",
         employeeName: editingDetail.employeeName ?? "",
@@ -499,33 +522,75 @@ export default function DebitNoteDetailsForm({
         purchaseOrderNo: editingDetail.purchaseOrderNo ?? "",
         supplyDate: editingDetail.supplyDate ?? "",
         customerName: editingDetail.customerName ?? "",
-        custDebitNoteNo: editingDetail.custDebitNoteNo ?? "",
         arDebitNoteId: editingDetail.arDebitNoteId ?? "",
         arDebitNoteNo: editingDetail.arDebitNoteNo ?? "",
+        custDebitNoteNo: editingDetail.custDebitNoteNo ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
-      // New record - reset to defaults
-      form.reset(createDefaultValues(nextItemNo))
-      setIsJobSpecific(false) // Default to department-specific for new records
+      // New record - reset to defaults with proper default values
+      const defaultValues = createDefaultValues(nextItemNo)
+      form.reset(defaultValues)
+
+      // Reset submit attempted flag when creating new record
+      setSubmitAttempted(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
   const onSubmit = async (data: ApDebitNoteDtSchemaType) => {
     try {
-      // Validate data against schema
-      const validationResult = apDebitNoteDtSchema(required, visible).safeParse(
+      console.log("data : ", data)
+      // Trigger validation - React Hook Form will validate automatically via zodResolver
+      // but we'll also validate manually to ensure all errors are caught
+      const isValid = await form.trigger()
+
+      if (!isValid) {
+        // Validation failed - React Hook Form will display errors automatically
+        const errors = form.formState.errors
+        const errorFields = Object.keys(errors)
+        const errorMessages = errorFields
+          .map((field) => {
+            const error = errors[field as keyof typeof errors]
+            return error?.message || `${field} is invalid`
+          })
+          .filter(Boolean)
+
+        if (errorMessages.length > 0) {
+          toast.error(
+            `Please fix validation errors: ${errorMessages.join(", ")}`
+          )
+        } else {
+          toast.error("Please fix form validation errors")
+        }
+        console.error("Form validation errors:", errors)
+        return
+      }
+
+      // Additional Zod validation for safety
+      const validationResult = ApDebitNoteDtSchema(required, visible).safeParse(
         data
       )
 
       if (!validationResult.success) {
+        // Set field-level errors from Zod validation
+        validationResult.error.issues.forEach((issue) => {
+          const fieldPath = issue.path.join(
+            "."
+          ) as keyof ApDebitNoteDtSchemaType
+          form.setError(fieldPath, {
+            type: "validation",
+            message: issue.message,
+          })
+        })
+
         const errors = validationResult.error.issues
         const errorMessage = errors
           .map((err) => `${err.path.join(".")}: ${err.message}`)
           .join(", ")
         toast.error(`Validation failed: ${errorMessage}`)
-        console.error("Validation errors:", errors)
+        setSubmitAttempted(true)
+        console.error("Zod validation errors:", errors)
         return
       }
 
@@ -539,68 +604,70 @@ export default function DebitNoteDetailsForm({
       const populatedData = populateCodeNameFields(data)
 
       const rowData: IApDebitNoteDt = {
-        debitNoteId: populatedData.debitNoteId ?? "0",
-        debitNoteNo: populatedData.debitNoteNo ?? "",
-        itemNo: populatedData.itemNo ?? currentItemNo,
-        seqNo: populatedData.seqNo ?? currentItemNo,
-        docItemNo: populatedData.docItemNo ?? currentItemNo,
-        productId: populatedData.productId ?? 0,
-        productCode: populatedData.productCode ?? "",
-        productName: populatedData.productName ?? "",
+        debitNoteId: data.debitNoteId ?? "0",
+        debitNoteNo: data.debitNoteNo ?? "",
+        itemNo: data.itemNo ?? currentItemNo,
+        seqNo: data.seqNo ?? currentItemNo,
+        docItemNo: data.docItemNo ?? currentItemNo,
+        productId: data.productId ?? 0,
+        productCode: data.productCode ?? "",
+        productName: data.productName ?? "",
         glId: populatedData.glId ?? 0,
         glCode: populatedData.glCode ?? "",
         glName: populatedData.glName ?? "",
-        qty: populatedData.qty ?? 0,
-        billQTY: populatedData.billQTY ?? 0,
+        qty: data.qty ?? 0,
+        billQTY: data.billQTY ?? 0,
         uomId: populatedData.uomId ?? 0,
         uomCode: populatedData.uomCode ?? "",
         uomName: populatedData.uomName ?? "",
-        unitPrice: populatedData.unitPrice ?? 0,
-        totAmt: populatedData.totAmt ?? 0,
-        totLocalAmt: populatedData.totLocalAmt ?? 0,
-        totCtyAmt: populatedData.totCtyAmt ?? 0,
-        remarks: populatedData.remarks ?? "",
+        unitPrice: data.unitPrice ?? 0,
+        totAmt: data.totAmt ?? 0,
+        totLocalAmt: data.totLocalAmt ?? 0,
+        totCtyAmt: data.totCtyAmt ?? 0,
+        remarks: data.remarks ?? "",
         gstId: populatedData.gstId ?? 0,
         gstName: populatedData.gstName ?? "",
-        gstPercentage: populatedData.gstPercentage ?? 0,
-        gstAmt: populatedData.gstAmt ?? 0,
-        gstLocalAmt: populatedData.gstLocalAmt ?? 0,
-        gstCtyAmt: populatedData.gstCtyAmt ?? 0,
-        deliveryDate: populatedData.deliveryDate ?? "",
-        departmentId: populatedData.departmentId ?? 0,
-        departmentCode: populatedData.departmentCode ?? "",
-        departmentName: populatedData.departmentName ?? "",
-        jobOrderId: populatedData.jobOrderId ?? 0,
-        jobOrderNo: populatedData.jobOrderNo ?? "",
-        taskId: populatedData.taskId ?? 0,
-        taskName: populatedData.taskName ?? "",
-        serviceId: populatedData.serviceId ?? 0,
-        serviceName: populatedData.serviceName ?? "",
-        employeeId: populatedData.employeeId ?? 0,
-        employeeCode: populatedData.employeeCode ?? "",
-        employeeName: populatedData.employeeName ?? "",
-        portId: populatedData.portId ?? 0,
-        portCode: populatedData.portCode ?? "",
-        portName: populatedData.portName ?? "",
-        vesselId: populatedData.vesselId ?? 0,
-        vesselCode: populatedData.vesselCode ?? "",
-        vesselName: populatedData.vesselName ?? "",
-        bargeId: populatedData.bargeId ?? 0,
-        bargeCode: populatedData.bargeCode ?? "",
-        bargeName: populatedData.bargeName ?? "",
-        voyageId: populatedData.voyageId ?? 0,
-        voyageNo: populatedData.voyageNo ?? "",
-        operationId: populatedData.operationId ?? 0,
-        operationNo: populatedData.operationNo ?? "",
-        opRefNo: populatedData.opRefNo ?? "",
-        purchaseOrderId: populatedData.purchaseOrderId ?? "",
-        purchaseOrderNo: populatedData.purchaseOrderNo ?? "",
-        supplyDate: populatedData.supplyDate ?? "",
-        customerName: populatedData.customerName ?? "",
-        custDebitNoteNo: populatedData.custDebitNoteNo ?? "",
-        arDebitNoteId: populatedData.arDebitNoteId ?? "",
-        arDebitNoteNo: populatedData.arDebitNoteNo ?? "",
-        editVersion: populatedData.editVersion ?? 0,
+        gstPercentage: data.gstPercentage ?? 0,
+        gstAmt: data.gstAmt ?? 0,
+        gstLocalAmt: data.gstLocalAmt ?? 0,
+        gstCtyAmt: data.gstCtyAmt ?? 0,
+        deliveryDate: data.deliveryDate ?? "",
+        departmentId: data.departmentId ?? 0,
+        departmentCode: data.departmentCode ?? "",
+        departmentName: data.departmentName ?? "",
+
+        jobOrderId: data.jobOrderId ?? 0,
+        jobOrderNo: data.jobOrderNo ?? "",
+        taskId: data.taskId ?? 0,
+        taskName: data.taskName ?? "",
+        serviceId: data.serviceId ?? 0,
+        serviceName: data.serviceName ?? "",
+
+        employeeId: data.employeeId ?? 0,
+        employeeCode: data.employeeCode ?? "",
+        employeeName: data.employeeName ?? "",
+        portId: data.portId ?? 0,
+        portCode: data.portCode ?? "",
+        portName: data.portName ?? "",
+        vesselId: data.vesselId ?? 0,
+        vesselCode: data.vesselCode ?? "",
+        vesselName: data.vesselName ?? "",
+        bargeId: data.bargeId ?? 0,
+        bargeCode: data.bargeCode ?? "",
+        bargeName: data.bargeName ?? "",
+        voyageId: data.voyageId ?? 0,
+        voyageNo: data.voyageNo ?? "",
+        operationId: data.operationId ?? 0,
+        operationNo: data.operationNo ?? "",
+        opRefNo: data.opRefNo ?? "",
+        purchaseOrderId: data.purchaseOrderId ?? "",
+        purchaseOrderNo: data.purchaseOrderNo ?? "",
+        supplyDate: data.supplyDate ?? "",
+        customerName: data.customerName ?? "",
+        arDebitNoteId: data.arDebitNoteId ?? "0",
+        arDebitNoteNo: data.arDebitNoteNo ?? "",
+        custDebitNoteNo: data.custDebitNoteNo ?? "",
+        editVersion: data.editVersion ?? 0,
       }
 
       if (rowData) {
@@ -618,6 +685,9 @@ export default function DebitNoteDetailsForm({
         const defaultValues = createDefaultValues(nextItemNo)
         const populatedValues = populateCodeNameFields(defaultValues)
         form.reset(populatedValues)
+
+        // Reset submit attempted flag on successful submission
+        setSubmitAttempted(false)
 
         // Focus on the first visible field after successful submission
         focusFirstVisibleField()
@@ -655,29 +725,6 @@ export default function DebitNoteDetailsForm({
       })
       form.setValue("glCode", selectedOption.glCode || "")
       form.setValue("glName", selectedOption.glName || "")
-
-      // CRITICAL: Use the actual isJobSpecific property from the chart of account data
-      // This determines which fields will be shown/required
-      const isJobSpecificAccount = selectedOption.isJobSpecific || false
-
-      setIsJobSpecific(isJobSpecificAccount)
-
-      // Reset dependent fields when switching between job-specific and department-specific
-      // This prevents invalid data from being submitted
-      if (!isJobSpecificAccount) {
-        // Department-Specific: Reset job-related fields
-        form.setValue("jobOrderId", 0, { shouldValidate: true })
-        form.setValue("jobOrderNo", "")
-        form.setValue("taskId", 0, { shouldValidate: true })
-        form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
-      } else {
-        // Job-Specific: Reset department field
-        form.setValue("departmentId", 0, { shouldValidate: true })
-        form.setValue("departmentCode", "")
-        form.setValue("departmentName", "")
-      }
     }
   }
 
@@ -851,12 +898,60 @@ export default function DebitNoteDetailsForm({
     form.setValue("gstCtyAmt", rowData.gstCtyAmt)
   }
 
+  // Handle totAmt focus - capture original value
+  const handleTotalAmountFocus = () => {
+    originalTotAmtRef.current = form.getValues("totAmt") || 0
+    console.log(
+      "handleTotalAmountFocus - original value:",
+      originalTotAmtRef.current
+    )
+  }
+
   const handleTotalAmountChange = (value: number) => {
+    const originalTotAmt = originalTotAmtRef.current
+
+    console.log("handleTotalAmountChange", {
+      newValue: value,
+      originalValue: originalTotAmt,
+      isDifferent: value !== originalTotAmt,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalTotAmt) {
+      console.log("Total Amount unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("Total Amount changed - recalculating amounts")
     form.setValue("totAmt", value)
     triggerTotalAmountCalculation()
   }
 
+  // Handle gstPercentage focus - capture original value
+  const handleGstPercentageFocus = () => {
+    originalGstPercentageRef.current = form.getValues("gstPercentage") || 0
+    console.log(
+      "handleGstPercentageFocus - original value:",
+      originalGstPercentageRef.current
+    )
+  }
+
   const handleGstPercentageManualChange = (value: number) => {
+    const originalGstPercentage = originalGstPercentageRef.current
+
+    console.log("handleGstPercentageManualChange", {
+      newValue: value,
+      originalValue: originalGstPercentage,
+      isDifferent: value !== originalGstPercentage,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalGstPercentage) {
+      console.log("GST Percentage unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("GST Percentage changed - recalculating amounts")
     form.setValue("gstPercentage", value)
     triggerGstCalculation()
   }
@@ -923,7 +1018,32 @@ export default function DebitNoteDetailsForm({
     form.setValue("gstCtyAmt", rowData.gstCtyAmt)
   }
 
+  // Handle unitPrice focus - capture original value
+  const handleUnitPriceFocus = () => {
+    originalUnitPriceRef.current = form.getValues("unitPrice") || 0
+    console.log(
+      "handleUnitPriceFocus - original value:",
+      originalUnitPriceRef.current
+    )
+  }
+
   const handleUnitPriceChange = (value: number) => {
+    const originalUnitPrice = originalUnitPriceRef.current
+
+    console.log("handleUnitPriceChange", {
+      newValue: value,
+      originalValue: originalUnitPrice,
+      isDifferent: value !== originalUnitPrice,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalUnitPrice) {
+      console.log("Unit Price unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("Unit Price changed - recalculating amounts")
+
     form.setValue("unitPrice", value)
 
     // Get form values AFTER setting unitPrice
@@ -951,8 +1071,8 @@ export default function DebitNoteDetailsForm({
 
   return (
     <>
-      {/* Display form errors */}
-      {Object.keys(form.formState.errors).length > 0 && (
+      {/* Display form errors only after submit attempt */}
+      {submitAttempted && Object.keys(form.formState.errors).length > 0 && (
         <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
           <p className="mb-1 font-semibold text-red-800">
             Please fix the following errors:
@@ -971,7 +1091,9 @@ export default function DebitNoteDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2"
+          className={`-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2 ${
+            isCancelled ? "pointer-events-none opacity-50" : ""
+          }`}
         >
           {/* Hidden fields to register code/name fields with React Hook Form */}
           <input type="hidden" {...form.register("glCode")} />
@@ -992,9 +1114,6 @@ export default function DebitNoteDetailsForm({
           <input type="hidden" {...form.register("vesselCode")} />
           <input type="hidden" {...form.register("vesselName")} />
           <input type="hidden" {...form.register("voyageNo")} />
-          <input type="hidden" {...form.register("jobOrderNo")} />
-          <input type="hidden" {...form.register("taskName")} />
-          <input type="hidden" {...form.register("serviceName")} />
 
           {/* Section Header */}
           <div className="col-span-8 mb-1">
@@ -1002,14 +1121,18 @@ export default function DebitNoteDetailsForm({
               <Badge
                 variant="secondary"
                 className={`px-3 py-1 text-sm font-medium ${
-                  editingDetail
-                    ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                  isCancelled
+                    ? "bg-red-100 text-red-800 hover:bg-red-200"
+                    : editingDetail
+                      ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+                      : "bg-blue-100 text-blue-800 hover:bg-blue-200"
                 }`}
               >
-                {editingDetail
-                  ? `Details (Edit Mode - Item No. ${editingDetail.itemNo})`
-                  : "Details (Add New)"}
+                {isCancelled
+                  ? "Details (Disabled - DebitNote Cancelled)"
+                  : editingDetail
+                    ? `Details (Edit Mode - Item No. ${editingDetail.itemNo})`
+                    : "Details (Add New)"}
               </Badge>
             </div>
           </div>
@@ -1063,12 +1186,21 @@ export default function DebitNoteDetailsForm({
           {isJobSpecific ? (
             <>
               {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-              {visible?.m_JobOrderId && (
+              {visible?.m_JobOrderId && !isDynamicLookup && (
                 <JobOrderAutocomplete
                   form={form}
                   name="jobOrderId"
                   label="Job Order"
                   isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && isDynamicLookup && (
+                <DynamicJobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order"
                   onChangeEvent={handleJobOrderChange}
                 />
               )}
@@ -1212,6 +1344,7 @@ export default function DebitNoteDetailsForm({
               isRequired={required?.m_UnitPrice}
               round={amtDec}
               className="text-right"
+              onFocusEvent={handleUnitPriceFocus}
               onChangeEvent={handleUnitPriceChange}
             />
           )}
@@ -1224,6 +1357,7 @@ export default function DebitNoteDetailsForm({
             isRequired={required?.m_TotAmt}
             round={amtDec}
             className="text-right"
+            onFocusEvent={handleTotalAmountFocus}
             onChangeEvent={handleTotalAmountChange}
           />
 
@@ -1236,6 +1370,18 @@ export default function DebitNoteDetailsForm({
             className="text-right"
             isDisabled={true}
           />
+
+          {/* City Amount */}
+          {visible?.m_CtyCurr && (
+            <CustomNumberInput
+              form={form}
+              name="totCtyAmt"
+              label="Total City Amount"
+              round={locAmtDec}
+              className="text-right"
+              isDisabled={true}
+            />
+          )}
 
           {/* GST */}
           {visible?.m_GstId && (
@@ -1255,6 +1401,7 @@ export default function DebitNoteDetailsForm({
             label="GST Percentage"
             round={2}
             className="text-right"
+            onFocusEvent={handleGstPercentageFocus}
             onChangeEvent={handleGstPercentageManualChange}
           />
 
@@ -1265,7 +1412,7 @@ export default function DebitNoteDetailsForm({
             label="GST Amount"
             round={amtDec}
             isDisabled
-            className="col-span-1 text-right"
+            className="text-right"
             onChangeEvent={handleGstAmountChange}
           />
 
@@ -1275,9 +1422,21 @@ export default function DebitNoteDetailsForm({
             name="gstLocalAmt"
             label="GST Local Amount"
             round={locAmtDec}
-            className="col-span-1 text-right"
+            className="text-right"
             isDisabled={true}
           />
+
+          {/* GST City Amount */}
+          {visible?.m_CtyCurr && (
+            <CustomNumberInput
+              form={form}
+              name="gstCtyAmt"
+              label="GST City Amount"
+              round={locAmtDec}
+              className="text-right"
+              isDisabled={true}
+            />
+          )}
 
           {/* Remarks */}
           {visible?.m_Remarks && (
@@ -1286,7 +1445,7 @@ export default function DebitNoteDetailsForm({
               name="remarks"
               label="Remarks"
               isRequired={required?.m_Remarks}
-              className="col-span-1"
+              className="col-span-2"
               minRows={2}
               maxRows={6}
             />
@@ -1308,26 +1467,16 @@ export default function DebitNoteDetailsForm({
             >
               {editingDetail ? "Update" : "Add"}
             </Button>
+
             <Button
               type="button"
               variant="outline"
+              title="Cancel"
               size="sm"
-              onClick={handleFormReset}
+              onClick={handleCancelEdit}
             >
-              Reset
+              Cancel
             </Button>
-
-            {editingDetail && (
-              <Button
-                type="button"
-                variant="outline"
-                title="Cancel"
-                size="sm"
-                onClick={handleCancelEdit}
-              >
-                Cancel
-              </Button>
-            )}
           </div>
         </form>
       </FormProvider>

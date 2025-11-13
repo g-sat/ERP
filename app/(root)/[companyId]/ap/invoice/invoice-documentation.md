@@ -8,7 +8,7 @@
 4. [API Endpoints](#api-endpoints)
 5. [State Management](#state-management)
 6. [Button Behaviors](#button-behaviors)
-7. [Component Architecture](#component-architecture)
+7. [Component Architecture](#component-apchitecture)
 8. [Data Flow](#data-flow)
 9. [Edge Cases & Error Handling](#edge-cases--error-handling)
 

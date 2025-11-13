@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultRefundDetails = {
+const buildDefaultRefundDetails = (dateFormat: string) => ({
   companyId: 0,
   refundId: 0,
   refundNo: "",
@@ -13,8 +13,8 @@ const defaultRefundDetails = {
   referenceNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
-  docAccountDate: format(new Date(), clientDateFormat),
-  docDueDate: format(new Date(), clientDateFormat),
+  docAccountDate: format(new Date(), dateFormat),
+  docDueDate: format(new Date(), dateFormat),
   docTotAmt: 0,
   docTotLocalAmt: 0,
   docBalAmt: 0,
@@ -26,23 +26,22 @@ const defaultRefundDetails = {
   centDiff: 0,
   exhGainLoss: 0,
   editVersion: 0,
-}
+})
 
-const defaultRefund = {
+const buildDefaultRefund = (dateFormat: string) => ({
   refundId: "0",
   refundNo: "",
-  suppInvoiceNo: "",
+  supplierId: 0,
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   bankId: 0,
   paymentTypeId: 0,
   chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
+  chequeDate: format(new Date(), dateFormat),
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
-  supplierId: 0,
   currencyId: 0,
   exhRate: 0,
   totAmt: 0,
@@ -51,13 +50,8 @@ const defaultRefund = {
   payExhRate: 0,
   payTotAmt: 0,
   payTotLocalAmt: 0,
-  unAllocTotAmt: 0,
-  unAllocTotLocalAmt: 0,
   exhGainLoss: 0,
   remarks: "",
-  docExhRate: 0,
-  docTotAmt: 0,
-  docTotLocalAmt: 0,
   allocTotAmt: 0,
   allocTotLocalAmt: 0,
   moduleFrom: "",
@@ -67,29 +61,17 @@ const defaultRefund = {
   editBy: "",
   editDate: "",
   isCancel: false,
-  cancelById: 0,
   cancelBy: "",
   cancelDate: "",
   cancelRemarks: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultRefund: {
-      ...defaultRefund,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultRefundDetails: {
-      ...defaultRefundDetails,
-      docAccountDate: format(new Date(), dateFormat),
-      docDueDate: format(new Date(), dateFormat),
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultRefund: buildDefaultRefund(dateFormat),
+  defaultRefundDetails: buildDefaultRefundDetails(dateFormat),
+})
 
-export { defaultRefund, defaultRefundDetails }
+export const defaultRefund = buildDefaultRefund(clientDateFormat)
+export const defaultRefundDetails = buildDefaultRefundDetails(clientDateFormat)

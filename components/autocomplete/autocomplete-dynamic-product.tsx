@@ -30,7 +30,9 @@ interface FieldOption {
   label: string
 }
 
-export default function ProductAutocomplete<T extends Record<string, unknown>>({
+export default function DynamicProductAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -333,7 +335,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -348,7 +350,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -367,7 +369,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -399,7 +401,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {

@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const apCreditNoteHdSchema = (
+export const ApCreditNoteHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -11,7 +11,7 @@ export const apCreditNoteHdSchema = (
     creditNoteId: z.string().optional(),
     creditNoteNo: z.string().optional(),
     suppCreditNoteNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
+      ? z.string().min(1, "Supplier Credit Note No is required")
       : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
@@ -30,7 +30,7 @@ export const apCreditNoteHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
     // Credit Terms
     creditTermId: z.number().min(1, "Credit Term is required"),
@@ -40,7 +40,6 @@ export const apCreditNoteHdSchema = (
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
-
     // Invoice Fields
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
@@ -101,14 +100,13 @@ export const apCreditNoteHdSchema = (
     contactName: z.string().optional(),
     mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().optional()
       : z.string().optional(),
 
     // Customer Details
     moduleFrom: z.string().optional(),
 
     customerName: z.string().optional(),
-
     arCreditNoteId: z.string().optional(),
     arCreditNoteNo: z.string().optional(),
     editVersion: z.number().optional(),
@@ -116,9 +114,9 @@ export const apCreditNoteHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
 
     // Service Type Fields
@@ -128,26 +126,26 @@ export const apCreditNoteHdSchema = (
 
     // Nested Details
     data_details: z
-      .array(apCreditNoteDtSchema(required, visible))
+      .array(ApCreditNoteDtSchema(required, visible))
       .min(1, "At least one invoice detail is required"),
   })
 }
 
 export type ApCreditNoteHdSchemaType = z.infer<
-  ReturnType<typeof apCreditNoteHdSchema>
+  ReturnType<typeof ApCreditNoteHdSchema>
 >
 
-export const apCreditNoteHdFiltersSchema = z.object({
+export const ApCreditNoteHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApCreditNoteHdFiltersValues = z.infer<
-  typeof apCreditNoteHdFiltersSchema
+  typeof ApCreditNoteHdFiltersSchema
 >
 
-export const apCreditNoteDtSchema = (
+export const ApCreditNoteDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -298,24 +296,22 @@ export const apCreditNoteDtSchema = (
     // Supplier Details
     customerName: z.string().optional(),
     custCreditNoteNo: z.string().optional(),
-    arCreditNoteId: z.union([z.string(), z.number()]).optional(),
+    arCreditNoteId: z.string().optional(),
     arCreditNoteNo: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
 export type ApCreditNoteDtSchemaType = z.infer<
-  ReturnType<typeof apCreditNoteDtSchema>
+  ReturnType<typeof ApCreditNoteDtSchema>
 >
 
-export const apCreditNoteDtFiltersSchema = z.object({
+export const ApCreditNoteDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApCreditNoteDtFiltersValues = z.infer<
-  typeof apCreditNoteDtFiltersSchema
+  typeof ApCreditNoteDtFiltersSchema
 >

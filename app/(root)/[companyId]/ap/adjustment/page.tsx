@@ -3,22 +3,41 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateAdjustmentHeaderTotals,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ap-adjustment-calculations"
+import {
   IApAdjustmentDt,
   IApAdjustmentFilter,
   IApAdjustmentHd,
-} from "@/interfaces/ap-adjustment"
+} from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApAdjustmentDtSchemaType,
+  ApAdjustmentHdSchema,
   ApAdjustmentHdSchemaType,
-  apadjustmentHdSchema,
-} from "@/schemas/ap-adjustment"
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -27,22 +46,20 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApAdjustment } from "@/lib/api-routes"
+import { ApAdjustment, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -50,7 +67,7 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultAdjustment } from "./components/adjustment-defaultvalues"
+import { getDefaultValues } from "./components/adjustment-defaultvalues"
 import AdjustmentTable from "./components/adjustment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
@@ -64,34 +81,65 @@ export default function AdjustmentPage() {
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.adjustment
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingAdjustment, setIsLoadingAdjustment] = useState(false)
-  const [isSelectingAdjustment, setIsSelectingAdjustment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [adjustment, setAdjustment] = useState<ApAdjustmentHdSchemaType | null>(
     null
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
 
-  const [filters, setFilters] = useState<IApAdjustmentFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
-    search: "",
-    sortBy: "adjustmentNo",
-    sortOrder: "asc",
-    pageNumber: 1,
-    pageSize: 15,
-  })
+  const handleAdjustmentSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
 
   const documentNoFromQuery = useMemo(() => {
     const value =
-      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
@@ -99,8 +147,6 @@ export default function AdjustmentPage() {
     () => `history-doc:/${companyId}/ap/adjustment`,
     [companyId]
   )
-
-  const [pendingDocNo, setPendingDocNo] = useState<string>("")
 
   useEffect(() => {
     if (documentNoFromQuery) {
@@ -113,13 +159,42 @@ export default function AdjustmentPage() {
       const stored = window.localStorage.getItem(autoLoadStorageKey)
       if (stored) {
         window.localStorage.removeItem(autoLoadStorageKey)
-        setPendingDocNo(stored)
-        setSearchNo(stored)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
       }
     }
   }, [autoLoadStorageKey, documentNoFromQuery])
 
-  const lastQueriedDocRef = useRef<string | null>(null)
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
+  const [filters, setFilters] = useState<IApAdjustmentFilter>({
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
+    search: "",
+    sortBy: "adjustmentNo",
+    sortOrder: "asc",
+    pageNumber: 1,
+    pageSize: pageSize,
+  })
+
+  const defaultAdjustmentValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultAdjustment,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -137,12 +212,13 @@ export default function AdjustmentPage() {
 
   // Add form state management
   const form = useForm<ApAdjustmentHdSchemaType>({
-    resolver: zodResolver(apadjustmentHdSchema(required, visible)),
+    resolver: zodResolver(ApAdjustmentHdSchema(required, visible)),
     defaultValues: adjustment
       ? {
           adjustmentId: adjustment.adjustmentId?.toString() ?? "0",
           adjustmentNo: adjustment.adjustmentNo ?? "",
           referenceNo: adjustment.referenceNo ?? "",
+          suppAdjustmentNo: adjustment.suppAdjustmentNo ?? "",
           trnDate: adjustment.trnDate ?? new Date(),
           accountDate: adjustment.accountDate ?? new Date(),
           dueDate: adjustment.dueDate ?? new Date(),
@@ -154,6 +230,7 @@ export default function AdjustmentPage() {
           ctyExhRate: adjustment.ctyExhRate ?? 0,
           creditTermId: adjustment.creditTermId ?? 0,
           bankId: adjustment.bankId ?? 0,
+          isDebit: adjustment.isDebit ?? false,
           totAmt: adjustment.totAmt ?? 0,
           totLocalAmt: adjustment.totLocalAmt ?? 0,
           totCtyAmt: adjustment.totCtyAmt ?? 0,
@@ -183,7 +260,6 @@ export default function AdjustmentPage() {
           mobileNo: adjustment.mobileNo ?? "",
           emailAdd: adjustment.emailAdd ?? "",
           moduleFrom: adjustment.moduleFrom ?? "",
-          suppAdjustmentNo: adjustment.suppAdjustmentNo ?? "",
           customerName: adjustment.customerName ?? "",
           addressId: adjustment.addressId ?? 0,
           contactId: adjustment.contactId ?? 0,
@@ -192,6 +268,7 @@ export default function AdjustmentPage() {
           editVersion: adjustment.editVersion ?? 0,
           purchaseOrderId: adjustment.purchaseOrderId ?? 0,
           purchaseOrderNo: adjustment.purchaseOrderNo ?? "",
+          serviceTypeId: adjustment.serviceTypeId ?? 0,
           data_details:
             adjustment.data_details?.map((detail) => ({
               ...detail,
@@ -206,17 +283,70 @@ export default function AdjustmentPage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custAdjustmentNo: detail.custAdjustmentNo ?? "",
-              suppAdjustmentNo: detail.suppAdjustmentNo ?? "",
+              arAdjustmentId: detail.arAdjustmentId ?? "0",
+              arAdjustmentNo: detail.arAdjustmentNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultAdjustment,
-        },
+      : (() => {
+          // For new adjustment, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultAdjustmentValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to AdjustmentTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentAdjustmentId = form.getValues("adjustmentId") || "0"
+    if (
+      (adjustment &&
+        adjustment.adjustmentId &&
+        adjustment.adjustmentId !== "0") ||
+      currentAdjustmentId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultAdjustmentValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultAdjustmentValues,
+    decimals,
+    form,
+    adjustment,
+    isDirty,
+    user,
+  ])
 
   // Mutations
   const saveMutation = usePersist<ApAdjustmentHdSchemaType>(
@@ -225,7 +355,7 @@ export default function AdjustmentPage() {
   const updateMutation = usePersist<ApAdjustmentHdSchemaType>(
     `${ApAdjustment.add}`
   )
-  const deleteMutation = useDelete(`${ApAdjustment.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApAdjustment.delete}`)
 
   // Remove the useGetAdjustmentById hook for selection
   // const { data: adjustmentByIdData, refetch: refetchAdjustmentById } = ...
@@ -246,7 +376,7 @@ export default function AdjustmentPage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = apadjustmentHdSchema(
+      const validationResult = ApAdjustmentHdSchema(
         required,
         visible
       ).safeParse(formValues)
@@ -275,102 +405,310 @@ export default function AdjustmentPage() {
         return
       }
 
-      const response =
-        Number(formValues.adjustmentId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      console.log("handleSaveAdjustment formValues", formValues)
 
-      if (response.result === 1) {
-        const adjustmentData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.adjustmentId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (adjustmentData) {
-          const updatedSchemaType = transformToSchemaType(
-            adjustmentData as unknown as IApAdjustmentHd
-          )
-          setIsSelectingAdjustment(true)
-          setAdjustment(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
-        // Check if this was a new adjustment or update
-        const wasNewAdjustment = Number(formValues.adjustmentId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewAdjustment) {
-          //toast.success(
-          // `Adjustment ${adjustmentData?.adjustmentNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+
+      {
+        const response =
+          Number(formValues.adjustmentId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const adjustmentData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (adjustmentData) {
+            const updatedSchemaType = transformToSchemaType(
+              adjustmentData as unknown as IApAdjustmentHd
+            )
+
+            setSearchNo(updatedSchemaType.adjustmentNo || "")
+            setAdjustment(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Check if this was a new adjustment or update
+          const wasNewAdjustment = Number(formValues.adjustmentId) === 0
+
+          if (wasNewAdjustment) {
+            //toast.success(
+            // `Adjustment ${adjustmentData?.adjustmentNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("Adjustment updated successfully")
+          }
+
+          // Data refresh handled by AdjustmentTable component
         } else {
-          //toast.success("Adjustment updated successfully")
+          toast.error(response.message || "Failed to save adjustment")
         }
-
-        // Data refresh handled by AdjustmentTable component
-      } else {
-        toast.error(response.message || "Failed to save adjustment")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving adjustment")
     } finally {
       setIsSaving(false)
-      setIsSelectingAdjustment(false)
     }
   }
 
   // Handle Clone
-  const handleCloneAdjustment = () => {
+  const handleCloneAdjustment = async () => {
     if (adjustment) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedAdjustment: ApAdjustmentHdSchemaType = {
         ...adjustment,
         adjustmentId: "0",
         adjustmentNo: "",
-        // Reset amounts for new adjustment
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        deliveryDate: dateStr,
+        gstClaimDate: dateStr,
+        // dueDate will be calculated based on accountDate and credit terms
+        dueDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all balance and payment amounts
         balAmt: 0,
         balLocalAmt: 0,
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Reset data details
-        data_details: [],
+        // Clear AP adjustment link
+        arAdjustmentId: "0",
+        arAdjustmentNo: "",
+        // Keep data details - do not remove
+        data_details:
+          adjustment.data_details?.map((detail) => ({
+            ...detail,
+            adjustmentId: "0",
+            adjustmentNo: "",
+            arAdjustmentId: "0",
+            arAdjustmentNo: "",
+            editVersion: 0,
+          })) || [],
       }
+
+      const details = clonedAdjustment.data_details || []
+      const headerTotals = calculateAdjustmentHeaderTotals(
+        details as unknown as IApAdjustmentDt[],
+        decimals[0],
+        !!visible?.m_CtyCurr
+      )
+
+      clonedAdjustment.isDebit = headerTotals.isDebit
+      clonedAdjustment.totAmt = headerTotals.totAmt
+      clonedAdjustment.gstAmt = headerTotals.gstAmt
+      clonedAdjustment.totAmtAftGst = headerTotals.totAmtAftGst
+      clonedAdjustment.totLocalAmt = headerTotals.totLocalAmt
+      clonedAdjustment.gstLocalAmt = headerTotals.gstLocalAmt
+      clonedAdjustment.totLocalAmtAftGst = headerTotals.totLocalAmtAftGst
+      clonedAdjustment.totCtyAmt = headerTotals.totCtyAmt
+      clonedAdjustment.gstCtyAmt = headerTotals.gstCtyAmt
+      clonedAdjustment.totCtyAmtAftGst = headerTotals.totCtyAmtAftGst
+
       setAdjustment(clonedAdjustment)
       form.reset(clonedAdjustment)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedAdjustment.currencyId && clonedAdjustment.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IApAdjustmentDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as ApAdjustmentDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const headerTotalsAfterRecalc = calculateAdjustmentHeaderTotals(
+              updatedDetails as unknown as IApAdjustmentDt[],
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+            form.setValue("isDebit", headerTotalsAfterRecalc.isDebit)
+            form.setValue("totAmt", headerTotalsAfterRecalc.totAmt)
+            form.setValue("gstAmt", headerTotalsAfterRecalc.gstAmt)
+            form.setValue("totAmtAftGst", headerTotalsAfterRecalc.totAmtAftGst)
+            form.setValue("totLocalAmt", headerTotalsAfterRecalc.totLocalAmt)
+            form.setValue("gstLocalAmt", headerTotalsAfterRecalc.gstLocalAmt)
+            form.setValue(
+              "totLocalAmtAftGst",
+              headerTotalsAfterRecalc.totLocalAmtAftGst
+            )
+            form.setValue("totCtyAmt", headerTotalsAfterRecalc.totCtyAmt)
+            form.setValue("gstCtyAmt", headerTotalsAfterRecalc.gstCtyAmt)
+            form.setValue(
+              "totCtyAmtAftGst",
+              headerTotalsAfterRecalc.totCtyAmtAftGst
+            )
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedAdjustment.creditTermId && clonedAdjustment.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Adjustment cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleAdjustmentDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleAdjustmentDelete = async (cancelRemarks: string) => {
     if (!adjustment) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        adjustment.adjustmentId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Adjustment ID:", adjustment.adjustmentId)
+      console.log("Adjustment No:", adjustment.adjustmentNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: adjustment.adjustmentId?.toString() ?? "",
+        documentNo: adjustment.adjustmentNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setAdjustment(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultAdjustment,
+          ...defaultAdjustmentValues,
           data_details: [],
         })
-        //toast.success("Adjustment deleted successfully")
+        toast.success(
+          `Adjustment ${adjustment.adjustmentNo} deleted successfully`
+        )
         // Data refresh handled by AdjustmentTable component
       } else {
         toast.error(response.message || "Failed to delete adjustment")
@@ -384,209 +722,222 @@ export default function AdjustmentPage() {
   const handleAdjustmentReset = () => {
     setAdjustment(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new adjustment)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultAdjustment,
+      ...defaultAdjustmentValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Adjustment reset successfully")
   }
 
   // Helper function to transform IApAdjustmentHd to ApAdjustmentHdSchemaType
-  const transformToSchemaType = useCallback(
-    (apiAdjustment: IApAdjustmentHd): ApAdjustmentHdSchemaType => {
-      return {
-        adjustmentId: apiAdjustment.adjustmentId?.toString() ?? "0",
-        adjustmentNo: apiAdjustment.adjustmentNo ?? "",
-        referenceNo: apiAdjustment.referenceNo ?? "",
-        suppAdjustmentNo: apiAdjustment.suppAdjustmentNo ?? "",
-        trnDate: apiAdjustment.trnDate
-          ? format(
-              parseDate(apiAdjustment.trnDate as string) || new Date(),
-              clientDateFormat
-            )
-          : clientDateFormat,
-        accountDate: apiAdjustment.accountDate
-          ? format(
-              parseDate(apiAdjustment.accountDate as string) || new Date(),
-              clientDateFormat
-            )
-          : clientDateFormat,
-        dueDate: apiAdjustment.dueDate
-          ? format(
-              parseDate(apiAdjustment.dueDate as string) || new Date(),
-              clientDateFormat
-            )
-          : clientDateFormat,
-        deliveryDate: apiAdjustment.deliveryDate
-          ? format(
-              parseDate(apiAdjustment.deliveryDate as string) || new Date(),
-              clientDateFormat
-            )
-          : clientDateFormat,
-        gstClaimDate: apiAdjustment.gstClaimDate
-          ? format(
-              parseDate(apiAdjustment.gstClaimDate as string) || new Date(),
-              clientDateFormat
-            )
-          : clientDateFormat,
-        supplierId: apiAdjustment.supplierId ?? 0,
-        currencyId: apiAdjustment.currencyId ?? 0,
-        exhRate: apiAdjustment.exhRate ?? 0,
-        ctyExhRate: apiAdjustment.ctyExhRate ?? 0,
-        creditTermId: apiAdjustment.creditTermId ?? 0,
-        bankId: apiAdjustment.bankId ?? 0,
-        totAmt: apiAdjustment.totAmt ?? 0,
-        totLocalAmt: apiAdjustment.totLocalAmt ?? 0,
-        totCtyAmt: apiAdjustment.totCtyAmt ?? 0,
-        gstAmt: apiAdjustment.gstAmt ?? 0,
-        gstLocalAmt: apiAdjustment.gstLocalAmt ?? 0,
-        gstCtyAmt: apiAdjustment.gstCtyAmt ?? 0,
-        totAmtAftGst: apiAdjustment.totAmtAftGst ?? 0,
-        totLocalAmtAftGst: apiAdjustment.totLocalAmtAftGst ?? 0,
-        totCtyAmtAftGst: apiAdjustment.totCtyAmtAftGst ?? 0,
-        balAmt: apiAdjustment.balAmt ?? 0,
-        balLocalAmt: apiAdjustment.balLocalAmt ?? 0,
-        payAmt: apiAdjustment.payAmt ?? 0,
-        payLocalAmt: apiAdjustment.payLocalAmt ?? 0,
-        exGainLoss: apiAdjustment.exGainLoss ?? 0,
-        operationId: apiAdjustment.operationId ?? 0,
-        operationNo: apiAdjustment.operationNo ?? "",
-        remarks: apiAdjustment.remarks ?? "",
-        addressId: apiAdjustment.addressId ?? 0, // Not available in IApAdjustmentHd
-        contactId: apiAdjustment.contactId ?? 0, // Not available in IApAdjustmentHd
-        address1: apiAdjustment.address1 ?? "",
-        address2: apiAdjustment.address2 ?? "",
-        address3: apiAdjustment.address3 ?? "",
-        address4: apiAdjustment.address4 ?? "",
-        pinCode: apiAdjustment.pinCode ?? "",
-        countryId: apiAdjustment.countryId ?? 0,
-        phoneNo: apiAdjustment.phoneNo ?? "",
-        faxNo: apiAdjustment.faxNo ?? "",
-        contactName: apiAdjustment.contactName ?? "",
-        mobileNo: apiAdjustment.mobileNo ?? "",
-        emailAdd: apiAdjustment.emailAdd ?? "",
-        moduleFrom: apiAdjustment.moduleFrom ?? "",
-        customerName: apiAdjustment.customerName ?? "",
-        arAdjustmentId: apiAdjustment.arAdjustmentId ?? "",
-        arAdjustmentNo: apiAdjustment.arAdjustmentNo ?? "",
-        editVersion: apiAdjustment.editVersion ?? 0,
-        purchaseOrderId: apiAdjustment.purchaseOrderId ?? 0,
-        purchaseOrderNo: apiAdjustment.purchaseOrderNo ?? "",
-        createBy: apiAdjustment.createBy ?? "",
-        editBy: apiAdjustment.editBy ?? "",
-        cancelBy: apiAdjustment.cancelBy ?? "",
-        createDate: apiAdjustment.createDate
-          ? format(
-              parseDate(apiAdjustment.createDate as string) || new Date(),
-              clientDateFormat
-            )
-          : "",
+  const transformToSchemaType = (
+    apiAdjustment: IApAdjustmentHd
+  ): ApAdjustmentHdSchemaType => {
+    return {
+      adjustmentId: apiAdjustment.adjustmentId?.toString() ?? "0",
+      adjustmentNo: apiAdjustment.adjustmentNo ?? "",
+      referenceNo: apiAdjustment.referenceNo ?? "",
+      suppAdjustmentNo: apiAdjustment.suppAdjustmentNo ?? "",
+      trnDate: apiAdjustment.trnDate
+        ? format(
+            parseDate(apiAdjustment.trnDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
+      accountDate: apiAdjustment.accountDate
+        ? format(
+            parseDate(apiAdjustment.accountDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
+      dueDate: apiAdjustment.dueDate
+        ? format(
+            parseDate(apiAdjustment.dueDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
+      deliveryDate: apiAdjustment.deliveryDate
+        ? format(
+            parseDate(apiAdjustment.deliveryDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
+      gstClaimDate: apiAdjustment.gstClaimDate
+        ? format(
+            parseDate(apiAdjustment.gstClaimDate as string) || new Date(),
+            dateFormat
+          )
+        : dateFormat,
+      supplierId: apiAdjustment.supplierId ?? 0,
+      currencyId: apiAdjustment.currencyId ?? 0,
+      exhRate: apiAdjustment.exhRate ?? 0,
+      ctyExhRate: apiAdjustment.ctyExhRate ?? 0,
+      creditTermId: apiAdjustment.creditTermId ?? 0,
+      bankId: apiAdjustment.bankId ?? 0,
+      isDebit: apiAdjustment.isDebit ?? false,
+      totAmt: apiAdjustment.totAmt ?? 0,
+      totLocalAmt: apiAdjustment.totLocalAmt ?? 0,
+      totCtyAmt: apiAdjustment.totCtyAmt ?? 0,
+      gstAmt: apiAdjustment.gstAmt ?? 0,
+      gstLocalAmt: apiAdjustment.gstLocalAmt ?? 0,
+      gstCtyAmt: apiAdjustment.gstCtyAmt ?? 0,
+      totAmtAftGst: apiAdjustment.totAmtAftGst ?? 0,
+      totLocalAmtAftGst: apiAdjustment.totLocalAmtAftGst ?? 0,
+      totCtyAmtAftGst: apiAdjustment.totCtyAmtAftGst ?? 0,
+      balAmt: apiAdjustment.balAmt ?? 0,
+      balLocalAmt: apiAdjustment.balLocalAmt ?? 0,
+      payAmt: apiAdjustment.payAmt ?? 0,
+      payLocalAmt: apiAdjustment.payLocalAmt ?? 0,
+      exGainLoss: apiAdjustment.exGainLoss ?? 0,
+      operationId: apiAdjustment.operationId ?? 0,
+      operationNo: apiAdjustment.operationNo ?? "",
+      remarks: apiAdjustment.remarks ?? "",
+      addressId: apiAdjustment.addressId ?? 0, // Not available in IApAdjustmentHd
+      contactId: apiAdjustment.contactId ?? 0, // Not available in IApAdjustmentHd
+      address1: apiAdjustment.address1 ?? "",
+      address2: apiAdjustment.address2 ?? "",
+      address3: apiAdjustment.address3 ?? "",
+      address4: apiAdjustment.address4 ?? "",
+      pinCode: apiAdjustment.pinCode ?? "",
+      countryId: apiAdjustment.countryId ?? 0,
+      phoneNo: apiAdjustment.phoneNo ?? "",
+      faxNo: apiAdjustment.faxNo ?? "",
+      contactName: apiAdjustment.contactName ?? "",
+      mobileNo: apiAdjustment.mobileNo ?? "",
+      emailAdd: apiAdjustment.emailAdd ?? "",
+      moduleFrom: apiAdjustment.moduleFrom ?? "",
+      customerName: apiAdjustment.customerName ?? "",
+      arAdjustmentId: apiAdjustment.arAdjustmentId ?? "",
+      arAdjustmentNo: apiAdjustment.arAdjustmentNo ?? "",
+      editVersion: apiAdjustment.editVersion ?? 0,
+      purchaseOrderId: apiAdjustment.purchaseOrderId ?? 0,
+      purchaseOrderNo: apiAdjustment.purchaseOrderNo ?? "",
 
-        editDate: apiAdjustment.editDate
-          ? format(
-              parseDate(apiAdjustment.editDate as unknown as string) ||
-                new Date(),
-              clientDateFormat
-            )
-          : "",
-        cancelDate: apiAdjustment.cancelDate
-          ? format(
-              parseDate(apiAdjustment.cancelDate as unknown as string) ||
-                new Date(),
-              clientDateFormat
-            )
-          : "",
-        cancelRemarks: apiAdjustment.cancelRemarks ?? "",
-        data_details:
-          apiAdjustment.data_details?.map(
-            (detail) =>
-              ({
-                ...detail,
-                adjustmentId: detail.adjustmentId?.toString() ?? "0",
-                adjustmentNo: detail.adjustmentNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                seqNo: detail.seqNo ?? 0,
-                docItemNo: detail.docItemNo ?? 0,
-                productId: detail.productId ?? 0,
-                productCode: detail.productCode ?? "",
-                productName: detail.productName ?? "",
-                glId: detail.glId ?? 0,
-                glCode: detail.glCode ?? "",
-                glName: detail.glName ?? "",
-                qty: detail.qty ?? 0,
-                billQTY: detail.billQTY ?? 0,
-                uomId: detail.uomId ?? 0,
-                uomCode: detail.uomCode ?? "",
-                uomName: detail.uomName ?? "",
-                unitPrice: detail.unitPrice ?? 0,
-                totAmt: detail.totAmt ?? 0,
-                totLocalAmt: detail.totLocalAmt ?? 0,
-                totCtyAmt: detail.totCtyAmt ?? 0,
-                remarks: detail.remarks ?? "",
-                gstId: detail.gstId ?? 0,
-                gstName: detail.gstName ?? "",
-                gstPercentage: detail.gstPercentage ?? 0,
-                gstAmt: detail.gstAmt ?? 0,
-                gstLocalAmt: detail.gstLocalAmt ?? 0,
-                gstCtyAmt: detail.gstCtyAmt ?? 0,
-                deliveryDate: detail.deliveryDate
-                  ? format(
-                      parseDate(detail.deliveryDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                departmentId: detail.departmentId ?? 0,
-                departmentCode: detail.departmentCode ?? "",
-                departmentName: detail.departmentName ?? "",
-                jobOrderId: detail.jobOrderId ?? 0,
-                jobOrderNo: detail.jobOrderNo ?? "",
-                taskId: detail.taskId ?? 0,
-                taskName: detail.taskName ?? "",
-                serviceId: detail.serviceId ?? 0,
-                serviceName: detail.serviceName ?? "",
-                employeeId: detail.employeeId ?? 0,
-                employeeCode: detail.employeeCode ?? "",
-                employeeName: detail.employeeName ?? "",
-                portId: detail.portId ?? 0,
-                portCode: detail.portCode ?? "",
-                portName: detail.portName ?? "",
-                vesselId: detail.vesselId ?? 0,
-                vesselCode: detail.vesselCode ?? "",
-                vesselName: detail.vesselName ?? "",
-                bargeId: detail.bargeId ?? 0,
-                bargeCode: detail.bargeCode ?? "",
-                bargeName: detail.bargeName ?? "",
-                voyageId: detail.voyageId ?? 0,
-                voyageNo: detail.voyageNo ?? "",
-                operationId: detail.operationId ?? "",
-                operationNo: detail.operationNo ?? "",
-                opRefNo: detail.opRefNo ?? "",
-                purchaseOrderId: detail.purchaseOrderId ?? "",
-                purchaseOrderNo: detail.purchaseOrderNo ?? "",
-                supplyDate: detail.supplyDate
-                  ? format(
-                      parseDate(detail.supplyDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                customerName: detail.customerName ?? "",
-                custAdjustmentNo: detail.custAdjustmentNo ?? "",
-                arAdjustmentId: detail.arAdjustmentId ?? "",
-                arAdjustmentNo: detail.arAdjustmentNo ?? "",
-                editVersion: detail.editVersion ?? 0,
-              }) as unknown as ApAdjustmentDtSchemaType
-          ) || [],
-      }
-    },
-    []
-  )
+      serviceTypeId: apiAdjustment.serviceTypeId ?? 0,
+      createBy: apiAdjustment.createBy ?? "",
+      editBy: apiAdjustment.editBy ?? "",
+      cancelBy: apiAdjustment.cancelBy ?? "",
+      createDate: apiAdjustment.createDate
+        ? format(
+            parseDate(apiAdjustment.createDate as string) || new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+
+      editDate: apiAdjustment.editDate
+        ? format(
+            parseDate(apiAdjustment.editDate as unknown as string) ||
+              new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+      cancelDate: apiAdjustment.cancelDate
+        ? format(
+            parseDate(apiAdjustment.cancelDate as unknown as string) ||
+              new Date(),
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+          )
+        : "",
+      isCancel: apiAdjustment.isCancel ?? false,
+      cancelRemarks: apiAdjustment.cancelRemarks ?? "",
+      data_details:
+        apiAdjustment.data_details?.map(
+          (detail) =>
+            ({
+              ...detail,
+              adjustmentId: detail.adjustmentId?.toString() ?? "0",
+              adjustmentNo: detail.adjustmentNo ?? "",
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              docItemNo: detail.docItemNo ?? 0,
+              productId: detail.productId ?? 0,
+              productCode: detail.productCode ?? "",
+              productName: detail.productName ?? "",
+              glId: detail.glId ?? 0,
+              glCode: detail.glCode ?? "",
+              glName: detail.glName ?? "",
+              qty: detail.qty ?? 0,
+              billQTY: detail.billQTY ?? 0,
+              uomId: detail.uomId ?? 0,
+              uomCode: detail.uomCode ?? "",
+              uomName: detail.uomName ?? "",
+              unitPrice: detail.unitPrice ?? 0,
+              isDebit: detail.isDebit ?? false,
+              totAmt: detail.totAmt ?? 0,
+              totLocalAmt: detail.totLocalAmt ?? 0,
+              totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
+              gstId: detail.gstId ?? 0,
+              gstName: detail.gstName ?? "",
+              gstPercentage: detail.gstPercentage ?? 0,
+              gstAmt: detail.gstAmt ?? 0,
+              gstLocalAmt: detail.gstLocalAmt ?? 0,
+              gstCtyAmt: detail.gstCtyAmt ?? 0,
+              deliveryDate: detail.deliveryDate
+                ? format(
+                    parseDate(detail.deliveryDate as string) || new Date(),
+                    dateFormat
+                  )
+                : "",
+              departmentId: detail.departmentId ?? 0,
+              departmentCode: detail.departmentCode ?? "",
+              departmentName: detail.departmentName ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
+              employeeId: detail.employeeId ?? 0,
+              employeeCode: detail.employeeCode ?? "",
+              employeeName: detail.employeeName ?? "",
+              portId: detail.portId ?? 0,
+              portCode: detail.portCode ?? "",
+              portName: detail.portName ?? "",
+              vesselId: detail.vesselId ?? 0,
+              vesselCode: detail.vesselCode ?? "",
+              vesselName: detail.vesselName ?? "",
+              bargeId: detail.bargeId ?? 0,
+              bargeCode: detail.bargeCode ?? "",
+              bargeName: detail.bargeName ?? "",
+              voyageId: detail.voyageId ?? 0,
+              voyageNo: detail.voyageNo ?? "",
+              operationId: detail.operationId ?? "",
+              operationNo: detail.operationNo ?? "",
+              opRefNo: detail.opRefNo ?? "",
+              purchaseOrderId: detail.purchaseOrderId ?? "",
+              purchaseOrderNo: detail.purchaseOrderNo ?? "",
+
+              supplyDate: detail.supplyDate
+                ? format(
+                    parseDate(detail.supplyDate as string) || new Date(),
+                    dateFormat
+                  )
+                : "",
+              customerName: detail.customerName ?? "",
+              custAdjustmentNo: detail.custAdjustmentNo ?? "",
+              arAdjustmentId: detail.arAdjustmentId ?? "",
+              arAdjustmentNo: detail.arAdjustmentNo ?? "",
+              editVersion: detail.editVersion ?? 0,
+            }) as unknown as ApAdjustmentDtSchemaType
+        ) || [],
+    }
+  }
 
   const handleAdjustmentSelect = async (
     selectedAdjustment: IApAdjustmentHd | undefined
   ) => {
     if (!selectedAdjustment) return
-
-    setIsSelectingAdjustment(true)
 
     try {
       // Fetch adjustment details directly using selected adjustment's values
@@ -600,6 +951,14 @@ export default function AdjustmentPage() {
           : response.data
 
         if (detailedAdjustment) {
+          {
+            const parsed = parseDate(detailedAdjustment.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedAdjustment.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedAdjustment = {
             ...detailedAdjustment,
@@ -610,36 +969,36 @@ export default function AdjustmentPage() {
             trnDate: detailedAdjustment.trnDate
               ? format(
                   parseDate(detailedAdjustment.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedAdjustment.accountDate
               ? format(
                   parseDate(detailedAdjustment.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedAdjustment.dueDate
               ? format(
                   parseDate(detailedAdjustment.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedAdjustment.deliveryDate
               ? format(
                   parseDate(detailedAdjustment.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedAdjustment.gstClaimDate
               ? format(
                   parseDate(detailedAdjustment.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedAdjustment.supplierId ?? 0,
             currencyId: detailedAdjustment.currencyId ?? 0,
@@ -647,6 +1006,7 @@ export default function AdjustmentPage() {
             ctyExhRate: detailedAdjustment.ctyExhRate ?? 0,
             creditTermId: detailedAdjustment.creditTermId ?? 0,
             bankId: detailedAdjustment.bankId ?? 0,
+            isDebit: detailedAdjustment.isDebit ?? false,
             totAmt: detailedAdjustment.totAmt ?? 0,
             totLocalAmt: detailedAdjustment.totLocalAmt ?? 0,
             totCtyAmt: detailedAdjustment.totCtyAmt ?? 0,
@@ -684,12 +1044,32 @@ export default function AdjustmentPage() {
             editVersion: detailedAdjustment.editVersion ?? 0,
             purchaseOrderId: detailedAdjustment.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedAdjustment.purchaseOrderNo ?? "",
+            serviceTypeId: detailedAdjustment.serviceTypeId ?? 0,
             createBy: detailedAdjustment.createBy ?? "",
-            createDate: detailedAdjustment.createDate ?? "",
+            createDate: detailedAdjustment.createDate
+              ? format(
+                  parseDate(detailedAdjustment.createDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             editBy: detailedAdjustment.editBy ?? "",
-            editDate: detailedAdjustment.editDate ?? "",
+            editDate: detailedAdjustment.editDate
+              ? format(
+                  parseDate(detailedAdjustment.editDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             cancelBy: detailedAdjustment.cancelBy ?? "",
-            cancelDate: detailedAdjustment.cancelDate ?? "",
+            cancelDate: detailedAdjustment.cancelDate
+              ? format(
+                  parseDate(detailedAdjustment.cancelDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            isCancel: detailedAdjustment.isCancel ?? false,
             cancelRemarks: detailedAdjustment.cancelRemarks ?? "",
             data_details:
               detailedAdjustment.data_details?.map(
@@ -711,6 +1091,7 @@ export default function AdjustmentPage() {
                   uomCode: detail.uomCode ?? "",
                   uomName: detail.uomName ?? "",
                   unitPrice: detail.unitPrice ?? 0,
+                  isDebit: detail.isDebit ?? false,
                   totAmt: detail.totAmt ?? 0,
                   totLocalAmt: detail.totLocalAmt ?? 0,
                   totCtyAmt: detail.totCtyAmt ?? 0,
@@ -724,12 +1105,13 @@ export default function AdjustmentPage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
                   departmentCode: detail.departmentCode ?? "",
                   departmentName: detail.departmentName ?? "",
+
                   jobOrderId: detail.jobOrderId ?? 0,
                   jobOrderNo: detail.jobOrderNo ?? "",
                   taskId: detail.taskId ?? 0,
@@ -758,7 +1140,7 @@ export default function AdjustmentPage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   customerName: detail.customerName ?? "",
@@ -775,11 +1157,11 @@ export default function AdjustmentPage() {
           form.reset(updatedAdjustment)
           form.trigger()
 
+          // Set the adjustment number in search input
+          setSearchNo(updatedAdjustment.adjustmentNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Adjustment ${selectedAdjustment.adjustmentNo} loaded successfully`
-          )
         }
       } else {
         toast.error(response?.message || "Failed to fetch adjustment details")
@@ -790,7 +1172,7 @@ export default function AdjustmentPage() {
       toast.error("Error loading adjustment. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingAdjustment(false)
+      // Selection completed
     }
   }
 
@@ -801,6 +1183,28 @@ export default function AdjustmentPage() {
   }
 
   // Data refresh handled by AdjustmentTable component
+
+  // Set createBy and createDate for new adjustments on page load/refresh
+  useEffect(() => {
+    if (!adjustment && user && decimals.length > 0) {
+      const currentAdjustmentId = form.getValues("adjustmentId")
+      const currentAdjustmentNo = form.getValues("adjustmentNo")
+      const isNewAdjustment =
+        !currentAdjustmentId ||
+        currentAdjustmentId === "0" ||
+        !currentAdjustmentNo
+
+      if (isNewAdjustment) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [adjustment, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -826,14 +1230,18 @@ export default function AdjustmentPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handleAdjustmentSearch = useCallback(async (value: string) => {
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
+
+  const handleAdjustmentSearch = async (value: string) => {
     if (!value) return
 
     setIsLoadingAdjustment(true)
@@ -847,6 +1255,14 @@ export default function AdjustmentPage() {
           : response.data
 
         if (detailedAdjustment) {
+          {
+            const parsed = parseDate(detailedAdjustment.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedAdjustment.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedAdjustment = {
             ...detailedAdjustment,
@@ -857,36 +1273,36 @@ export default function AdjustmentPage() {
             trnDate: detailedAdjustment.trnDate
               ? format(
                   parseDate(detailedAdjustment.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedAdjustment.accountDate
               ? format(
                   parseDate(detailedAdjustment.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedAdjustment.dueDate
               ? format(
                   parseDate(detailedAdjustment.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedAdjustment.deliveryDate
               ? format(
                   parseDate(detailedAdjustment.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedAdjustment.gstClaimDate
               ? format(
                   parseDate(detailedAdjustment.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedAdjustment.supplierId ?? 0,
             currencyId: detailedAdjustment.currencyId ?? 0,
@@ -894,6 +1310,7 @@ export default function AdjustmentPage() {
             ctyExhRate: detailedAdjustment.ctyExhRate ?? 0,
             creditTermId: detailedAdjustment.creditTermId ?? 0,
             bankId: detailedAdjustment.bankId ?? 0,
+            isDebit: detailedAdjustment.isDebit ?? false,
             totAmt: detailedAdjustment.totAmt ?? 0,
             totLocalAmt: detailedAdjustment.totLocalAmt ?? 0,
             totCtyAmt: detailedAdjustment.totCtyAmt ?? 0,
@@ -931,6 +1348,9 @@ export default function AdjustmentPage() {
             editVersion: detailedAdjustment.editVersion ?? 0,
             purchaseOrderId: detailedAdjustment.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedAdjustment.purchaseOrderNo ?? "",
+            serviceTypeId: detailedAdjustment.serviceTypeId ?? 0,
+            isCancel: detailedAdjustment.isCancel ?? false,
+            cancelRemarks: detailedAdjustment.cancelRemarks ?? "",
 
             data_details:
               detailedAdjustment.data_details?.map(
@@ -952,6 +1372,7 @@ export default function AdjustmentPage() {
                   uomCode: detail.uomCode ?? "",
                   uomName: detail.uomName ?? "",
                   unitPrice: detail.unitPrice ?? 0,
+                  isDebit: detail.isDebit ?? false,
                   totAmt: detail.totAmt ?? 0,
                   totLocalAmt: detail.totLocalAmt ?? 0,
                   totCtyAmt: detail.totCtyAmt ?? 0,
@@ -965,7 +1386,7 @@ export default function AdjustmentPage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
@@ -999,7 +1420,7 @@ export default function AdjustmentPage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   customerName: detail.customerName ?? "",
@@ -1016,13 +1437,20 @@ export default function AdjustmentPage() {
           form.reset(updatedAdjustment)
           form.trigger()
 
+          // Set the adjustment number in search input to the actual adjustment number from database
+          setSearchNo(updatedAdjustment.adjustmentNo || "")
+
           // Show success message
-          toast.success(`Adjustment ${value} loaded successfully`)
+          toast.success(
+            `Adjustment ${updatedAdjustment.adjustmentNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
           response?.message || "Failed to fetch adjustment details (direct)"
         )
@@ -1032,31 +1460,50 @@ export default function AdjustmentPage() {
     } finally {
       setIsLoadingAdjustment(false)
     }
-  }, [
-    form,
-    setAdjustment,
-    setIsLoadingAdjustment,
-    setSearchNo,
-    setShowLoadConfirm,
-    transformToSchemaType,
-  ])
+  }
+
+  handleAdjustmentSearchRef.current = handleAdjustmentSearch
 
   useEffect(() => {
-    if (!pendingDocNo) return
-    if (lastQueriedDocRef.current === pendingDocNo) return
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
 
-    lastQueriedDocRef.current = pendingDocNo
-    setSearchNo(pendingDocNo)
-    void handleAdjustmentSearch(pendingDocNo)
-  }, [handleAdjustmentSearch, pendingDocNo])
+    const executeSearch = async () => {
+      const searchFn = handleAdjustmentSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
 
   // Determine mode and adjustment ID from URL
   const adjustmentNo = form.getValues("adjustmentNo")
   const isEdit = Boolean(adjustmentNo)
+  const isCancelled = adjustment?.isCancel === true
+
+  const headerIsDebit = form.watch("isDebit")
+  const headerDebitLabel = headerIsDebit ? "Debit" : "Credit"
+
+  // Calculate payment status only if not cancelled
+  const balAmt = adjustment?.balAmt ?? 0
+  const payAmt = adjustment?.payAmt ?? 0
+
+  const paymentStatus = isCancelled
+    ? ""
+    : balAmt === 0 && payAmt > 0
+      ? "Fully Paid"
+      : balAmt > 0 && payAmt > 0
+        ? "Partially Paid"
+        : balAmt > 0 && payAmt === 0
+          ? "Not Paid"
+          : ""
 
   // Compose title text
   const titleText = isEdit
-    ? `Adjustment (Edit) - ${adjustmentNo}`
+    ? `Adjustment (Edit)- v[${adjustment?.editVersion}] - ${adjustmentNo}`
     : "Adjustment (New)"
 
   // Show loading spinner while essential data is loading
@@ -1085,45 +1532,97 @@ export default function AdjustmentPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
-              <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
-              >
-                {titleText}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {adjustment?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {adjustment.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Status Badge - Only show if not cancelled */}
+            {!isCancelled && paymentStatus === "Not Paid" && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                Not Paid
               </span>
-            </span>
-          </h1>
+            )}
+            {!isCancelled && paymentStatus === "Partially Paid" && (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
+                Partially Paid
+              </span>
+            )}
+            {!isCancelled && paymentStatus === "Fully Paid" && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
+                Fully Paid
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
+              <span
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
+              >
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
+              </span>
+            </h1>
+
+            <Badge variant={headerIsDebit ? "default" : "destructive"}>
+              {headerDebitLabel}
+            </Badge>
+
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (adjustment?.adjustmentNo) {
+                    setSearchNo(adjustment.adjustmentNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingAdjustment}
+                className="h-4 w-4 p-0"
+                title="Refresh adjustment data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search Adjustment No"
               className="h-8 text-sm"
               readOnly={
@@ -1148,7 +1647,14 @@ export default function AdjustmentPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1191,7 +1697,9 @@ export default function AdjustmentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!adjustment || adjustment.adjustmentId === "0"}
+              disabled={
+                !adjustment || adjustment.adjustmentId === "0" || isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1202,9 +1710,13 @@ export default function AdjustmentPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !adjustment ||
                 adjustment.adjustmentId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -1212,7 +1724,7 @@ export default function AdjustmentPage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -1227,11 +1739,12 @@ export default function AdjustmentPage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -1244,52 +1757,33 @@ export default function AdjustmentPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by AdjustmentTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Adjustment List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing adjustments from the list below.
-                  Use search to filter records or create new adjustments.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Adjustment List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing adjustments from the list below. Use
+              search to filter records or create new adjustments.
+            </p>
+          </div>
 
-          {isSelectingAdjustment ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingAdjustment
-                    ? "Loading adjustment details..."
-                    : "Loading adjustments..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingAdjustment
-                    ? "Please wait while we fetch the complete adjustment data"
-                    : "Please wait while we fetch the adjustment list"}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
             <AdjustmentTable
               onAdjustmentSelect={handleAdjustmentSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1309,15 +1803,26 @@ export default function AdjustmentPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleAdjustmentDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={adjustment?.adjustmentNo}
         title="Delete Adjustment"
-        description="This action cannot be undone. All adjustment details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this adjustment? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleAdjustmentDelete}
+        itemName={adjustment?.adjustmentNo}
+        title="Cancel Adjustment"
+        description="Please provide a reason for cancelling this adjustment."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

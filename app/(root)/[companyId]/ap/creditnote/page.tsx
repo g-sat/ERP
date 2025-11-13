@@ -1,7 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import {
+  mathRound,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ap-creditNote-calculations"
 import {
   IApCreditNoteDt,
   IApCreditNoteFilter,
@@ -10,15 +22,25 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApCreditNoteDtSchemaType,
+  ApCreditNoteHdSchema,
   ApCreditNoteHdSchemaType,
-  apCreditNoteHdSchema,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -27,22 +49,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApCreditNote } from "@/lib/api-routes"
+import { ApCreditNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -50,7 +69,7 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultCreditNote } from "./components/creditNote-defaultvalues"
+import { getDefaultValues } from "./components/creditNote-defaultvalues"
 import CreditNoteTable from "./components/creditNote-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
@@ -58,35 +77,126 @@ import Other from "./components/other"
 
 export default function CreditNotePage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.creditNote
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingCreditNote, setIsLoadingCreditNote] = useState(false)
-  const [_isSelectingCreditNote, setIsSelectingCreditNote] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [creditNote, setCreditNote] = useState<ApCreditNoteHdSchemaType | null>(
     null
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocNo, setPendingDocNo] = useState("")
+
+  const handleCreditNoteSearchRef = useRef<
+    ((value: string) => Promise<void> | void) | null
+  >(null)
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/creditnote`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocNo(trimmed)
+          setSearchNo(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<IApCreditNoteFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "creditNoteNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const defaultCreditNoteValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultCreditNote,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -104,12 +214,13 @@ export default function CreditNotePage() {
 
   // Add form state management
   const form = useForm<ApCreditNoteHdSchemaType>({
-    resolver: zodResolver(apCreditNoteHdSchema(required, visible)),
+    resolver: zodResolver(ApCreditNoteHdSchema(required, visible)),
     defaultValues: creditNote
       ? {
           creditNoteId: creditNote.creditNoteId?.toString() ?? "0",
           creditNoteNo: creditNote.creditNoteNo ?? "",
           referenceNo: creditNote.referenceNo ?? "",
+          suppCreditNoteNo: creditNote.suppCreditNoteNo ?? "",
           trnDate: creditNote.trnDate ?? new Date(),
           accountDate: creditNote.accountDate ?? new Date(),
           dueDate: creditNote.dueDate ?? new Date(),
@@ -121,8 +232,6 @@ export default function CreditNotePage() {
           ctyExhRate: creditNote.ctyExhRate ?? 0,
           creditTermId: creditNote.creditTermId ?? 0,
           bankId: creditNote.bankId ?? 0,
-          invoiceId: creditNote.invoiceId ?? "0",
-          invoiceNo: creditNote.invoiceNo ?? "",
           totAmt: creditNote.totAmt ?? 0,
           totLocalAmt: creditNote.totLocalAmt ?? 0,
           totCtyAmt: creditNote.totCtyAmt ?? 0,
@@ -152,7 +261,6 @@ export default function CreditNotePage() {
           mobileNo: creditNote.mobileNo ?? "",
           emailAdd: creditNote.emailAdd ?? "",
           moduleFrom: creditNote.moduleFrom ?? "",
-          suppCreditNoteNo: creditNote.suppCreditNoteNo ?? "",
           customerName: creditNote.customerName ?? "",
           addressId: creditNote.addressId ?? 0,
           contactId: creditNote.contactId ?? 0,
@@ -176,18 +284,70 @@ export default function CreditNotePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custCreditNoteNo: detail.custCreditNoteNo ?? "",
-              arCreditNoteId: detail.arCreditNoteId ?? "",
+              arCreditNoteId: detail.arCreditNoteId ?? "0",
               arCreditNoteNo: detail.arCreditNoteNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultCreditNote,
-        },
+      : (() => {
+          // For new creditNote, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultCreditNoteValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to CreditNoteTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentCreditNoteId = form.getValues("creditNoteId") || "0"
+    if (
+      (creditNote &&
+        creditNote.creditNoteId &&
+        creditNote.creditNoteId !== "0") ||
+      currentCreditNoteId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultCreditNoteValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultCreditNoteValues,
+    decimals,
+    form,
+    creditNote,
+    isDirty,
+    user,
+  ])
 
   // Mutations
   const saveMutation = usePersist<ApCreditNoteHdSchemaType>(
@@ -196,7 +356,7 @@ export default function CreditNotePage() {
   const updateMutation = usePersist<ApCreditNoteHdSchemaType>(
     `${ApCreditNote.add}`
   )
-  const deleteMutation = useDelete(`${ApCreditNote.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApCreditNote.delete}`)
 
   // Remove the useGetCreditNoteById hook for selection
   // const { data: creditNoteByIdData, refetch: refetchCreditNoteById } = ...
@@ -217,7 +377,7 @@ export default function CreditNotePage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = apCreditNoteHdSchema(
+      const validationResult = ApCreditNoteHdSchema(
         required,
         visible
       ).safeParse(formValues)
@@ -246,102 +406,350 @@ export default function CreditNotePage() {
         return
       }
 
-      const response =
-        Number(formValues.creditNoteId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      console.log("handleSaveCreditNote formValues", formValues)
 
-      if (response.result === 1) {
-        const creditNoteData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.creditNoteId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (creditNoteData) {
-          const updatedSchemaType = transformToSchemaType(
-            creditNoteData as unknown as IApCreditNoteHd
-          )
-          setIsSelectingCreditNote(true)
-          setCreditNote(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
-        // Check if this was a new creditNote or update
-        const wasNewCreditNote = Number(formValues.creditNoteId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewCreditNote) {
-          //toast.success(
-          // `CreditNote ${creditNoteData?.creditNoteNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+
+      {
+        const response =
+          Number(formValues.creditNoteId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const creditNoteData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (creditNoteData) {
+            const updatedSchemaType = transformToSchemaType(
+              creditNoteData as unknown as IApCreditNoteHd
+            )
+
+            setSearchNo(updatedSchemaType.creditNoteNo || "")
+            setCreditNote(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Check if this was a new creditNote or update
+          const wasNewCreditNote = Number(formValues.creditNoteId) === 0
+
+          if (wasNewCreditNote) {
+            //toast.success(
+            // `CreditNote ${creditNoteData?.creditNoteNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("CreditNote updated successfully")
+          }
+
+          // Data refresh handled by CreditNoteTable component
         } else {
-          //toast.success("CreditNote updated successfully")
+          toast.error(response.message || "Failed to save creditNote")
         }
-
-        // Data refresh handled by CreditNoteTable component
-      } else {
-        toast.error(response.message || "Failed to save creditNote")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving creditNote")
     } finally {
       setIsSaving(false)
-      setIsSelectingCreditNote(false)
     }
   }
 
   // Handle Clone
-  const handleCloneCreditNote = () => {
+  const handleCloneCreditNote = async () => {
     if (creditNote) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedCreditNote: ApCreditNoteHdSchemaType = {
         ...creditNote,
         creditNoteId: "0",
         creditNoteNo: "",
-        // Reset amounts for new creditNote
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        deliveryDate: dateStr,
+        gstClaimDate: dateStr,
+        // dueDate will be calculated based on accountDate and credit terms
+        dueDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all balance and payment amounts
         balAmt: 0,
         balLocalAmt: 0,
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Reset data details
-        data_details: [],
+        // Clear AP creditNote link
+        arCreditNoteId: "0",
+        arCreditNoteNo: "",
+        // Keep data details - do not remove
+        data_details:
+          creditNote.data_details?.map((detail) => ({
+            ...detail,
+            creditNoteId: "0",
+            creditNoteNo: "",
+            arCreditNoteId: "0",
+            arCreditNoteNo: "",
+            editVersion: 0,
+          })) || [],
       }
+
+      // Calculate totals from details with proper rounding
+      const amtDec = decimals[0]?.amtDec || 2
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+      const details = clonedCreditNote.data_details || []
+      if (details.length > 0) {
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
+
+        clonedCreditNote.totAmt = mathRound(totAmt, amtDec)
+        clonedCreditNote.gstAmt = mathRound(gstAmt, amtDec)
+        clonedCreditNote.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedCreditNote.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedCreditNote.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedCreditNote.totLocalAmtAftGst = mathRound(
+          totLocalAmt + gstLocalAmt,
+          locAmtDec
+        )
+        clonedCreditNote.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedCreditNote.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedCreditNote.totCtyAmtAftGst = mathRound(
+          totCtyAmt + gstCtyAmt,
+          ctyAmtDec
+        )
+      } else {
+        // Reset amounts if no details
+        clonedCreditNote.totAmt = 0
+        clonedCreditNote.totLocalAmt = 0
+        clonedCreditNote.totCtyAmt = 0
+        clonedCreditNote.gstAmt = 0
+        clonedCreditNote.gstLocalAmt = 0
+        clonedCreditNote.gstCtyAmt = 0
+        clonedCreditNote.totAmtAftGst = 0
+        clonedCreditNote.totLocalAmtAftGst = 0
+        clonedCreditNote.totCtyAmtAftGst = 0
+      }
+
       setCreditNote(clonedCreditNote)
       form.reset(clonedCreditNote)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedCreditNote.currencyId && clonedCreditNote.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IApCreditNoteDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as ApCreditNoteDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const totals = calculateTotalAmounts(
+              updatedDetails as unknown as IApCreditNoteDt[],
+              amtDec
+            )
+            form.setValue("totAmt", totals.totAmt)
+            form.setValue("gstAmt", totals.gstAmt)
+            form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+            const localAmounts = calculateLocalAmounts(
+              updatedDetails as unknown as IApCreditNoteDt[],
+              locAmtDec
+            )
+            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+            if (visible?.m_CtyCurr) {
+              const countryAmounts = calculateCountryAmounts(
+                updatedDetails as unknown as IApCreditNoteDt[],
+                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+              )
+              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+            }
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedCreditNote.creditTermId && clonedCreditNote.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("CreditNote cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleCreditNoteDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleCreditNoteDelete = async (cancelRemarks: string) => {
     if (!creditNote) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        creditNote.creditNoteId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("CreditNote ID:", creditNote.creditNoteId)
+      console.log("CreditNote No:", creditNote.creditNoteNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: creditNote.creditNoteId?.toString() ?? "",
+        documentNo: creditNote.creditNoteNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setCreditNote(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultCreditNote,
+          ...defaultCreditNoteValues,
           data_details: [],
         })
-        //toast.success("CreditNote deleted successfully")
+        toast.success(
+          `CreditNote ${creditNote.creditNoteNo} deleted successfully`
+        )
         // Data refresh handled by CreditNoteTable component
       } else {
         toast.error(response.message || "Failed to delete creditNote")
@@ -355,8 +763,18 @@ export default function CreditNotePage() {
   const handleCreditNoteReset = () => {
     setCreditNote(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new creditNote)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultCreditNote,
+      ...defaultCreditNoteValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("CreditNote reset successfully")
@@ -374,41 +792,39 @@ export default function CreditNotePage() {
       trnDate: apiCreditNote.trnDate
         ? format(
             parseDate(apiCreditNote.trnDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       accountDate: apiCreditNote.accountDate
         ? format(
             parseDate(apiCreditNote.accountDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       dueDate: apiCreditNote.dueDate
         ? format(
             parseDate(apiCreditNote.dueDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       deliveryDate: apiCreditNote.deliveryDate
         ? format(
             parseDate(apiCreditNote.deliveryDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       gstClaimDate: apiCreditNote.gstClaimDate
         ? format(
             parseDate(apiCreditNote.gstClaimDate as string) || new Date(),
-            clientDateFormat
+            dateFormat
           )
-        : clientDateFormat,
+        : dateFormat,
       supplierId: apiCreditNote.supplierId ?? 0,
       currencyId: apiCreditNote.currencyId ?? 0,
       exhRate: apiCreditNote.exhRate ?? 0,
       ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
       creditTermId: apiCreditNote.creditTermId ?? 0,
       bankId: apiCreditNote.bankId ?? 0,
-      invoiceId: apiCreditNote.invoiceId ?? "0",
-      invoiceNo: apiCreditNote.invoiceNo ?? "",
       totAmt: apiCreditNote.totAmt ?? 0,
       totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
       totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
@@ -446,13 +862,15 @@ export default function CreditNotePage() {
       editVersion: apiCreditNote.editVersion ?? 0,
       purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
       purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
+
+      serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
       createBy: apiCreditNote.createBy ?? "",
       editBy: apiCreditNote.editBy ?? "",
       cancelBy: apiCreditNote.cancelBy ?? "",
       createDate: apiCreditNote.createDate
         ? format(
             parseDate(apiCreditNote.createDate as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
 
@@ -460,18 +878,18 @@ export default function CreditNotePage() {
         ? format(
             parseDate(apiCreditNote.editDate as unknown as string) ||
               new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelDate: apiCreditNote.cancelDate
         ? format(
             parseDate(apiCreditNote.cancelDate as unknown as string) ||
               new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
+      isCancel: apiCreditNote.isCancel ?? false,
       cancelRemarks: apiCreditNote.cancelRemarks ?? "",
-      serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
       data_details:
         apiCreditNote.data_details?.map(
           (detail) =>
@@ -507,7 +925,7 @@ export default function CreditNotePage() {
               deliveryDate: detail.deliveryDate
                 ? format(
                     parseDate(detail.deliveryDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               departmentId: detail.departmentId ?? 0,
@@ -538,10 +956,11 @@ export default function CreditNotePage() {
               opRefNo: detail.opRefNo ?? "",
               purchaseOrderId: detail.purchaseOrderId ?? "",
               purchaseOrderNo: detail.purchaseOrderNo ?? "",
+
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
                 : "",
               customerName: detail.customerName ?? "",
@@ -559,8 +978,6 @@ export default function CreditNotePage() {
   ) => {
     if (!selectedCreditNote) return
 
-    setIsSelectingCreditNote(true)
-
     try {
       // Fetch creditNote details directly using selected creditNote's values
       const response = await getById(
@@ -573,6 +990,14 @@ export default function CreditNotePage() {
           : response.data
 
         if (detailedCreditNote) {
+          {
+            const parsed = parseDate(detailedCreditNote.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedCreditNote.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedCreditNote = {
             ...detailedCreditNote,
@@ -583,36 +1008,36 @@ export default function CreditNotePage() {
             trnDate: detailedCreditNote.trnDate
               ? format(
                   parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedCreditNote.accountDate
               ? format(
                   parseDate(detailedCreditNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedCreditNote.dueDate
               ? format(
                   parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedCreditNote.deliveryDate
               ? format(
                   parseDate(detailedCreditNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedCreditNote.gstClaimDate
               ? format(
                   parseDate(detailedCreditNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedCreditNote.supplierId ?? 0,
             currencyId: detailedCreditNote.currencyId ?? 0,
@@ -657,14 +1082,33 @@ export default function CreditNotePage() {
             editVersion: detailedCreditNote.editVersion ?? 0,
             purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
-            createBy: detailedCreditNote.createBy ?? "",
-            createDate: detailedCreditNote.createDate ?? "",
-            editBy: detailedCreditNote.editBy ?? "",
-            editDate: detailedCreditNote.editDate ?? "",
-            cancelBy: detailedCreditNote.cancelBy ?? "",
-            cancelDate: detailedCreditNote.cancelDate ?? "",
-            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
             serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
+            createBy: detailedCreditNote.createBy ?? "",
+            createDate: detailedCreditNote.createDate
+              ? format(
+                  parseDate(detailedCreditNote.createDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            editBy: detailedCreditNote.editBy ?? "",
+            editDate: detailedCreditNote.editDate
+              ? format(
+                  parseDate(detailedCreditNote.editDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            cancelBy: detailedCreditNote.cancelBy ?? "",
+            cancelDate: detailedCreditNote.cancelDate
+              ? format(
+                  parseDate(detailedCreditNote.cancelDate as string) ||
+                    new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
+            isCancel: detailedCreditNote.isCancel ?? false,
+            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
             data_details:
               detailedCreditNote.data_details?.map(
                 (detail: IApCreditNoteDt) => ({
@@ -698,12 +1142,13 @@ export default function CreditNotePage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
                   departmentCode: detail.departmentCode ?? "",
                   departmentName: detail.departmentName ?? "",
+
                   jobOrderId: detail.jobOrderId ?? 0,
                   jobOrderNo: detail.jobOrderNo ?? "",
                   taskId: detail.taskId ?? 0,
@@ -732,7 +1177,7 @@ export default function CreditNotePage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   customerName: detail.customerName ?? "",
@@ -749,11 +1194,11 @@ export default function CreditNotePage() {
           form.reset(updatedCreditNote)
           form.trigger()
 
+          // Set the creditNote number in search input
+          setSearchNo(updatedCreditNote.creditNoteNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `CreditNote ${selectedCreditNote.creditNoteNo} loaded successfully`
-          )
         }
       } else {
         toast.error(response?.message || "Failed to fetch creditNote details")
@@ -764,7 +1209,7 @@ export default function CreditNotePage() {
       toast.error("Error loading creditNote. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingCreditNote(false)
+      // Selection completed
     }
   }
 
@@ -775,6 +1220,28 @@ export default function CreditNotePage() {
   }
 
   // Data refresh handled by CreditNoteTable component
+
+  // Set createBy and createDate for new creditNotes on page load/refresh
+  useEffect(() => {
+    if (!creditNote && user && decimals.length > 0) {
+      const currentCreditNoteId = form.getValues("creditNoteId")
+      const currentCreditNoteNo = form.getValues("creditNoteNo")
+      const isNewCreditNote =
+        !currentCreditNoteId ||
+        currentCreditNoteId === "0" ||
+        !currentCreditNoteNo
+
+      if (isNewCreditNote) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [creditNote, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -800,12 +1267,16 @@ export default function CreditNotePage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handleCreditNoteSearch = async (value: string) => {
     if (!value) return
@@ -821,6 +1292,14 @@ export default function CreditNotePage() {
           : response.data
 
         if (detailedCreditNote) {
+          {
+            const parsed = parseDate(detailedCreditNote.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedCreditNote.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedCreditNote = {
             ...detailedCreditNote,
@@ -831,36 +1310,36 @@ export default function CreditNotePage() {
             trnDate: detailedCreditNote.trnDate
               ? format(
                   parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedCreditNote.accountDate
               ? format(
                   parseDate(detailedCreditNote.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             dueDate: detailedCreditNote.dueDate
               ? format(
                   parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             deliveryDate: detailedCreditNote.deliveryDate
               ? format(
                   parseDate(detailedCreditNote.deliveryDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             gstClaimDate: detailedCreditNote.gstClaimDate
               ? format(
                   parseDate(detailedCreditNote.gstClaimDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedCreditNote.supplierId ?? 0,
             currencyId: detailedCreditNote.currencyId ?? 0,
@@ -906,6 +1385,9 @@ export default function CreditNotePage() {
             purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
             serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
+            isCancel: detailedCreditNote.isCancel ?? false,
+            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
+
             data_details:
               detailedCreditNote.data_details?.map(
                 (detail: IApCreditNoteDt) => ({
@@ -939,7 +1421,7 @@ export default function CreditNotePage() {
                   deliveryDate: detail.deliveryDate
                     ? format(
                         parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   departmentId: detail.departmentId ?? 0,
@@ -973,7 +1455,7 @@ export default function CreditNotePage() {
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   customerName: detail.customerName ?? "",
@@ -990,13 +1472,20 @@ export default function CreditNotePage() {
           form.reset(updatedCreditNote)
           form.trigger()
 
+          // Set the creditNote number in search input to the actual creditNote number from database
+          setSearchNo(updatedCreditNote.creditNoteNo || "")
+
           // Show success message
-          toast.success(`CreditNote ${value} loaded successfully`)
+          toast.success(
+            `CreditNote ${updatedCreditNote.creditNoteNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
           response?.message || "Failed to fetch creditNote details (direct)"
         )
@@ -1008,13 +1497,45 @@ export default function CreditNotePage() {
     }
   }
 
+  handleCreditNoteSearchRef.current = handleCreditNoteSearch
+
+  useEffect(() => {
+    const trimmed = pendingDocNo.trim()
+    if (!trimmed) return
+
+    const executeSearch = async () => {
+      const searchFn = handleCreditNoteSearchRef.current
+      if (searchFn) {
+        await searchFn(trimmed)
+      }
+    }
+
+    void executeSearch()
+    setPendingDocNo("")
+  }, [pendingDocNo])
+
   // Determine mode and creditNote ID from URL
   const creditNoteNo = form.getValues("creditNoteNo")
   const isEdit = Boolean(creditNoteNo)
+  const isCancelled = creditNote?.isCancel === true
+
+  // Calculate payment status only if not cancelled
+  const balAmt = creditNote?.balAmt ?? 0
+  const payAmt = creditNote?.payAmt ?? 0
+
+  const paymentStatus = isCancelled
+    ? ""
+    : balAmt === 0 && payAmt > 0
+      ? "Fully Paid"
+      : balAmt > 0 && payAmt > 0
+        ? "Partially Paid"
+        : balAmt > 0 && payAmt === 0
+          ? "Not Paid"
+          : ""
 
   // Compose title text
   const titleText = isEdit
-    ? `CreditNote (Edit) - ${creditNoteNo}`
+    ? `CreditNote (Edit)- v[${creditNote?.editVersion}] - ${creditNoteNo}`
     : "CreditNote (New)"
 
   // Show loading spinner while essential data is loading
@@ -1043,45 +1564,92 @@ export default function CreditNotePage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
-              <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
-              >
-                {titleText}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {creditNote?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {creditNote.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Status Badge - Only show if not cancelled */}
+            {!isCancelled && paymentStatus === "Not Paid" && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                Not Paid
               </span>
-            </span>
-          </h1>
+            )}
+            {!isCancelled && paymentStatus === "Partially Paid" && (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
+                Partially Paid
+              </span>
+            )}
+            {!isCancelled && paymentStatus === "Fully Paid" && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
+                Fully Paid
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
+              <span
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
+              >
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
+              </span>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (creditNote?.creditNoteNo) {
+                    setSearchNo(creditNote.creditNoteNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingCreditNote}
+                className="h-4 w-4 p-0"
+                title="Refresh creditNote data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search CreditNote No"
               className="h-8 text-sm"
               readOnly={
@@ -1106,7 +1674,14 @@ export default function CreditNotePage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1149,7 +1724,9 @@ export default function CreditNotePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!creditNote || creditNote.creditNoteId === "0"}
+              disabled={
+                !creditNote || creditNote.creditNoteId === "0" || isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1160,9 +1737,13 @@ export default function CreditNotePage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !creditNote ||
                 creditNote.creditNoteId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled ||
+                payAmt > 0 ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -1170,7 +1751,7 @@ export default function CreditNotePage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -1185,11 +1766,12 @@ export default function CreditNotePage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -1202,34 +1784,33 @@ export default function CreditNotePage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by CreditNoteTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  CreditNote List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing creditNotes from the list below.
-                  Use search to filter records or create new creditNotes.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              CreditNote List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing creditNotes from the list below. Use
+              search to filter records or create new creditNotes.
+            </p>
+          </div>
 
-          <CreditNoteTable
-            onCreditNoteSelect={handleCreditNoteSelect}
-            onFilterChange={handleFilterChange}
-            initialFilters={filters}
-          />
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <CreditNoteTable
+              onCreditNoteSelect={handleCreditNoteSelect}
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1249,15 +1830,26 @@ export default function CreditNotePage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleCreditNoteDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={creditNote?.creditNoteNo}
         title="Delete CreditNote"
-        description="This action cannot be undone. All creditNote details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this creditNote? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleCreditNoteDelete}
+        itemName={creditNote?.creditNoteNo}
+        title="Cancel CreditNote"
+        description="Please provide a reason for cancelling this creditNote."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

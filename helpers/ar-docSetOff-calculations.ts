@@ -3,8 +3,7 @@ import {
   calculateMultiplierAmount,
   calculateSubtractionAmount,
 } from "@/helpers/account"
-import { IDecimal } from "@/interfaces"
-import { IArDocSetOffDt } from "@/interfaces/ar-docsetoff"
+import { IArDocSetOffDt, IDecimal } from "@/interfaces"
 
 // ============================================================================
 // UTILITY FUNCTIONS

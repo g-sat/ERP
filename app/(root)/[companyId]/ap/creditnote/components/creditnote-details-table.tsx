@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { IApCreditNoteDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
@@ -16,6 +18,7 @@ interface CreditNoteDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApCreditNoteDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
 export default function CreditNoteDetailsTable({
@@ -27,8 +30,12 @@ export default function CreditNoteDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
+  isCancelled = false,
 }: CreditNoteDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -93,15 +100,6 @@ export default function CreditNoteDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "JobOrder",
-            size: 100,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -139,18 +137,22 @@ export default function CreditNoteDetailsTable({
             accessorKey: "unitPrice",
             header: "Price",
             size: 100,
-            cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-              <div className="text-right">{row.original.unitPrice}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("unitPrice"), amtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApCreditNoteDt>,
         ]
       : []),
     {
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -158,33 +160,22 @@ export default function CreditNoteDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
       ),
     },
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "taskName",
-            header: "Task Name",
-            size: 200,
-          },
-          {
-            accessorKey: "serviceName",
-            header: "Service Name",
-            size: 200,
-          },
-        ]
-      : []),
-
     ...(visible?.m_BillQTY
       ? [
           {
@@ -201,8 +192,10 @@ export default function CreditNoteDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -211,10 +204,12 @@ export default function CreditNoteDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApCreditNoteDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -230,8 +225,10 @@ export default function CreditNoteDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -240,10 +237,12 @@ export default function CreditNoteDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApCreditNoteDt>,
         ]
       : []),
 
@@ -307,13 +306,13 @@ export default function CreditNoteDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.creditNote}
-        tableName={TableName.apCreditNoteDt}
+        tableName={TableName.arCreditNoteDt}
         emptyMessage="No creditNote details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
@@ -325,9 +324,9 @@ export default function CreditNoteDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

@@ -5,134 +5,134 @@ import {
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
-  setPayExchangeRate,
+  setRecExchangeRate,
 } from "@/helpers/account"
 import {
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-  recalculateAllDetailAmounts,
-} from "@/helpers/ap-docsetoff-calculations"
-import { IApDocsetoffDt } from "@/interfaces"
-import {
-  IBankLookup,
-  ICurrencyLookup,
-  IPaymentTypeLookup,
-  ISupplierLookup,
-} from "@/interfaces/lookup"
+  calauteLocalAmtandGainLoss,
+  calculateUnallocated,
+} from "@/helpers/ap-docSetOff-calculations"
+import { IApDocSetOffDt } from "@/interfaces/ap-docsetoff"
+import { ICurrencyLookup, ISupplierLookup } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ApDocsetoffDtSchemaType, ApDocsetoffHdSchemaType } from "@/schemas"
+import {
+  ApDocSetOffDtSchemaType,
+  ApDocSetOffHdSchemaType,
+} from "@/schemas/ap-docsetoff"
 import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { clientDateFormat } from "@/lib/date-utils"
+import { parseNumberWithCommas } from "@/lib/utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
-  BankAutocomplete,
-  BankChartOfAccountAutocomplete,
-  CompanySupplierAutocomplete,
   CurrencyAutocomplete,
-  PaymentTypeAutocomplete,
+  DynamicSupplierAutocomplete,
+  SupplierAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface PaymentFormProps {
-  form: UseFormReturn<ApDocsetoffHdSchemaType>
+interface DocSetOffFormProps {
+  form: UseFormReturn<ApDocSetOffHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
+  dataDetails?: ApDocSetOffDtSchemaType[]
 }
 
-export default function PaymentForm({
+export default function DocSetOffForm({
   form,
   onSuccessAction,
   isEdit,
   visible,
   required,
   companyId: _companyId,
-}: PaymentFormProps) {
+  isCancelled = false,
+  dataDetails = [],
+}: DocSetOffFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
-  const { data: paymentTypes = [] } = usePaymentTypeLookup()
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
 
-  // State to track if currencies are the same
-  const [areCurrenciesSame, setAreCurrenciesSame] = React.useState(true)
+  const dateFormat = React.useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
 
-  // State to track if docsetoff type is cheque
-  const [isChequePayment, setIsChequePayment] = React.useState(false)
+  // Refs to store original values on focus for comparison on blur
+  const originalExhRateRef = React.useRef<number>(0)
 
-  // Function to check and update currency comparison state
-  const updateCurrencyComparison = React.useCallback(() => {
-    const currencyId = form.getValues("currencyId") || 0
-    const payCurrencyId = form.getValues("payCurrencyId") || 0
-    // Disable if both are zero OR if they are the same (and not zero)
-    const same = currencyId === payCurrencyId
-    setAreCurrenciesSame(same)
-    return same
-  }, [form])
+  // Common function to recalculate amounts based on currency comparison
+  const recalculateAmountsBasedOnCurrency = React.useCallback(
+    (clearAllocations = false) => {
+      const balTotAmt = form.getValues("balTotAmt") || 0
 
-  // Initialize currency comparison state on component mount and form changes
-  React.useEffect(() => {
-    updateCurrencyComparison()
-  }, [updateCurrencyComparison])
+      // Recalculate all details with new exchange rate if data details exist
+      if (dataDetails && dataDetails.length > 0) {
+        const updatedDetails = [...dataDetails]
+        const arr = updatedDetails as unknown as IApDocSetOffDt[]
+        const exhRateForDetails = form.getValues("exhRate") || 0
+        const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
 
-  // Watch paymentTypeId and update cheque docsetoff state
-  React.useEffect(() => {
-    const paymentTypeId = form.watch("paymentTypeId")
+        // Clear all allocations only when clearAllocations flag is true
+        if (clearAllocations) {
+          for (let i = 0; i < arr.length; i++) {
+            arr[i].allocAmt = 0
+          }
+        }
 
-    if (paymentTypeId && paymentTypes.length > 0) {
-      const selectedPaymentType = paymentTypes.find(
-        (pt) => pt.paymentTypeId === paymentTypeId
-      )
+        // Recalculate local amounts and gain/loss for all rows
+        for (let i = 0; i < arr.length; i++) {
+          calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
+        }
 
-      if (selectedPaymentType) {
-        const isCheque =
-          selectedPaymentType.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
+        // Recalculate header totals from recalculated details
+        const sumAllocAmt = arr.reduce(
+          (s, r) => s + (Number(r.allocAmt) || 0),
+          0
+        )
+        const sumAllocLocalAmt = arr.reduce(
+          (s, r) => s + (Number(r.allocLocalAmt) || 0),
+          0
+        )
+        const sumExhGainLoss = arr.reduce(
+          (s, r) => s + (Number(r.exhGainLoss) || 0),
+          0
+        )
 
-        setIsChequePayment(isCheque)
-      } else {
-        setIsChequePayment(false)
+        form.setValue("data_details", updatedDetails, {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+        form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+        form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+        form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
+
+        // Recalculate unallocated amounts with updated totals
+        const currentAllocTotAmt = form.getValues("allocTotAmt") || 0
+
+        const { unAllocAmt } = calculateUnallocated(
+          currentAllocTotAmt,
+          sumAllocAmt,
+          dec
+        )
+        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       }
-    } else {
-      setIsChequePayment(false)
-    }
-  }, [form, paymentTypes])
-
-  // Watch totAmt and auto-clear related fields when set to 0
-  const totAmt = form.watch("totAmt")
-
-  React.useEffect(() => {
-    // Step 1: Check if totAmt is 0
-    if (totAmt === 0) {
-      // Step 2: Clear all related total fields
-      form.setValue("totLocalAmt", 0, { shouldDirty: true })
-      form.setValue("payTotAmt", 0, { shouldDirty: true })
-      form.setValue("payTotLocalAmt", 0, { shouldDirty: true })
-    }
-  }, [totAmt, form])
+    },
+    [form, decimals, dataDetails]
+  )
 
   // Watch accountDate and sync to chequeDate if chequeDate is empty
   const accountDate = form.watch("accountDate")
-  const chequeDate = form.watch("chequeDate")
-
-  React.useEffect(() => {
-    // Step 1: Check if chequeDate is empty or null
-    if (!chequeDate || chequeDate === "") {
-      // Step 2: Set chequeDate to accountDate
-      if (accountDate) {
-        form.setValue("chequeDate", accountDate, { shouldDirty: true })
-      }
-    }
-  }, [accountDate, chequeDate, form])
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -143,15 +143,55 @@ export default function PaymentForm({
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("accountDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), dateFormat)
+
+      form.setValue("accountDate", trnDateStr)
       form?.trigger("accountDate")
+
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
+
+      // Calculate and set due date (for detail records)
       await setDueDate(form)
     },
-    [exhRateDec, form, visible]
+    [dateFormat, exhRateDec, form, visible]
+  )
+
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, dateFormat)
+          form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
+        }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        await setExchangeRate(form, exhRateDec, visible)
+        await setRecExchangeRate(form, exhRateDec)
+
+        // Calculate and set due date (for detail records)
+        await setDueDate(form)
+      }
+    },
+    [dateFormat, exhRateDec, form, visible]
   )
 
   // Handle supplier selection
@@ -161,256 +201,97 @@ export default function PaymentForm({
         // ✅ Supplier selected - populate related fields
         if (!isEdit) {
           form.setValue("currencyId", selectedSupplier.currencyId || 0)
-          form.setValue("payCurrencyId", selectedSupplier.currencyId || 0)
-          form.setValue("bankId", selectedSupplier.bankId || 0)
         }
 
+        // Calculate and set due date (for detail records)
         await setDueDate(form)
 
         // Only set exchange rates if currency is available
         if (selectedSupplier.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setPayExchangeRate(form, exhRateDec)
+          await setRecExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)
-          form.setValue("payExhRate", 0)
         }
-
-        // Update currency comparison state
-        updateCurrencyComparison()
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
           // Clear supplier-related fields
           form.setValue("currencyId", 0)
-          form.setValue("payCurrencyId", 0)
-          form.setValue("bankId", 0)
         }
 
         // Clear exchange rates
         form.setValue("exhRate", 0)
-        form.setValue("payExhRate", 0)
-
-        // Update currency comparison state
-        updateCurrencyComparison()
+        // Calculate and set due date (for detail records)
+        await setDueDate(form)
 
         // Trigger validation
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible, updateCurrencyComparison]
+    [exhRateDec, form, isEdit, visible]
   )
-
-  // Handle account date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      await setExchangeRate(form, exhRateDec, visible)
-      await setPayExchangeRate(form, exhRateDec)
-    },
-    [exhRateDec, form, visible]
-  )
-
-  // Common function to check if payTotAmt should be enabled
-  const checkPayTotAmtEnable = React.useCallback(() => {
-    const currencyId = form.getValues("currencyId") || 0
-    const payCurrencyId = form.getValues("payCurrencyId") || 0
-    return currencyId !== payCurrencyId
-  }, [form])
-
-  // Handle bank selection
-  const handleBankChange = React.useCallback(
-    async (selectedBank: IBankLookup | null) => {
-      const payCurrencyId = selectedBank?.currencyId || 0
-      form.setValue("payCurrencyId", payCurrencyId)
-
-      if (selectedBank && payCurrencyId > 0) {
-        // Only call setPayExchangeRate if currency is available
-        await setPayExchangeRate(form, exhRateDec)
-      } else {
-        // If no bank selected or no currency, set exchange rate to zero
-        form.setValue("payExhRate", 0)
-      }
-
-      // Update currency comparison state
-      updateCurrencyComparison()
-
-      // Check if payTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
-    },
-    [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
-  )
-
-  // Handle pay currency change
-  const handlePayCurrencyChange = React.useCallback(
-    async (selectedCurrency: ICurrencyLookup | null) => {
-      const payCurrencyId = selectedCurrency?.currencyId || 0
-      form.setValue("payCurrencyId", payCurrencyId)
-
-      if (selectedCurrency && payCurrencyId > 0) {
-        // Only call setPayExchangeRate if currency is available
-        await setPayExchangeRate(form, exhRateDec)
-      } else {
-        // If no currency selected, set exchange rate to zero
-        form.setValue("payExhRate", 0)
-      }
-
-      // Update currency comparison state
-      updateCurrencyComparison()
-
-      // Check if payTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
-    },
-    [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
-  )
-
-  // Handle docsetoff type change
-  const handlePaymentTypeChange = React.useCallback(
-    (selectedPaymentType: IPaymentTypeLookup | null) => {
-      if (selectedPaymentType) {
-        // Check if docsetoff type is "Cheque"
-        const isCheque =
-          selectedPaymentType?.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-
-        // Clear cheque fields if not cheque docsetoff
-        if (!isCheque) {
-          form.setValue("chequeNo", "")
-          form.setValue("chequeDate", "")
-        }
-      } else {
-        // No docsetoff type selected, hide cheque fields
-        setIsChequePayment(false)
-        form.setValue("chequeNo", "")
-        form.setValue("chequeDate", "")
-      }
-    },
-    [form]
-  )
-
-  // Recalculate header totals from details
-  const recalculateHeaderTotals = React.useCallback(() => {
-    const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("totLocalAmt", 0)
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
-      formDetails as unknown as IApDocsetoffDt[],
-      amtDec
-    )
-    form.setValue("totAmt", totals.totAmt)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IApDocsetoffDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-  }, [amtDec, form, locAmtDec])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
-      // Additional logic when currency changes
       const currencyId = selectedCurrency?.currencyId || 0
-      const accountDate = form.getValues("accountDate")
+      form.setValue("currencyId", currencyId, { shouldDirty: true })
 
       if (currencyId && accountDate) {
         // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
-        if (visible?.m_CtyCurr) {
-          await setExchangeRateLocal(form, exhRateDec)
-        }
 
-        // Get current details and ensure they exist
-        const formDetails = form.getValues("data_details")
-        if (!formDetails || formDetails.length === 0) {
-          return
-        }
-
-        // Get updated exchange rates
-        const exchangeRate = form.getValues("exhRate") || 0
-
-        // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as IApDocsetoffDt[],
-          exchangeRate,
-          decimals[0]
-        )
-
-        // Update form with recalculated details
-        form.setValue(
-          "data_details",
-          updatedDetails as unknown as ApDocsetoffDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
-
-        // Recalculate header totals from updated details
-        recalculateHeaderTotals()
+        // Recalculate all amounts based on currency comparison - clear allocations for currency change
+        recalculateAmountsBasedOnCurrency(true)
       }
-
-      // Update currency comparison state
-      updateCurrencyComparison()
-
-      // Check if payTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
     },
-    [
-      decimals,
-      exhRateDec,
-      form,
-      recalculateHeaderTotals,
-      visible,
-      checkPayTotAmtEnable,
-      updateCurrencyComparison,
-    ]
+    [form, exhRateDec, visible, accountDate, recalculateAmountsBasedOnCurrency]
   )
+
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
 
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
+      const exhRate = parseNumberWithCommas(e.target.value)
+      const originalExhRate = originalExhRateRef.current
 
-      if (!formDetails || formDetails.length === 0) {
-        return
+      console.log("handleExchangeRateChange", {
+        newValue: exhRate,
+        originalValue: originalExhRate,
+        isDifferent: exhRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exhRate !== originalExhRate) {
+        console.log("Exchange Rate changed - recalculating amounts")
+        form.setValue("exhRate", exhRate, { shouldDirty: true })
+
+        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        recalculateAmountsBasedOnCurrency(false)
+      } else {
+        console.log("Exchange Rate unchanged - skipping recalculation")
       }
-
-      // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IApDocsetoffDt[],
-        exchangeRate,
-        decimals[0]
-      )
-
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as ApDocsetoffDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
-
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
     },
-    [decimals, form, recalculateHeaderTotals]
+    [form, recalculateAmountsBasedOnCurrency]
   )
 
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-7 gap-2 rounded-md p-2"
+        className={`grid grid-cols-8 gap-1 rounded-md p-2 ${
+          isCancelled ? "pointer-events-none opacity-50" : ""
+        }`}
       >
         {/* Transaction Date */}
         {visible?.m_TrnDate && (
@@ -435,14 +316,27 @@ export default function PaymentForm({
         />
 
         {/* Supplier */}
-        <CompanySupplierAutocomplete
-          form={form}
-          name="supplierId"
-          label="Supplier"
-          isRequired={true}
-          onChangeEvent={handleSupplierChange}
-          companyId={_companyId}
-        />
+        {isDynamicSupplier ? (
+          <DynamicSupplierAutocomplete
+            form={form}
+            name="supplierId"
+            label="Supplier"
+            isRequired={true}
+            onChangeEvent={handleSupplierChange}
+            className="col-span-2"
+            isDisabled={dataDetails.length > 0}
+          />
+        ) : (
+          <SupplierAutocomplete
+            form={form}
+            name="supplierId"
+            label="Supplier"
+            isRequired={true}
+            onChangeEvent={handleSupplierChange}
+            className="col-span-2"
+            isDisabled={dataDetails.length > 0}
+          />
+        )}
 
         {/* Reference No */}
         <CustomInput
@@ -452,17 +346,6 @@ export default function PaymentForm({
           isRequired={required?.m_ReferenceNo}
         />
 
-        {/* Bank */}
-        {visible?.m_BankId && (
-          <BankAutocomplete
-            form={form}
-            name="bankId"
-            label="Bank"
-            isRequired={required?.m_BankId}
-            onChangeEvent={handleBankChange}
-          />
-        )}
-
         {/* Currency */}
         <CurrencyAutocomplete
           form={form}
@@ -470,6 +353,7 @@ export default function PaymentForm({
           label="Currency"
           isRequired={true}
           onChangeEvent={handleCurrencyChange}
+          isDisabled={dataDetails.length > 0}
         />
 
         {/* Exchange Rate */}
@@ -480,128 +364,23 @@ export default function PaymentForm({
           isRequired={true}
           round={exhRateDec}
           className="text-right"
+          onFocusEvent={handleExchangeRateFocus}
           onBlurEvent={handleExchangeRateChange}
         />
 
-        {/* Docsetoff Type */}
-        <PaymentTypeAutocomplete
-          form={form}
-          name="paymentTypeId"
-          label="Docsetoff Type"
-          isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
-        />
-
-        {/* Cheque No - Only show when docsetoff type is cheque */}
-        {isChequePayment && (
-          <CustomInput
-            form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
-          />
-        )}
-
-        {/* Cheque Date - Only show when docsetoff type is cheque */}
-        {isChequePayment && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
-            isFutureShow={true}
-          />
-        )}
-
-        {/* Unallocated Amount */}
+        {/* Unallocated Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="unAllocTotAmt"
           label="Unallocated Amount"
-        />
-
-        {/* Unallocated Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="unAllocTotLocalAmt"
-          label="Unallocated Local Amount"
           isDisabled={true}
         />
 
-        {/* Pay Currency */}
-        <CurrencyAutocomplete
-          form={form}
-          name="payCurrencyId"
-          label="Pay Currency"
-          isDisabled={areCurrenciesSame}
-          onChangeEvent={handlePayCurrencyChange}
-        />
-
-        {/* Pay Exchange Rate */}
+        {/* Balanced Amount - Always read-only */}
         <CustomNumberInput
           form={form}
-          name="payExhRate"
-          label="Pay Exchange Rate"
-          isDisabled={areCurrenciesSame}
-        />
-
-        {/* Pay Total Amount */}
-        <CustomNumberInput
-          form={form}
-          name="payTotAmt"
-          label="Pay Total Amount"
-          isDisabled={areCurrenciesSame}
-        />
-
-        {/* Pay Total Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="payTotLocalAmt"
-          label="Pay Total Local Amount"
-          isDisabled={true}
-        />
-
-        {/* Total Amount */}
-        <CustomNumberInput
-          form={form}
-          name="totAmt"
-          label="Total Amount"
-          round={amtDec}
-          isDisabled={!areCurrenciesSame}
-          className="text-right"
-        />
-
-        {/* Total Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="totLocalAmt"
-          label="Total Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
-        {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-          companyId={_companyId}
-        />
-
-        {/* Bank Charges Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charges Amount"
-        />
-
-        {/* Bank Charges Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charges Local Amount"
-          isDisabled={true}
+          name="balTotAmt"
+          label="Balanced Amount"
         />
 
         {/* Exchange Gain/Loss */}

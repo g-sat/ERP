@@ -1,35 +1,22 @@
-export interface IApDocsetoffHd {
+export interface IApDocSetOffHd {
   companyId: number
   setoffId: string
   setoffNo: string
   referenceNo: string
   trnDate: Date | string
   accountDate: Date | string
-  bankId: number
-  paymentTypeId: number
-  chequeNo: string | null
-  chequeDate: Date | string
-  bankChgGLId: number
-  bankChgAmt: number
-  bankChgLocalAmt: number
+
   supplierId: number
   currencyId: number
   exhRate: number
-  totAmt: number
-  totLocalAmt: number
-  payCurrencyId: number
-  payExhRate: number
-  payTotAmt: number
-  payTotLocalAmt: number
+
+  allocTotAmt: number
+  balTotAmt: number
   unAllocTotAmt: number
-  unAllocTotLocalAmt: number
+
   exhGainLoss: number
   remarks: string | null
-  docExhRate: number
-  docTotAmt: number
-  docTotLocalAmt: number
-  allocTotAmt: number | null
-  allocTotLocalAmt: number | null
+
   moduleFrom: string
   createById: number
   createDate: Date | string
@@ -46,10 +33,10 @@ export interface IApDocsetoffHd {
   appStatusId: number | null
   appById: number | null
   appDate: Date | null
-  data_details: IApDocsetoffDt[]
+  data_details: IApDocSetOffDt[]
 }
 
-export interface IApDocsetoffFilter {
+export interface IApDocSetOffFilter {
   startDate: Date | string
   endDate: Date | string
   search: string
@@ -59,7 +46,7 @@ export interface IApDocsetoffFilter {
   pageSize?: number
 }
 
-export interface IApDocsetoffDt {
+export interface IApDocSetOffDt {
   companyId: number
   setoffId: string
   setoffNo: string

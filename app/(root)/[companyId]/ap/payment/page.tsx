@@ -3,22 +3,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
-  IApPaymentDt,
-  IApPaymentFilter,
-  IApPaymentHd,
-} from "@/interfaces/ap-payment"
+  setDueDate,
+  setExchangeRate,
+  setRecExchangeRate,
+} from "@/helpers/account"
+import { IApPaymentDt, IApPaymentFilter, IApPaymentHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApPaymentDtSchemaType,
+  ApPaymentHdSchema,
   ApPaymentHdSchemaType,
-  appaymentHdSchema,
-} from "@/schemas/ap-payment"
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -27,22 +38,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApPayment } from "@/lib/api-routes"
+import { ApPayment, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -53,7 +61,7 @@ import {
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-import { defaultPayment } from "./components/payment-defaultvalues"
+import { getDefaultValues } from "./components/payment-defaultvalues"
 import PaymentTable from "./components/payment-table"
 
 export default function PaymentPage() {
@@ -64,28 +72,15 @@ export default function PaymentPage() {
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.payment
 
-  const [showListDialog, setShowListDialog] = useState(false)
-  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
-  const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingPayment, setIsLoadingPayment] = useState(false)
-  const [_isSelectingPayment, setIsSelectingPayment] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [payment, setPayment] = useState<ApPaymentHdSchemaType | null>(null)
-  const [searchNo, setSearchNo] = useState("")
-  const [activeTab, setActiveTab] = useState("main")
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
-  const [filters, setFilters] = useState<IApPaymentFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
-    search: "",
-    sortBy: "paymentNo",
-    sortOrder: "asc",
-    pageNumber: 1,
-    pageSize: 15,
-  })
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
 
   const documentNoFromQuery = useMemo(() => {
     const value =
@@ -117,7 +112,72 @@ export default function PaymentPage() {
     }
   }, [autoLoadStorageKey, documentNoFromQuery])
 
-  const lastQueriedDocRef = useRef<string | null>(null)
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
+  const [showListDialog, setShowListDialog] = useState(false)
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showCloneConfirm, setShowCloneConfirm] = useState(false)
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [payment, setPayment] = useState<ApPaymentHdSchemaType | null>(null)
+  const [searchNo, setSearchNo] = useState("")
+  const [activeTab, setActiveTab] = useState("main")
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
+  const [filters, setFilters] = useState<IApPaymentFilter>({
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
+    search: "",
+    sortBy: "paymentNo",
+    sortOrder: "asc",
+    pageNumber: 1,
+    pageSize: pageSize,
+  })
+
+  const { defaultPayment: defaultPaymentValues } = useMemo(
+    () => getDefaultValues(dateFormat),
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -135,7 +195,7 @@ export default function PaymentPage() {
 
   // Add form state management
   const form = useForm<ApPaymentHdSchemaType>({
-    resolver: zodResolver(appaymentHdSchema(required, visible)),
+    resolver: zodResolver(ApPaymentHdSchema(required, visible)),
     defaultValues: payment
       ? {
           paymentId: payment.paymentId?.toString() ?? "0",
@@ -195,17 +255,59 @@ export default function PaymentPage() {
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultPayment,
-        },
+      : (() => {
+          // For new payment, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultPaymentValues,
+            createBy: userName,
+            createDate: currentDateTime,
+            data_details: [],
+          }
+        })(),
   })
 
   // Data fetching moved to PaymentTable component for better performance
 
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const lastQueriedDocRef = useRef<string | null>(null)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentPaymentId = form.getValues("paymentId") || "0"
+    if (
+      (payment && payment.paymentId && payment.paymentId !== "0") ||
+      currentPaymentId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultPaymentValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultPaymentValues, decimals, form, payment, isDirty, user])
+
   // Mutations
   const saveMutation = usePersist<ApPaymentHdSchemaType>(`${ApPayment.add}`)
   const updateMutation = usePersist<ApPaymentHdSchemaType>(`${ApPayment.add}`)
-  const deleteMutation = useDelete(`${ApPayment.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApPayment.delete}`)
 
   // Remove the useGetPaymentById hook for selection
   // const { data: paymentByIdData, refetch: refetchPaymentById } = ...
@@ -228,7 +330,7 @@ export default function PaymentPage() {
       console.log("formValues", formValues)
 
       // Validate the form data using the schema
-      const validationResult = appaymentHdSchema(required, visible).safeParse(
+      const validationResult = ApPaymentHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -254,63 +356,107 @@ export default function PaymentPage() {
         return
       }
 
-      const response =
-        Number(formValues.paymentId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.paymentId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-      if (response.result === 1) {
-        const paymentData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
 
-        // Transform API response back to form values
-        if (paymentData) {
-          const updatedSchemaType = transformToSchemaType(
-            paymentData as unknown as IApPaymentHd
-          )
-          setIsSelectingPayment(true)
-          setPayment(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        const parsedAccountDate = parseWithFallback(accountDate)
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
 
-        // Check if this was a new payment or update
-        const wasNewPayment = Number(formValues.paymentId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewPayment) {
-          //toast.success(
-          // `Payment ${paymentData?.paymentNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+      {
+        const response =
+          Number(formValues.paymentId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const paymentData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (paymentData) {
+            const updatedSchemaType = transformToSchemaType(
+              paymentData as unknown as IApPaymentHd
+            )
+            setSearchNo(updatedSchemaType.paymentNo || "")
+            setPayment(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by PaymentTable component
         } else {
-          //toast.success("Payment updated successfully")
+          toast.error(response.message || "Failed to save payment")
         }
-
-        // Data refresh handled by PaymentTable component
-      } else {
-        toast.error(response.message || "Failed to save payment")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving payment")
     } finally {
       setIsSaving(false)
-      setIsSelectingPayment(false)
     }
   }
 
   // Handle Clone
-  const handleClonePayment = () => {
+  const handleClonePayment = async () => {
     if (payment) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedPayment: ApPaymentHdSchemaType = {
         ...payment,
         paymentId: "0",
         paymentNo: "",
-        // Reset amounts for new payment
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        chequeDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all amounts for new payment
         totAmt: 0,
         totLocalAmt: 0,
         payTotAmt: 0,
@@ -324,31 +470,66 @@ export default function PaymentPage() {
         allocTotLocalAmt: 0,
         bankChgAmt: 0,
         bankChgLocalAmt: 0,
-        // Reset data details
+        // Clear data details - remove all records
         data_details: [],
       }
+
       setPayment(clonedPayment)
       form.reset(clonedPayment)
+      form.trigger("accountDate")
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedPayment.currencyId && clonedPayment.accountDate) {
+        try {
+          // Wait a tick to ensure form state is updated before calling setExchangeRate
+          await new Promise((resolve) => setTimeout(resolve, 0))
+
+          await setExchangeRate(form, exhRateDec, visible)
+          await setRecExchangeRate(form, exhRateDec)
+
+          // Calculate and set due date (for detail records)
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Payment cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handlePaymentDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handlePaymentDelete = async (cancelRemarks: string) => {
     if (!payment) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        payment.paymentId?.toString() ?? ""
-      )
+      const response = await deleteMutation.mutateAsync({
+        documentId: payment.paymentId?.toString() ?? "",
+        documentNo: payment.paymentNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setPayment(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultPayment,
+          ...defaultPaymentValues,
           data_details: [],
         })
-        //toast.success("Payment deleted successfully")
+        toast.success(`Payment ${payment.paymentNo} deleted successfully`)
         // Data refresh handled by PaymentTable component
       } else {
         toast.error(response.message || "Failed to delete payment")
@@ -362,8 +543,18 @@ export default function PaymentPage() {
   const handlePaymentReset = () => {
     setPayment(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new payment)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultPayment,
+      ...defaultPaymentValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Payment reset successfully")
@@ -375,29 +566,28 @@ export default function PaymentPage() {
       return {
         paymentId: apiPayment.paymentId?.toString() ?? "0",
         paymentNo: apiPayment.paymentNo ?? "",
-        suppInvoiceNo: "", // Required by schema but not in interface
         referenceNo: apiPayment.referenceNo ?? "",
         trnDate: apiPayment.trnDate
           ? format(
               parseDate(apiPayment.trnDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         accountDate: apiPayment.accountDate
           ? format(
               parseDate(apiPayment.accountDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         bankId: apiPayment.bankId ?? 0,
         paymentTypeId: apiPayment.paymentTypeId ?? 0,
         chequeNo: apiPayment.chequeNo ?? "",
         chequeDate: apiPayment.chequeDate
           ? format(
               parseDate(apiPayment.chequeDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         bankChgGLId: apiPayment.bankChgGLId ?? 0,
         bankChgAmt: apiPayment.bankChgAmt ?? 0,
         bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
@@ -424,23 +614,24 @@ export default function PaymentPage() {
         createBy: apiPayment.createById?.toString() ?? "",
         editBy: apiPayment.editById?.toString() ?? "",
         cancelBy: apiPayment.cancelById?.toString() ?? "",
+        isCancel: apiPayment.isCancel ?? false,
         createDate: apiPayment.createDate
           ? format(
               parseDate(apiPayment.createDate as string) || new Date(),
-              clientDateFormat
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         editDate: apiPayment.editDate
           ? format(
               parseDate(apiPayment.editDate as unknown as string) || new Date(),
-              clientDateFormat
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         cancelDate: apiPayment.cancelDate
           ? format(
               parseDate(apiPayment.cancelDate as unknown as string) ||
                 new Date(),
-              clientDateFormat
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         cancelRemarks: apiPayment.cancelRemarks ?? "",
@@ -461,13 +652,13 @@ export default function PaymentPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,
@@ -485,15 +676,13 @@ export default function PaymentPage() {
           ) || [],
       }
     },
-    []
+    [dateFormat, decimals]
   )
 
   const handlePaymentSelect = async (
     selectedPayment: IApPaymentHd | undefined
   ) => {
     if (!selectedPayment) return
-
-    setIsSelectingPayment(true)
 
     try {
       // Fetch payment details directly using selected payment's values
@@ -507,6 +696,15 @@ export default function PaymentPage() {
           : response.data
 
         if (detailedPayment) {
+          {
+            const parsed = parseDate(detailedPayment.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedPayment.accountDate as string)
+            )
+          }
+
           // Parse dates properly
           const updatedPayment = {
             ...detailedPayment,
@@ -516,16 +714,16 @@ export default function PaymentPage() {
             trnDate: detailedPayment.trnDate
               ? format(
                   parseDate(detailedPayment.trnDate as string) || new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
             accountDate: detailedPayment.accountDate
               ? format(
                   parseDate(detailedPayment.accountDate as string) ||
                     new Date(),
-                  clientDateFormat
+                  dateFormat
                 )
-              : clientDateFormat,
+              : dateFormat,
 
             supplierId: detailedPayment.supplierId ?? 0,
             currencyId: detailedPayment.currencyId ?? 0,
@@ -560,13 +758,13 @@ export default function PaymentPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,
@@ -588,10 +786,13 @@ export default function PaymentPage() {
           form.reset(updatedPayment)
           form.trigger()
 
+          // Set the payment number in search input
+          setSearchNo(updatedPayment.paymentNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `Payment ${selectedPayment.paymentNo} loaded successfully`
+            `Payment ${updatedPayment.paymentNo} loaded successfully`
           )
         }
       } else {
@@ -603,17 +804,35 @@ export default function PaymentPage() {
       toast.error("Error loading payment. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingPayment(false)
+      // Selection completed
     }
   }
 
   // Remove direct refetchPayments from handleFilterChange
   const handleFilterChange = (newFilters: IApPaymentFilter) => {
     setFilters(newFilters)
-    // Data refresh handled by PaymentTable component
+    // refetchPayments(); // Removed: will be handled by useEffect
   }
 
-  // Data refresh handled by PaymentTable component
+  // Set createBy and createDate for new payments on page load/refresh
+  useEffect(() => {
+    if (!payment && user && decimals.length > 0) {
+      const currentPaymentId = form.getValues("paymentId")
+      const currentPaymentNo = form.getValues("paymentNo")
+      const isNewPayment =
+        !currentPaymentId || currentPaymentId === "0" || !currentPaymentNo
+
+      if (isNewPayment) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [payment, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -639,12 +858,16 @@ export default function PaymentPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handlePaymentSearch = useCallback(
     async (value: string) => {
@@ -661,6 +884,14 @@ export default function PaymentPage() {
             : response.data
 
           if (detailedPayment) {
+            {
+              const parsed = parseDate(detailedPayment.accountDate as string)
+              setPreviousAccountDate(
+                parsed
+                  ? format(parsed, dateFormat)
+                  : (detailedPayment.accountDate as string)
+              )
+            }
             // Parse dates properly
             const updatedPayment = {
               ...detailedPayment,
@@ -671,16 +902,16 @@ export default function PaymentPage() {
               trnDate: detailedPayment.trnDate
                 ? format(
                     parseDate(detailedPayment.trnDate as string) || new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
-                : clientDateFormat,
+                : dateFormat,
               accountDate: detailedPayment.accountDate
                 ? format(
                     parseDate(detailedPayment.accountDate as string) ||
                       new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
-                : clientDateFormat,
+                : dateFormat,
 
               supplierId: detailedPayment.supplierId ?? 0,
               currencyId: detailedPayment.currencyId ?? 0,
@@ -692,9 +923,9 @@ export default function PaymentPage() {
                 ? format(
                     parseDate(detailedPayment.chequeDate as string) ||
                       new Date(),
-                    clientDateFormat
+                    dateFormat
                   )
-                : clientDateFormat,
+                : dateFormat,
               bankChgGLId: detailedPayment.bankChgGLId ?? 0,
               bankChgAmt: detailedPayment.bankChgAmt ?? 0,
               bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
@@ -713,6 +944,8 @@ export default function PaymentPage() {
               docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
               allocTotAmt: detailedPayment.allocTotAmt ?? 0,
               allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
+              jobOrderId: detailedPayment.jobOrderId ?? 0,
+              jobOrderNo: detailedPayment.jobOrderNo ?? "",
               moduleFrom: detailedPayment.moduleFrom ?? "",
               editVersion: detailedPayment.editVersion ?? 0,
               createBy: detailedPayment.createById?.toString() ?? "",
@@ -720,22 +953,23 @@ export default function PaymentPage() {
                 ? format(
                     parseDate(detailedPayment.createDate as string) ||
                       new Date(),
-                    clientDateFormat
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
               editBy: detailedPayment.editById?.toString() ?? "",
               editDate: detailedPayment.editDate
                 ? format(
                     parseDate(detailedPayment.editDate as string) || new Date(),
-                    clientDateFormat
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
+              isCancel: detailedPayment.isCancel ?? false,
               cancelBy: detailedPayment.cancelById?.toString() ?? "",
               cancelDate: detailedPayment.cancelDate
                 ? format(
                     parseDate(detailedPayment.cancelDate as string) ||
                       new Date(),
-                    clientDateFormat
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
               cancelRemarks: detailedPayment.cancelRemarks ?? "",
@@ -755,13 +989,13 @@ export default function PaymentPage() {
                     ? format(
                         parseDate(detail.docAccountDate as string) ||
                           new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   docDueDate: detail.docDueDate
                     ? format(
                         parseDate(detail.docDueDate as string) || new Date(),
-                        clientDateFormat
+                        dateFormat
                       )
                     : "",
                   docTotAmt: detail.docTotAmt ?? 0,
@@ -783,8 +1017,13 @@ export default function PaymentPage() {
             form.reset(updatedPayment)
             form.trigger()
 
+            // Set the payment number in search input to the actual payment number from database
+            setSearchNo(updatedPayment.paymentNo || "")
+
             // Show success message
-            toast.success(`Payment ${value} loaded successfully`)
+            toast.success(
+              `Payment ${updatedPayment.paymentNo || value} loaded successfully`
+            )
 
             // Close the load confirmation dialog on success
             setShowLoadConfirm(false)
@@ -802,10 +1041,12 @@ export default function PaymentPage() {
       }
     },
     [
+      dateFormat,
+      decimals,
       form,
       setIsLoadingPayment,
+      setPreviousAccountDate,
       setPayment,
-      setSearchNo,
       setShowLoadConfirm,
       transformToSchemaType,
     ]
@@ -823,9 +1064,12 @@ export default function PaymentPage() {
   // Determine mode and payment ID from URL
   const paymentNo = form.getValues("paymentNo")
   const isEdit = Boolean(paymentNo)
+  const isCancelled = payment?.isCancel === true
 
   // Compose title text
-  const titleText = isEdit ? `Payment (Edit) - ${paymentNo}` : "Payment (New)"
+  const titleText = isEdit
+    ? `Payment (Edit)- v[${payment?.editVersion}] - ${paymentNo}`
+    : "Payment (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -851,29 +1095,65 @@ export default function PaymentPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {payment?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {payment.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (payment?.paymentNo) {
+                    setSearchNo(payment.paymentNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingPayment}
+                className="h-4 w-4 p-0"
+                title="Refresh payment data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
@@ -890,7 +1170,7 @@ export default function PaymentPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Invoice No"
+              placeholder="Search Payment No"
               className="h-8 text-sm"
               readOnly={!!payment?.paymentId && payment.paymentId !== "0"}
               disabled={!!payment?.paymentId && payment.paymentId !== "0"}
@@ -910,7 +1190,13 @@ export default function PaymentPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -953,7 +1239,7 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!payment || payment.paymentId === "0"}
+              disabled={!payment || payment.paymentId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -964,9 +1250,12 @@ export default function PaymentPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !payment ||
                 payment.paymentId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -974,7 +1263,7 @@ export default function PaymentPage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -989,6 +1278,7 @@ export default function PaymentPage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
@@ -1006,34 +1296,33 @@ export default function PaymentPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by PaymentTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Payment List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing payments from the list below. Use
-                  search to filter records or create new payments.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Payment List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing payments from the list below. Use
+              search to filter records or create new payments.
+            </p>
+          </div>
 
-          <PaymentTable
-            onPaymentSelect={handlePaymentSelect}
-            onFilterChange={handleFilterChange}
-            initialFilters={filters}
-          />
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <PaymentTable
+              onPaymentSelect={handlePaymentSelect}
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1055,11 +1344,22 @@ export default function PaymentPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handlePaymentDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={payment?.paymentNo}
         title="Delete Payment"
         description="This action cannot be undone. All payment details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Cancel Confirmation */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handlePaymentDelete}
+        itemName={payment?.paymentNo}
+        title="Cancel Payment"
+        description="Please provide a reason for cancelling this payment."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

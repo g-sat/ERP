@@ -44,7 +44,7 @@ import {
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
-import InvoiceSelectionDialog from "@/components/common/invoice-selection-dialog"
+import InvoiceSelectionDialog from "@/components/common/ar-invoice-selection-dialog"
 import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"

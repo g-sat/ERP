@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultDocsetoffDetails = {
+const buildDefaultDocSetOffDetails = (dateFormat: string) => ({
   companyId: 0,
   setoffId: 0,
   setoffNo: "",
@@ -13,8 +13,8 @@ const defaultDocsetoffDetails = {
   referenceNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
-  docAccountDate: format(new Date(), clientDateFormat),
-  docDueDate: format(new Date(), clientDateFormat),
+  docAccountDate: format(new Date(), dateFormat),
+  docDueDate: format(new Date(), dateFormat),
   docTotAmt: 0,
   docTotLocalAmt: 0,
   docBalAmt: 0,
@@ -26,40 +26,26 @@ const defaultDocsetoffDetails = {
   centDiff: 0,
   exhGainLoss: 0,
   editVersion: 0,
-}
+})
 
-const defaultDocsetoff = {
+const buildDefaultDocSetOff = (dateFormat: string) => ({
   setoffId: "0",
   setoffNo: "",
-  suppInvoiceNo: "",
-  referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
-  bankId: 0,
-  paymentTypeId: 0,
-  chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
-  bankChgGLId: 0,
-  bankChgAmt: 0,
-  bankChgLocalAmt: 0,
   supplierId: 0,
+  referenceNo: "",
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
+
   currencyId: 0,
   exhRate: 0,
-  totAmt: 0,
-  totLocalAmt: 0,
-  payCurrencyId: 0,
-  payExhRate: 0,
-  payTotAmt: 0,
-  payTotLocalAmt: 0,
+  allocTotAmt: 0,
+  allocTotLocalAmt: 0,
+  balTotAmt: 0,
+  balLocalAmt: 0,
   unAllocTotAmt: 0,
   unAllocTotLocalAmt: 0,
   exhGainLoss: 0,
   remarks: "",
-  docExhRate: 0,
-  docTotAmt: 0,
-  docTotLocalAmt: 0,
-  allocTotAmt: 0,
-  allocTotLocalAmt: 0,
   moduleFrom: "",
   editVersion: 0,
   createBy: "",
@@ -67,29 +53,18 @@ const defaultDocsetoff = {
   editBy: "",
   editDate: "",
   isCancel: false,
-  cancelById: 0,
   cancelBy: "",
   cancelDate: "",
   cancelRemarks: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultDocsetoff: {
-      ...defaultDocsetoff,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultDocsetoffDetails: {
-      ...defaultDocsetoffDetails,
-      docAccountDate: format(new Date(), dateFormat),
-      docDueDate: format(new Date(), dateFormat),
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultDocSetOff: buildDefaultDocSetOff(dateFormat),
+  defaultDocSetOffDetails: buildDefaultDocSetOffDetails(dateFormat),
+})
 
-export { defaultDocsetoff, defaultDocsetoffDetails }
+export const defaultDocSetOff = buildDefaultDocSetOff(clientDateFormat)
+export const defaultDocSetOffDetails =
+  buildDefaultDocSetOffDetails(clientDateFormat)

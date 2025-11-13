@@ -7,7 +7,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
-import { TableName } from "@/lib/utils"
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
@@ -235,8 +235,8 @@ export default function ArOutStandingTransactionsTable({
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IArOutTransaction>[]}
-        moduleId={25}
-        transactionId={2}
+        moduleId={ModuleId.ar}
+        transactionId={ARTransactionId.receipt}
         tableName={TableName.arOutTransaction}
         emptyMessage="No outstanding transactions found."
         accessorId="documentId"

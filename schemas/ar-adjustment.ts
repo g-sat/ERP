@@ -133,10 +133,6 @@ export const ArAdjustmentHdSchema = (
       ? z.number().min(1, "Service Type is required")
       : z.number().optional(),
 
-    // Other Remarks Fields
-    otherRemarks: z.string().optional(),
-    advRecAmt: z.number().optional(),
-
     // Nested Details
     data_details: z
       .array(ArAdjustmentDtSchema(required, visible))

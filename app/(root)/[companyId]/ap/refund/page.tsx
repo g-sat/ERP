@@ -1,21 +1,35 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef, useCallback } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
+import {
+  setDueDate,
+  setExchangeRate,
+  setRecExchangeRate,
+} from "@/helpers/account"
 import { IApRefundDt, IApRefundFilter, IApRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApRefundDtSchemaType,
+  ApRefundHdSchema,
   ApRefundHdSchemaType,
-  appaymentHdSchema,
-  aprefundHdSchema,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -24,22 +38,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApRefund } from "@/lib/api-routes"
+import { ApRefund, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -50,7 +61,7 @@ import {
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-import { defaultRefund } from "./components/refund-defaultvalues"
+import { getDefaultValues } from "./components/refund-defaultvalues"
 import RefundTable from "./components/refund-table"
 
 export default function RefundPage() {
@@ -61,28 +72,15 @@ export default function RefundPage() {
   const moduleId = ModuleId.ap
   const transactionId = APTransactionId.refund
 
-  const [showListDialog, setShowListDialog] = useState(false)
-  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
-  const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingRefund, setIsLoadingRefund] = useState(false)
-  const [isSelectingPayment, setIsSelectingPayment] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [refund, setRefund] = useState<ApRefundHdSchemaType | null>(null)
-  const [searchNo, setSearchNo] = useState("")
-  const [activeTab, setActiveTab] = useState("main")
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
-  const [filters, setFilters] = useState<IApRefundFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
-    search: "",
-    sortBy: "refundNo",
-    sortOrder: "asc",
-    pageNumber: 1,
-    pageSize: 15,
-  })
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
 
   const documentNoFromQuery = useMemo(() => {
     const value =
@@ -114,7 +112,72 @@ export default function RefundPage() {
     }
   }, [autoLoadStorageKey, documentNoFromQuery])
 
-  const lastQueriedDocRef = useRef<string | null>(null)
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
+  const [showListDialog, setShowListDialog] = useState(false)
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showCloneConfirm, setShowCloneConfirm] = useState(false)
+  const [isLoadingRefund, setIsLoadingRefund] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [refund, setRefund] = useState<ApRefundHdSchemaType | null>(null)
+  const [searchNo, setSearchNo] = useState("")
+  const [activeTab, setActiveTab] = useState("main")
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
+  const [filters, setFilters] = useState<IApRefundFilter>({
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
+    search: "",
+    sortBy: "refundNo",
+    sortOrder: "asc",
+    pageNumber: 1,
+    pageSize: pageSize,
+  })
+
+  const { defaultRefund: defaultRefundValues } = useMemo(
+    () => getDefaultValues(dateFormat),
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -132,7 +195,7 @@ export default function RefundPage() {
 
   // Add form state management
   const form = useForm<ApRefundHdSchemaType>({
-    resolver: zodResolver(aprefundHdSchema(required, visible)),
+    resolver: zodResolver(ApRefundHdSchema(required, visible)),
     defaultValues: refund
       ? {
           refundId: refund.refundId?.toString() ?? "0",
@@ -156,13 +219,8 @@ export default function RefundPage() {
           payExhRate: refund.payExhRate ?? 0,
           payTotAmt: refund.payTotAmt ?? 0,
           payTotLocalAmt: refund.payTotLocalAmt ?? 0,
-          unAllocTotAmt: refund.unAllocTotAmt ?? 0,
-          unAllocTotLocalAmt: refund.unAllocTotLocalAmt ?? 0,
           exhGainLoss: refund.exhGainLoss ?? 0,
           remarks: refund.remarks ?? "",
-          docExhRate: refund.docExhRate ?? 0,
-          docTotAmt: refund.docTotAmt ?? 0,
-          docTotLocalAmt: refund.docTotLocalAmt ?? 0,
           allocTotAmt: refund.allocTotAmt ?? 0,
           allocTotLocalAmt: refund.allocTotLocalAmt ?? 0,
           moduleFrom: refund.moduleFrom ?? "",
@@ -192,23 +250,65 @@ export default function RefundPage() {
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultRefund,
-        },
+      : (() => {
+          // For new refund, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultRefundValues,
+            createBy: userName,
+            createDate: currentDateTime,
+            data_details: [],
+          }
+        })(),
   })
 
   // Data fetching moved to RefundTable component for better performance
 
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const lastQueriedDocRef = useRef<string | null>(null)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentRefundId = form.getValues("refundId") || "0"
+    if (
+      (refund && refund.refundId && refund.refundId !== "0") ||
+      currentRefundId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultRefundValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultRefundValues, decimals, form, refund, isDirty, user])
+
   // Mutations
   const saveMutation = usePersist<ApRefundHdSchemaType>(`${ApRefund.add}`)
   const updateMutation = usePersist<ApRefundHdSchemaType>(`${ApRefund.add}`)
-  const deleteMutation = useDelete(`${ApRefund.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ApRefund.delete}`)
 
-  // Remove the useGetPaymentById hook for selection
-  // const { data: paymentByIdData, refetch: refetchPaymentById } = ...
+  // Remove the useGetRefundById hook for selection
+  // const { data: refundByIdData, refetch: refetchRefundById } = ...
 
   // Handle Save
-  const handleSavePayment = async () => {
+  const handleSaveRefund = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -225,7 +325,7 @@ export default function RefundPage() {
       console.log("formValues", formValues)
 
       // Validate the form data using the schema
-      const validationResult = appaymentHdSchema(required, visible).safeParse(
+      const validationResult = ApRefundHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -251,101 +351,185 @@ export default function RefundPage() {
         return
       }
 
-      const response =
-        Number(formValues.refundId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      //check totamt and totlocalamt should be zero
+      if (
+        formValues.data_details?.length === undefined ||
+        formValues.data_details?.length === 0
+      ) {
+        toast.error("Data Details should not be empty")
+        return
+      }
 
-      if (response.result === 1) {
-        const paymentData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.refundId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (paymentData) {
-          const updatedSchemaType = transformToSchemaType(
-            paymentData as unknown as IApRefundHd
-          )
-          setIsSelectingPayment(true)
-          setRefund(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(accountDate)
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
 
-        // Check if this was a new refund or update
-        const wasNewPayment = Number(formValues.refundId) === 0
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
 
-        if (wasNewPayment) {
-          //toast.success(
-          // `Refund ${paymentData?.refundNo || ""} saved successfully`
-          //)
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+      {
+        const response =
+          Number(formValues.refundId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const refundData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (refundData) {
+            const updatedSchemaType = transformToSchemaType(
+              refundData as unknown as IApRefundHd
+            )
+            setSearchNo(updatedSchemaType.refundNo || "")
+            setRefund(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by RefundTable component
         } else {
-          //toast.success("Refund updated successfully")
+          toast.error(response.message || "Failed to save refund")
         }
-
-        // Data refresh handled by RefundTable component
-      } else {
-        toast.error(response.message || "Failed to save refund")
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving refund")
     } finally {
       setIsSaving(false)
-      setIsSelectingPayment(false)
     }
   }
 
   // Handle Clone
-  const handleClonePayment = () => {
+  const handleCloneRefund = async () => {
     if (refund) {
       // Create a proper clone with form values
-      const clonedPayment: ApRefundHdSchemaType = {
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
+      const clonedRefund: ApRefundHdSchemaType = {
         ...refund,
         refundId: "0",
         refundNo: "",
-        // Reset amounts for new refund
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        chequeDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all amounts for new refund
         totAmt: 0,
         totLocalAmt: 0,
         payTotAmt: 0,
         payTotLocalAmt: 0,
-        unAllocTotAmt: 0,
-        unAllocTotLocalAmt: 0,
         exhGainLoss: 0,
-        docTotAmt: 0,
-        docTotLocalAmt: 0,
         allocTotAmt: 0,
         allocTotLocalAmt: 0,
         bankChgAmt: 0,
         bankChgLocalAmt: 0,
-        // Reset data details
+        // Clear data details - remove all records
         data_details: [],
       }
-      setRefund(clonedPayment)
-      form.reset(clonedPayment)
+
+      setRefund(clonedRefund)
+      form.reset(clonedRefund)
+      form.trigger("accountDate")
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedRefund.currencyId && clonedRefund.accountDate) {
+        try {
+          // Wait a tick to ensure form state is updated before calling setExchangeRate
+          await new Promise((resolve) => setTimeout(resolve, 0))
+
+          await setExchangeRate(form, exhRateDec, visible)
+          await setRecExchangeRate(form, exhRateDec)
+
+          // Calculate and set due date (for detail records)
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Refund cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handlePaymentDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleRefundDelete = async (cancelRemarks: string) => {
     if (!refund) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        refund.refundId?.toString() ?? ""
-      )
+      const response = await deleteMutation.mutateAsync({
+        documentId: refund.refundId?.toString() ?? "",
+        documentNo: refund.refundNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setRefund(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultRefund,
+          ...defaultRefundValues,
           data_details: [],
         })
-        //toast.success("Refund deleted successfully")
+        toast.success(`Refund ${refund.refundNo} deleted successfully`)
         // Data refresh handled by RefundTable component
       } else {
         toast.error(response.message || "Failed to delete refund")
@@ -356,11 +540,21 @@ export default function RefundPage() {
   }
 
   // Handle Reset
-  const handlePaymentReset = () => {
+  const handleRefundReset = () => {
     setRefund(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new refund)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultRefund,
+      ...defaultRefundValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Refund reset successfully")
@@ -372,29 +566,28 @@ export default function RefundPage() {
       return {
         refundId: apiRefund.refundId?.toString() ?? "0",
         refundNo: apiRefund.refundNo ?? "",
-        suppInvoiceNo: "", // Required by schema but not in interface
         referenceNo: apiRefund.referenceNo ?? "",
         trnDate: apiRefund.trnDate
           ? format(
               parseDate(apiRefund.trnDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         accountDate: apiRefund.accountDate
           ? format(
               parseDate(apiRefund.accountDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         bankId: apiRefund.bankId ?? 0,
         paymentTypeId: apiRefund.paymentTypeId ?? 0,
         chequeNo: apiRefund.chequeNo ?? "",
         chequeDate: apiRefund.chequeDate
           ? format(
               parseDate(apiRefund.chequeDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : clientDateFormat,
+          : dateFormat,
         bankChgGLId: apiRefund.bankChgGLId ?? 0,
         bankChgAmt: apiRefund.bankChgAmt ?? 0,
         bankChgLocalAmt: apiRefund.bankChgLocalAmt ?? 0,
@@ -407,13 +600,8 @@ export default function RefundPage() {
         payExhRate: apiRefund.payExhRate ?? 0,
         payTotAmt: apiRefund.payTotAmt ?? 0,
         payTotLocalAmt: apiRefund.payTotLocalAmt ?? 0,
-        unAllocTotAmt: apiRefund.unAllocTotAmt ?? 0,
-        unAllocTotLocalAmt: apiRefund.unAllocTotLocalAmt ?? 0,
         exhGainLoss: apiRefund.exhGainLoss ?? 0,
         remarks: apiRefund.remarks ?? "",
-        docExhRate: apiRefund.docExhRate ?? 0,
-        docTotAmt: apiRefund.docTotAmt ?? 0,
-        docTotLocalAmt: apiRefund.docTotLocalAmt ?? 0,
         allocTotAmt: apiRefund.allocTotAmt ?? 0,
         allocTotLocalAmt: apiRefund.allocTotLocalAmt ?? 0,
         moduleFrom: apiRefund.moduleFrom ?? "",
@@ -421,22 +609,24 @@ export default function RefundPage() {
         createBy: apiRefund.createById?.toString() ?? "",
         editBy: apiRefund.editById?.toString() ?? "",
         cancelBy: apiRefund.cancelById?.toString() ?? "",
+        isCancel: apiRefund.isCancel ?? false,
         createDate: apiRefund.createDate
           ? format(
               parseDate(apiRefund.createDate as string) || new Date(),
-              clientDateFormat
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         editDate: apiRefund.editDate
           ? format(
               parseDate(apiRefund.editDate as unknown as string) || new Date(),
-              clientDateFormat
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         cancelDate: apiRefund.cancelDate
           ? format(
-              parseDate(apiRefund.cancelDate as unknown as string) || new Date(),
-              clientDateFormat
+              parseDate(apiRefund.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         cancelRemarks: apiRefund.cancelRemarks ?? "",
@@ -457,13 +647,13 @@ export default function RefundPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,
@@ -481,69 +671,70 @@ export default function RefundPage() {
           ) || [],
       }
     },
-    []
+    [dateFormat, decimals]
   )
 
-  const handlePaymentSelect = async (
-    selectedPayment: IApRefundHd | undefined
+  const handleRefundSelect = async (
+    selectedRefund: IApRefundHd | undefined
   ) => {
-    if (!selectedPayment) return
-
-    setIsSelectingPayment(true)
+    if (!selectedRefund) return
 
     try {
       // Fetch refund details directly using selected refund's values
       const response = await getById(
-        `${ApRefund.getByIdNo}/${selectedPayment.refundId}/${selectedPayment.refundNo}`
+        `${ApRefund.getByIdNo}/${selectedRefund.refundId}/${selectedRefund.refundNo}`
       )
 
       if (response?.result === 1) {
-        const detailedPayment = Array.isArray(response.data)
+        const detailedRefund = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedPayment) {
-          // Parse dates properly
-          const updatedPayment = {
-            ...detailedPayment,
-            refundId: detailedPayment.refundId?.toString() ?? "0",
-            refundNo: detailedPayment.refundNo ?? "",
-            referenceNo: detailedPayment.referenceNo ?? "",
-            trnDate: detailedPayment.trnDate
-              ? format(
-                  parseDate(detailedPayment.trnDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
-            accountDate: detailedPayment.accountDate
-              ? format(
-                  parseDate(detailedPayment.accountDate as string) ||
-                    new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
+        if (detailedRefund) {
+          {
+            const parsed = parseDate(detailedRefund.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedRefund.accountDate as string)
+            )
+          }
 
-            supplierId: detailedPayment.supplierId ?? 0,
-            currencyId: detailedPayment.currencyId ?? 0,
-            exhRate: detailedPayment.exhRate ?? 0,
-            bankId: detailedPayment.bankId ?? 0,
-            totAmt: detailedPayment.totAmt ?? 0,
-            totLocalAmt: detailedPayment.totLocalAmt ?? 0,
-            payTotAmt: detailedPayment.payTotAmt ?? 0,
-            payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedPayment.exhGainLoss ?? 0,
-            remarks: detailedPayment.remarks ?? "",
-            docExhRate: detailedPayment.docExhRate ?? 0,
-            docTotAmt: detailedPayment.docTotAmt ?? 0,
-            docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedPayment.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
-            bankChgAmt: detailedPayment.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
+          // Parse dates properly
+          const updatedRefund = {
+            ...detailedRefund,
+            refundId: detailedRefund.refundId?.toString() ?? "0",
+            refundNo: detailedRefund.refundNo ?? "",
+            referenceNo: detailedRefund.referenceNo ?? "",
+            trnDate: detailedRefund.trnDate
+              ? format(
+                  parseDate(detailedRefund.trnDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            accountDate: detailedRefund.accountDate
+              ? format(
+                  parseDate(detailedRefund.accountDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+
+            supplierId: detailedRefund.supplierId ?? 0,
+            currencyId: detailedRefund.currencyId ?? 0,
+            exhRate: detailedRefund.exhRate ?? 0,
+            bankId: detailedRefund.bankId ?? 0,
+            totAmt: detailedRefund.totAmt ?? 0,
+            totLocalAmt: detailedRefund.totLocalAmt ?? 0,
+            payTotAmt: detailedRefund.payTotAmt ?? 0,
+            payTotLocalAmt: detailedRefund.payTotLocalAmt ?? 0,
+            exhGainLoss: detailedRefund.exhGainLoss ?? 0,
+            remarks: detailedRefund.remarks ?? "",
+            allocTotAmt: detailedRefund.allocTotAmt ?? 0,
+            allocTotLocalAmt: detailedRefund.allocTotLocalAmt ?? 0,
+            bankChgAmt: detailedRefund.bankChgAmt ?? 0,
+            bankChgLocalAmt: detailedRefund.bankChgLocalAmt ?? 0,
             data_details:
-              detailedPayment.data_details?.map((detail: IApRefundDt) => ({
+              detailedRefund.data_details?.map((detail: IApRefundDt) => ({
                 refundId: detail.refundId?.toString() ?? "0",
                 refundNo: detail.refundNo ?? "",
                 itemNo: detail.itemNo ?? 0,
@@ -556,13 +747,13 @@ export default function RefundPage() {
                 docAccountDate: detail.docAccountDate
                   ? format(
                       parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docDueDate: detail.docDueDate
                   ? format(
                       parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
+                      dateFormat
                     )
                   : "",
                 docTotAmt: detail.docTotAmt ?? 0,
@@ -579,16 +770,17 @@ export default function RefundPage() {
               })) || [],
           }
 
-          //setRefund(updatedPayment as ApRefundHdSchemaType)
-          setRefund(transformToSchemaType(updatedPayment))
-          form.reset(updatedPayment)
+          //setRefund(updatedRefund as ApRefundHdSchemaType)
+          setRefund(transformToSchemaType(updatedRefund))
+          form.reset(updatedRefund)
           form.trigger()
+
+          // Set the refund number in search input
+          setSearchNo(updatedRefund.refundNo || "")
 
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Refund ${selectedPayment.refundNo} loaded successfully`
-          )
+          toast.success(`Refund ${updatedRefund.refundNo} loaded successfully`)
         }
       } else {
         toast.error(response?.message || "Failed to fetch refund details")
@@ -599,17 +791,35 @@ export default function RefundPage() {
       toast.error("Error loading refund. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingPayment(false)
+      // Selection completed
     }
   }
 
-  // Remove direct refetchPayments from handleFilterChange
+  // Remove direct refetchRefunds from handleFilterChange
   const handleFilterChange = (newFilters: IApRefundFilter) => {
     setFilters(newFilters)
-    // refetchPayments(); // Removed: will be handled by useEffect
+    // refetchRefunds(); // Removed: will be handled by useEffect
   }
 
-  // Data refresh handled by RefundTable component
+  // Set createBy and createDate for new refunds on page load/refresh
+  useEffect(() => {
+    if (!refund && user && decimals.length > 0) {
+      const currentRefundId = form.getValues("refundId")
+      const currentRefundNo = form.getValues("refundNo")
+      const isNewRefund =
+        !currentRefundId || currentRefundId === "0" || !currentRefundNo
+
+      if (isNewRefund) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [refund, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -635,170 +845,199 @@ export default function RefundPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handlePaymentSearch = useCallback(async (value: string) => {
-    if (!value) return
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
-    setIsLoadingRefund(true)
+  const handleRefundSearch = useCallback(
+    async (value: string) => {
+      if (!value) return
 
-    try {
-      const response = await getById(`${ApRefund.getByIdNo}/0/${value}`)
+      setIsLoadingRefund(true)
 
-      if (response?.result === 1) {
-        const detailedPayment = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      try {
+        const response = await getById(`${ApRefund.getByIdNo}/0/${value}`)
 
-        if (detailedPayment) {
-          // Parse dates properly
-          const updatedPayment = {
-            ...detailedPayment,
-            refundId: detailedPayment.refundId?.toString() ?? "0",
-            refundNo: detailedPayment.refundNo ?? "",
-            referenceNo: detailedPayment.referenceNo ?? "",
-            suppInvoiceNo: "", // Required by schema but not in interface
-            trnDate: detailedPayment.trnDate
-              ? format(
-                  parseDate(detailedPayment.trnDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
-            accountDate: detailedPayment.accountDate
-              ? format(
-                  parseDate(detailedPayment.accountDate as string) ||
-                    new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
+        if (response?.result === 1) {
+          const detailedRefund = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-            supplierId: detailedPayment.supplierId ?? 0,
-            currencyId: detailedPayment.currencyId ?? 0,
-            exhRate: detailedPayment.exhRate ?? 0,
-            bankId: detailedPayment.bankId ?? 0,
-            paymentTypeId: detailedPayment.paymentTypeId ?? 0,
-            chequeNo: detailedPayment.chequeNo ?? "",
-            chequeDate: detailedPayment.chequeDate
-              ? format(
-                  parseDate(detailedPayment.chequeDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : clientDateFormat,
-            bankChgGLId: detailedPayment.bankChgGLId ?? 0,
-            bankChgAmt: detailedPayment.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
-            totAmt: detailedPayment.totAmt ?? 0,
-            totLocalAmt: detailedPayment.totLocalAmt ?? 0,
-            payCurrencyId: detailedPayment.payCurrencyId ?? 0,
-            payExhRate: detailedPayment.payExhRate ?? 0,
-            payTotAmt: detailedPayment.payTotAmt ?? 0,
-            payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedPayment.exhGainLoss ?? 0,
-            remarks: detailedPayment.remarks ?? "",
-            docExhRate: detailedPayment.docExhRate ?? 0,
-            docTotAmt: detailedPayment.docTotAmt ?? 0,
-            docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedPayment.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
-            moduleFrom: detailedPayment.moduleFrom ?? "",
-            editVersion: detailedPayment.editVersion ?? 0,
-            createBy: detailedPayment.createById?.toString() ?? "",
-            createDate: detailedPayment.createDate
-              ? format(
-                  parseDate(detailedPayment.createDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            editBy: detailedPayment.editById?.toString() ?? "",
-            editDate: detailedPayment.editDate
-              ? format(
-                  parseDate(detailedPayment.editDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            cancelBy: detailedPayment.cancelById?.toString() ?? "",
-            cancelDate: detailedPayment.cancelDate
-              ? format(
-                  parseDate(detailedPayment.cancelDate as string) || new Date(),
-                  clientDateFormat
-                )
-              : "",
-            cancelRemarks: detailedPayment.cancelRemarks ?? "",
+          if (detailedRefund) {
+            {
+              const parsed = parseDate(detailedRefund.accountDate as string)
+              setPreviousAccountDate(
+                parsed
+                  ? format(parsed, dateFormat)
+                  : (detailedRefund.accountDate as string)
+              )
+            }
+            // Parse dates properly
+            const updatedRefund = {
+              ...detailedRefund,
+              refundId: detailedRefund.refundId?.toString() ?? "0",
+              refundNo: detailedRefund.refundNo ?? "",
+              referenceNo: detailedRefund.referenceNo ?? "",
+              suppInvoiceNo: "", // Required by schema but not in interface
+              trnDate: detailedRefund.trnDate
+                ? format(
+                    parseDate(detailedRefund.trnDate as string) || new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
+              accountDate: detailedRefund.accountDate
+                ? format(
+                    parseDate(detailedRefund.accountDate as string) ||
+                      new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
 
-            data_details:
-              detailedPayment.data_details?.map((detail: IApRefundDt) => ({
-                refundId: detail.refundId?.toString() ?? "0",
-                refundNo: detail.refundNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId?.toString() ?? "0",
-                documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
-                docCurrencyId: detail.docCurrencyId ?? 0,
-                docExhRate: detail.docExhRate ?? 0,
-                docAccountDate: detail.docAccountDate
-                  ? format(
-                      parseDate(detail.docAccountDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                docDueDate: detail.docDueDate
-                  ? format(
-                      parseDate(detail.docDueDate as string) || new Date(),
-                      clientDateFormat
-                    )
-                  : "",
-                docTotAmt: detail.docTotAmt ?? 0,
-                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                docBalAmt: detail.docBalAmt ?? 0,
-                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                allocAmt: detail.allocAmt ?? 0,
-                allocLocalAmt: detail.allocLocalAmt ?? 0,
-                docAllocAmt: detail.docAllocAmt ?? 0,
-                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                centDiff: detail.centDiff ?? 0,
-                exhGainLoss: detail.exhGainLoss ?? 0,
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
+              supplierId: detailedRefund.supplierId ?? 0,
+              currencyId: detailedRefund.currencyId ?? 0,
+              exhRate: detailedRefund.exhRate ?? 0,
+              bankId: detailedRefund.bankId ?? 0,
+              paymentTypeId: detailedRefund.paymentTypeId ?? 0,
+              chequeNo: detailedRefund.chequeNo ?? "",
+              chequeDate: detailedRefund.chequeDate
+                ? format(
+                    parseDate(detailedRefund.chequeDate as string) ||
+                      new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
+              bankChgGLId: detailedRefund.bankChgGLId ?? 0,
+              bankChgAmt: detailedRefund.bankChgAmt ?? 0,
+              bankChgLocalAmt: detailedRefund.bankChgLocalAmt ?? 0,
+              totAmt: detailedRefund.totAmt ?? 0,
+              totLocalAmt: detailedRefund.totLocalAmt ?? 0,
+              payCurrencyId: detailedRefund.payCurrencyId ?? 0,
+              payExhRate: detailedRefund.payExhRate ?? 0,
+              payTotAmt: detailedRefund.payTotAmt ?? 0,
+              payTotLocalAmt: detailedRefund.payTotLocalAmt ?? 0,
+              unAllocTotAmt: detailedRefund.unAllocTotAmt ?? 0,
+              unAllocTotLocalAmt: detailedRefund.unAllocTotLocalAmt ?? 0,
+              exhGainLoss: detailedRefund.exhGainLoss ?? 0,
+              remarks: detailedRefund.remarks ?? "",
+              docExhRate: detailedRefund.docExhRate ?? 0,
+              docTotAmt: detailedRefund.docTotAmt ?? 0,
+              docTotLocalAmt: detailedRefund.docTotLocalAmt ?? 0,
+              allocTotAmt: detailedRefund.allocTotAmt ?? 0,
+              allocTotLocalAmt: detailedRefund.allocTotLocalAmt ?? 0,
+              jobOrderId: detailedRefund.jobOrderId ?? 0,
+              jobOrderNo: detailedRefund.jobOrderNo ?? "",
+              moduleFrom: detailedRefund.moduleFrom ?? "",
+              editVersion: detailedRefund.editVersion ?? 0,
+              createBy: detailedRefund.createById?.toString() ?? "",
+              createDate: detailedRefund.createDate
+                ? format(
+                    parseDate(detailedRefund.createDate as string) ||
+                      new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              editBy: detailedRefund.editById?.toString() ?? "",
+              editDate: detailedRefund.editDate
+                ? format(
+                    parseDate(detailedRefund.editDate as string) || new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              isCancel: detailedRefund.isCancel ?? false,
+              cancelBy: detailedRefund.cancelById?.toString() ?? "",
+              cancelDate: detailedRefund.cancelDate
+                ? format(
+                    parseDate(detailedRefund.cancelDate as string) ||
+                      new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              cancelRemarks: detailedRefund.cancelRemarks ?? "",
+
+              data_details:
+                detailedRefund.data_details?.map((detail: IApRefundDt) => ({
+                  refundId: detail.refundId?.toString() ?? "0",
+                  refundNo: detail.refundNo ?? "",
+                  itemNo: detail.itemNo ?? 0,
+                  transactionId: detail.transactionId ?? 0,
+                  documentId: detail.documentId?.toString() ?? "0",
+                  documentNo: detail.documentNo ?? "",
+                  referenceNo: detail.referenceNo ?? "",
+                  docCurrencyId: detail.docCurrencyId ?? 0,
+                  docExhRate: detail.docExhRate ?? 0,
+                  docAccountDate: detail.docAccountDate
+                    ? format(
+                        parseDate(detail.docAccountDate as string) ||
+                          new Date(),
+                        dateFormat
+                      )
+                    : "",
+                  docDueDate: detail.docDueDate
+                    ? format(
+                        parseDate(detail.docDueDate as string) || new Date(),
+                        dateFormat
+                      )
+                    : "",
+                  docTotAmt: detail.docTotAmt ?? 0,
+                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                  docBalAmt: detail.docBalAmt ?? 0,
+                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                  allocAmt: detail.allocAmt ?? 0,
+                  allocLocalAmt: detail.allocLocalAmt ?? 0,
+                  docAllocAmt: detail.docAllocAmt ?? 0,
+                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                  centDiff: detail.centDiff ?? 0,
+                  exhGainLoss: detail.exhGainLoss ?? 0,
+                  editVersion: detail.editVersion ?? 0,
+                })) || [],
+            }
+
+            //setRefund(updatedRefund as ApRefundHdSchemaType)
+            setRefund(transformToSchemaType(updatedRefund))
+            form.reset(updatedRefund)
+            form.trigger()
+
+            // Set the refund number in search input to the actual refund number from database
+            setSearchNo(updatedRefund.refundNo || "")
+
+            // Show success message
+            toast.success(
+              `Refund ${updatedRefund.refundNo || value} loaded successfully`
+            )
+
+            // Close the load confirmation dialog on success
+            setShowLoadConfirm(false)
           }
-
-          //setRefund(updatedPayment as ApRefundHdSchemaType)
-          setRefund(transformToSchemaType(updatedPayment))
-          form.reset(updatedPayment)
-          form.trigger()
-
-          // Show success message
-          toast.success(`Refund ${value} loaded successfully`)
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
+        } else {
+          toast.error(response?.message || "Failed to fetch refund details")
+          // Keep dialog open on failure so user can try again
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch refund details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching refund details:", error)
+        toast.error("Error loading refund. Please try again.")
+        // Keep dialog open on error
+      } finally {
+        setIsLoadingRefund(false)
       }
-    } catch (error) {
-      console.error("Error fetching refund details:", error)
-      toast.error("Error loading refund. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      setIsLoadingRefund(false)
-    }
-  }, [
-    form,
-    setIsLoadingRefund,
-    setRefund,
-    setSearchNo,
-    setShowLoadConfirm,
-    transformToSchemaType,
-  ])
+    },
+    [
+      dateFormat,
+      decimals,
+      form,
+      setIsLoadingRefund,
+      setPreviousAccountDate,
+      setRefund,
+      setShowLoadConfirm,
+      transformToSchemaType,
+    ]
+  )
 
   useEffect(() => {
     if (!pendingDocNo) return
@@ -806,15 +1045,18 @@ export default function RefundPage() {
 
     lastQueriedDocRef.current = pendingDocNo
     setSearchNo(pendingDocNo)
-    void handlePaymentSearch(pendingDocNo)
-  }, [handlePaymentSearch, pendingDocNo])
+    void handleRefundSearch(pendingDocNo)
+  }, [handleRefundSearch, pendingDocNo])
 
   // Determine mode and refund ID from URL
   const refundNo = form.getValues("refundNo")
   const isEdit = Boolean(refundNo)
+  const isCancelled = refund?.isCancel === true
 
   // Compose title text
-  const titleText = isEdit ? `Refund (Edit) - ${refundNo}` : "Refund (New)"
+  const titleText = isEdit
+    ? `Refund (Edit)- v[${refund?.editVersion}] - ${refundNo}`
+    : "Refund (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -840,29 +1082,65 @@ export default function RefundPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {refund?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {refund.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (refund?.refundNo) {
+                    setSearchNo(refund.refundNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingRefund}
+                className="h-4 w-4 p-0"
+                title="Refresh refund data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
@@ -879,7 +1157,7 @@ export default function RefundPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Invoice No"
+              placeholder="Search Refund No"
               className="h-8 text-sm"
               readOnly={!!refund?.refundId && refund.refundId !== "0"}
               disabled={!!refund?.refundId && refund.refundId !== "0"}
@@ -899,7 +1177,13 @@ export default function RefundPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -942,7 +1226,7 @@ export default function RefundPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!refund || refund.refundId === "0"}
+              disabled={!refund || refund.refundId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -953,7 +1237,12 @@ export default function RefundPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
-                !refund || refund.refundId === "0" || deleteMutation.isPending
+                !canView ||
+                !refund ||
+                refund.refundId === "0" ||
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -961,7 +1250,7 @@ export default function RefundPage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -970,12 +1259,13 @@ export default function RefundPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSavePayment()
+              handleSaveRefund()
             }}
             isEdit={isEdit}
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
@@ -993,52 +1283,33 @@ export default function RefundPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by RefundTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Refund List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing payments from the list below. Use
-                  search to filter records or create new payments.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Refund List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing refunds from the list below. Use search
+              to filter records or create new refunds.
+            </p>
+          </div>
 
-          {isSelectingPayment ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingPayment
-                    ? "Loading refund details..."
-                    : "Loading payments..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingPayment
-                    ? "Please wait while we fetch the complete refund data"
-                    : "Please wait while we fetch the refund list"}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
             <RefundTable
-              onPaymentSelect={handlePaymentSelect}
+              onRefundSelect={handleRefundSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1046,7 +1317,7 @@ export default function RefundPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSavePayment}
+        onConfirm={handleSaveRefund}
         itemName={refund?.refundNo || "New Refund"}
         operationType={
           refund?.refundId && refund.refundId !== "0" ? "update" : "create"
@@ -1060,18 +1331,29 @@ export default function RefundPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handlePaymentDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={refund?.refundNo}
         title="Delete Refund"
         description="This action cannot be undone. All refund details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
+      {/* Cancel Confirmation */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleRefundDelete}
+        itemName={refund?.refundNo}
+        title="Cancel Refund"
+        description="Please provide a reason for cancelling this refund."
+        isCancelling={deleteMutation.isPending}
+      />
+
       {/* Load Confirmation */}
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handlePaymentSearch(searchNo)}
+        onLoad={() => handleRefundSearch(searchNo)}
         code={searchNo}
         typeLabel="Refund"
         showDetails={false}
@@ -1083,7 +1365,7 @@ export default function RefundPage() {
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handlePaymentReset}
+        onConfirm={handleRefundReset}
         itemName={refund?.refundNo}
         title="Reset Refund"
         description="This will clear all unsaved changes."
@@ -1093,7 +1375,7 @@ export default function RefundPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleClonePayment}
+        onConfirm={handleCloneRefund}
         itemName={refund?.refundNo}
         title="Clone Refund"
         description="This will create a copy as a new refund."

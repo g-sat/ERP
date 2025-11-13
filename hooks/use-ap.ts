@@ -6,13 +6,11 @@ import {
   ApAdjustment,
   ApCreditNote,
   ApDebitNote,
+  ApDocSetOff,
   ApInvoice,
+  ApPayment,
+  ApRefund,
 } from "@/lib/api-routes"
-
-const NO_CACHE_QUERY_OPTIONS = {
-  gcTime: 0,
-  staleTime: 0,
-}
 
 /**
  * 1. Invoice Management
@@ -39,7 +37,11 @@ export function useGetInvoiceById<T>(
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
       return await getById(`${cleanUrl}/${invoiceId}/${invoiceNo}`)
     },
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -58,7 +60,11 @@ export function useGetAPInvoiceHistoryList<T>(invoiceId: string, options = {}) {
       return await getData(`${ApInvoice.history}/${invoiceId}`)
     },
     enabled: !!invoiceId && invoiceId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -84,57 +90,67 @@ export function useGetAPInvoiceHistoryDetails<T>(
       )
     },
     enabled: !!invoiceId && invoiceId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
 /**
- * 2. Adjustment Management
- * ------------------------
- * 2.1 Get AP Adjustment History List
- * @param {string} adjustmentId - Adjustment ID
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
  * @param {object} options - Additional query options
- * @returns {object} Query object containing adjustment history list
+ * @returns {object} Query object containing invoice history list
  */
-export function useGetAPAdjustmentHistoryList<T>(
-  adjustmentId: string,
+export function useGetAPCreditNoteHistoryList<T>(
+  creditNoteId: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ap-adjustment-history-list", adjustmentId],
+    queryKey: ["ap-creditnote-history-list", creditNoteId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      return await getData(`${ApAdjustment.history}/${adjustmentId}`)
+      return await getData(`${ApCreditNote.history}/${creditNoteId}`)
     },
-    enabled: !!adjustmentId && adjustmentId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    enabled: !!creditNoteId && creditNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
 /**
- * 2.2 Get AP Adjustment History Details
- * @param {string} adjustmentId - Adjustment ID
+ * 1.3 Get AP Invoice History Details
+ * @param {string} invoiceId - Invoice ID
  * @param {string} editVersion - Edit version
  * @param {object} options - Additional query options
- * @returns {object} Query object containing adjustment history details
+ * @returns {object} Query object containing invoice history details
  */
-export function useGetAPAdjustmentHistoryDetails<T>(
-  adjustmentId: string,
+export function useGetAPCreditNoteHistoryDetails<T>(
+  creditNoteId: string,
   editVersion: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ap-adjustment-history-details", adjustmentId, editVersion],
+    queryKey: ["ap-creditnote-history-details", creditNoteId, editVersion],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
       return await getData(
-        `${ApAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
+        `${ApCreditNote.historyDetails}/${creditNoteId}/${editVersion}`
       )
     },
-    enabled: !!adjustmentId && adjustmentId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    enabled: !!creditNoteId && creditNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -156,7 +172,11 @@ export function useGetAPDebitNoteHistoryList<T>(
       return await getData(`${ApDebitNote.history}/${debitNoteId}`)
     },
     enabled: !!debitNoteId && debitNoteId !== "0",
-    ...NO_CACHE_QUERY_OPTIONS,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -185,64 +205,198 @@ export function useGetAPDebitNoteHistoryDetails<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
 /**
- * 1.2 Get AP Invoice History List
- * @param {string} invoiceId - Invoice ID
- * @param {object} options - Additional query options
- * @returns {object} Query object containing invoice history list
+ * 1.4 Get AP Adjustment History List
  */
-export function useGetAPCreditNoteHistoryList<T>(
-  creditNoteId: string,
+export function useGetAPAdjustmentHistoryList<T>(
+  adjustmentId: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ap-creditnote-history-list", creditNoteId],
+    queryKey: ["ap-adjustment-history-list", adjustmentId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      return await getData(`${ApCreditNote.history}/${creditNoteId}`)
+      return await getData(`${ApAdjustment.history}/${adjustmentId}`)
     },
-    enabled: !!creditNoteId && creditNoteId !== "0",
+    enabled: !!adjustmentId && adjustmentId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
 
 /**
- * 1.3 Get AP Invoice History Details
- * @param {string} creditNoteId - Credit Note ID
- * @param {string} editVersion - Edit version
- * @param {object} options - Additional query options
- * @returns {object} Query object containing invoice history details
+ * 1.5 Get AP Adjustment History Details
  */
-export function useGetAPCreditNoteHistoryDetails<T>(
-  creditNoteId: string,
+export function useGetAPAdjustmentHistoryDetails<T>(
+  adjustmentId: string,
   editVersion: string,
   options = {}
 ) {
   return useQuery<ApiResponse<T>>({
-    queryKey: ["ap-creditnote-history-details", creditNoteId, editVersion],
+    queryKey: ["ap-adjustment-history-details", adjustmentId, editVersion],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
       return await getData(
-        `${ApCreditNote.historyDetails}/${creditNoteId}/${editVersion}`
+        `${ApAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
       )
     },
-    enabled: !!creditNoteId && creditNoteId !== "0",
+    enabled: !!adjustmentId && adjustmentId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
     gcTime: 10 * 60 * 1000,
     staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AP Receipt History List
+ */
+export function useGetAPPaymentHistoryList<T>(paymentId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-payment-history-list", paymentId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApPayment.history}/${paymentId}`)
+    },
+    enabled: !!paymentId && paymentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AP Receipt History Details
+ */
+export function useGetAPPaymentHistoryDetails<T>(
+  paymentId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-payment-history-details", paymentId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApPayment.historyDetails}/${paymentId}/${editVersion}`
+      )
+    },
+    enabled: !!paymentId && paymentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AP Refund History List
+ */
+export function useGetAPRefundHistoryList<T>(refundId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-refund-history-list", refundId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApRefund.history}/${refundId}`)
+    },
+    enabled: !!refundId && refundId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AP Refund History Details
+ */
+export function useGetAPRefundHistoryDetails<T>(
+  refundId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-refund-history-details", refundId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApRefund.historyDetails}/${refundId}/${editVersion}`
+      )
+    },
+    enabled: !!refundId && refundId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AP DocSetOff History List
+ */
+export function useGetAPDocSetOffHistoryList<T>(
+  setoffId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-docsetoff-history-list", setoffId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApDocSetOff.history}/${setoffId}`)
+    },
+    enabled: !!setoffId && setoffId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AP DocSetOff History Details
+ */
+export function useGetAPDocSetOffHistoryDetails<T>(
+  setoffId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-docsetoff-history-details", setoffId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApDocSetOff.historyDetails}/${setoffId}/${editVersion}`
+      )
+    },
+    enabled: !!setoffId && setoffId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }

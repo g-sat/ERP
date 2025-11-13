@@ -761,7 +761,8 @@ export const UomDt = {
 export const HistoryDetails = {
   getGlPostingDetails: "/account/getglpostingdetailshistory",
   getPaymentDetails: "/account/getpaymentdetailshistory",
-  getInvoice: "/account/getcustomerinvoice",
+  getCustomerInvoice: "/account/getcustomerinvoice",
+  getSupplierInvoice: "/account/getsupplierinvoice",
   getCustomerInvoiceNo: "/account/getcustomerinvoicebyno",
   getSupplierInvoiceNo: "/account/getsupplierinvoicebyno",
 }
@@ -880,6 +881,7 @@ export const ApPayment = {
   add: "/account/saveappayment",
   delete: "/account/deleteappayment",
   history: "/account/gethistoryappaymentbyid",
+  historyDetails: "/account/gethistoryappaymentdetailsbyid",
 }
 
 // Accounts Payable Refund Endpoints

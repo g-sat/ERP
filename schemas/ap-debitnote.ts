@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const apDebitNoteHdSchema = (
+export const ApDebitNoteHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -11,7 +11,7 @@ export const apDebitNoteHdSchema = (
     debitNoteId: z.string().optional(),
     debitNoteNo: z.string().optional(),
     suppDebitNoteNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
+      ? z.string().min(1, "Supplier Credit Note No is required")
       : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
@@ -30,17 +30,16 @@ export const apDebitNoteHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
-    // Debit Terms
-    creditTermId: z.number().min(1, "Debit Term is required"),
+    // Credit Terms
+    creditTermId: z.number().min(1, "Credit Term is required"),
 
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
-
     // Invoice Fields
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
@@ -101,14 +100,13 @@ export const apDebitNoteHdSchema = (
     contactName: z.string().optional(),
     mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().optional()
       : z.string().optional(),
 
     // Customer Details
     moduleFrom: z.string().optional(),
 
     customerName: z.string().optional(),
-
     arDebitNoteId: z.string().optional(),
     arDebitNoteNo: z.string().optional(),
     editVersion: z.number().optional(),
@@ -116,33 +114,38 @@ export const apDebitNoteHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
 
     // Nested Details
     data_details: z
-      .array(apDebitNoteDtSchema(required, visible))
+      .array(ApDebitNoteDtSchema(required, visible))
       .min(1, "At least one invoice detail is required"),
   })
 }
 
 export type ApDebitNoteHdSchemaType = z.infer<
-  ReturnType<typeof apDebitNoteHdSchema>
+  ReturnType<typeof ApDebitNoteHdSchema>
 >
 
-export const apDebitNoteHdFiltersSchema = z.object({
+export const ApDebitNoteHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApDebitNoteHdFiltersValues = z.infer<
-  typeof apDebitNoteHdFiltersSchema
+  typeof ApDebitNoteHdFiltersSchema
 >
 
-export const apDebitNoteDtSchema = (
+export const ApDebitNoteDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -293,24 +296,22 @@ export const apDebitNoteDtSchema = (
     // Supplier Details
     customerName: z.string().optional(),
     custDebitNoteNo: z.string().optional(),
-    arDebitNoteId: z.union([z.string(), z.number()]).optional(),
+    arDebitNoteId: z.string().optional(),
     arDebitNoteNo: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
 export type ApDebitNoteDtSchemaType = z.infer<
-  ReturnType<typeof apDebitNoteDtSchema>
+  ReturnType<typeof ApDebitNoteDtSchema>
 >
 
-export const apDebitNoteDtFiltersSchema = z.object({
+export const ApDebitNoteDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApDebitNoteDtFiltersValues = z.infer<
-  typeof apDebitNoteDtFiltersSchema
+  typeof ApDebitNoteDtFiltersSchema
 >

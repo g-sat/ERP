@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const apadjustmentHdSchema = (
+export const ApAdjustmentHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -30,7 +30,7 @@ export const apadjustmentHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.000001, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "City Exchange Rate must be greater than 0"),
 
     // Credit Terms
     creditTermId: z.number().min(1, "Credit Term is required"),
@@ -41,12 +41,9 @@ export const apadjustmentHdSchema = (
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
 
-    // Invoice Fields
-    invoiceId: z.number().optional(),
-    invoiceNo: z.string().optional(),
+    isDebit: z.boolean().optional(),
 
     // Amounts
-    isDebit: z.boolean().optional(),
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -102,48 +99,52 @@ export const apadjustmentHdSchema = (
     contactName: z.string().optional(),
     mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().optional()
       : z.string().optional(),
 
     // Customer Details
     moduleFrom: z.string().optional(),
 
     customerName: z.string().optional(),
-
-    arAdjustmentId: z.union([z.string(), z.number()]).optional(),
+    arAdjustmentId: z.string().optional(),
     arAdjustmentNo: z.string().optional(),
     editVersion: z.number().optional(),
     createBy: z.string().optional(),
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
 
     // Nested Details
     data_details: z
-      .array(apadjustmentDtSchema(required, visible))
+      .array(ApAdjustmentDtSchema(required, visible))
       .min(1, "At least one adjustment detail is required"),
   })
 }
 
 export type ApAdjustmentHdSchemaType = z.infer<
-  ReturnType<typeof apadjustmentHdSchema>
+  ReturnType<typeof ApAdjustmentHdSchema>
 >
 
-export const apadjustmentHdFiltersSchema = z.object({
+export const ApAdjustmentHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApAdjustmentHdFiltersValues = z.infer<
-  typeof apadjustmentHdFiltersSchema
+  typeof ApAdjustmentHdFiltersSchema
 >
 
-export const apadjustmentDtSchema = (
+export const ApAdjustmentDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -231,17 +232,11 @@ export const apadjustmentDtSchema = (
     jobOrderNo: z.string().optional(),
 
     // Task Fields
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
+    taskId: z.number().optional(),
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
+    serviceId: z.number().optional(),
     serviceName: z.string().optional(),
 
     // Employee Fields
@@ -301,25 +296,22 @@ export const apadjustmentDtSchema = (
     // Supplier Details
     customerName: z.string().optional(),
     custAdjustmentNo: z.string().optional(),
-    suppAdjustmentNo: z.string().optional(),
-    arAdjustmentId: z.union([z.string(), z.number()]).optional(),
+    arAdjustmentId: z.string().optional(),
     arAdjustmentNo: z.string().optional(),
-
-    // Audit Fields
     editVersion: z.number().optional(),
   })
 }
 
 export type ApAdjustmentDtSchemaType = z.infer<
-  ReturnType<typeof apadjustmentDtSchema>
+  ReturnType<typeof ApAdjustmentDtSchema>
 >
 
-export const apadjustmentDtFiltersSchema = z.object({
+export const ApAdjustmentDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApAdjustmentDtFiltersValues = z.infer<
-  typeof apadjustmentDtFiltersSchema
+  typeof ApAdjustmentDtFiltersSchema
 >

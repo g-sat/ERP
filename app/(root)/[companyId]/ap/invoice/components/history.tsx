@@ -1,6 +1,6 @@
 "use client"
 
-import { ApInvoiceHdSchemaType } from "@/schemas/ap-invoice"
+import { ApInvoiceHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 

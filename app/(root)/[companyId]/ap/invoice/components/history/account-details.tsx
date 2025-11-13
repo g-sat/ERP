@@ -3,6 +3,8 @@
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 
+import { parseDate } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -42,8 +44,24 @@ export default function AccountDetails({
     formatStr = "yyyy-MM-dd HH:mm"
   ) => {
     if (!dateValue) return "" // if null, undefined, or empty
-    const date = new Date(dateValue)
-    return isNaN(date.getTime()) ? "" : format(date, formatStr)
+
+    // If it's already a Date object, use it directly
+    if (dateValue instanceof Date) {
+      return isNaN(dateValue.getTime()) ? "" : format(dateValue, formatStr)
+    }
+
+    // Handle ISO datetime strings (e.g., "2025-11-04T08:29:51.19")
+    // Native Date constructor can parse ISO strings correctly
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      const isoDate = new Date(dateValue)
+      if (!isNaN(isoDate.getTime())) {
+        return format(isoDate, formatStr)
+      }
+    }
+
+    // Parse the date string using parseDate which handles multiple formats correctly
+    const date = parseDate(dateValue as string)
+    return date ? format(date, formatStr) : ""
   }
 
   return (
@@ -117,8 +135,8 @@ export default function AccountDetails({
                     <span className="text-muted-foreground text-sm">
                       Balance Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {balanceAmt.toFixed(amtDec)}
+                    <span className="text-right font-medium tabular-nums">
+                      {formatNumber(balanceAmt, amtDec)}
                     </span>
                   </div>
                   <Separator />
@@ -126,8 +144,8 @@ export default function AccountDetails({
                     <span className="text-muted-foreground text-sm">
                       Balance Base Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {balanceBaseAmt.toFixed(locAmtDec)}
+                    <span className="text-right font-medium tabular-nums">
+                      {formatNumber(balanceBaseAmt, locAmtDec)}
                     </span>
                   </div>
                   <Separator />
@@ -135,8 +153,8 @@ export default function AccountDetails({
                     <span className="text-muted-foreground text-sm">
                       Payment Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {paymentAmt.toFixed(amtDec)}
+                    <span className="text-right font-medium tabular-nums">
+                      {formatNumber(paymentAmt, amtDec)}
                     </span>
                   </div>
                   <Separator />
@@ -144,8 +162,8 @@ export default function AccountDetails({
                     <span className="text-muted-foreground text-sm">
                       Payment Base Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {paymentBaseAmt.toFixed(locAmtDec)}
+                    <span className="text-right font-medium tabular-nums">
+                      {formatNumber(paymentBaseAmt, locAmtDec)}
                     </span>
                   </div>
                 </div>

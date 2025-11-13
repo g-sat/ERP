@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
+import { ApPaymentHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { APTransactionId, ModuleId } from "@/lib/utils"

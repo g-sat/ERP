@@ -55,6 +55,7 @@ export default function ApOutStandingTransactionsDialog({
   )
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
+  const [tableKey, setTableKey] = useState(0)
 
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -76,22 +77,6 @@ export default function ApOutStandingTransactionsDialog({
   const isLoadingRef = useRef(false)
   const lastLoadParamsRef = useRef<string>("")
 
-  // Initialize selected transactions with existing ones when dialog opens
-  useEffect(() => {
-    if (
-      open &&
-      outTransactions.length > 0 &&
-      selectedTransactions.length === 0
-    ) {
-      setSelectedTransactions(existingDocumentIds.map(String))
-    }
-  }, [
-    open,
-    outTransactions.length,
-    existingDocumentIds,
-    selectedTransactions.length,
-  ])
-
   // Load transactions when dialog opens
   useEffect(() => {
     if (!open || !supplierId || !currencyId || !accountDate) {
@@ -99,7 +84,7 @@ export default function ApOutStandingTransactionsDialog({
     }
 
     // Create a unique key for current params
-    const paramsKey = `${supplierId}-${currencyId}-${accountDate}`
+    const paramsKey = `${supplierId}-${currencyId}-${accountDate}-${isRefund}-${documentId}`
 
     // Prevent duplicate calls with same parameters (only if actively loading)
     if (isLoadingRef.current && lastLoadParamsRef.current === paramsKey) {
@@ -129,7 +114,7 @@ export default function ApOutStandingTransactionsDialog({
         setIsLoading(false)
         isLoadingRef.current = false
         setOutTransactions([])
-      }, 30000) // 30 second timeout
+      }, 3000) // 30 second timeout
 
       try {
         const parsedAccountDate = (() => {
@@ -149,7 +134,8 @@ export default function ApOutStandingTransactionsDialog({
         }
 
         const dt = format(parsedAccountDate, "yyyy-MM-dd")
-        const payload = {
+
+        const payload: Record<string, unknown> = {
           supplierId: supplierId,
           currencyId: currencyId,
           accountDate: dt,
@@ -167,10 +153,7 @@ export default function ApOutStandingTransactionsDialog({
         clearTimeout(timeoutId)
 
         if (response?.result === 1) {
-          // Show all transactions (don't filter)
-          const allTransactions = response.data || []
-
-          setOutTransactions(allTransactions)
+          setOutTransactions(response.data || [])
         } else {
           setOutTransactions([])
           const errorMsg = response?.message || "Failed to load transactions"
@@ -211,7 +194,16 @@ export default function ApOutStandingTransactionsDialog({
     isRefund,
     documentId,
     dateFormat,
+    transactionId,
   ])
+
+  // Force remount of transactions table and clear selection whenever dialog opens
+  useEffect(() => {
+    if (open) {
+      setTableKey((prev) => prev + 1)
+      setSelectedTransactions([])
+    }
+  }, [open])
 
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
@@ -281,9 +273,17 @@ export default function ApOutStandingTransactionsDialog({
       onAddSelected(selectedTransactionsData)
     }
 
+    const remainingTransactions = outTransactions.filter(
+      (transaction) =>
+        !newlySelectedIds.includes(transaction.documentId.toString())
+    )
+    setOutTransactions(remainingTransactions)
+
     // Reset selection and close dialog
     setSelectedTransactions([])
-    onOpenChangeAction(false)
+    if (remainingTransactions.length === 0) {
+      onOpenChangeAction(false)
+    }
   }, [
     selectedTransactions,
     outTransactions,
@@ -313,7 +313,7 @@ export default function ApOutStandingTransactionsDialog({
         <DialogHeader>
           <DialogTitle>AP Transaction List</DialogTitle>
           <DialogDescription>
-            Select outstanding transactions to add to the payment.
+            Select outstanding transactions to add to the receipt.
           </DialogDescription>
         </DialogHeader>
 
@@ -341,14 +341,7 @@ export default function ApOutStandingTransactionsDialog({
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button
-              onClick={handleAddSelected}
-              disabled={
-                selectedTransactions.filter(
-                  (docId) => !existingDocumentIds.includes(Number(docId))
-                ).length === 0
-              }
-            >
+            <Button onClick={handleAddSelected}>
               Add Selected (
               {
                 selectedTransactions.filter(
@@ -376,13 +369,13 @@ export default function ApOutStandingTransactionsDialog({
             </div>
           ) : (
             <ApOutStandingTransactionsTable
+              key={tableKey}
               data={outTransactions}
               visible={visible}
               onRefresh={handleRefresh}
               onFilterChange={handleFilterChange}
               onSelect={handleSelect}
               onBulkSelectionChange={handleBulkSelectionChange}
-              initialSelectedIds={existingDocumentIds.map(String)}
             />
           )}
         </div>

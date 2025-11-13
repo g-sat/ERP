@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const appaymentHdSchema = (
+export const ApPaymentHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -10,9 +10,6 @@ export const appaymentHdSchema = (
 
     paymentId: z.string().optional(),
     paymentNo: z.string().optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
-      : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -31,7 +28,9 @@ export const appaymentHdSchema = (
     chequeDate: z.union([z.date(), z.string()]),
 
     // Bank Charge GL Fields
-    bankChgGLId: z.number().min(0, "Bank Charge GL is required"),
+    bankChgGLId: visible?.m_BankChgGLId
+      ? z.number().min(0, "Bank Charge GL is required")
+      : z.number().optional(),
     bankChgAmt: z.number().min(0, "Bank Charges Amount is required"),
     bankChgLocalAmt: z.number().min(0, "Bank Charges Local Amount is required"),
 
@@ -43,18 +42,18 @@ export const appaymentHdSchema = (
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
 
-    // Payment Currency Fields
-    payCurrencyId: z.number().min(1, "Payment Currency is required"),
-    payExhRate: z.number().min(0, "Payment Exchange Rate is required"),
-    payTotAmt: z.number().min(0, "Payment Total Amount is required"),
-    payTotLocalAmt: z.number().min(0, "Payment Total Local Amount is required"),
+    // Paying Currency Fields
+    payCurrencyId: z.number().min(1, "Paying   Currency is required"),
+    payExhRate: z.number().min(0, "Paying Exchange Rate is required"),
+    payTotAmt: z.number().min(0, "Paying Total Amount is required"),
+    payTotLocalAmt: z.number().min(0, "Paying Total Local Amount is required"),
 
     // Unallocated Amount Fields
     unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
     unAllocTotLocalAmt: z
       .number()
       .min(0, "Unallocated Total Local Amount is required"),
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
@@ -81,29 +80,32 @@ export const appaymentHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
-    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+    appBy: z.string().optional(),
+    appDate: z.string().optional(),
+    appStatusId: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(appaymentDtSchema(required, visible)).optional(),
+    data_details: z.array(ApPaymentDtSchema(required, visible)).optional(),
   })
 }
 
 export type ApPaymentHdSchemaType = z.infer<
-  ReturnType<typeof appaymentHdSchema>
+  ReturnType<typeof ApPaymentHdSchema>
 >
 
-export const appaymentHdFiltersSchema = z.object({
+export const ApPaymentHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApPaymentHdFiltersValues = z.infer<typeof appaymentHdFiltersSchema>
+export type ApPaymentHdFiltersValues = z.infer<typeof ApPaymentHdFiltersSchema>
 
-export const appaymentDtSchema = (
+export const ApPaymentDtSchema = (
   _required: IMandatoryFields,
   _visible: IVisibleFields
 ) => {
@@ -145,13 +147,13 @@ export const appaymentDtSchema = (
 }
 
 export type ApPaymentDtSchemaType = z.infer<
-  ReturnType<typeof appaymentDtSchema>
+  ReturnType<typeof ApPaymentDtSchema>
 >
 
-export const appaymentDtFiltersSchema = z.object({
+export const ApPaymentDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ApPaymentDtFiltersValues = z.infer<typeof appaymentDtFiltersSchema>
+export type ApPaymentDtFiltersValues = z.infer<typeof ApPaymentDtFiltersSchema>

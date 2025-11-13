@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultInvoiceDetails = {
+const buildDefaultInvoiceDetails = (dateFormat: string) => ({
   invoiceId: "0",
   invoiceNo: "",
   itemNo: 0,
@@ -30,16 +30,18 @@ const defaultInvoiceDetails = {
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
-  deliveryDate: format(new Date(), clientDateFormat),
+  deliveryDate: format(new Date(), dateFormat),
   departmentId: 0,
   departmentCode: "",
   departmentName: "",
+
   jobOrderId: 0,
   jobOrderNo: "",
   taskId: 0,
   taskName: "",
   serviceId: 0,
   serviceName: "",
+
   employeeId: 0,
   employeeCode: "",
   employeeName: "",
@@ -59,35 +61,35 @@ const defaultInvoiceDetails = {
   opRefNo: "",
   purchaseOrderId: "0",
   purchaseOrderNo: "",
-  supplyDate: format(new Date(), clientDateFormat),
+  supplyDate: format(new Date(), dateFormat),
   customerName: "",
   custInvoiceNo: "",
-  suppInvoiceNo: "",
-  arInvoiceId: "0",
+  arInvoiceId: "",
   arInvoiceNo: "",
   editVersion: 0,
-}
+})
 
-const defaultInvoice = {
+const buildDefaultInvoice = (dateFormat: string) => ({
   companyId: 0,
   invoiceId: "0",
   invoiceNo: "",
   referenceNo: "",
-  suppInvoiceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
-  deliveryDate: format(new Date(), clientDateFormat),
-  dueDate: format(new Date(), clientDateFormat),
+  suppAdjustmentNo: "",
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
+  deliveryDate: format(new Date(), dateFormat),
+  dueDate: format(new Date(), dateFormat),
   supplierId: 0,
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
   creditTermId: 0,
   bankId: 0,
+  isDebit: false,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  gstClaimDate: format(new Date(), clientDateFormat),
+  gstClaimDate: format(new Date(), dateFormat),
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
@@ -119,10 +121,11 @@ const defaultInvoice = {
   emailAdd: "",
   moduleFrom: "",
   customerName: "",
+  custInvoiceNo: "",
   arInvoiceId: "0",
   arInvoiceNo: "",
   createById: 0,
-  createDate: format(new Date(), clientDateFormat),
+  createDate: format(new Date(), dateFormat),
   editById: "",
   editDate: "",
   isCancel: false,
@@ -140,27 +143,16 @@ const defaultInvoice = {
   appById: "",
   appDate: "",
   serviceTypeId: 0,
+  serviceTypeName: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultInvoice: {
-      ...defaultInvoice,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      deliveryDate: format(new Date(), dateFormat),
-      dueDate: format(new Date(), dateFormat),
-      gstClaimDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultInvoiceDetails: {
-      ...defaultInvoiceDetails,
-      deliveryDate: format(new Date(), dateFormat),
-      supplyDate: format(new Date(), dateFormat),
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultInvoice: buildDefaultInvoice(dateFormat),
+  defaultInvoiceDetails: buildDefaultInvoiceDetails(dateFormat),
+})
 
-export { defaultInvoice, defaultInvoiceDetails }
+export const defaultInvoice = buildDefaultInvoice(clientDateFormat)
+export const defaultInvoiceDetails =
+  buildDefaultInvoiceDetails(clientDateFormat)

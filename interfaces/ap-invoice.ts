@@ -22,6 +22,7 @@ export interface IApInvoiceHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -62,10 +63,6 @@ export interface IApInvoiceHd {
 
   arInvoiceId: string
   arInvoiceNo: null | string
-
-  serviceTypeId: number
-  serviceTypeName: string
-
   createById: number
   createDate: Date | string
   editById: null | number
@@ -84,6 +81,10 @@ export interface IApInvoiceHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
+  serviceTypeId: number
+  serviceTypeName: string
+
   data_details: IApInvoiceDt[]
 }
 
@@ -129,12 +130,14 @@ export interface IApInvoiceDt {
   departmentId: number
   departmentCode: string
   departmentName: string
+
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
+
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -156,7 +159,7 @@ export interface IApInvoiceDt {
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arInvoiceId: number | string
+  arInvoiceId: string
   arInvoiceNo: string
   custInvoiceNo: string
   editVersion: number

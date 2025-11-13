@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { IApAdjustmentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
@@ -17,6 +19,7 @@ interface AdjustmentDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApAdjustmentDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
 export default function AdjustmentDetailsTable({
@@ -28,8 +31,12 @@ export default function AdjustmentDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
+  isCancelled = false,
 }: AdjustmentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -85,18 +92,6 @@ export default function AdjustmentDetailsTable({
       header: "Account",
       size: 100,
     },
-    {
-      accessorKey: "isDebit",
-      header: "Type",
-      size: 80,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="flex justify-center">
-          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
-            {row.original.isDebit ? "Debit" : "Credit"}
-          </Badge>
-        </div>
-      ),
-    },
     ...(visible?.m_DepartmentId
       ? [
           {
@@ -110,7 +105,17 @@ export default function AdjustmentDetailsTable({
       ? [
           {
             accessorKey: "jobOrderNo",
-            header: "JobOrder",
+            header: "Job Order",
+            size: 100,
+          },
+          {
+            accessorKey: "taskName",
+            header: "Task",
+            size: 100,
+          },
+          {
+            accessorKey: "serviceName",
+            header: "Service",
             size: 100,
           },
         ]
@@ -146,24 +151,41 @@ export default function AdjustmentDetailsTable({
           },
         ]
       : []),
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      size: 100,
+      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
+        <div className="flex justify-center">
+          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+            {row.original.isDebit ? "Debit" : "Credit"}
+          </Badge>
+        </div>
+      ),
+    },
+
     ...(visible?.m_UnitPrice
       ? [
           {
             accessorKey: "unitPrice",
             header: "Price",
             size: 100,
-            cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-              <div className="text-right">{row.original.unitPrice}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("unitPrice"), amtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApAdjustmentDt>,
         ]
       : []),
     {
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -171,33 +193,22 @@ export default function AdjustmentDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
       ),
     },
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "taskName",
-            header: "Task Name",
-            size: 200,
-          },
-          {
-            accessorKey: "serviceName",
-            header: "Service Name",
-            size: 200,
-          },
-        ]
-      : []),
-
     ...(visible?.m_BillQTY
       ? [
           {
@@ -214,8 +225,10 @@ export default function AdjustmentDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -224,10 +237,12 @@ export default function AdjustmentDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApAdjustmentDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -243,8 +258,10 @@ export default function AdjustmentDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -253,10 +270,12 @@ export default function AdjustmentDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IApAdjustmentDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IApAdjustmentDt>,
         ]
       : []),
 
@@ -320,13 +339,13 @@ export default function AdjustmentDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.adjustment}
-        tableName={TableName.apAdjustmentDt}
+        tableName={TableName.arAdjustmentDt}
         emptyMessage="No adjustment details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
@@ -338,9 +357,9 @@ export default function AdjustmentDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

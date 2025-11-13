@@ -22,8 +22,10 @@ export interface IApCreditNoteHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+
   invoiceId: string
   invoiceNo: string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -64,10 +66,6 @@ export interface IApCreditNoteHd {
 
   arCreditNoteId: string
   arCreditNoteNo: null | string
-
-  serviceTypeId: number
-  serviceTypeName: string
-
   createById: number
   createDate: Date | string
   editById: null | number
@@ -86,6 +84,9 @@ export interface IApCreditNoteHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
+  serviceTypeId: number
+  serviceTypeName: string
   data_details: IApCreditNoteDt[]
 }
 
@@ -131,12 +132,14 @@ export interface IApCreditNoteDt {
   departmentId: number
   departmentCode: string
   departmentName: string
+
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
+
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -158,7 +161,7 @@ export interface IApCreditNoteDt {
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arCreditNoteId: number | string
+  arCreditNoteId: string
   arCreditNoteNo: string
   custCreditNoteNo: string
   editVersion: number

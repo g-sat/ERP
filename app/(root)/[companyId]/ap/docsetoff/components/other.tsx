@@ -1,14 +1,14 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { ApDocsetoffHdSchemaType } from "@/schemas"
+import { ApDocSetOffHdSchemaType } from "@/schemas/ap-docsetoff"
 import { UseFormReturn } from "react-hook-form"
 
 import { APTransactionId, ModuleId } from "@/lib/utils"
 import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
-  form: UseFormReturn<ApDocsetoffHdSchemaType>
+  form: UseFormReturn<ApDocSetOffHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {
@@ -20,7 +20,7 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      {/* Document Upload Section - Only show after docsetoff is saved */}
+      {/* Document Upload Section - Only show after docSetOff is saved */}
       {setoffId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.ap}

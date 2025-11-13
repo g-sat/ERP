@@ -1,16 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { IApPaymentDt, IApPaymentHd } from "@/interfaces/ap-payment"
+import { IApPaymentDt, IApPaymentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
+  useGetAPPaymentHistoryDetails,
+  useGetAPPaymentHistoryList,
 } from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,7 +35,7 @@ export default function EditVersionDetails({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ap
@@ -44,10 +46,10 @@ export default function EditVersionDetails({
   )
 
   const { data: paymentHistoryData, refetch: refetchHistory } =
-    useGetAPInvoiceHistoryList<IApPaymentHd[]>(paymentId)
+    useGetAPPaymentHistoryList<IApPaymentHd[]>(paymentId)
 
   const { data: paymentDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IApPaymentHd>(
+    useGetAPPaymentHistoryDetails<IApPaymentHd>(
       selectedPayment?.paymentId || "",
       selectedPayment?.editVersion?.toString() || ""
     )
@@ -80,13 +82,6 @@ export default function EditVersionDetails({
   // Check for API errors
   const hasHistoryError = paymentHistoryData?.result === -1
   const hasDetailsError = paymentDetailsData?.result === -1
-
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  }
 
   const columns: ColumnDef<IApPaymentHd>[] = [
     {
@@ -143,7 +138,9 @@ export default function EditVersionDetails({
       header: "Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhRate"), exhRateDec)}
+          {row.original.exhRate
+            ? formatNumber(row.original.exhRate, exhRateDec)
+            : "-"}
         </div>
       ),
     },
@@ -183,7 +180,9 @@ export default function EditVersionDetails({
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -192,7 +191,9 @@ export default function EditVersionDetails({
       header: "Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+          {row.original.totLocalAmt
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -201,7 +202,9 @@ export default function EditVersionDetails({
       header: "Pay Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotAmt"), amtDec)}
+          {row.original.payTotAmt
+            ? formatNumber(row.original.payTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -210,7 +213,9 @@ export default function EditVersionDetails({
       header: "Pay Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+          {row.original.payTotLocalAmt
+            ? formatNumber(row.original.payTotLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -219,7 +224,9 @@ export default function EditVersionDetails({
       header: "Unallocated Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {row.original.unAllocTotAmt
+            ? formatNumber(row.original.unAllocTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -228,7 +235,9 @@ export default function EditVersionDetails({
       header: "Unallocated Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
+          {row.original.unAllocTotLocalAmt
+            ? formatNumber(row.original.unAllocTotLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -237,7 +246,9 @@ export default function EditVersionDetails({
       header: "Exchange Gain/Loss",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -246,7 +257,9 @@ export default function EditVersionDetails({
       header: "Bank Charges Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+          {row.original.bankChgAmt
+            ? formatNumber(row.original.bankChgAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -255,7 +268,9 @@ export default function EditVersionDetails({
       header: "Bank Charges Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {row.original.bankChgLocalAmt
+            ? formatNumber(row.original.bankChgLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -307,12 +322,85 @@ export default function EditVersionDetails({
 
   const detailsColumns: ColumnDef<IApPaymentDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
+    { accessorKey: "documentNo", header: "Document No" },
+    { accessorKey: "referenceNo", header: "Reference No" },
+    {
+      accessorKey: "docTotAmt",
+      header: "Document Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotAmt
+            ? formatNumber(row.original.docTotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docTotLocalAmt",
+      header: "Document Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotLocalAmt
+            ? formatNumber(row.original.docTotLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocAmt",
+      header: "Allocated Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocAmt
+            ? formatNumber(row.original.allocAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocLocalAmt",
+      header: "Allocated Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocLocalAmt
+            ? formatNumber(row.original.allocLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalAmt",
+      header: "Document Balance Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalAmt
+            ? formatNumber(row.original.docBalAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalLocalAmt",
+      header: "Document Balance Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalLocalAmt
+            ? formatNumber(row.original.docBalLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
   ]
 
   const handleRefresh = async () => {
@@ -342,31 +430,13 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                paymentHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {paymentHistoryData?.message === "Data does not exist"
-                  ? "No payment history found for this payment."
-                  : `Failed to load payment history: ${paymentHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.apPaymentHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }

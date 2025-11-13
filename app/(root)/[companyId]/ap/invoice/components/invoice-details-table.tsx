@@ -100,15 +100,6 @@ export default function InvoiceDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "JobOrder",
-            size: 100,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -160,7 +151,7 @@ export default function InvoiceDetailsTable({
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmt") as number, amtDec)}
+          {formatNumber(row.getValue("totAmt"), amtDec)}
         </div>
       ),
     },
@@ -171,7 +162,7 @@ export default function InvoiceDetailsTable({
       size: 50,
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstPercentage") as number, 2)}
+          {formatNumber(row.getValue("gstPercentage"), 2)}
         </div>
       ),
     },
@@ -181,25 +172,10 @@ export default function InvoiceDetailsTable({
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstAmt") as number, amtDec)}
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
         </div>
       ),
     },
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "taskName",
-            header: "Task Name",
-            size: 200,
-          },
-          {
-            accessorKey: "serviceName",
-            header: "Service Name",
-            size: 200,
-          },
-        ]
-      : []),
-
     ...(visible?.m_BillQTY
       ? [
           {
@@ -218,7 +194,7 @@ export default function InvoiceDetailsTable({
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt") as number, locAmtDec)}
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
         </div>
       ),
     },
@@ -251,7 +227,7 @@ export default function InvoiceDetailsTable({
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstLocalAmt") as number, locAmtDec)}
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
         </div>
       ),
     },
@@ -330,13 +306,13 @@ export default function InvoiceDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
-        columns={columns as ColumnDef<IApInvoiceDt>[]}
+        columns={columns}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.invoice}
-        tableName={TableName.apInvoiceDt}
+        tableName={TableName.arInvoiceDt}
         emptyMessage="No invoice details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
