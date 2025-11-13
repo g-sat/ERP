@@ -1,12 +1,12 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/cb-pettycash-calculations"
+} from "@/helpers/cb-genpayment-calculations"
 import { ICbPettyCashDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbPettyCashDtSchemaType, CbPettyCashHdSchemaType } from "@/schemas"
@@ -16,9 +16,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import PettyCashDetailsForm from "./cbpettycash-details-form"
-import PettyCashDetailsTable from "./cbpettycash-details-table"
-import PettyCashForm from "./cbpettycash-form"
+import CbPettyCashDetailsForm from "./cbPettyCash-details-form"
+import CbPettyCashDetailsTable from "./cbPettyCash-details-table"
+import CbPettyCashForm from "./cbPettyCash-form"
 
 interface MainProps {
   form: UseFormReturn<CbPettyCashHdSchemaType>
@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -55,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousCbPettyCashKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentCbPettyCashId = form.watch("paymentId")
+  const currentCbPettyCashNo = form.watch("paymentNo")
+
+  useEffect(() => {
+    const currentKey = `${currentCbPettyCashId ?? ""}::${currentCbPettyCashNo ?? ""}`
+    if (previousCbPettyCashKeyRef.current === currentKey) {
+      return
+    }
+
+    previousCbPettyCashKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentCbPettyCashId, currentCbPettyCashNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -65,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as ICbPettyCashDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailCbPettyCashId = `${detail.paymentId ?? ""}`
+      const editingCbPettyCashId = `${editingDetail.paymentId ?? ""}`
+      const detailCbPettyCashNo = detail.paymentNo ?? ""
+      const editingCbPettyCashNo = editingDetail.paymentNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailCbPettyCashId === editingCbPettyCashId &&
+        detailCbPettyCashNo === editingCbPettyCashNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -109,6 +152,19 @@ export default function Main({
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+
+    // Trigger form validation to update UI
+    form.trigger([
+      "totAmt",
+      "gstAmt",
+      "totAmtAftGst",
+      "totLocalAmt",
+      "gstLocalAmt",
+      "totLocalAmtAftGst",
+      "totCtyAmt",
+      "gstCtyAmt",
+      "totCtyAmtAftGst",
+    ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
@@ -206,7 +262,7 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <PettyCashForm
+      <CbPettyCashForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -216,7 +272,7 @@ export default function Main({
         defaultCurrencyId={defaults.cb.currencyId}
       />
 
-      <PettyCashDetailsForm
+      <CbPettyCashDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -225,12 +281,12 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as CbPettyCashDtSchemaType[]}
-        defaultGlId={0}
-        defaultUomId={defaults.common.uomId}
+        defaultGlId={defaults.ap.invoiceGlId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
-      <PettyCashDetailsTable
+      <CbPettyCashDetailsTable
         key={tableKey}
         data={(dataDetails as unknown as ICbPettyCashDt[]) || []}
         visible={visible}
@@ -240,6 +296,7 @@ export default function Main({
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={handleDataReorder as (newData: ICbPettyCashDt[]) => void}
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

@@ -1,7 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { CbPettyCashHdSchemaType } from "@/schemas/cb-pettycash"
+import { IVisibleFields } from "@/interfaces/setting"
+import { CbPettyCashHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { CBTransactionId, ModuleId } from "@/lib/utils"
@@ -9,9 +10,10 @@ import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<CbPettyCashHdSchemaType>
+  visible?: IVisibleFields
 }
 
-export default function Other({ form }: OtherProps) {
+export default function Other({ form, visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 
@@ -19,12 +21,12 @@ export default function Other({ form }: OtherProps) {
   const paymentNo = form.getValues("paymentNo") || ""
 
   return (
-    <div className="space-y-4">
-      {/* Document Upload Section - Only show after petty cash is saved */}
+    <div className="space-y-1">
+      {/* Document Upload Section - Only show after cbPettyCash is saved */}
       {paymentId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.cb}
-          transactionId={CBTransactionId.cbpettycash}
+          transactionId={CBTransactionId.cbgenpayment}
           recordId={paymentId}
           recordNo={paymentNo}
           companyId={Number(companyId)}

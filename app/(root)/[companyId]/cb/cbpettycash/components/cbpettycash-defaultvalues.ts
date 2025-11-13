@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultPettyCashDetails = {
+const buildDefaultCbPettyCashDetails = (dateFormat: string) => ({
   paymentId: "0",
   paymentNo: "",
   itemNo: 0,
@@ -38,20 +38,21 @@ const defaultPettyCashDetails = {
   voyageId: 0,
   voyageNo: "",
   editVersion: 0,
-}
+})
 
-const defaultPettyCash = {
+const buildDefaultCbPettyCash = (dateFormat: string) => ({
   companyId: 0,
   paymentId: "0",
   paymentNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  suppCbPettyCashNo: "",
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
-  paymentTypeId: 0,
   bankId: 0,
+  paymentTypeId: 0,
   chequeNo: "",
   chequeDate: "",
   bankChgGLId: 0,
@@ -60,7 +61,7 @@ const defaultPettyCash = {
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  gstClaimDate: format(new Date(), clientDateFormat),
+  gstClaimDate: format(new Date(), dateFormat),
   gstAmt: 0,
   gstLocalAmt: 0,
   gstCtyAmt: 0,
@@ -70,38 +71,33 @@ const defaultPettyCash = {
   remarks: "",
   payeeTo: "",
   moduleFrom: "",
-  createDate: format(new Date(), clientDateFormat),
-  editDate: null,
+  createById: 0,
+  createDate: format(new Date(), dateFormat),
+  editById: "",
+  editDate: "",
   isCancel: false,
-  cancelDate: null,
-  cancelRemarks: null,
+  cancelById: 0,
+  cancelDate: "",
+  cancelRemarks: "",
   createBy: "",
   editBy: "",
   cancelBy: "",
   editVersion: 0,
   isPost: false,
-  postDate: null,
-  appStatusId: null,
-  appById: null,
-  appDate: null,
+  postById: "",
+  postDate: "",
+  appStatusId: "",
+  appById: "",
+  appDate: "",
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultPettyCash: {
-      ...defaultPettyCash,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: "",
-      gstClaimDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultPettyCashDetails: {
-      ...defaultPettyCashDetails,
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultCbPettyCash: buildDefaultCbPettyCash(dateFormat),
+  defaultCbPettyCashDetails: buildDefaultCbPettyCashDetails(dateFormat),
+})
 
-export { defaultPettyCash, defaultPettyCashDetails }
+export const defaultCbPettyCash = buildDefaultCbPettyCash(clientDateFormat)
+export const defaultCbPettyCashDetails =
+  buildDefaultCbPettyCashDetails(clientDateFormat)

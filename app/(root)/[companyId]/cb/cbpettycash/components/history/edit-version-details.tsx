@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { ICbPettyCashDt, ICbPettyCashHd } from "@/interfaces"
+import { useEffect, useState } from "react"
+import { ICbPettyCashHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBPettyCashHistoryDetails,
-  useGetCBPettyCashHistoryList,
+  useGetCBCbPettyCashHistoryDetails,
+  useGetCBCbPettyCashHistoryList,
 } from "@/hooks/use-cb"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -20,36 +22,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+import { EditVersionDetailsForm } from "./edit-version-details-form"
+
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
 interface EditVersionDetailsProps {
-  invoiceId: string
+  paymentId: string
 }
 
 export default function EditVersionDetails({
-  invoiceId,
+  paymentId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbpettycash
+  const transactionId = CBTransactionId.cbgenpayment
 
-  const [selectedPayment, setSelectedPayment] = useState<ICbPettyCashHd | null>(
-    null
+  const [selectedCbPettyCash, setSelectedCbPettyCash] =
+    useState<ICbPettyCashHd | null>(null)
+  const canViewCbPettyCashHistory = hasPermission(
+    moduleId,
+    transactionId,
+    "isRead"
   )
 
-  const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetCBPettyCashHistoryList<ICbPettyCashHd[]>(invoiceId)
+  useEffect(() => {
+    if (!canViewCbPettyCashHistory) {
+      setSelectedCbPettyCash(null)
+    }
+  }, [canViewCbPettyCashHistory])
 
-  const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetCBPettyCashHistoryDetails<ICbPettyCashHd>(
-      selectedPayment?.paymentId || "",
-      selectedPayment?.editVersion?.toString() || ""
+  const { data: cbPettyCashHistoryData, refetch: refetchHistory } =
+    //useGetARCbPettyCashHistoryList<ICbPettyCashHd[]>("14120250100024")
+    useGetCBCbPettyCashHistoryList<ICbPettyCashHd[]>(paymentId)
+
+  const { data: cbPettyCashDetailsData, refetch: refetchDetails } =
+    useGetCBCbPettyCashHistoryDetails<ICbPettyCashHd>(
+      selectedCbPettyCash?.paymentId || "",
+      selectedCbPettyCash?.editVersion?.toString() || ""
     )
 
   function isICbPettyCashHdArray(arr: unknown): arr is ICbPettyCashHd[] {
@@ -62,24 +82,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: ICbPettyCashHd[] =
-    receiptHistoryData?.result === 1 &&
-    isICbPettyCashHdArray(receiptHistoryData?.data)
-      ? receiptHistoryData.data
+    cbPettyCashHistoryData?.result === 1 &&
+    isICbPettyCashHdArray(cbPettyCashHistoryData?.data)
+      ? cbPettyCashHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: ICbPettyCashHd | undefined =
-    receiptDetailsData?.result === 1 &&
-    receiptDetailsData?.data &&
-    typeof receiptDetailsData.data === "object" &&
-    receiptDetailsData.data !== null &&
-    !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbPettyCashHd)
+    cbPettyCashDetailsData?.result === 1 &&
+    cbPettyCashDetailsData?.data &&
+    typeof cbPettyCashDetailsData.data === "object" &&
+    cbPettyCashDetailsData.data !== null &&
+    !Array.isArray(cbPettyCashDetailsData.data)
+      ? (cbPettyCashDetailsData.data as ICbPettyCashHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = receiptHistoryData?.result === -1
-  const hasDetailsError = receiptDetailsData?.result === -1
+  const hasHistoryError = cbPettyCashHistoryData?.result === -1
+  const hasDetailsError = cbPettyCashDetailsData?.result === -1
 
   const columns: ColumnDef<ICbPettyCashHd>[] = [
     {
@@ -88,7 +108,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "paymentNo",
-      header: "Payment No",
+      header: "CbPettyCash No",
     },
     {
       accessorKey: "referenceNo",
@@ -114,36 +134,7 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "paymentTypeCode",
-      header: "Payment Type Code",
-    },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Payment Type Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
-    },
-    {
-      accessorKey: "chequeNo",
-      header: "Cheque No",
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+
     {
       accessorKey: "currencyCode",
       header: "Currency Code",
@@ -158,7 +149,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -169,39 +160,35 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
             : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "bankChgAmt",
-      header: "Bank Charge Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.bankChgAmt
-            ? row.original.bankChgAmt.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
     },
     {
-      accessorKey: "bankChgLocalAmt",
-      header: "Bank Charge Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.bankChgLocalAmt
-            ? row.original.bankChgLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
+    },
+    {
+      accessorKey: "bankCode",
+      header: "Bank Code",
+    },
+    {
+      accessorKey: "bankName",
+      header: "Bank Name",
     },
     {
       accessorKey: "totAmt",
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -211,38 +198,19 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
-    },
-    {
-      accessorKey: "totCtyAmt",
-      header: "Total Country Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totCtyAmt
-            ? row.original.totCtyAmt.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -252,18 +220,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstCtyAmt",
-      header: "GST Country Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstCtyAmt
-            ? row.original.gstCtyAmt.toFixed(amtDec)
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -274,7 +231,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
+            ? formatNumber(row.original.totAmtAftGst, amtDec)
             : "-"}
         </div>
       ),
@@ -285,71 +242,26 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmtAftGst, locAmtDec)
             : "-"}
         </div>
       ),
-    },
-    {
-      accessorKey: "totCtyAmtAftGst",
-      header: "Total Country After GST",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totCtyAmtAftGst
-            ? row.original.totCtyAmtAftGst.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "payeeTo",
-      header: "Payee To",
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
     },
     {
-      accessorKey: "moduleFrom",
-      header: "Module From",
+      accessorKey: "status",
+      header: "Status",
     },
     {
-      accessorKey: "isPost",
-      header: "Posted",
-      cell: ({ row }) => (row.original.isPost ? "Yes" : "No"),
+      accessorKey: "createByCode",
+      header: "Created By Code",
     },
     {
-      accessorKey: "postDate",
-      header: "Post Date",
-      cell: ({ row }) => {
-        const date = row.original.postDate
-          ? new Date(row.original.postDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "isCancel",
-      header: "Cancelled",
-      cell: ({ row }) => (row.original.isCancel ? "Yes" : "No"),
-    },
-    {
-      accessorKey: "cancelDate",
-      header: "Cancel Date",
-      cell: ({ row }) => {
-        const date = row.original.cancelDate
-          ? new Date(row.original.cancelDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "cancelRemarks",
-      header: "Cancel Remarks",
-    },
-    {
-      accessorKey: "createBy",
-      header: "Created By",
+      accessorKey: "createByName",
+      header: "Created By Name",
     },
     {
       accessorKey: "createDate",
@@ -362,8 +274,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editBy",
-      header: "Edited By",
+      accessorKey: "editByCode",
+      header: "Edited By Code",
+    },
+    {
+      accessorKey: "editByName",
+      header: "Edited By Name",
     },
     {
       accessorKey: "editDate",
@@ -375,103 +291,6 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "cancelBy",
-      header: "Cancelled By",
-    },
-  ]
-
-  const detailsColumns: ColumnDef<ICbPettyCashDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "seqNo", header: "Seq No" },
-    { accessorKey: "glCode", header: "GL Code" },
-    { accessorKey: "glName", header: "GL Name" },
-    {
-      accessorKey: "totAmt",
-      header: "Total Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totLocalAmt",
-      header: "Total Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totCtyAmt",
-      header: "Total Country Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totCtyAmt
-            ? row.original.totCtyAmt.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    { accessorKey: "gstName", header: "GST" },
-    {
-      accessorKey: "gstPercentage",
-      header: "GST %",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstPercentage
-            ? row.original.gstPercentage.toFixed(2)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstCtyAmt",
-      header: "GST Country Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstCtyAmt
-            ? row.original.gstCtyAmt.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    { accessorKey: "departmentCode", header: "Department Code" },
-    { accessorKey: "departmentName", header: "Department Name" },
-    { accessorKey: "employeeCode", header: "Employee Code" },
-    { accessorKey: "employeeName", header: "Employee Name" },
-    { accessorKey: "portCode", header: "Port Code" },
-    { accessorKey: "portName", header: "Port Name" },
-    { accessorKey: "vesselCode", header: "Vessel Code" },
-    { accessorKey: "vesselName", header: "Vessel Name" },
-    { accessorKey: "bargeCode", header: "Barge Code" },
-    { accessorKey: "bargeName", header: "Barge Name" },
-    { accessorKey: "voyageNo", header: "Voyage No" },
-    { accessorKey: "remarks", header: "Remarks" },
   ]
 
   const handleRefresh = async () => {
@@ -479,13 +298,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        receiptHistoryData?.message !== "Data does not exist"
+        cbPettyCashHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        receiptDetailsData?.message !== "Data does not exist"
+        cbPettyCashDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -501,116 +320,69 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                receiptHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {receiptHistoryData?.message === "Data does not exist"
-                  ? "No receipt history found for this receipt."
-                  : `Failed to load Petty Cash history: ${receiptHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.cbPettyCashHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedPayment(receipt)}
+            onRowSelect={
+              canViewCbPettyCashHistory
+                ? (cbPettyCash) => setSelectedCbPettyCash(cbPettyCash)
+                : undefined
+            }
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedPayment}
-        onOpenChange={() => setSelectedPayment(null)}
+        open={!!selectedCbPettyCash}
+        onOpenChange={() => setSelectedCbPettyCash(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Payment Details</DialogTitle>
+            <DialogTitle>
+              CbPettyCash Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.paymentNo} : v {selectedCbPettyCash?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                receiptDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {receiptDetailsData?.message === "Data does not exist"
-                  ? "No Petty Cash details found for this version."
-                  : `Failed to load Petty Cash details: ${receiptDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                transactionAmount: dialogData?.totAmt,
+                localAmount: dialogData?.totLocalAmt,
+                gstAmount: dialogData?.gstAmt,
+                localGstAmount: dialogData?.gstLocalAmt,
+                totalAmount: dialogData?.totAmtAftGst,
+                localTotalAmount: dialogData?.totLocalAmtAftGst,
+                paymentAmount: dialogData?.payAmt,
+                localPaymentAmount: dialogData?.payLocalAmt,
+                balanceAmount: dialogData?.balAmt,
+                localBalanceAmount: dialogData?.balLocalAmt,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading cbPettyCash details"
+                : "No cbPettyCash details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Header</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) =>
-                      key !== "data_details" ? (
-                        <div key={key} className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-sm">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
-                          <span className="font-medium">{String(value)}</span>
-                        </div>
-                      ) : null
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading Petty Cash details"
-                      : "No Petty Cash details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BasicTable
-                  data={dialogData?.data_details || []}
-                  columns={detailsColumns}
-                  moduleId={moduleId}
-                  transactionId={transactionId}
-                  tableName={TableName.cbPettyCashHistory}
-                  emptyMessage="No Petty Cash details available"
-                  onRefresh={handleRefresh}
-                  showHeader={true}
-                  showFooter={false}
-                  maxHeight="300px"
-                />
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>
