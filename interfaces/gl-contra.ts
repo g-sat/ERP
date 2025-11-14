@@ -56,9 +56,10 @@ export interface IGLContraDt {
   transactionId: number
   documentId: number
   documentNo: string
-  docCurrencyId: number
-  docExhRate: number
   referenceNo: string
+  docCurrencyId: number
+  docCurrencyCode: string
+  docExhRate: number
   docAccountDate: Date | string
   docDueDate: Date | string
   docTotAmt: number

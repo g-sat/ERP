@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { GLContraHdSchemaType } from "@/schemas/gl-arapcontra"
+import { GLContraHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { GLTransactionId, ModuleId } from "@/lib/utils"

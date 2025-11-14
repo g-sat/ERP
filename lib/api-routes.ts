@@ -1004,12 +1004,13 @@ export const GLJournal = {
 }
 
 // General Ledger Contra Endpoints
-export const GlContra = {
+export const GLContra = {
   get: "/account/getglcontra",
   getByIdNo: "/account/getglcontrabyidno",
   add: "/account/saveglcontra",
   delete: "/account/deleteglcontra",
   history: "/account/gethistoryglcontrabyid",
+  historyDetails: "/account/gethistoryglcontradetailsbyid",
 }
 
 // General Ledger Period Close Endpoints

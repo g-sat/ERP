@@ -1,16 +1,36 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { IGLContraFilter, IGLContraHd } from "@/interfaces"
-import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { GLContraHdSchemaType, glcontraHdSchema } from "@/schemas/gl-arapcontra"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import { setExchangeRate } from "@/helpers/account"
+import {
+  IGLContraDt,
+  IGLContraFilter,
+  IGLContraHd,
+  IMandatoryFields,
+  IVisibleFields,
+} from "@/interfaces"
+import {
+  GLContraDtSchemaType,
+  GLContraHdSchema,
+  GLContraHdSchemaType,
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -19,22 +39,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { GlContra } from "@/lib/api-routes"
+import { BasicSetting, GLContra } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { GLTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -42,41 +59,126 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultContra } from "./components/arapcontra-defaultvalues"
-import ContraTable from "./components/arapcontra-table"
+import { getDefaultValues } from "./components/glContra-defaultvalues"
+import ContraTable from "./components/glContra-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
 
-export default function GLContraPage() {
+export default function ArapcontraPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.gl
   const transactionId = GLTransactionId.arapcontra
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const documentNoFromQuery = useMemo(() => {
+    const value =
+      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ap/payment`,
+    [companyId]
+  )
+
+  const [pendingDocNo, setPendingDocNo] = useState<string>("")
+
+  useEffect(() => {
+    if (documentNoFromQuery) {
+      setPendingDocNo(documentNoFromQuery)
+      setSearchNo(documentNoFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        setPendingDocNo(stored)
+        setSearchNo(stored)
+      }
+    }
+  }, [autoLoadStorageKey, documentNoFromQuery])
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingContra, setIsLoadingContra] = useState(false)
-  const [isSelectingContra, setIsSelectingContra] = useState(false)
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [contra, setContra] = useState<GLContraHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
+
   const [filters, setFilters] = useState<IGLContraFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "contraNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const { defaultContra: defaultContraValues } = useMemo(
+    () => getDefaultValues(dateFormat),
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -94,128 +196,107 @@ export default function GLContraPage() {
 
   // Add form state management
   const form = useForm<GLContraHdSchemaType>({
-    resolver: zodResolver(glcontraHdSchema(required, visible)),
-    defaultValues: {
-      ...defaultContra,
-    },
+    resolver: zodResolver(GLContraHdSchema(required, visible)),
+    defaultValues: contra
+      ? {
+          contraId: contra.contraId?.toString() ?? "0",
+          contraNo: contra.contraNo ?? "",
+          referenceNo: contra.referenceNo ?? "",
+          trnDate: contra.trnDate ?? new Date(),
+          accountDate: contra.accountDate ?? new Date(),
+          supplierId: contra.supplierId ?? 0,
+          customerId: contra.customerId ?? 0,
+          currencyId: contra.currencyId ?? 0,
+          exhRate: contra.exhRate ?? 0,
+          totAmt: contra.totAmt ?? 0,
+          totLocalAmt: contra.totLocalAmt ?? 0,
+          exhGainLoss: contra.exhGainLoss ?? 0,
+          moduleFrom: contra.moduleFrom ?? "",
+          editVersion: contra.editVersion ?? 0,
+          data_details:
+            contra.data_details?.map((detail) => ({
+              ...detail,
+              contraId: detail.contraId?.toString() ?? "0",
+              contraNo: detail.contraNo ?? "",
+              itemNo: detail.itemNo ?? 0,
+              moduleId: detail.moduleId ?? 0,
+              transactionId: detail.transactionId ?? 0,
+              documentId: detail.documentId ?? 0,
+              documentNo: detail.documentNo ?? "",
+              referenceNo: detail.referenceNo ?? "",
+              docCurrencyId: detail.docCurrencyId ?? 0,
+              docExhRate: detail.docExhRate ?? 0,
+              docAccountDate: detail.docAccountDate ?? "",
+              docDueDate: detail.docDueDate ?? "",
+              docTotAmt: detail.docTotAmt ?? 0,
+              docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+              docBalAmt: detail.docBalAmt ?? 0,
+              docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+              allocAmt: detail.allocAmt ?? 0,
+              allocLocalAmt: detail.allocLocalAmt ?? 0,
+              docAllocAmt: detail.docAllocAmt ?? 0,
+              docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+              centDiff: detail.centDiff ?? 0,
+              exhGainLoss: detail.exhGainLoss ?? 0,
+              editVersion: detail.editVersion ?? 0,
+            })) || [],
+        }
+      : (() => {
+          // For new payment, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultContraValues,
+            createBy: userName,
+            createDate: currentDateTime,
+            data_details: [],
+          }
+        })(),
   })
 
-  // Data fetching moved to ArapcontraTable component for better performance
+  // Data fetching moved to PaymentTable component for better performance
+
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const lastQueriedDocRef = useRef<string | null>(null)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentContraId = form.getValues("contraId") || "0"
+    if (
+      (contra && contra.contraId && contra.contraId !== "0") ||
+      currentContraId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultContraValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [dateFormat, defaultContraValues, decimals, form, contra, isDirty, user])
 
   // Mutations
-  const saveMutation = usePersist<GLContraHdSchemaType>(`${GlContra.add}`)
-  const updateMutation = usePersist<GLContraHdSchemaType>(`${GlContra.add}`)
-  const deleteMutation = useDelete(`${GlContra.delete}`)
+  const saveMutation = usePersist<GLContraHdSchemaType>(`${GLContra.add}`)
+  const updateMutation = usePersist<GLContraHdSchemaType>(`${GLContra.add}`)
+  const deleteMutation = useDeleteWithRemarks(`${GLContra.delete}`)
 
-  // Helper function to transform IGLContraHd to GLContraHdSchemaType
-  const transformToSchemaType = (
-    apiContra: IGLContraHd
-  ): GLContraHdSchemaType => {
-    return {
-      contraId: apiContra.contraId?.toString() ?? "0",
-      contraNo: apiContra.contraNo ?? "",
-      referenceNo: apiContra.referenceNo ?? "",
-      trnDate: apiContra.trnDate
-        ? format(
-            parseDate(apiContra.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      accountDate: apiContra.accountDate
-        ? format(
-            parseDate(apiContra.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : clientDateFormat,
-      supplierId: apiContra.supplierId ?? 0,
-      customerId: apiContra.customerId ?? 0,
-      currencyId: apiContra.currencyId ?? 0,
-      exhRate: apiContra.exhRate ?? 0,
-      remarks: apiContra.remarks ?? "",
-      totAmt: apiContra.totAmt ?? 0,
-      totLocalAmt: apiContra.totLocalAmt ?? 0,
-      exhGainLoss: apiContra.exhGainLoss ?? 0,
-      moduleFrom: apiContra.moduleFrom ?? "",
-      createById: apiContra.createById ?? 0,
-      createDate: apiContra.createDate
-        ? format(
-            parseDate(apiContra.createDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      editVer: apiContra.editVer ?? 0,
-      editById: apiContra.editById ?? 0,
-      editDate: apiContra.editDate
-        ? format(
-            parseDate(apiContra.editDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      editVersion: apiContra.editVersion ?? 0,
-      isCancel: apiContra.isCancel ?? false,
-      cancelById: apiContra.cancelById ?? 0,
-      cancelDate: apiContra.cancelDate
-        ? format(
-            parseDate(apiContra.cancelDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      cancelRemarks: apiContra.cancelRemarks ?? "",
-      isPost: apiContra.isPost ?? false,
-      postById: apiContra.postById ?? 0,
-      postDate: apiContra.postDate
-        ? format(
-            parseDate(apiContra.postDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      appStatusId: apiContra.appStatusId ?? 0,
-      appById: apiContra.appById ?? 0,
-      appDate: apiContra.appDate
-        ? format(
-            parseDate(apiContra.appDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      data_details:
-        apiContra.data_details?.map((detail) => ({
-          companyId: detail.companyId ?? 0,
-          contraId: detail.contraId ?? 0,
-          contraNo: detail.contraNo ?? "",
-          itemNo: detail.itemNo ?? 0,
-          moduleId: detail.moduleId ?? 0,
-          transactionId: detail.transactionId ?? 0,
-          documentId: detail.documentId ?? 0,
-          documentNo: detail.documentNo ?? "",
-          docCurrencyId: detail.docCurrencyId ?? 0,
-          docExhRate: detail.docExhRate ?? 0,
-          referenceNo: detail.referenceNo ?? "",
-          docAccountDate: detail.docAccountDate
-            ? format(
-                parseDate(detail.docAccountDate as string) || new Date(),
-                clientDateFormat
-              )
-            : "",
-          docDueDate: detail.docDueDate
-            ? format(
-                parseDate(detail.docDueDate as string) || new Date(),
-                clientDateFormat
-              )
-            : "",
-          docTotAmt: detail.docTotAmt ?? 0,
-          docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-          docBalAmt: detail.docBalAmt ?? 0,
-          docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-          allocAmt: detail.allocAmt ?? 0,
-          allocLocalAmt: detail.allocLocalAmt ?? 0,
-          docAllocAmt: detail.docAllocAmt ?? 0,
-          docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-          centDiff: detail.centDiff ?? 0,
-          exhGainLoss: detail.exhGainLoss ?? 0,
-          editVersion: detail.editVersion ?? 0,
-        })) || [],
-    }
-  }
+  // Remove the useGetPaymentById hook for selection
+  // const { data: paymentByIdData, refetch: refetchPaymentById } = ...
 
   // Handle Save
   const handleSaveContra = async () => {
@@ -232,8 +313,10 @@ export default function GLContraPage() {
         form.getValues() as unknown as IGLContraHd
       )
 
+      console.log("formValues", formValues)
+
       // Validate the form data using the schema
-      const validationResult = glcontraHdSchema(required, visible).safeParse(
+      const validationResult = GLContraHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -253,58 +336,171 @@ export default function GLContraPage() {
         return
       }
 
-      const response =
-        Number(formValues.contraId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      //check totamt and totlocalamt should be zero
+      if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
+        toast.error("Total Amount and Total Local Amount should not be zero")
+        return
+      }
 
-      if (response.result === 1) {
-        const contraData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.contraId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        // Transform API response back to form values
-        if (contraData) {
-          const updatedSchemaType = transformToSchemaType(
-            contraData as unknown as IGLContraHd
-          )
-          setIsSelectingContra(true)
-          setContra(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
+
+        const parsedAccountDate = parseWithFallback(accountDate)
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
 
-        // Data refresh handled by ContraTable component
-      } else {
-        toast.error(response.message || "Failed to save contra")
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+      {
+        const response =
+          Number(formValues.contraId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const paymentData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (paymentData) {
+            const updatedSchemaType = transformToSchemaType(
+              paymentData as unknown as IGLContraHd
+            )
+            setSearchNo(updatedSchemaType.contraNo || "")
+            setContra(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by PaymentTable component
+        } else {
+          toast.error(response.message || "Failed to save contra")
+        }
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving contra")
     } finally {
       setIsSaving(false)
-      setIsSelectingContra(false)
     }
   }
 
-  // Handle Delete
-  const handleDeleteContra = async () => {
+  // Handle Clone
+  const handleCloneContra = async () => {
+    if (contra) {
+      // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
+      const clonedContra: GLContraHdSchemaType = {
+        ...contra,
+        contraId: "0",
+        contraNo: "",
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all amounts for new payment
+        totAmt: 0,
+        totLocalAmt: 0,
+        exhGainLoss: 0,
+        // Clear data details - remove all records
+        data_details: [],
+      }
+
+      setContra(clonedContra)
+      form.reset(clonedContra)
+      form.trigger("accountDate")
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedContra.currencyId && clonedContra.accountDate) {
+        try {
+          // Wait a tick to ensure form state is updated before calling setExchangeRate
+          await new Promise((resolve) => setTimeout(resolve, 0))
+
+          await setExchangeRate(form, exhRateDec, visible)
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
+      toast.success("Contra cloned successfully")
+    }
+  }
+
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleContraDelete = async (cancelRemarks: string) => {
     if (!contra) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        contra.contraId?.toString() ?? ""
-      )
+      const response = await deleteMutation.mutateAsync({
+        documentId: contra.contraId?.toString() ?? "",
+        documentNo: contra.contraNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setContra(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultContra,
+          ...defaultContraValues,
           data_details: [],
         })
+        toast.success(`Contra ${contra.contraNo} deleted successfully`)
         // Data refresh handled by ContraTable component
       } else {
         toast.error(response.message || "Failed to delete contra")
@@ -315,129 +511,268 @@ export default function GLContraPage() {
   }
 
   // Handle Reset
-  const handleReset = () => {
+  const handleContraReset = () => {
     setContra(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new payment)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
-      ...defaultContra,
+      ...defaultContraValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
-    setShowResetConfirm(false)
-    setActiveTab("main")
     toast.success("Contra reset successfully")
   }
 
-  // Handle Clone
-  const handleClone = () => {
-    if (contra) {
-      // Create a proper clone with form values
-      const clonedContra: GLContraHdSchemaType = {
-        ...contra,
-        contraId: "0",
-        contraNo: "",
-        // Reset amounts for new contra
-        totAmt: 0,
-        totLocalAmt: 0,
-        exhGainLoss: 0,
-        // Reset data details
-        data_details: [],
+  // Helper function to transform IGLContraHd to GLContraHdSchemaType
+  const transformToSchemaType = useCallback(
+    (apiContra: IGLContraHd): GLContraHdSchemaType => {
+      return {
+        contraId: apiContra.contraId?.toString() ?? "0",
+        contraNo: apiContra.contraNo ?? "",
+        referenceNo: apiContra.referenceNo ?? "",
+        trnDate: apiContra.trnDate
+          ? format(
+              parseDate(apiContra.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiContra.accountDate
+          ? format(
+              parseDate(apiContra.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        supplierId: apiContra.supplierId ?? 0,
+        customerId: apiContra.customerId ?? 0,
+        currencyId: apiContra.currencyId ?? 0,
+        exhRate: apiContra.exhRate ?? 0,
+        totAmt: apiContra.totAmt ?? 0,
+        totLocalAmt: apiContra.totLocalAmt ?? 0,
+        exhGainLoss: apiContra.exhGainLoss ?? 0,
+        remarks: apiContra.remarks ?? "",
+        moduleFrom: apiContra.moduleFrom ?? "",
+        editVersion: apiContra.editVersion ?? 0,
+        createBy: apiContra.createById?.toString() ?? "",
+        editBy: apiContra.editById?.toString() ?? "",
+        cancelBy: apiContra.cancelById?.toString() ?? "",
+        isCancel: apiContra.isCancel ?? false,
+        createDate: apiContra.createDate
+          ? format(
+              parseDate(apiContra.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        editDate: apiContra.editDate
+          ? format(
+              parseDate(apiContra.editDate as unknown as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiContra.cancelDate
+          ? format(
+              parseDate(apiContra.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelRemarks: apiContra.cancelRemarks ?? "",
+        data_details:
+          apiContra.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                contraId: detail.contraId?.toString() ?? "0",
+                contraNo: detail.contraNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                moduleId: detail.moduleId ?? 0,
+                transactionId: detail.transactionId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
+                documentNo: detail.documentNo ?? "",
+                referenceNo: detail.referenceNo ?? "",
+                docCurrencyId: detail.docCurrencyId ?? 0,
+                docExhRate: detail.docExhRate ?? 0,
+                docAccountDate: detail.docAccountDate
+                  ? format(
+                      parseDate(detail.docAccountDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                docDueDate: detail.docDueDate
+                  ? format(
+                      parseDate(detail.docDueDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                docTotAmt: detail.docTotAmt ?? 0,
+                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                docBalAmt: detail.docBalAmt ?? 0,
+                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                allocAmt: detail.allocAmt ?? 0,
+                allocLocalAmt: detail.allocLocalAmt ?? 0,
+                docAllocAmt: detail.docAllocAmt ?? 0,
+                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                centDiff: detail.centDiff ?? 0,
+                exhGainLoss: detail.exhGainLoss ?? 0,
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as GLContraDtSchemaType
+          ) || [],
       }
-      setContra(clonedContra)
-      form.reset(clonedContra)
-      setShowCloneConfirm(false)
-      toast.success("Contra cloned successfully")
-    }
-  }
+    },
+    [dateFormat, decimals]
+  )
 
-  // Handle contra selection from list
   const handleContraSelect = async (
-    selectedContra: IGLContraHd | undefined
+    selectedPayment: IGLContraHd | undefined
   ) => {
-    if (!selectedContra) return
-
-    setIsSelectingContra(true)
+    if (!selectedPayment) return
 
     try {
-      // Fetch contra details directly using selected contra's values
+      // Fetch payment details directly using selected payment's values
       const response = await getById(
-        `${GlContra.getByIdNo}/${selectedContra.contraId}/${selectedContra.contraNo}`
+        `${GLContra.getByIdNo}/${selectedPayment.contraId}/${selectedPayment.contraNo}`
       )
 
       if (response?.result === 1) {
-        const detailedContra = Array.isArray(response.data)
+        const detailedPayment = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedContra) {
-          const updatedContra = transformToSchemaType(detailedContra)
+        if (detailedPayment) {
+          {
+            const parsed = parseDate(detailedPayment.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedPayment.accountDate as string)
+            )
+          }
 
-          setContra(updatedContra)
-          form.reset(updatedContra)
+          // Parse dates properly
+          const updatedPayment = {
+            ...detailedPayment,
+            contraId: detailedPayment.contraId?.toString() ?? "0",
+            contraNo: detailedPayment.contraNo ?? "",
+            referenceNo: detailedPayment.referenceNo ?? "",
+            trnDate: detailedPayment.trnDate
+              ? format(
+                  parseDate(detailedPayment.trnDate as string) || new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+            accountDate: detailedPayment.accountDate
+              ? format(
+                  parseDate(detailedPayment.accountDate as string) ||
+                    new Date(),
+                  dateFormat
+                )
+              : dateFormat,
+
+            supplierId: detailedPayment.supplierId ?? 0,
+            customerId: detailedPayment.customerId ?? 0,
+            currencyId: detailedPayment.currencyId ?? 0,
+            exhRate: detailedPayment.exhRate ?? 0,
+            totAmt: detailedPayment.totAmt ?? 0,
+            totLocalAmt: detailedPayment.totLocalAmt ?? 0,
+            exhGainLoss: detailedPayment.exhGainLoss ?? 0,
+            remarks: detailedPayment.remarks ?? "",
+            data_details:
+              detailedPayment.data_details?.map((detail: IGLContraDt) => ({
+                contraId: detail.contraId?.toString() ?? "0",
+                contraNo: detail.contraNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                moduleId: detail.moduleId ?? 0,
+                transactionId: detail.transactionId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
+                documentNo: detail.documentNo ?? "",
+                referenceNo: detail.referenceNo ?? "",
+                docCurrencyId: detail.docCurrencyId ?? 0,
+                docExhRate: detail.docExhRate ?? 0,
+                docAccountDate: detail.docAccountDate
+                  ? format(
+                      parseDate(detail.docAccountDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                docDueDate: detail.docDueDate
+                  ? format(
+                      parseDate(detail.docDueDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                docTotAmt: detail.docTotAmt ?? 0,
+                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                docBalAmt: detail.docBalAmt ?? 0,
+                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                allocAmt: detail.allocAmt ?? 0,
+                allocLocalAmt: detail.allocLocalAmt ?? 0,
+                docAllocAmt: detail.docAllocAmt ?? 0,
+                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                centDiff: detail.centDiff ?? 0,
+                exhGainLoss: detail.exhGainLoss ?? 0,
+                editVersion: detail.editVersion ?? 0,
+              })) || [],
+          }
+
+          //setContra(updatedPayment as GLContraHdSchemaType)
+          setContra(transformToSchemaType(updatedPayment))
+          form.reset(updatedPayment)
           form.trigger()
+
+          // Set the payment number in search input
+          setSearchNo(updatedPayment.contraNo || "")
 
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(`Contra ${selectedContra.contraNo} loaded successfully`)
+          toast.success(
+            `Payment ${updatedPayment.contraNo} loaded successfully`
+          )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch contra details")
+        toast.error(response?.message || "Failed to fetch payment details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching contra details:", error)
-      toast.error("Error loading contra. Please try again.")
+      console.error("Error fetching payment details:", error)
+      toast.error("Error loading payment. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingContra(false)
+      // Selection completed
     }
   }
 
-  // Handle search by contra number
-  const handleContraSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingContra(true)
-
-    try {
-      const response = await getById(`${GlContra.getByIdNo}/0/${value}`)
-
-      if (response?.result === 1) {
-        const detailedContra = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedContra) {
-          const updatedContra = transformToSchemaType(detailedContra)
-
-          setContra(updatedContra)
-          form.reset(updatedContra)
-          form.trigger()
-
-          // Show success message
-          toast.success(`Contra ${value} loaded successfully`)
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        toast.error(response?.message || "Failed to fetch contra details")
-        // Keep dialog open on failure so user can try again
-      }
-    } catch (error) {
-      console.error("Error fetching contra details:", error)
-      toast.error("Error loading contra. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      setIsLoadingContra(false)
-    }
-  }
-
-  // Handle filter change
+  // Remove direct refetchPayments from handleFilterChange
   const handleFilterChange = (newFilters: IGLContraFilter) => {
     setFilters(newFilters)
+    // refetchPayments(); // Removed: will be handled by useEffect
   }
 
-  // Data refresh handled by ContraTable component
+  // Set createBy and createDate for new payments on page load/refresh
+  useEffect(() => {
+    if (!contra && user && decimals.length > 0) {
+      const currentContraId = form.getValues("contraId")
+      const currentContraNo = form.getValues("contraNo")
+      const isNewContra =
+        !currentContraId || currentContraId === "0" || !currentContraNo
+
+      if (isNewContra) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [contra, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -463,19 +798,218 @@ export default function GLContraPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  // Determine mode and contra ID from form
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
+
+  const handleContraSearch = useCallback(
+    async (value: string) => {
+      if (!value) return
+
+      setIsLoadingPayment(true)
+
+      try {
+        const response = await getById(`${GLContra.getByIdNo}/0/${value}`)
+
+        if (response?.result === 1) {
+          const detailedPayment = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedPayment) {
+            {
+              const parsed = parseDate(detailedPayment.accountDate as string)
+              setPreviousAccountDate(
+                parsed
+                  ? format(parsed, dateFormat)
+                  : (detailedPayment.accountDate as string)
+              )
+            }
+            // Parse dates properly
+            const updatedPayment = {
+              ...detailedPayment,
+              contraId: detailedPayment.contraId?.toString() ?? "0",
+              contraNo: detailedPayment.contraNo ?? "",
+              referenceNo: detailedPayment.referenceNo ?? "",
+              suppInvoiceNo: "", // Required by schema but not in interface
+              trnDate: detailedPayment.trnDate
+                ? format(
+                    parseDate(detailedPayment.trnDate as string) || new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
+              accountDate: detailedPayment.accountDate
+                ? format(
+                    parseDate(detailedPayment.accountDate as string) ||
+                      new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
+
+              supplierId: detailedPayment.supplierId ?? 0,
+              currencyId: detailedPayment.currencyId ?? 0,
+              exhRate: detailedPayment.exhRate ?? 0,
+              bankId: detailedPayment.bankId ?? 0,
+              paymentTypeId: detailedPayment.paymentTypeId ?? 0,
+              chequeNo: detailedPayment.chequeNo ?? "",
+              chequeDate: detailedPayment.chequeDate
+                ? format(
+                    parseDate(detailedPayment.chequeDate as string) ||
+                      new Date(),
+                    dateFormat
+                  )
+                : dateFormat,
+              bankChgGLId: detailedPayment.bankChgGLId ?? 0,
+              bankChgAmt: detailedPayment.bankChgAmt ?? 0,
+              bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
+              totAmt: detailedPayment.totAmt ?? 0,
+              totLocalAmt: detailedPayment.totLocalAmt ?? 0,
+              payCurrencyId: detailedPayment.payCurrencyId ?? 0,
+              payExhRate: detailedPayment.payExhRate ?? 0,
+              payTotAmt: detailedPayment.payTotAmt ?? 0,
+              payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
+              unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
+              unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
+              exhGainLoss: detailedPayment.exhGainLoss ?? 0,
+              remarks: detailedPayment.remarks ?? "",
+              docExhRate: detailedPayment.docExhRate ?? 0,
+              docTotAmt: detailedPayment.docTotAmt ?? 0,
+              docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
+              allocTotAmt: detailedPayment.allocTotAmt ?? 0,
+              allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
+              jobOrderId: detailedPayment.jobOrderId ?? 0,
+              jobOrderNo: detailedPayment.jobOrderNo ?? "",
+              moduleFrom: detailedPayment.moduleFrom ?? "",
+              editVersion: detailedPayment.editVersion ?? 0,
+              createBy: detailedPayment.createById?.toString() ?? "",
+              createDate: detailedPayment.createDate
+                ? format(
+                    parseDate(detailedPayment.createDate as string) ||
+                      new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              editBy: detailedPayment.editById?.toString() ?? "",
+              editDate: detailedPayment.editDate
+                ? format(
+                    parseDate(detailedPayment.editDate as string) || new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              isCancel: detailedPayment.isCancel ?? false,
+              cancelBy: detailedPayment.cancelById?.toString() ?? "",
+              cancelDate: detailedPayment.cancelDate
+                ? format(
+                    parseDate(detailedPayment.cancelDate as string) ||
+                      new Date(),
+                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                  )
+                : "",
+              cancelRemarks: detailedPayment.cancelRemarks ?? "",
+
+              data_details:
+                detailedPayment.data_details?.map((detail: IGLContraDt) => ({
+                  contraId: detail.contraId?.toString() ?? "0",
+                  contraNo: detail.contraNo ?? "",
+                  itemNo: detail.itemNo ?? 0,
+                  transactionId: detail.transactionId ?? 0,
+                  documentId: detail.documentId?.toString() ?? "0",
+                  documentNo: detail.documentNo ?? "",
+                  referenceNo: detail.referenceNo ?? "",
+                  docCurrencyId: detail.docCurrencyId ?? 0,
+                  docExhRate: detail.docExhRate ?? 0,
+                  docAccountDate: detail.docAccountDate
+                    ? format(
+                        parseDate(detail.docAccountDate as string) ||
+                          new Date(),
+                        dateFormat
+                      )
+                    : "",
+                  docDueDate: detail.docDueDate
+                    ? format(
+                        parseDate(detail.docDueDate as string) || new Date(),
+                        dateFormat
+                      )
+                    : "",
+                  docTotAmt: detail.docTotAmt ?? 0,
+                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
+                  docBalAmt: detail.docBalAmt ?? 0,
+                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
+                  allocAmt: detail.allocAmt ?? 0,
+                  allocLocalAmt: detail.allocLocalAmt ?? 0,
+                  docAllocAmt: detail.docAllocAmt ?? 0,
+                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
+                  centDiff: detail.centDiff ?? 0,
+                  exhGainLoss: detail.exhGainLoss ?? 0,
+                  editVersion: detail.editVersion ?? 0,
+                })) || [],
+            }
+
+            //setContra(updatedPayment as GLContraHdSchemaType)
+            setContra(transformToSchemaType(updatedPayment))
+            form.reset(updatedPayment)
+            form.trigger()
+
+            // Set the payment number in search input to the actual payment number from database
+            setSearchNo(updatedPayment.contraNo || "")
+
+            // Show success message
+            toast.success(
+              `Payment ${updatedPayment.contraNo || value} loaded successfully`
+            )
+
+            // Close the load confirmation dialog on success
+            setShowLoadConfirm(false)
+          }
+        } else {
+          toast.error(response?.message || "Failed to fetch payment details")
+          // Keep dialog open on failure so user can try again
+        }
+      } catch (error) {
+        console.error("Error fetching payment details:", error)
+        toast.error("Error loading payment. Please try again.")
+        // Keep dialog open on error
+      } finally {
+        setIsLoadingPayment(false)
+      }
+    },
+    [
+      dateFormat,
+      decimals,
+      form,
+      setIsLoadingPayment,
+      setPreviousAccountDate,
+      setContra,
+      setShowLoadConfirm,
+      transformToSchemaType,
+    ]
+  )
+
+  useEffect(() => {
+    if (!pendingDocNo) return
+    if (lastQueriedDocRef.current === pendingDocNo) return
+
+    lastQueriedDocRef.current = pendingDocNo
+    setSearchNo(pendingDocNo)
+    void handleContraSearch(pendingDocNo)
+  }, [handleContraSearch, pendingDocNo])
+
+  // Determine mode and payment ID from URL
   const contraNo = form.getValues("contraNo")
   const isEdit = Boolean(contraNo)
+  const isCancelled = contra?.isCancel === true
 
   // Compose title text
-  const titleText = isEdit ? `Contra (Edit) - ${contraNo}` : "Contra (New)"
+  const titleText = isEdit
+    ? `Contra (Edit)- v[${contra?.editVersion}] - ${contraNo}`
+    : "Contra (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -501,31 +1035,65 @@ export default function GLContraPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history" disabled={!isEdit}>
-              History
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {contra?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {contra.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (contra?.contraNo) {
+                    setSearchNo(contra.contraNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingPayment}
+                className="h-4 w-4 p-0"
+                title="Refresh contra data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Input
@@ -551,6 +1119,7 @@ export default function GLContraPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
+              disabled={false}
             >
               <ListFilter className="mr-1 h-4 w-4" />
               List
@@ -561,13 +1130,30 @@ export default function GLContraPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
@@ -583,6 +1169,7 @@ export default function GLContraPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
+              //disabled={!invoice}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -592,7 +1179,7 @@ export default function GLContraPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!contra || contra.contraId === "0"}
+              disabled={!contra || contra.contraId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -602,10 +1189,21 @@ export default function GLContraPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!contra || contra.contraId === "0"}
+              disabled={
+                !canView ||
+                !contra ||
+                contra.contraId === "0" ||
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -637,52 +1235,33 @@ export default function GLContraPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by ContraTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Contra List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing contra entries from the list below.
-                  Use search to filter records or create new entries.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Payment List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing payments from the list below. Use
+              search to filter records or create new payments.
+            </p>
+          </div>
 
-          {isSelectingContra ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingContra
-                    ? "Loading contra details..."
-                    : "Loading contra list..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingContra
-                    ? "Please wait while we fetch the complete contra data"
-                    : "Please wait while we fetch the contra list"}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
             <ContraTable
-              onArapcontraSelect={handleContraSelect}
+              onContraSelect={handleContraSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -704,11 +1283,22 @@ export default function GLContraPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleDeleteContra}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={contra?.contraNo}
         title="Delete Contra"
         description="This action cannot be undone. All contra details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Cancel Confirmation */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleContraDelete}
+        itemName={contra?.contraNo}
+        title="Cancel Contra"
+        description="Please provide a reason for cancelling this contra."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}
@@ -720,14 +1310,14 @@ export default function GLContraPage() {
         typeLabel="Contra"
         showDetails={false}
         description={`Do you want to load Contra ${searchNo}?`}
-        isLoading={isLoadingContra}
+        isLoading={isLoadingPayment}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleReset}
+        onConfirm={handleContraReset}
         itemName={contra?.contraNo}
         title="Reset Contra"
         description="This will clear all unsaved changes."
@@ -737,7 +1327,7 @@ export default function GLContraPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleClone}
+        onConfirm={handleCloneContra}
         itemName={contra?.contraNo}
         title="Clone Contra"
         description="This will create a copy as a new contra."

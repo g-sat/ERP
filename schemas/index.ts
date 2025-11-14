@@ -84,4 +84,4 @@ export * from "./cb-pettycash"
 
 // GL schemas
 export * from "./gl-journal"
-export * from "./gl-arapcontra"
+export * from "./gl-contra"

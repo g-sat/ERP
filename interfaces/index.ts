@@ -100,5 +100,5 @@ export * from "./cb-pettycash"
 //account-gl
 export * from "./gl-periodclose"
 export * from "./gl-journal"
-export * from "./gl-arapcontra"
+export * from "./gl-contra"
 export * from "./outtransaction"

@@ -1,22 +1,30 @@
-// main-tab.tsx - GL Contra Main Tab
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { IGLContraDt } from "@/interfaces"
-import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  GLContraDtSchemaType,
-  GLContraHdSchemaType,
-} from "@/schemas/gl-arapcontra"
+  autoAllocateAmounts,
+  calauteLocalAmtandGainLoss,
+  calculateManualAllocation,
+  validateAllocation as validateAllocationHelper,
+} from "@/helpers/gl-contra-calculations"
+import { IApOutTransaction, IArOutTransaction, IGLContraDt } from "@/interfaces"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import { GLContraDtSchemaType, GLContraHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { Plus, RotateCcw, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
+import { APTransactionId, ARTransactionId, ModuleId } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
+import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ar-outstandingtransactions-dialog"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 
-import ApDetailsTable from "./ap-details-table"
-import ArDetailsTable from "./ar-details-table"
-import ContraForm from "./arapcontra-form"
+import ApGLContraDetailsTable from "./glContra-ap-details-table"
+import ArGLContraDetailsTable from "./glContra-ar-details-table"
+import ContraForm from "./glContra-form"
 
 interface MainProps {
   form: UseFormReturn<GLContraHdSchemaType>
@@ -25,6 +33,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -34,173 +43,807 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const decimalConfig = useMemo(
+    () =>
+      decimals[0] ||
+      ({
+        amtDec: 2,
+        locAmtDec: 2,
+        exhRateDec: 6,
+      } as const),
+    [decimals]
+  )
+  const amtDec = decimalConfig.amtDec
 
-  const [editingDetail, setEditingDetail] =
-    useState<GLContraDtSchemaType | null>(null)
+  const [showArTransactionDialog, setShowArTransactionDialog] = useState(false)
+  const [showApTransactionDialog, setShowApTransactionDialog] = useState(false)
 
-  // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
-
-  // Clear editingDetail when data_details is reset/cleared
-  useEffect(() => {
-    if (dataDetails.length === 0 && editingDetail) {
-      setEditingDetail(null)
-    }
-  }, [dataDetails.length, editingDetail])
-
-  // Recalculate header totals when details change
-  useEffect(() => {
+  const [isAllocated, setIsAllocated] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [dataDetails, setDataDetails] = useState<GLContraDtSchemaType[]>([])
+  const [arDataDetails, setArDataDetails] = useState<GLContraDtSchemaType[]>([])
+  const [apDataDetails, setApDataDetails] = useState<GLContraDtSchemaType[]>([])
+  const dataDetailsRef = useRef<GLContraDtSchemaType[]>([])
+  const getNextItemNo = useCallback(() => {
     if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("exhGainLoss", 0)
+      return 1
+    }
+    return Math.max(...dataDetails.map((detail) => detail.itemNo)) + 1
+  }, [dataDetails])
+
+  const [isBulkDeleteDialogOpenAr, setIsBulkDeleteDialogOpenAr] =
+    useState(false)
+  const [pendingBulkDeleteItemNosAr, setPendingBulkDeleteItemNosAr] = useState<
+    number[]
+  >([])
+  const [isBulkDeleteDialogOpenAp, setIsBulkDeleteDialogOpenAp] =
+    useState(false)
+  const [pendingBulkDeleteItemNosAp, setPendingBulkDeleteItemNosAp] = useState<
+    number[]
+  >([])
+
+  const arDialogParamsRef = useRef<{
+    customerId?: number
+    currencyId?: number
+    accountDate?: string
+    isRefund?: boolean
+    documentId?: string
+    transactionId: number
+  } | null>(null)
+
+  const apDialogParamsRef = useRef<{
+    supplierId?: number
+    currencyId?: number
+    accountDate?: string
+    isRefund?: boolean
+    documentId?: string
+    transactionId: number
+  } | null>(null)
+
+  const classifyDetail = useCallback((detail: GLContraDtSchemaType) => {
+    if (detail?.moduleId === ModuleId.ap) return "ap"
+    if (detail?.moduleId === ModuleId.ar) return "ar"
+    return Number(detail.docBalAmt) < 0 ? "ap" : "ar"
+  }, [])
+
+  const splitDetailsByModule = useCallback(
+    (details: GLContraDtSchemaType[] = []) => {
+      const arList: GLContraDtSchemaType[] = []
+      const apList: GLContraDtSchemaType[] = []
+
+      details.forEach((detail) => {
+        const type = classifyDetail(detail)
+        if (type === "ap") {
+          apList.push(detail)
+        } else {
+          arList.push(detail)
+        }
+      })
+
+      return { arList, apList }
+    },
+    [classifyDetail]
+  )
+
+  const cloneDetails = useCallback(
+    (details: GLContraDtSchemaType[]): GLContraDtSchemaType[] =>
+      details.map((detail) => ({ ...detail })),
+    []
+  )
+
+  const combineDetails = useCallback(
+    (
+      arList: GLContraDtSchemaType[],
+      apList: GLContraDtSchemaType[]
+    ): GLContraDtSchemaType[] => {
+      return [...arList, ...apList].sort((a, b) => a.itemNo - b.itemNo)
+    },
+    []
+  )
+
+  const recalcLocalAmounts = useCallback(
+    (details: GLContraDtSchemaType[]) => {
+      const arr = details as unknown as IGLContraDt[]
+      const exhRate = Number(form.getValues("exhRate")) || 1
+      for (let i = 0; i < arr.length; i++) {
+        calauteLocalAmtandGainLoss(arr, i, exhRate, decimalConfig)
+      }
+      return arr as unknown as GLContraDtSchemaType[]
+    },
+    [decimalConfig, form]
+  )
+
+  const resetAllocationsForDetails = useCallback(
+    (details: GLContraDtSchemaType[]): GLContraDtSchemaType[] =>
+      details.map((detail) => ({
+        ...detail,
+        allocAmt: 0,
+        allocLocalAmt: 0,
+        docAllocAmt: 0,
+        docAllocLocalAmt: 0,
+        centDiff: 0,
+        exhGainLoss: 0,
+      })),
+    []
+  )
+
+  const summarizeAllocations = useCallback(
+    (details: GLContraDtSchemaType[]) => {
+      let positive = 0
+      let negativeAbs = 0
+
+      details.forEach((detail) => {
+        const bal = Number(detail.docBalAmt) || 0
+        if (bal > 0) {
+          positive += bal
+        } else if (bal < 0) {
+          negativeAbs += Math.abs(bal)
+        }
+      })
+
+      const difference = positive - negativeAbs
+      const limitingTotal = Math.min(positive, negativeAbs)
+
+      return {
+        positive,
+        negativeAbs,
+        limitingTotal,
+        matched: difference === 0 ? limitingTotal : difference,
+        totalSetOff: difference,
+      }
+    },
+    []
+  )
+
+  const applyDetailsChange = useCallback(
+    (
+      nextAr: GLContraDtSchemaType[],
+      nextAp: GLContraDtSchemaType[],
+      options?: {
+        recalcLocal?: boolean
+        triggerValidation?: boolean
+      }
+    ) => {
+      const arClone = cloneDetails(nextAr)
+      const apClone = cloneDetails(nextAp)
+      const merged = combineDetails(arClone, apClone)
+      const detailsToStore = options?.recalcLocal
+        ? recalcLocalAmounts(merged.map((detail) => ({ ...detail })))
+        : merged
+
+      setArDataDetails(arClone)
+      setApDataDetails(apClone)
+      setDataDetails(detailsToStore)
+      dataDetailsRef.current = detailsToStore
+
+      form.setValue("data_details", detailsToStore, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      if (options?.triggerValidation !== false) {
+        form.trigger("data_details")
+      }
+
+      setRefreshKey((prev) => prev + 1)
+
+      return detailsToStore
+    },
+    [cloneDetails, combineDetails, form, recalcLocalAmounts]
+  )
+
+  const watchedDataDetails = form.watch("data_details")
+
+  useEffect(() => {
+    const details =
+      (watchedDataDetails as GLContraDtSchemaType[] | undefined) ?? []
+
+    if (dataDetailsRef.current === details) {
       return
     }
 
-    // Calculate totals from details
-    const details = dataDetails as unknown as IGLContraDt[]
+    dataDetailsRef.current = details
+    setDataDetails(details)
 
-    // Calculate base currency totals
-    const totAmt = details.reduce(
-      (sum, detail) => sum + (detail.allocAmt || 0),
+    const { arList, apList } = splitDetailsByModule(details)
+    setArDataDetails(arList)
+    setApDataDetails(apList)
+  }, [splitDetailsByModule, watchedDataDetails])
+
+  // Calculate sum of balance amounts across all details
+  const totalBalanceAmt = useMemo(() => {
+    return dataDetails.reduce(
+      (sum, detail) => sum + (Number(detail.docBalAmt) || 0),
       0
     )
-    const roundedTotAmt = parseFloat(totAmt.toFixed(amtDec))
-    form.setValue("totAmt", roundedTotAmt)
+  }, [dataDetails])
 
-    // Calculate local currency totals
-    const totLocalAmt = details.reduce(
-      (sum, detail) => sum + (detail.allocLocalAmt || 0),
-      0
-    )
-    const roundedTotLocalAmt = parseFloat(totLocalAmt.toFixed(locAmtDec))
-    form.setValue("totLocalAmt", roundedTotLocalAmt)
-
-    // Calculate exchange gain/loss
-    const exhGainLoss = details.reduce(
-      (sum, detail) => sum + (detail.exhGainLoss || 0),
-      0
-    )
-    const roundedExhGainLoss = parseFloat(exhGainLoss.toFixed(locAmtDec))
-    form.setValue("exhGainLoss", roundedExhGainLoss)
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails.length, amtDec, locAmtDec])
-
-  // Handler for deleting a detail row (ready for future table implementation)
-  const _handleDelete = useCallback(
-    (itemNo: number) => {
-      const currentData = form.getValues("data_details") || []
-      const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
-      form.setValue("data_details", updatedData)
-      form.trigger("data_details")
-    },
-    [form]
+  const allocationTotals = useMemo(
+    () => summarizeAllocations(dataDetails),
+    [dataDetails, summarizeAllocations]
   )
 
-  // Handler for bulk deleting detail rows (ready for future table implementation)
-  const _handleBulkDelete = useCallback(
-    (selectedItemNos: number[]) => {
-      const currentData = form.getValues("data_details") || []
-      const updatedData = currentData.filter(
-        (item) => !selectedItemNos.includes(item.itemNo)
+  // Clear dialog params when dialog closes
+  useEffect(() => {
+    if (!showArTransactionDialog) {
+      arDialogParamsRef.current = null
+    }
+  }, [showArTransactionDialog])
+
+  useEffect(() => {
+    if (!showApTransactionDialog) {
+      apDialogParamsRef.current = null
+    }
+  }, [showApTransactionDialog])
+
+  // Check allocation status when data details change
+  useEffect(() => {
+    const hasAllocations = dataDetails.some(
+      (detail) => Math.abs(Number(detail.allocAmt) || 0) > 0
+    )
+    setIsAllocated(hasAllocations)
+  }, [dataDetails])
+
+  const removeDetails = useCallback(
+    (type: "ar" | "ap", itemNos: number[]) => {
+      if (!itemNos || itemNos.length === 0) return
+
+      const normalizedItemNos = itemNos
+        .map((item) => Number(item))
+        .filter((item) => Number.isFinite(item))
+      if (normalizedItemNos.length === 0) return
+
+      const itemsToRemove = new Set(normalizedItemNos)
+      const source = type === "ar" ? arDataDetails : apDataDetails
+      const filtered = source.filter((item) => !itemsToRemove.has(item.itemNo))
+
+      if (filtered.length === source.length) {
+        return
+      }
+
+      const nextAr = type === "ar" ? filtered : arDataDetails
+      const nextAp = type === "ap" ? filtered : apDataDetails
+
+      const resetAr = resetAllocationsForDetails(nextAr)
+      const resetAp = resetAllocationsForDetails(nextAp)
+
+      applyDetailsChange(resetAr, resetAp, {
+        recalcLocal: true,
+      })
+    },
+    [
+      apDataDetails,
+      applyDetailsChange,
+      arDataDetails,
+      resetAllocationsForDetails,
+    ]
+  )
+
+  const handleArDelete = useCallback(
+    (itemNo: number) => removeDetails("ar", [itemNo]),
+    [removeDetails]
+  )
+  const handleApDelete = useCallback(
+    (itemNo: number) => removeDetails("ap", [itemNo]),
+    [removeDetails]
+  )
+
+  const handleArBulkDelete = useCallback((selectedItemNos: number[]) => {
+    const validItemNos = selectedItemNos.filter((itemNo) =>
+      Number.isFinite(itemNo)
+    )
+    if (validItemNos.length === 0) return
+
+    const uniqueItemNos = Array.from(new Set(validItemNos))
+    setPendingBulkDeleteItemNosAr(uniqueItemNos)
+    setIsBulkDeleteDialogOpenAr(true)
+  }, [])
+
+  const handleApBulkDelete = useCallback((selectedItemNos: number[]) => {
+    const validItemNos = selectedItemNos.filter((itemNo) =>
+      Number.isFinite(itemNo)
+    )
+    if (validItemNos.length === 0) return
+
+    const uniqueItemNos = Array.from(new Set(validItemNos))
+    setPendingBulkDeleteItemNosAp(uniqueItemNos)
+    setIsBulkDeleteDialogOpenAp(true)
+  }, [])
+
+  const handleArBulkDeleteConfirm = useCallback(() => {
+    if (pendingBulkDeleteItemNosAr.length === 0) return
+    removeDetails("ar", pendingBulkDeleteItemNosAr)
+    setPendingBulkDeleteItemNosAr([])
+    setIsBulkDeleteDialogOpenAr(false)
+  }, [pendingBulkDeleteItemNosAr, removeDetails])
+
+  const handleApBulkDeleteConfirm = useCallback(() => {
+    if (pendingBulkDeleteItemNosAp.length === 0) return
+    removeDetails("ap", pendingBulkDeleteItemNosAp)
+    setPendingBulkDeleteItemNosAp([])
+    setIsBulkDeleteDialogOpenAp(false)
+  }, [pendingBulkDeleteItemNosAp, removeDetails])
+
+  const handleArBulkDeleteCancel = useCallback(() => {
+    setPendingBulkDeleteItemNosAr([])
+    setIsBulkDeleteDialogOpenAr(false)
+  }, [])
+
+  const handleApBulkDeleteCancel = useCallback(() => {
+    setPendingBulkDeleteItemNosAp([])
+    setIsBulkDeleteDialogOpenAp(false)
+  }, [])
+
+  const handleArBulkDeleteDialogChange = useCallback((open: boolean) => {
+    setIsBulkDeleteDialogOpenAr(open)
+    if (!open) {
+      setPendingBulkDeleteItemNosAr([])
+    }
+  }, [])
+
+  const handleApBulkDeleteDialogChange = useCallback((open: boolean) => {
+    setIsBulkDeleteDialogOpenAp(open)
+    if (!open) {
+      setPendingBulkDeleteItemNosAp([])
+    }
+  }, [])
+
+  const buildBulkDeleteLabel = useCallback(
+    (
+      pendingItemNos: number[],
+      source: GLContraDtSchemaType[]
+    ): string | undefined => {
+      if (pendingItemNos.length === 0) return undefined
+
+      const matches = source.filter((detail) =>
+        pendingItemNos.includes(detail.itemNo)
       )
-      form.setValue("data_details", updatedData)
-      form.trigger("data_details")
+
+      if (matches.length === 0) {
+        return `Selected items (${pendingItemNos.length})`
+      }
+
+      const lines = matches.slice(0, 10).map((detail) => {
+        const docNo = detail.documentNo
+          ? detail.documentNo.toString().trim()
+          : ""
+        return docNo ? `Document ${docNo}` : `Item No ${detail.itemNo}`
+      })
+
+      if (matches.length > 10) {
+        lines.push(`...and ${matches.length - 10} more`)
+      }
+
+      return lines.join("<br/>")
     },
-    [form]
+    []
   )
 
-  // Handler for editing a detail row (ready for future table implementation)
-  const _handleEdit = useCallback((detail: IGLContraDt) => {
-    setEditingDetail(detail as unknown as GLContraDtSchemaType)
-  }, [])
+  const bulkDeleteItemNameAr = useMemo(
+    () => buildBulkDeleteLabel(pendingBulkDeleteItemNosAr, arDataDetails),
+    [arDataDetails, buildBulkDeleteLabel, pendingBulkDeleteItemNosAr]
+  )
 
-  // Handler for canceling edit (ready for future implementation)
-  const _handleCancelEdit = useCallback(() => {
-    setEditingDetail(null)
-  }, [])
+  const bulkDeleteItemNameAp = useMemo(
+    () => buildBulkDeleteLabel(pendingBulkDeleteItemNosAp, apDataDetails),
+    [apDataDetails, buildBulkDeleteLabel, pendingBulkDeleteItemNosAp]
+  )
 
-  // Handler for data reordering (ready for future table implementation)
-  const _handleDataReorder = useCallback(
+  const handleArDataReorder = useCallback(
     (newData: IGLContraDt[]) => {
-      form.setValue(
-        "data_details",
-        newData as unknown as GLContraDtSchemaType[]
+      applyDetailsChange(
+        newData as unknown as GLContraDtSchemaType[],
+        apDataDetails,
+        { recalcLocal: false, triggerValidation: false }
       )
     },
-    [form]
+    [apDataDetails, applyDetailsChange]
   )
 
-  // Handle Select AP Transaction button click
-  const handleSelectAPTransaction = useCallback(() => {
-    const supplierId = form.getValues("supplierId")
-    const currencyId = form.getValues("currencyId")
-    const accountDate = form.getValues("accountDate")
+  const handleApDataReorder = useCallback(
+    (newData: IGLContraDt[]) => {
+      applyDetailsChange(
+        arDataDetails,
+        newData as unknown as GLContraDtSchemaType[],
+        { recalcLocal: false, triggerValidation: false }
+      )
+    },
+    [applyDetailsChange, arDataDetails]
+  )
 
-    if (!supplierId || !currencyId || !accountDate) {
-      toast.warning("Please select Supplier, Currency, and Account Date first")
-      return
+  // ==================== HELPER FUNCTIONS ====================
+
+  const validateAllocation = useCallback((data: GLContraDtSchemaType[]) => {
+    if (!validateAllocationHelper(data as unknown as IGLContraDt[])) {
+      return false
     }
-
-    // TODO: Open AP transaction selection dialog
-    toast.info("AP Transaction selection coming soon")
-  }, [form])
-
-  // Handle Select AR Transaction button click
-  const handleSelectARTransaction = useCallback(() => {
-    const customerId = form.getValues("customerId")
-    const currencyId = form.getValues("currencyId")
-    const accountDate = form.getValues("accountDate")
-
-    if (!customerId || !currencyId || !accountDate) {
-      toast.warning("Please select Customer, Currency, and Account Date first")
-      return
-    }
-
-    // TODO: Open AR transaction selection dialog
-    toast.info("AR Transaction selection coming soon")
-  }, [form])
-
-  // Handle Auto Allocation
-  const handleAutoAllocation = useCallback(() => {
-    // TODO: Implement auto allocation logic
-    toast.info("Auto allocation coming soon")
+    return true
   }, [])
 
-  // Handle Reset Allocation
-  const handleResetAllocation = useCallback(() => {
-    const currentData = form.getValues("data_details") || []
-    const resetData = currentData.map((detail) => ({
-      ...detail,
-      allocAmt: 0,
-      allocLocalAmt: 0,
-      docAllocAmt: 0,
-      docAllocLocalAmt: 0,
-      centDiff: 0,
-      exhGainLoss: 0,
-    }))
-    form.setValue("data_details", resetData)
-    form.trigger("data_details")
-    toast.success("Allocations reset successfully")
-  }, [form])
+  // Helper function to update allocation calculations
+  const updateAllocationCalculations = useCallback(
+    (
+      updatedData: GLContraDtSchemaType[],
+      rowIndex: number,
+      allocValue: number
+    ): number | undefined => {
+      const arr = updatedData as unknown as IGLContraDt[]
+      if (rowIndex === -1 || rowIndex >= arr.length) return
 
-  // Filter AP and AR transactions
-  const apTransactions = (dataDetails as unknown as IGLContraDt[]).filter(
-    (detail) => detail.moduleId === 2 // AP Module
+      const exhRate = Number(form.getValues("exhRate"))
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+
+      // console.log(
+      //   "updateAllocationCalculations",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
+
+      const { result, wasAutoSetToZero } = calculateManualAllocation(
+        arr,
+        rowIndex,
+        allocValue,
+        dec
+      )
+
+      // Show toast if allocation was auto-set to zero due to remaining amount <= 0
+      if (wasAutoSetToZero) {
+        console.log(
+          "updateAllocationCalculations wasAutoSetToZero",
+          wasAutoSetToZero
+        )
+        toast.error("Now it's auto set to zero. Please check the allocation.")
+      }
+
+      const clampedValue =
+        typeof result?.allocAmt === "number"
+          ? Number(result.allocAmt)
+          : Number(arr[rowIndex]?.allocAmt) || 0
+
+      // Clamp to the absolute balance of the current row as a final safety check
+      const balanceLimit = Math.abs(Number(arr[rowIndex]?.docBalAmt) || 0)
+      const adjustedValue =
+        Math.abs(clampedValue) > balanceLimit
+          ? Math.sign(clampedValue) * balanceLimit
+          : clampedValue
+
+      if (adjustedValue !== clampedValue) {
+        arr[rowIndex].allocAmt = adjustedValue
+        if (adjustedValue === 0) {
+          toast.error(
+            "Allocation exceeds remaining balance. It has been reset."
+          )
+        }
+      }
+
+      // console.log(
+      //   "updateAllocationCalculations calculateManualAllocation",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
+
+      calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
+
+      const sumExhGainLoss = arr.reduce(
+        (s, r) => s + (Number(r.exhGainLoss) || 0),
+        0
+      )
+
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(updatedData)
+      const { arList, apList } = splitDetailsByModule(
+        updatedData as GLContraDtSchemaType[]
+      )
+      setArDataDetails(arList)
+      setApDataDetails(apList)
+      dataDetailsRef.current = updatedData as GLContraDtSchemaType[]
+      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+      form.trigger("data_details")
+      setRefreshKey((prev) => prev + 1)
+
+      return arr[rowIndex].allocAmt as number
+    },
+    [decimals, form, splitDetailsByModule]
   )
-  const arTransactions = (dataDetails as unknown as IGLContraDt[]).filter(
-    (detail) => detail.moduleId === 3 // AR Module
+
+  // Handle cell edit for allocAmt field
+  const handleCellEdit = useCallback(
+    (itemNo: number, field: string, value: number) => {
+      if (field !== "allocAmt") return
+
+      // console.log("handleCellEdit", itemNo, field, value)
+
+      const currentData = form.getValues("data_details") || []
+      const currentItem = currentData.find((item) => item.itemNo === itemNo)
+      const currentValue = currentItem?.allocAmt || 0
+
+      if (currentValue === value) {
+        return currentValue
+      }
+
+      // Don't allow manual entry when totAmt = 0
+      const headerBalAmt = Number(form.getValues("totAmt")) || 0
+      if (headerBalAmt === 0) {
+        toast.error(
+          "Balance Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Balance Amount."
+        )
+        // Set amount to 0
+        const updatedData = [...currentData]
+
+        const arr = updatedData as unknown as IGLContraDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
+
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          0
+        )
+        return finalValue ?? 0
+      } else {
+        // console.log("handleCellEdit else", itemNo, field, value)
+        // When balTotAmt > 0, allow manual entry with validation
+        const updatedData = [...currentData]
+        const arr = updatedData as unknown as IGLContraDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
+
+        // console.log(
+        //   "handleCellEdit else updateAllocationCalculations",
+        //   rowIndex,
+        //   value
+        // )
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          value
+        )
+        return finalValue
+      }
+    },
+    [form, updateAllocationCalculations]
+  )
+
+  // ==================== MAIN FUNCTIONS ====================
+
+  const handleAutoAllocation = useCallback(() => {
+    const combinedDetails = combineDetails(arDataDetails, apDataDetails)
+
+    if (!combinedDetails.length) {
+      toast.error("Please add AR/AP transactions before auto allocation.")
+      return
+    }
+
+    if (!validateAllocation(combinedDetails)) return
+
+    const { updatedDetails: details } = autoAllocateAmounts(
+      combinedDetails as unknown as IGLContraDt[],
+      decimalConfig
+    )
+
+    const recalculated = details.map((detail) => ({ ...detail }))
+    const exhRate = Number(form.getValues("exhRate")) || 1
+    const arr = recalculated as unknown as IGLContraDt[]
+
+    for (let i = 0; i < arr.length; i++) {
+      calauteLocalAmtandGainLoss(arr, i, exhRate, decimalConfig)
+    }
+
+    const normalized = (recalculated as unknown as GLContraDtSchemaType[]).map(
+      (detail) => ({
+        ...detail,
+        documentId:
+          typeof detail.documentId === "string"
+            ? detail.documentId
+            : String(detail.documentId ?? ""),
+      })
+    )
+    const { arList, apList } = splitDetailsByModule(normalized)
+
+    applyDetailsChange(arList, apList, {
+      recalcLocal: false,
+    })
+  }, [
+    apDataDetails,
+    applyDetailsChange,
+    arDataDetails,
+    combineDetails,
+    decimalConfig,
+    form,
+    splitDetailsByModule,
+    validateAllocation,
+  ])
+
+  const handleResetAllocation = useCallback(() => {
+    if (dataDetails.length === 0) {
+      return
+    }
+
+    const resetAr = resetAllocationsForDetails(arDataDetails)
+    const resetAp = resetAllocationsForDetails(apDataDetails)
+    applyDetailsChange(resetAr, resetAp, {
+      recalcLocal: true,
+    })
+  }, [
+    apDataDetails,
+    applyDetailsChange,
+    arDataDetails,
+    dataDetails.length,
+    resetAllocationsForDetails,
+  ])
+
+  // Check if supplier is selected
+
+  const customerId = form.watch("customerId")
+  const isCustomerSelected = customerId && customerId > 0
+  const currencyId = form.watch("currencyId")
+  const accountDate = form.watch("accountDate")
+
+  const handleSelectArTransaction = useCallback(() => {
+    if (!customerId || !currencyId || !accountDate) {
+      return
+    }
+
+    arDialogParamsRef.current = {
+      customerId,
+      currencyId,
+      accountDate: accountDate?.toString() || "",
+      isRefund: false,
+      documentId: form.getValues("contraId") || "0",
+      transactionId: ARTransactionId.docsetoff,
+    }
+
+    setShowArTransactionDialog(true)
+  }, [accountDate, currencyId, customerId, form])
+
+  // Check if customer is selected
+  const supplierId = form.watch("supplierId")
+  const isSupplierSelected = supplierId && supplierId > 0
+
+  const handleSelectApTransaction = useCallback(() => {
+    if (!supplierId || !currencyId || !accountDate) {
+      return
+    }
+
+    apDialogParamsRef.current = {
+      supplierId,
+      currencyId,
+      accountDate: accountDate?.toString() || "",
+      isRefund: false,
+      documentId: form.getValues("contraId") || "0",
+      transactionId: APTransactionId.docsetoff,
+    }
+
+    setShowApTransactionDialog(true)
+  }, [accountDate, currencyId, form, supplierId])
+
+  const handleArTxnAddSelectedTransactions = useCallback(
+    (transactions: IArOutTransaction[]) => {
+      if (!transactions || transactions.length === 0) {
+        setShowArTransactionDialog(false)
+        return
+      }
+
+      const startItemNo = getNextItemNo()
+      const contraId = form.getValues("contraId") || "0"
+      const contraNo = form.getValues("contraNo") || ""
+
+      const newDetails: GLContraDtSchemaType[] = transactions.map(
+        (transaction, index) => ({
+          companyId,
+          contraId,
+          contraNo,
+          itemNo: startItemNo + index,
+          moduleId: ModuleId.ar,
+          transactionId: transaction.transactionId,
+          documentId: String(transaction.documentId),
+          documentNo: transaction.documentNo,
+          referenceNo: transaction.referenceNo,
+          docCurrencyId: transaction.currencyId,
+          docCurrencyCode: transaction.currencyCode || "",
+          docExhRate: transaction.exhRate,
+          docAccountDate: transaction.accountDate,
+          docDueDate: transaction.dueDate,
+          docTotAmt: transaction.totAmt,
+          docTotLocalAmt: transaction.totLocalAmt,
+          docBalAmt: Math.abs(transaction.balAmt),
+          docBalLocalAmt: Math.abs(transaction.balLocalAmt),
+          allocAmt: 0,
+          allocLocalAmt: 0,
+          docAllocAmt: 0,
+          docAllocLocalAmt: 0,
+          centDiff: 0,
+          exhGainLoss: 0,
+          editVersion: 0,
+        })
+      )
+
+      const nextAr = [...arDataDetails, ...newDetails]
+      applyDetailsChange(nextAr, apDataDetails, { recalcLocal: true })
+      setShowArTransactionDialog(false)
+    },
+    [
+      apDataDetails,
+      applyDetailsChange,
+      arDataDetails,
+      companyId,
+      form,
+      getNextItemNo,
+    ]
+  )
+
+  const handleApTxnAddSelectedTransactions = useCallback(
+    (transactions: IApOutTransaction[]) => {
+      if (!transactions || transactions.length === 0) {
+        setShowApTransactionDialog(false)
+        return
+      }
+
+      const startItemNo = getNextItemNo()
+      const contraId = form.getValues("contraId") || "0"
+      const contraNo = form.getValues("contraNo") || ""
+
+      const newDetails: GLContraDtSchemaType[] = transactions.map(
+        (transaction, index) => {
+          const signedBal = Math.abs(transaction.balAmt)
+          const signedLocalBal = Math.abs(transaction.balLocalAmt)
+          return {
+            companyId,
+            contraId,
+            contraNo,
+            itemNo: startItemNo + index,
+            moduleId: ModuleId.ap,
+            transactionId: transaction.transactionId,
+            documentId: String(transaction.documentId),
+            documentNo: transaction.documentNo,
+            referenceNo: transaction.referenceNo,
+            docCurrencyId: transaction.currencyId,
+            docCurrencyCode: transaction.currencyCode || "",
+            docExhRate: transaction.exhRate,
+            docAccountDate: transaction.accountDate,
+            docDueDate: transaction.dueDate,
+            docTotAmt: transaction.totAmt,
+            docTotLocalAmt: transaction.totLocalAmt,
+            docBalAmt: -signedBal,
+            docBalLocalAmt: -signedLocalBal,
+            allocAmt: 0,
+            allocLocalAmt: 0,
+            docAllocAmt: 0,
+            docAllocLocalAmt: 0,
+            centDiff: 0,
+            exhGainLoss: 0,
+            editVersion: 0,
+          }
+        }
+      )
+
+      const nextAp = [...apDataDetails, ...newDetails]
+      applyDetailsChange(arDataDetails, nextAp, { recalcLocal: true })
+      setShowApTransactionDialog(false)
+    },
+    [
+      apDataDetails,
+      applyDetailsChange,
+      arDataDetails,
+      companyId,
+      form,
+      getNextItemNo,
+    ]
   )
 
   return (
-    <div className="w-full space-y-4">
-      {/* Header Form */}
+    <div className="w-full">
       <ContraForm
         form={form}
         onSuccessAction={onSuccessAction}
@@ -208,58 +851,193 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
+        isCancelled={isCancelled}
+        dataDetails={dataDetails}
       />
-
-      {/* Details Section */}
-
-      {/* Control Row */}
-      <div className="mb-4 flex items-center gap-2">
-        <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
-        <Button variant="outline" onClick={handleResetAllocation}>
-          Reset Allocation
+      <div className="flex flex-wrap items-center gap-1">
+        <Button
+          size="sm"
+          onClick={handleAutoAllocation}
+          className="px-3 py-1 text-xs"
+          title="Auto allocate amounts"
+        >
+          <Zap className="h-4 w-4" />
+          Auto Alloc
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={handleResetAllocation}
+          disabled={!isAllocated}
+          className={
+            !isAllocated
+              ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+              : "px-3 py-1 text-xs"
+          }
+          title="Reset all allocations"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Reset Alloc
         </Button>
       </div>
 
-      {/* AP and AR Details Tables Side by Side */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* AR (Customer) Details Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">
-              AR Transactions (Customer)
-            </h3>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSelectARTransaction}
-            >
-              Select AR Transaction
-            </Button>
-          </div>
-          <div className="overflow-hidden rounded-md border">
-            <ArDetailsTable data={arTransactions} />
-          </div>
-        </div>
+      <div className="px-2 pt-1">
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* AR Details Section */}
+          <section className="border-border bg-card rounded-md border p-2 shadow-sm">
+            <div className="mb-2 flex flex-wrap items-center gap-1">
+              <Button
+                size="sm"
+                onClick={handleSelectArTransaction}
+                disabled={!isCustomerSelected}
+                className={
+                  !isCustomerSelected
+                    ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                    : "px-3 py-1 text-xs"
+                }
+                title="Select outstanding transactions"
+              >
+                <Plus className="h-4 w-4" />
+                Select Txn
+              </Button>
+              <Badge
+                variant="secondary"
+                className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+              >
+                Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
+              >
+                Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
+              >
+                Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
+              </Badge>
+            </div>
+            <div className="overflow-x-auto">
+              <ArGLContraDetailsTable
+                key={`${refreshKey}-ar`}
+                data={(arDataDetails as unknown as IGLContraDt[]) || []}
+                visible={visible}
+                onDelete={handleArDelete}
+                onBulkDelete={handleArBulkDelete}
+                onDataReorder={handleArDataReorder}
+                onCellEdit={handleCellEdit}
+              />
+            </div>
+          </section>
 
-        {/* AP (Supplier) Details Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">
-              AP Transactions (Supplier)
-            </h3>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSelectAPTransaction}
-            >
-              Select AP Transaction
-            </Button>
-          </div>
-          <div className="overflow-hidden rounded-md border">
-            <ApDetailsTable data={apTransactions} />
-          </div>
+          {/* AP Details Section */}
+          <section className="border-border bg-card rounded-md border p-2 shadow-sm">
+            <div className="mb-2 flex flex-wrap items-center gap-1">
+              <Button
+                size="sm"
+                onClick={handleSelectApTransaction}
+                disabled={!isSupplierSelected}
+                className={
+                  !isSupplierSelected
+                    ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                    : "px-3 py-1 text-xs"
+                }
+                title="Select outstanding transactions"
+              >
+                <Plus className="h-4 w-4" />
+                Select Txn
+              </Button>
+              <Badge
+                variant="secondary"
+                className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+              >
+                Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+              </Badge>
+              <Badge
+                variant="secondary"
+                className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
+              >
+                Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
+              >
+                Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
+              </Badge>
+            </div>
+            <div className="overflow-x-auto">
+              <ApGLContraDetailsTable
+                key={`${refreshKey}-ap`}
+                data={(apDataDetails as unknown as IGLContraDt[]) || []}
+                visible={visible}
+                onDelete={handleApDelete}
+                onBulkDelete={handleApBulkDelete}
+                onDataReorder={handleApDataReorder}
+                onCellEdit={handleCellEdit}
+              />
+            </div>
+          </section>
         </div>
       </div>
+
+      <DeleteConfirmation
+        open={isBulkDeleteDialogOpenAr}
+        onOpenChange={handleArBulkDeleteDialogChange}
+        onConfirm={handleArBulkDeleteConfirm}
+        onCancel={handleArBulkDeleteCancel}
+        itemName={bulkDeleteItemNameAr}
+        description="Selected AR contra details will be removed. This action cannot be undone."
+      />
+
+      <DeleteConfirmation
+        open={isBulkDeleteDialogOpenAp}
+        onOpenChange={handleApBulkDeleteDialogChange}
+        onConfirm={handleApBulkDeleteConfirm}
+        onCancel={handleApBulkDeleteCancel}
+        itemName={bulkDeleteItemNameAp}
+        description="Selected AP contra details will be removed. This action cannot be undone."
+      />
+
+      {/* Transaction Selection Dialog */}
+      {showArTransactionDialog && arDialogParamsRef.current && (
+        <ArOutStandingTransactionsDialog
+          open={showArTransactionDialog}
+          onOpenChangeAction={setShowArTransactionDialog}
+          customerId={arDialogParamsRef.current.customerId}
+          currencyId={arDialogParamsRef.current.currencyId}
+          accountDate={arDialogParamsRef.current.accountDate}
+          isRefund={arDialogParamsRef.current.isRefund}
+          documentId={arDialogParamsRef.current.documentId}
+          transactionId={arDialogParamsRef.current.transactionId}
+          visible={visible}
+          onAddSelected={handleArTxnAddSelectedTransactions}
+          existingDocumentIds={arDataDetails.map((detail) =>
+            Number(detail.documentId)
+          )}
+        />
+      )}
+
+      {/* Transaction Selection Dialog */}
+      {showApTransactionDialog && apDialogParamsRef.current && (
+        <ApOutStandingTransactionsDialog
+          open={showApTransactionDialog}
+          onOpenChangeAction={setShowApTransactionDialog}
+          supplierId={apDialogParamsRef.current.supplierId}
+          currencyId={apDialogParamsRef.current.currencyId}
+          accountDate={apDialogParamsRef.current.accountDate}
+          isRefund={apDialogParamsRef.current.isRefund}
+          documentId={apDialogParamsRef.current.documentId}
+          transactionId={apDialogParamsRef.current.transactionId}
+          visible={visible}
+          onAddSelected={handleApTxnAddSelectedTransactions}
+          existingDocumentIds={apDataDetails.map((detail) =>
+            Number(detail.documentId)
+          )}
+        />
+      )}
     </div>
   )
 }

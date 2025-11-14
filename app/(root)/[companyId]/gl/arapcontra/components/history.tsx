@@ -1,6 +1,6 @@
 "use client"
 
-import { GLContraHdSchemaType } from "@/schemas/gl-arapcontra"
+import { GLContraHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -19,21 +19,20 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
 
   const formValues = form.getValues()
   const accountDetails = {
-    createBy: formValues.createById?.toString() || "",
+    createBy: formValues.createBy || "",
     createDate: (formValues.createDate || "").toString(),
-    editBy: formValues.editById?.toString() || "",
+    editBy: formValues.editBy || "",
     editDate: formValues.editDate ? formValues.editDate?.toString() : "",
-    cancelBy: formValues.cancelById?.toString() || "",
+    cancelBy: formValues.cancelBy || "",
     cancelDate: formValues.cancelDate ? formValues.cancelDate?.toString() : "",
-    appBy: formValues.appById?.toString() || "",
+    appBy: formValues.appBy || "",
     appDate: formValues.appDate ? formValues.appDate?.toString() : "",
   }
 
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-
-      <GLPostDetails invoiceId={form.getValues().contraId || ""} />
+      <GLPostDetails contraId={form.getValues().contraId || ""} />
       <EditVersionDetails contraId={form.getValues().contraId || ""} />
     </div>
   )

@@ -7,7 +7,13 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
+import {
+  useGetGLContraHistoryDetails,
+  useGetGLContraHistoryList,
+} from "@/hooks/use-gl"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -29,7 +35,7 @@ export default function EditVersionDetails({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.gl
@@ -37,16 +43,42 @@ export default function EditVersionDetails({
 
   const [selectedContra, setSelectedContra] = useState<IGLContraHd | null>(null)
 
-  // Note: History hooks would need to be implemented
-  // The data would come from API calls when implemented
+  const { data: contraHistoryData, refetch: refetchHistory } =
+    useGetGLContraHistoryList<IGLContraHd[]>(contraId)
 
-  // Placeholder for demonstration - these would be from useQuery hooks
-  const tableData: IGLContraHd[] = []
-  const dialogData: IGLContraHd | undefined = undefined
-  const hasHistoryError = false
-  const hasDetailsError = false
-  const historyMessage: string | undefined = undefined
-  const detailsMessage: string | undefined = undefined
+  const { data: contraDetailsData, refetch: refetchDetails } =
+    useGetGLContraHistoryDetails<IGLContraHd>(
+      selectedContra?.contraId || "",
+      selectedContra?.editVersion?.toString() || ""
+    )
+
+  function isIGLContraHdArray(arr: unknown): arr is IGLContraHd[] {
+    return (
+      Array.isArray(arr) &&
+      (arr.length === 0 || (typeof arr[0] === "object" && "contraId" in arr[0]))
+    )
+  }
+
+  // Check if history data is successful and has valid data
+  const tableData: IGLContraHd[] =
+    contraHistoryData?.result === 1 &&
+    isIGLContraHdArray(contraHistoryData?.data)
+      ? contraHistoryData.data
+      : []
+
+  // Check if details data is successful and has valid data
+  const dialogData: IGLContraHd | undefined =
+    contraDetailsData?.result === 1 &&
+    contraDetailsData?.data &&
+    typeof contraDetailsData.data === "object" &&
+    contraDetailsData.data !== null &&
+    !Array.isArray(contraDetailsData.data)
+      ? (contraDetailsData.data as IGLContraHd)
+      : undefined
+
+  // Check for API errors
+  const hasHistoryError = contraHistoryData?.result === -1
+  const hasDetailsError = contraDetailsData?.result === -1
 
   const columns: ColumnDef<IGLContraHd>[] = [
     {
@@ -82,12 +114,21 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
     {
       accessorKey: "customerName",
-      header: "Customer",
+      header: "Customer Name",
+    },
+
+    {
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
+    },
+    {
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "currencyCode",
@@ -103,17 +144,20 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
     },
+
     {
       accessorKey: "totAmt",
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -123,33 +167,39 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
     },
+
     {
       accessorKey: "exhGainLoss",
       header: "Exchange Gain/Loss",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhGainLoss
-            ? row.original.exhGainLoss.toFixed(amtDec)
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
             : "-"}
         </div>
       ),
     },
+
     {
       accessorKey: "remarks",
       header: "Remarks",
     },
     {
-      accessorKey: "moduleFrom",
-      header: "Module From",
+      accessorKey: "status",
+      header: "Status",
     },
     {
-      accessorKey: "createById",
-      header: "Created By ID",
+      accessorKey: "createByCode",
+      header: "Created By Code",
+    },
+    {
+      accessorKey: "createByName",
+      header: "Created By Name",
     },
     {
       accessorKey: "createDate",
@@ -162,8 +212,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editById",
-      header: "Edited By ID",
+      accessorKey: "editByCode",
+      header: "Edited By Code",
+    },
+    {
+      accessorKey: "editByName",
+      header: "Edited By Name",
     },
     {
       accessorKey: "editDate",
@@ -175,85 +229,19 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "isPost",
-      header: "Is Posted",
-      cell: ({ row }) => (row.original.isPost ? "Yes" : "No"),
-    },
-    {
-      accessorKey: "postDate",
-      header: "Post Date",
-      cell: ({ row }) => {
-        const date = row.original.postDate
-          ? new Date(row.original.postDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "isCancel",
-      header: "Is Cancelled",
-      cell: ({ row }) => (row.original.isCancel ? "Yes" : "No"),
-    },
-    {
-      accessorKey: "cancelDate",
-      header: "Cancel Date",
-      cell: ({ row }) => {
-        const date = row.original.cancelDate
-          ? new Date(row.original.cancelDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "cancelRemarks",
-      header: "Cancel Remarks",
-    },
   ]
 
   const detailsColumns: ColumnDef<IGLContraDt>[] = [
-    {
-      accessorKey: "itemNo",
-      header: "Item No",
-      cell: ({ row }) => (
-        <div className="text-right">{row.original.itemNo}</div>
-      ),
-    },
-    {
-      accessorKey: "documentNo",
-      header: "Document No",
-    },
-    {
-      accessorKey: "referenceNo",
-      header: "Reference No",
-    },
-    {
-      accessorKey: "docAccountDate",
-      header: "Account Date",
-      cell: ({ row }) => {
-        const date = row.original.docAccountDate
-          ? new Date(row.original.docAccountDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "docDueDate",
-      header: "Due Date",
-      cell: ({ row }) => {
-        const date = row.original.docDueDate
-          ? new Date(row.original.docDueDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    { accessorKey: "itemNo", header: "Item No" },
+    { accessorKey: "documentNo", header: "Document No" },
+    { accessorKey: "referenceNo", header: "Reference No" },
     {
       accessorKey: "docTotAmt",
       header: "Document Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.docTotAmt
-            ? row.original.docTotAmt.toFixed(amtDec)
+            ? formatNumber(row.original.docTotAmt, amtDec)
             : "-"}
         </div>
       ),
@@ -264,7 +252,29 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.docTotLocalAmt
-            ? row.original.docTotLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.docTotLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocAmt",
+      header: "Allocated Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocAmt
+            ? formatNumber(row.original.allocAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocLocalAmt",
+      header: "Allocated Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocLocalAmt
+            ? formatNumber(row.original.allocLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -275,7 +285,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.docBalAmt
-            ? row.original.docBalAmt.toFixed(amtDec)
+            ? formatNumber(row.original.docBalAmt, amtDec)
             : "-"}
         </div>
       ),
@@ -286,70 +296,8 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.docBalLocalAmt
-            ? row.original.docBalLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.docBalLocalAmt, locAmtDec)
             : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "allocAmt",
-      header: "Allocation Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.allocAmt ? row.original.allocAmt.toFixed(amtDec) : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "allocLocalAmt",
-      header: "Allocation Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.allocLocalAmt
-            ? row.original.allocLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "docAllocAmt",
-      header: "Document Allocation Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.docAllocAmt
-            ? row.original.docAllocAmt.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "docAllocLocalAmt",
-      header: "Document Allocation Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.docAllocLocalAmt
-            ? row.original.docAllocLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "docExhRate",
-      header: "Document Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.docExhRate
-            ? row.original.docExhRate.toFixed(exhRateDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "centDiff",
-      header: "Cent Difference",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.centDiff ? row.original.centDiff.toFixed(2) : "-"}
         </div>
       ),
     },
@@ -359,20 +307,31 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhGainLoss
-            ? row.original.exhGainLoss.toFixed(amtDec)
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
             : "-"}
         </div>
       ),
     },
-    {
-      accessorKey: "editVersion",
-      header: "Edit Version",
-    },
   ]
 
   const handleRefresh = async () => {
-    // Placeholder for future implementation
-    console.log("Refresh triggered for contra:", contraId)
+    try {
+      // Only refetch if we don't have a "Data does not exist" error
+      if (
+        !hasHistoryError ||
+        contraHistoryData?.message !== "Data does not exist"
+      ) {
+        await refetchHistory()
+      }
+      if (
+        !hasDetailsError ||
+        contraDetailsData?.message !== "Data does not exist"
+      ) {
+        await refetchDetails()
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error)
+    }
   }
 
   return (
@@ -382,42 +341,13 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                historyMessage === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {historyMessage === "Data does not exist"
-                  ? "No contra history found for this entry."
-                  : `Failed to load contra history: ${historyMessage || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {!hasHistoryError && (
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Edit version history functionality is not yet implemented for GL
-                Contra entries.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.glContraHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
@@ -440,7 +370,7 @@ export default function EditVersionDetails({
           {hasDetailsError && (
             <Alert
               variant={
-                detailsMessage === "Data does not exist"
+                contraDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -448,9 +378,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {detailsMessage === "Data does not exist"
+                {contraDetailsData?.message === "Data does not exist"
                   ? "No contra details found for this version."
-                  : `Failed to load contra details: ${detailsMessage || "Unknown error"}`}
+                  : `Failed to load contra details: ${contraDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -489,14 +419,12 @@ export default function EditVersionDetails({
               </CardHeader>
               <CardContent>
                 <BasicTable
-                  data={
-                    (dialogData as IGLContraHd | undefined)?.data_details || []
-                  }
+                  data={dialogData?.data_details || []}
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.arApContraHistory}
-                  emptyMessage="No details available"
+                  tableName={TableName.glContraDetails}
+                  emptyMessage="No contra details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}
