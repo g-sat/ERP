@@ -138,6 +138,86 @@ export const autoAllocateAmounts = (
   }
 }
 
+const cloneContraDetails = (details: IGLContraDt[] = []) =>
+  details.map((row) => ({ ...row }))
+
+const toSafeNumber = (value: unknown): number => {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+export const allocateBetweenModules = (
+  arDetails: IGLContraDt[],
+  apDetails: IGLContraDt[],
+  decimals?: IDecimal
+) => {
+  const arClone = cloneContraDetails(arDetails)
+  const apClone = cloneContraDetails(apDetails)
+
+  const addAmount = (base: number, addition: number) => {
+    return decimals
+      ? calculateAdditionAmount(base, addition, decimals.amtDec)
+      : base + addition
+  }
+
+  const subtractAmount = (base: number, subtract: number) => {
+    return decimals
+      ? calculateSubtractionAmount(base, subtract, decimals.amtDec)
+      : base - subtract
+  }
+
+  const getAbsoluteTotal = (rows: IGLContraDt[]) =>
+    rows.reduce(
+      (sum, row) => addAmount(sum, Math.abs(toSafeNumber(row.docBalAmt))),
+      0
+    )
+
+  const arTotal = getAbsoluteTotal(arClone)
+  const apTotal = getAbsoluteTotal(apClone)
+  const limitingAmount = Math.min(arTotal, apTotal)
+
+  const distributeAllocation = (rows: IGLContraDt[], limit: number) => {
+    const updatedRows = rows.map((row) => ({ ...row }))
+    let remaining = limit
+
+    updatedRows.forEach((row) => {
+      if (remaining <= 0) {
+        row.allocAmt = 0
+        return
+      }
+
+      const balance = toSafeNumber(row.docBalAmt)
+      const available = Math.min(Math.abs(balance), remaining)
+      if (available <= 0) {
+        row.allocAmt = 0
+        return
+      }
+
+      row.allocAmt = balance >= 0 ? available : -available
+      remaining = Math.max(0, subtractAmount(remaining, available))
+    })
+
+    return updatedRows
+  }
+
+  if (limitingAmount <= 0) {
+    return {
+      updatedArDetails: arClone,
+      updatedApDetails: apClone,
+      limitingAmount,
+    }
+  }
+
+  const updatedArDetails = distributeAllocation(arClone, limitingAmount)
+  const updatedApDetails = distributeAllocation(apClone, limitingAmount)
+
+  return {
+    updatedArDetails,
+    updatedApDetails,
+    limitingAmount,
+  }
+}
+
 export const calculateUnallocated = (
   limitAmount: number,
   allocatedAmount: number,

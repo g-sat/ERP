@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  autoAllocateAmounts,
+  allocateBetweenModules,
   calauteLocalAmtandGainLoss,
   calculateManualAllocation,
   validateAllocation as validateAllocationHelper,
@@ -123,8 +123,6 @@ export default function Main({
         }
       })
 
-      console.log("splitDetailsByModule", arList, apList)
-
       return { arList, apList }
     },
     [classifyDetail]
@@ -172,32 +170,15 @@ export default function Main({
     []
   )
 
-  const summarizeAllocations = useCallback(
-    (details: GLContraDtSchemaType[]) => {
-      let positive = 0
-      let negativeAbs = 0
-
-      details.forEach((detail) => {
-        const bal = Number(detail.docBalAmt) || 0
-        if (bal > 0) {
-          positive += bal
-        } else if (bal < 0) {
-          negativeAbs += Math.abs(bal)
-        }
+  const formatAmount = useCallback(
+    (value: number | string | null | undefined, fractionDigits = amtDec) => {
+      const numericValue = Number(value) || 0
+      return numericValue.toLocaleString(undefined, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
       })
-
-      const difference = positive - negativeAbs
-      const limitingTotal = Math.min(positive, negativeAbs)
-
-      return {
-        positive,
-        negativeAbs,
-        limitingTotal,
-        matched: difference === 0 ? limitingTotal : difference,
-        totalSetOff: difference,
-      }
     },
-    []
+    [amtDec]
   )
 
   const computeSectionTotals = useCallback(
@@ -213,6 +194,24 @@ export default function Main({
       )
     },
     []
+  )
+
+  const updateHeaderSummary = useCallback(
+    (details: GLContraDtSchemaType[]) => {
+      const totals = details.reduce(
+        (acc, detail) => ({
+          totAmt: acc.totAmt + (Number(detail.allocAmt) || 0),
+          totLocalAmt: acc.totLocalAmt + (Number(detail.allocLocalAmt) || 0),
+          exhGainLoss: acc.exhGainLoss + (Number(detail.exhGainLoss) || 0),
+        }),
+        { totAmt: 0, totLocalAmt: 0, exhGainLoss: 0 }
+      )
+
+      form.setValue("totAmt", totals.totAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", totals.totLocalAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", totals.exhGainLoss, { shouldDirty: true })
+    },
+    [form]
   )
 
   const applyDetailsChange = useCallback(
@@ -240,6 +239,7 @@ export default function Main({
         shouldDirty: true,
         shouldTouch: true,
       })
+      updateHeaderSummary(detailsToStore)
       if (options?.triggerValidation !== false) {
         form.trigger("data_details")
       }
@@ -248,7 +248,13 @@ export default function Main({
 
       return detailsToStore
     },
-    [cloneDetails, combineDetails, form, recalcLocalAmounts]
+    [
+      cloneDetails,
+      combineDetails,
+      form,
+      recalcLocalAmounts,
+      updateHeaderSummary,
+    ]
   )
 
   const watchedDataDetails = form.watch("data_details")
@@ -490,15 +496,6 @@ export default function Main({
       const exhRate = Number(form.getValues("exhRate"))
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
 
-      // console.log(
-      //   "updateAllocationCalculations",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
-
       const { result, wasAutoSetToZero } = calculateManualAllocation(
         arr,
         rowIndex,
@@ -508,10 +505,6 @@ export default function Main({
 
       // Show toast if allocation was auto-set to zero due to remaining amount <= 0
       if (wasAutoSetToZero) {
-        console.log(
-          "updateAllocationCalculations wasAutoSetToZero",
-          wasAutoSetToZero
-        )
         toast.error("Now it's auto set to zero. Please check the allocation.")
       }
 
@@ -535,15 +528,6 @@ export default function Main({
           )
         }
       }
-
-      // console.log(
-      //   "updateAllocationCalculations calculateManualAllocation",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
 
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
@@ -577,8 +561,6 @@ export default function Main({
     (itemNo: number, field: string, value: number) => {
       if (field !== "allocAmt") return
 
-      // console.log("handleCellEdit", itemNo, field, value)
-
       const currentData = form.getValues("data_details") || []
       const currentItem = currentData.find((item) => item.itemNo === itemNo)
       const currentValue = currentItem?.allocAmt || 0
@@ -607,18 +589,12 @@ export default function Main({
         )
         return finalValue ?? 0
       } else {
-        // console.log("handleCellEdit else", itemNo, field, value)
         // When balTotAmt > 0, allow manual entry with validation
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IGLContraDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
 
-        // console.log(
-        //   "handleCellEdit else updateAllocationCalculations",
-        //   rowIndex,
-        //   value
-        // )
         const finalValue = updateAllocationCalculations(
           updatedData,
           rowIndex,
@@ -633,41 +609,62 @@ export default function Main({
   // ==================== MAIN FUNCTIONS ====================
 
   const handleAutoAllocation = useCallback(() => {
-    const combinedDetails = combineDetails(arDataDetails, apDataDetails)
+    const arLength = arDataDetails.length
+    const apLength = apDataDetails.length
 
-    if (!combinedDetails.length) {
-      toast.error("Please add AR/AP transactions before auto allocation.")
+    if (!arLength || !apLength) {
+      toast.error(
+        "Please add both AR and AP transactions before auto allocation."
+      )
       return
     }
 
-    if (!validateAllocation(combinedDetails)) return
+    const resetAr = resetAllocationsForDetails(arDataDetails)
+    const resetAp = resetAllocationsForDetails(apDataDetails)
 
-    const { updatedDetails: details } = autoAllocateAmounts(
-      combinedDetails as unknown as IGLContraDt[],
+    const allocationResult = allocateBetweenModules(
+      resetAr as unknown as IGLContraDt[],
+      resetAp as unknown as IGLContraDt[],
       decimalConfig
     )
 
-    const recalculated = details.map((detail) => ({ ...detail }))
-    const exhRate = Number(form.getValues("exhRate")) || 1
-    const arr = recalculated as unknown as IGLContraDt[]
-
-    for (let i = 0; i < arr.length; i++) {
-      calauteLocalAmtandGainLoss(arr, i, exhRate, decimalConfig)
+    if (
+      !allocationResult ||
+      allocationResult.limitingAmount === undefined ||
+      allocationResult.limitingAmount <= 0
+    ) {
+      toast.error(
+        "Unable to allocate amounts. Ensure both sides have outstanding balances."
+      )
+      return
     }
 
-    const normalized = (recalculated as unknown as GLContraDtSchemaType[]).map(
-      (detail) => ({
-        ...detail,
-        documentId:
-          typeof detail.documentId === "string"
-            ? detail.documentId
-            : String(detail.documentId ?? ""),
-      })
-    )
-    const { arList, apList } = splitDetailsByModule(normalized)
+    const normalizedAr = (
+      allocationResult.updatedArDetails as unknown as GLContraDtSchemaType[]
+    ).map((detail) => ({
+      ...detail,
+      documentId:
+        typeof detail.documentId === "string"
+          ? detail.documentId
+          : String(detail.documentId ?? ""),
+    }))
 
-    applyDetailsChange(arList, apList, {
-      recalcLocal: false,
+    const normalizedAp = (
+      allocationResult.updatedApDetails as unknown as GLContraDtSchemaType[]
+    ).map((detail) => ({
+      ...detail,
+      documentId:
+        typeof detail.documentId === "string"
+          ? detail.documentId
+          : String(detail.documentId ?? ""),
+    }))
+
+    const combined = combineDetails(normalizedAr, normalizedAp)
+
+    if (!validateAllocation(combined)) return
+
+    applyDetailsChange(normalizedAr, normalizedAp, {
+      recalcLocal: true,
     })
   }, [
     apDataDetails,
@@ -675,8 +672,7 @@ export default function Main({
     arDataDetails,
     combineDetails,
     decimalConfig,
-    form,
-    splitDetailsByModule,
+    resetAllocationsForDetails,
     validateAllocation,
   ])
 
@@ -916,17 +912,20 @@ export default function Main({
                 Select Txn
               </Button>
               <Badge className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                Tot Alloc: {arSectionTotals.alloc.toFixed(amtDec)}
+                Tot Alloc: {formatAmount(arSectionTotals.alloc)}
               </Badge>
               <Badge className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
                 Tot Alloc Local:{" "}
-                {arSectionTotals.allocLocal.toFixed(decimalConfig.locAmtDec)}
+                {formatAmount(
+                  arSectionTotals.allocLocal,
+                  decimalConfig.locAmtDec
+                )}
               </Badge>
               <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
-                Bal Amt: {arSectionTotals.balance.toFixed(amtDec)}
+                Bal Amt: {formatAmount(arSectionTotals.balance)}
               </Badge>
               <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
-                Ex Gain/Loss: {arSectionTotals.exhGainLoss.toFixed(amtDec)}
+                Ex Gain/Loss: {formatAmount(arSectionTotals.exhGainLoss)}
               </Badge>
             </div>
             <div className="overflow-x-auto">
@@ -960,17 +959,20 @@ export default function Main({
                 Select Txn
               </Button>
               <Badge className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                Tot Alloc: {apSectionTotals.alloc.toFixed(amtDec)}
+                Tot Alloc: {formatAmount(apSectionTotals.alloc)}
               </Badge>
               <Badge className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
                 Tot Alloc Local:{" "}
-                {apSectionTotals.allocLocal.toFixed(decimalConfig.locAmtDec)}
+                {formatAmount(
+                  apSectionTotals.allocLocal,
+                  decimalConfig.locAmtDec
+                )}
               </Badge>
               <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
-                Bal Amt: {apSectionTotals.balance.toFixed(amtDec)}
+                Bal Amt: {formatAmount(apSectionTotals.balance)}
               </Badge>
               <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
-                Ex Gain/Loss: {apSectionTotals.exhGainLoss.toFixed(amtDec)}
+                Ex Gain/Loss: {formatAmount(apSectionTotals.exhGainLoss)}
               </Badge>
             </div>
             <div className="overflow-x-auto">
