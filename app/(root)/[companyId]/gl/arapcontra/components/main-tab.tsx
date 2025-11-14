@@ -199,17 +199,40 @@ export default function Main({
   const updateHeaderSummary = useCallback(
     (details: GLContraDtSchemaType[]) => {
       const totals = details.reduce(
-        (acc, detail) => ({
-          totAmt: acc.totAmt + (Number(detail.allocAmt) || 0),
-          totLocalAmt: acc.totLocalAmt + (Number(detail.allocLocalAmt) || 0),
-          exhGainLoss: acc.exhGainLoss + (Number(detail.exhGainLoss) || 0),
-        }),
-        { totAmt: 0, totLocalAmt: 0, exhGainLoss: 0 }
+        (acc, detail) => {
+          const moduleId = Number(detail.moduleId)
+          const allocAmt = Number(detail.allocAmt) || 0
+          const allocLocal = Number(detail.allocLocalAmt) || 0
+          const exhGainLoss = Number(detail.exhGainLoss) || 0
+
+          if (moduleId === ModuleId.ap) {
+            acc.ap.totAmt += allocAmt
+            acc.ap.totLocalAmt += allocLocal
+            acc.ap.exhGainLoss += exhGainLoss
+          } else {
+            acc.ar.totAmt += allocAmt
+            acc.ar.totLocalAmt += allocLocal
+            acc.ar.exhGainLoss += exhGainLoss
+          }
+          return acc
+        },
+        {
+          ar: { totAmt: 0, totLocalAmt: 0, exhGainLoss: 0 },
+          ap: { totAmt: 0, totLocalAmt: 0, exhGainLoss: 0 },
+        }
       )
 
-      form.setValue("totAmt", totals.totAmt, { shouldDirty: true })
-      form.setValue("totLocalAmt", totals.totLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", totals.exhGainLoss, { shouldDirty: true })
+      const arAbs = Math.abs(totals.ar.totAmt)
+      const apAbs = Math.abs(totals.ap.totAmt)
+      const limitingTotals = arAbs <= apAbs ? totals.ar : totals.ap
+
+      form.setValue("totAmt", limitingTotals.totAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", limitingTotals.totLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("exhGainLoss", limitingTotals.exhGainLoss, {
+        shouldDirty: true,
+      })
     },
     [form]
   )
