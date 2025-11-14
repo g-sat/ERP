@@ -919,6 +919,7 @@ export default function ArapcontraPage() {
                   contraId: detail.contraId?.toString() ?? "0",
                   contraNo: detail.contraNo ?? "",
                   itemNo: detail.itemNo ?? 0,
+                  moduleId: detail.moduleId ?? 0,
                   transactionId: detail.transactionId ?? 0,
                   documentId: detail.documentId?.toString() ?? "0",
                   documentNo: detail.documentNo ?? "",

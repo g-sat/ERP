@@ -123,6 +123,8 @@ export default function Main({
         }
       })
 
+      console.log("splitDetailsByModule", arList, apList)
+
       return { arList, apList }
     },
     [classifyDetail]
@@ -198,6 +200,21 @@ export default function Main({
     []
   )
 
+  const computeSectionTotals = useCallback(
+    (details: GLContraDtSchemaType[]) => {
+      return details.reduce(
+        (acc, detail) => ({
+          alloc: acc.alloc + (Number(detail.allocAmt) || 0),
+          allocLocal: acc.allocLocal + (Number(detail.allocLocalAmt) || 0),
+          balance: acc.balance + (Number(detail.docBalAmt) || 0),
+          exhGainLoss: acc.exhGainLoss + (Number(detail.exhGainLoss) || 0),
+        }),
+        { alloc: 0, allocLocal: 0, balance: 0, exhGainLoss: 0 }
+      )
+    },
+    []
+  )
+
   const applyDetailsChange = useCallback(
     (
       nextAr: GLContraDtSchemaType[],
@@ -253,16 +270,14 @@ export default function Main({
   }, [splitDetailsByModule, watchedDataDetails])
 
   // Calculate sum of balance amounts across all details
-  const totalBalanceAmt = useMemo(() => {
-    return dataDetails.reduce(
-      (sum, detail) => sum + (Number(detail.docBalAmt) || 0),
-      0
-    )
-  }, [dataDetails])
+  const arSectionTotals = useMemo(
+    () => computeSectionTotals(arDataDetails),
+    [arDataDetails, computeSectionTotals]
+  )
 
-  const allocationTotals = useMemo(
-    () => summarizeAllocations(dataDetails),
-    [dataDetails, summarizeAllocations]
+  const apSectionTotals = useMemo(
+    () => computeSectionTotals(apDataDetails),
+    [apDataDetails, computeSectionTotals]
   )
 
   // Clear dialog params when dialog closes
@@ -435,22 +450,22 @@ export default function Main({
     (newData: IGLContraDt[]) => {
       applyDetailsChange(
         newData as unknown as GLContraDtSchemaType[],
-        apDataDetails,
+        arDataDetails,
         { recalcLocal: false, triggerValidation: false }
       )
     },
-    [apDataDetails, applyDetailsChange]
+    [arDataDetails, applyDetailsChange]
   )
 
   const handleApDataReorder = useCallback(
     (newData: IGLContraDt[]) => {
       applyDetailsChange(
-        arDataDetails,
+        apDataDetails,
         newData as unknown as GLContraDtSchemaType[],
         { recalcLocal: false, triggerValidation: false }
       )
     },
-    [applyDetailsChange, arDataDetails]
+    [applyDetailsChange, apDataDetails]
   )
 
   // ==================== HELPER FUNCTIONS ====================
@@ -900,23 +915,18 @@ export default function Main({
                 <Plus className="h-4 w-4" />
                 Select Txn
               </Button>
-              <Badge
-                variant="secondary"
-                className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
-              >
-                Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+              <Badge className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                Tot Alloc: {arSectionTotals.alloc.toFixed(amtDec)}
               </Badge>
-              <Badge
-                variant="secondary"
-                className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
-              >
-                Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
+              <Badge className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
+                Tot Alloc Local:{" "}
+                {arSectionTotals.allocLocal.toFixed(decimalConfig.locAmtDec)}
               </Badge>
-              <Badge
-                variant="outline"
-                className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
-              >
-                Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
+              <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
+                Bal Amt: {arSectionTotals.balance.toFixed(amtDec)}
+              </Badge>
+              <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
+                Ex Gain/Loss: {arSectionTotals.exhGainLoss.toFixed(amtDec)}
               </Badge>
             </div>
             <div className="overflow-x-auto">
@@ -949,23 +959,18 @@ export default function Main({
                 <Plus className="h-4 w-4" />
                 Select Txn
               </Button>
-              <Badge
-                variant="secondary"
-                className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
-              >
-                Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+              <Badge className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                Tot Alloc: {apSectionTotals.alloc.toFixed(amtDec)}
               </Badge>
-              <Badge
-                variant="secondary"
-                className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
-              >
-                Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
+              <Badge className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
+                Tot Alloc Local:{" "}
+                {apSectionTotals.allocLocal.toFixed(decimalConfig.locAmtDec)}
               </Badge>
-              <Badge
-                variant="outline"
-                className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
-              >
-                Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
+              <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
+                Bal Amt: {apSectionTotals.balance.toFixed(amtDec)}
+              </Badge>
+              <Badge className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
+                Ex Gain/Loss: {apSectionTotals.exhGainLoss.toFixed(amtDec)}
               </Badge>
             </div>
             <div className="overflow-x-auto">
