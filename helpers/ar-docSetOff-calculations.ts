@@ -181,6 +181,9 @@ export const calauteLocalAmtandGainLoss = (
   }
 
   const allocAmt = Number(details[rowNumber].allocAmt) || 0
+  const docBalAmt = Number(details[rowNumber].docBalAmt) || 0
+  const docBalLocalAmt = Number(details[rowNumber].docBalLocalAmt) || 0
+
   if (allocAmt === 0) {
     details[rowNumber].allocLocalAmt = 0
     details[rowNumber].docAllocAmt = 0
@@ -190,11 +193,13 @@ export const calauteLocalAmtandGainLoss = (
     return details[rowNumber]
   }
 
-  const allocLocalAmt = calculateMultiplierAmount(
-    allocAmt,
-    exhRate,
-    decimals.locAmtDec
-  )
+  const isFullBalanceAllocation =
+    calculateSubtractionAmount(docBalAmt, allocAmt, decimals.amtDec) === 0
+
+  const allocLocalAmt = isFullBalanceAllocation
+    ? docBalLocalAmt
+    : calculateMultiplierAmount(allocAmt, exhRate, decimals.locAmtDec)
+
   const docAllocAmt = allocAmt
   const docAllocLocalAmt = calculateMultiplierAmount(
     allocAmt,
