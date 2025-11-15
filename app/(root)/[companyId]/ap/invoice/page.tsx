@@ -47,7 +47,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId } from "@/lib/utils"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -77,7 +77,7 @@ export default function InvoicePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = ARTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -136,7 +136,7 @@ export default function InvoicePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/invoice`,
+    () => `history-doc:/${companyId}/ap/debitnote`,
     [companyId]
   )
 
@@ -753,189 +753,190 @@ export default function InvoicePage() {
   const transformToSchemaType = useCallback(
     (apiInvoice: IApInvoiceHd): ApInvoiceHdSchemaType => {
       return {
-      invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
-      invoiceNo: apiInvoice.invoiceNo ?? "",
-      referenceNo: apiInvoice.referenceNo ?? "",
-      suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
-      trnDate: apiInvoice.trnDate
-        ? format(
-            parseDate(apiInvoice.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiInvoice.accountDate
-        ? format(
-            parseDate(apiInvoice.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      dueDate: apiInvoice.dueDate
-        ? format(
-            parseDate(apiInvoice.dueDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      deliveryDate: apiInvoice.deliveryDate
-        ? format(
-            parseDate(apiInvoice.deliveryDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiInvoice.gstClaimDate
-        ? format(
-            parseDate(apiInvoice.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      supplierId: apiInvoice.supplierId ?? 0,
-      currencyId: apiInvoice.currencyId ?? 0,
-      exhRate: apiInvoice.exhRate ?? 0,
-      ctyExhRate: apiInvoice.ctyExhRate ?? 0,
-      creditTermId: apiInvoice.creditTermId ?? 0,
-      bankId: apiInvoice.bankId ?? 0,
-      totAmt: apiInvoice.totAmt ?? 0,
-      totLocalAmt: apiInvoice.totLocalAmt ?? 0,
-      totCtyAmt: apiInvoice.totCtyAmt ?? 0,
-      gstAmt: apiInvoice.gstAmt ?? 0,
-      gstLocalAmt: apiInvoice.gstLocalAmt ?? 0,
-      gstCtyAmt: apiInvoice.gstCtyAmt ?? 0,
-      totAmtAftGst: apiInvoice.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiInvoice.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiInvoice.totCtyAmtAftGst ?? 0,
-      balAmt: apiInvoice.balAmt ?? 0,
-      balLocalAmt: apiInvoice.balLocalAmt ?? 0,
-      payAmt: apiInvoice.payAmt ?? 0,
-      payLocalAmt: apiInvoice.payLocalAmt ?? 0,
-      exGainLoss: apiInvoice.exGainLoss ?? 0,
-      operationId: apiInvoice.operationId ?? 0,
-      operationNo: apiInvoice.operationNo ?? "",
-      remarks: apiInvoice.remarks ?? "",
-      addressId: apiInvoice.addressId ?? 0, // Not available in IApInvoiceHd
-      contactId: apiInvoice.contactId ?? 0, // Not available in IApInvoiceHd
-      address1: apiInvoice.address1 ?? "",
-      address2: apiInvoice.address2 ?? "",
-      address3: apiInvoice.address3 ?? "",
-      address4: apiInvoice.address4 ?? "",
-      pinCode: apiInvoice.pinCode ?? "",
-      countryId: apiInvoice.countryId ?? 0,
-      phoneNo: apiInvoice.phoneNo ?? "",
-      faxNo: apiInvoice.faxNo ?? "",
-      contactName: apiInvoice.contactName ?? "",
-      mobileNo: apiInvoice.mobileNo ?? "",
-      emailAdd: apiInvoice.emailAdd ?? "",
-      moduleFrom: apiInvoice.moduleFrom ?? "",
-      customerName: apiInvoice.customerName ?? "",
-      arInvoiceId: apiInvoice.arInvoiceId ?? "",
-      arInvoiceNo: apiInvoice.arInvoiceNo ?? "",
-      editVersion: apiInvoice.editVersion ?? 0,
-      purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
-      purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
+        invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
+        invoiceNo: apiInvoice.invoiceNo ?? "",
+        referenceNo: apiInvoice.referenceNo ?? "",
+        suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
+        trnDate: apiInvoice.trnDate
+          ? format(
+              parseDate(apiInvoice.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiInvoice.accountDate
+          ? format(
+              parseDate(apiInvoice.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        dueDate: apiInvoice.dueDate
+          ? format(
+              parseDate(apiInvoice.dueDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        deliveryDate: apiInvoice.deliveryDate
+          ? format(
+              parseDate(apiInvoice.deliveryDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiInvoice.gstClaimDate
+          ? format(
+              parseDate(apiInvoice.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        supplierId: apiInvoice.supplierId ?? 0,
+        currencyId: apiInvoice.currencyId ?? 0,
+        exhRate: apiInvoice.exhRate ?? 0,
+        ctyExhRate: apiInvoice.ctyExhRate ?? 0,
+        creditTermId: apiInvoice.creditTermId ?? 0,
+        bankId: apiInvoice.bankId ?? 0,
+        totAmt: apiInvoice.totAmt ?? 0,
+        totLocalAmt: apiInvoice.totLocalAmt ?? 0,
+        totCtyAmt: apiInvoice.totCtyAmt ?? 0,
+        gstAmt: apiInvoice.gstAmt ?? 0,
+        gstLocalAmt: apiInvoice.gstLocalAmt ?? 0,
+        gstCtyAmt: apiInvoice.gstCtyAmt ?? 0,
+        totAmtAftGst: apiInvoice.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiInvoice.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiInvoice.totCtyAmtAftGst ?? 0,
+        balAmt: apiInvoice.balAmt ?? 0,
+        balLocalAmt: apiInvoice.balLocalAmt ?? 0,
+        payAmt: apiInvoice.payAmt ?? 0,
+        payLocalAmt: apiInvoice.payLocalAmt ?? 0,
+        exGainLoss: apiInvoice.exGainLoss ?? 0,
+        operationId: apiInvoice.operationId ?? 0,
+        operationNo: apiInvoice.operationNo ?? "",
+        remarks: apiInvoice.remarks ?? "",
+        addressId: apiInvoice.addressId ?? 0, // Not available in IApInvoiceHd
+        contactId: apiInvoice.contactId ?? 0, // Not available in IApInvoiceHd
+        address1: apiInvoice.address1 ?? "",
+        address2: apiInvoice.address2 ?? "",
+        address3: apiInvoice.address3 ?? "",
+        address4: apiInvoice.address4 ?? "",
+        pinCode: apiInvoice.pinCode ?? "",
+        countryId: apiInvoice.countryId ?? 0,
+        phoneNo: apiInvoice.phoneNo ?? "",
+        faxNo: apiInvoice.faxNo ?? "",
+        contactName: apiInvoice.contactName ?? "",
+        mobileNo: apiInvoice.mobileNo ?? "",
+        emailAdd: apiInvoice.emailAdd ?? "",
+        moduleFrom: apiInvoice.moduleFrom ?? "",
+        customerName: apiInvoice.customerName ?? "",
+        arInvoiceId: apiInvoice.arInvoiceId ?? "",
+        arInvoiceNo: apiInvoice.arInvoiceNo ?? "",
+        editVersion: apiInvoice.editVersion ?? 0,
+        purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
+        purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
 
-      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
-      createBy: apiInvoice.createBy ?? "",
-      editBy: apiInvoice.editBy ?? "",
-      cancelBy: apiInvoice.cancelBy ?? "",
-      createDate: apiInvoice.createDate
-        ? format(
-            parseDate(apiInvoice.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
+        serviceTypeId: apiInvoice.serviceTypeId ?? 0,
+        createBy: apiInvoice.createBy ?? "",
+        editBy: apiInvoice.editBy ?? "",
+        cancelBy: apiInvoice.cancelBy ?? "",
+        createDate: apiInvoice.createDate
+          ? format(
+              parseDate(apiInvoice.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
 
-      editDate: apiInvoice.editDate
-        ? format(
-            parseDate(apiInvoice.editDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiInvoice.cancelDate
-        ? format(
-            parseDate(apiInvoice.cancelDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiInvoice.isCancel ?? false,
-      cancelRemarks: apiInvoice.cancelRemarks ?? "",
-      data_details:
-        apiInvoice.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              invoiceId: detail.invoiceId?.toString() ?? "0",
-              invoiceNo: detail.invoiceNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              docItemNo: detail.docItemNo ?? 0,
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              qty: detail.qty ?? 0,
-              billQTY: detail.billQTY ?? 0,
-              uomId: detail.uomId ?? 0,
-              uomCode: detail.uomCode ?? "",
-              uomName: detail.uomName ?? "",
-              unitPrice: detail.unitPrice ?? 0,
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              deliveryDate: detail.deliveryDate
-                ? format(
-                    parseDate(detail.deliveryDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              taskId: detail.taskId ?? 0,
-              taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              operationId: detail.operationId ?? "",
-              operationNo: detail.operationNo ?? "",
-              opRefNo: detail.opRefNo ?? "",
-              purchaseOrderId: detail.purchaseOrderId ?? "",
-              purchaseOrderNo: detail.purchaseOrderNo ?? "",
+        editDate: apiInvoice.editDate
+          ? format(
+              parseDate(apiInvoice.editDate as unknown as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiInvoice.cancelDate
+          ? format(
+              parseDate(apiInvoice.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiInvoice.isCancel ?? false,
+        cancelRemarks: apiInvoice.cancelRemarks ?? "",
+        data_details:
+          apiInvoice.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                invoiceId: detail.invoiceId?.toString() ?? "0",
+                invoiceNo: detail.invoiceNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                docItemNo: detail.docItemNo ?? 0,
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                qty: detail.qty ?? 0,
+                billQTY: detail.billQTY ?? 0,
+                uomId: detail.uomId ?? 0,
+                uomCode: detail.uomCode ?? "",
+                uomName: detail.uomName ?? "",
+                unitPrice: detail.unitPrice ?? 0,
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                deliveryDate: detail.deliveryDate
+                  ? format(
+                      parseDate(detail.deliveryDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                operationId: detail.operationId ?? "",
+                operationNo: detail.operationNo ?? "",
+                opRefNo: detail.opRefNo ?? "",
+                purchaseOrderId: detail.purchaseOrderId ?? "",
+                purchaseOrderNo: detail.purchaseOrderNo ?? "",
 
-              supplyDate: detail.supplyDate
-                ? format(
-                    parseDate(detail.supplyDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              customerName: detail.customerName ?? "",
-              custInvoiceNo: detail.custInvoiceNo ?? "",
-              arInvoiceId: detail.arInvoiceId ?? "",
-              arInvoiceNo: detail.arInvoiceNo ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApInvoiceDtSchemaType
-        ) || [],
+                supplyDate: detail.supplyDate
+                  ? format(
+                      parseDate(detail.supplyDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                customerName: detail.customerName ?? "",
+                custInvoiceNo: detail.custInvoiceNo ?? "",
+                arInvoiceId: detail.arInvoiceId ?? "",
+                arInvoiceNo: detail.arInvoiceNo ?? "",
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as ApInvoiceDtSchemaType
+          ) || [],
       }
     },
     [dateFormat, decimals]
@@ -951,6 +952,8 @@ export default function InvoicePage() {
       invoiceNo?: string | null
       showLoader?: boolean
     }) => {
+      console.log("invoiceId", invoiceId)
+      console.log("invoiceNo", invoiceNo)
       const trimmedInvoiceNo = invoiceNo?.trim() ?? ""
       const trimmedInvoiceId =
         typeof invoiceId === "number"
@@ -984,18 +987,14 @@ export default function InvoicePage() {
                 : (detailedInvoice.accountDate as string)
             )
 
-            const updatedInvoice = transformToSchemaType(
-              detailedInvoice as IApInvoiceHd
-            )
+            const updatedInvoice = transformToSchemaType(detailedInvoice)
 
             setInvoice(updatedInvoice)
             form.reset(updatedInvoice)
             form.trigger()
 
             const resolvedInvoiceNo =
-              updatedInvoice.invoiceNo ||
-              trimmedInvoiceNo ||
-              trimmedInvoiceId
+              updatedInvoice.invoiceNo || trimmedInvoiceNo || trimmedInvoiceId
             setSearchNo(resolvedInvoiceNo)
 
             return resolvedInvoiceNo
@@ -1115,7 +1114,7 @@ export default function InvoicePage() {
       })
 
       if (loadedInvoiceNo) {
-        toast.success(Invoice  loaded successfully)
+        toast.success(`Invoice ${loadedInvoiceNo} loaded successfully`)
       }
     } finally {
       setShowLoadConfirm(false)
@@ -1123,19 +1122,20 @@ export default function InvoicePage() {
   }
 
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleInvoiceSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadInvoice({
+        invoiceId: trimmedId,
+        invoiceNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadInvoice, pendingDocId])
 
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")
@@ -1499,4 +1499,3 @@ export default function InvoicePage() {
     </div>
   )
 }
-
