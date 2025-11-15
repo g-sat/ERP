@@ -51,7 +51,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDebitNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId } from "@/lib/utils"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -81,7 +81,7 @@ export default function DebitNotePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.debitNote
+  const transactionId = ARTransactionId.debitNote
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -133,27 +133,22 @@ export default function DebitNotePage() {
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
-  const [pendingDocNo, setPendingDocNo] = useState("")
+  const [pendingDocId, setPendingDocId] = useState("")
 
-  const handleDebitNoteSearchRef = useRef<
-    ((value: string) => Promise<void> | void) | null
-  >(null)
-
-  const documentNoFromQuery = useMemo(() => {
+  const documentIdFromQuery = useMemo(() => {
     const value =
-      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/creditnote`,
+    () => `history-doc:/${companyId}/ap/debitnote`,
     [companyId]
   )
 
   useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
       return
     }
 
@@ -163,12 +158,11 @@ export default function DebitNotePage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
-          setPendingDocNo(trimmed)
-          setSearchNo(trimmed)
+          setPendingDocId(trimmed)
         }
       }
     }
-  }, [autoLoadStorageKey, documentNoFromQuery])
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -776,338 +770,121 @@ export default function DebitNotePage() {
   }
 
   // Helper function to transform IApDebitNoteHd to ApDebitNoteHdSchemaType
-  const transformToSchemaType = (
-    apiDebitNote: IApDebitNoteHd
-  ): ApDebitNoteHdSchemaType => {
-    return {
-      debitNoteId: apiDebitNote.debitNoteId?.toString() ?? "0",
-      debitNoteNo: apiDebitNote.debitNoteNo ?? "",
-      referenceNo: apiDebitNote.referenceNo ?? "",
-      suppDebitNoteNo: apiDebitNote.suppDebitNoteNo ?? "",
-      trnDate: apiDebitNote.trnDate
-        ? format(
-            parseDate(apiDebitNote.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiDebitNote.accountDate
-        ? format(
-            parseDate(apiDebitNote.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      dueDate: apiDebitNote.dueDate
-        ? format(
-            parseDate(apiDebitNote.dueDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      deliveryDate: apiDebitNote.deliveryDate
-        ? format(
-            parseDate(apiDebitNote.deliveryDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiDebitNote.gstClaimDate
-        ? format(
-            parseDate(apiDebitNote.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      supplierId: apiDebitNote.supplierId ?? 0,
-      currencyId: apiDebitNote.currencyId ?? 0,
-      exhRate: apiDebitNote.exhRate ?? 0,
-      ctyExhRate: apiDebitNote.ctyExhRate ?? 0,
-      creditTermId: apiDebitNote.creditTermId ?? 0,
-      bankId: apiDebitNote.bankId ?? 0,
-      invoiceId: apiDebitNote.invoiceId ?? "0",
-      invoiceNo: apiDebitNote.invoiceNo ?? "",
-      totAmt: apiDebitNote.totAmt ?? 0,
-      totLocalAmt: apiDebitNote.totLocalAmt ?? 0,
-      totCtyAmt: apiDebitNote.totCtyAmt ?? 0,
-      gstAmt: apiDebitNote.gstAmt ?? 0,
-      gstLocalAmt: apiDebitNote.gstLocalAmt ?? 0,
-      gstCtyAmt: apiDebitNote.gstCtyAmt ?? 0,
-      totAmtAftGst: apiDebitNote.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiDebitNote.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiDebitNote.totCtyAmtAftGst ?? 0,
-      balAmt: apiDebitNote.balAmt ?? 0,
-      balLocalAmt: apiDebitNote.balLocalAmt ?? 0,
-      payAmt: apiDebitNote.payAmt ?? 0,
-      payLocalAmt: apiDebitNote.payLocalAmt ?? 0,
-      exGainLoss: apiDebitNote.exGainLoss ?? 0,
-      operationId: apiDebitNote.operationId ?? 0,
-      operationNo: apiDebitNote.operationNo ?? "",
-      remarks: apiDebitNote.remarks ?? "",
-      addressId: apiDebitNote.addressId ?? 0, // Not available in IApDebitNoteHd
-      contactId: apiDebitNote.contactId ?? 0, // Not available in IApDebitNoteHd
-      address1: apiDebitNote.address1 ?? "",
-      address2: apiDebitNote.address2 ?? "",
-      address3: apiDebitNote.address3 ?? "",
-      address4: apiDebitNote.address4 ?? "",
-      pinCode: apiDebitNote.pinCode ?? "",
-      countryId: apiDebitNote.countryId ?? 0,
-      phoneNo: apiDebitNote.phoneNo ?? "",
-      faxNo: apiDebitNote.faxNo ?? "",
-      contactName: apiDebitNote.contactName ?? "",
-      mobileNo: apiDebitNote.mobileNo ?? "",
-      emailAdd: apiDebitNote.emailAdd ?? "",
-      moduleFrom: apiDebitNote.moduleFrom ?? "",
-      customerName: apiDebitNote.customerName ?? "",
-      arDebitNoteId: apiDebitNote.arDebitNoteId ?? "",
-      arDebitNoteNo: apiDebitNote.arDebitNoteNo ?? "",
-      editVersion: apiDebitNote.editVersion ?? 0,
-      purchaseOrderId: apiDebitNote.purchaseOrderId ?? 0,
-      purchaseOrderNo: apiDebitNote.purchaseOrderNo ?? "",
-
-      serviceTypeId: apiDebitNote.serviceTypeId ?? 0,
-      createBy: apiDebitNote.createBy ?? "",
-      editBy: apiDebitNote.editBy ?? "",
-      cancelBy: apiDebitNote.cancelBy ?? "",
-      createDate: apiDebitNote.createDate
-        ? format(
-            parseDate(apiDebitNote.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-
-      editDate: apiDebitNote.editDate
-        ? format(
-            parseDate(apiDebitNote.editDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiDebitNote.cancelDate
-        ? format(
-            parseDate(apiDebitNote.cancelDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiDebitNote.isCancel ?? false,
-      cancelRemarks: apiDebitNote.cancelRemarks ?? "",
-      data_details:
-        apiDebitNote.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              debitNoteId: detail.debitNoteId?.toString() ?? "0",
-              debitNoteNo: detail.debitNoteNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              docItemNo: detail.docItemNo ?? 0,
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              qty: detail.qty ?? 0,
-              billQTY: detail.billQTY ?? 0,
-              uomId: detail.uomId ?? 0,
-              uomCode: detail.uomCode ?? "",
-              uomName: detail.uomName ?? "",
-              unitPrice: detail.unitPrice ?? 0,
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              deliveryDate: detail.deliveryDate
-                ? format(
-                    parseDate(detail.deliveryDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              taskId: detail.taskId ?? 0,
-              taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              operationId: detail.operationId ?? "",
-              operationNo: detail.operationNo ?? "",
-              opRefNo: detail.opRefNo ?? "",
-              purchaseOrderId: detail.purchaseOrderId ?? "",
-              purchaseOrderNo: detail.purchaseOrderNo ?? "",
-
-              supplyDate: detail.supplyDate
-                ? format(
-                    parseDate(detail.supplyDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              customerName: detail.customerName ?? "",
-              custDebitNoteNo: detail.custDebitNoteNo ?? "",
-              arDebitNoteId: detail.arDebitNoteId ?? "",
-              arDebitNoteNo: detail.arDebitNoteNo ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApDebitNoteDtSchemaType
-        ) || [],
-    }
-  }
-
-  const handleDebitNoteSelect = async (
-    selectedDebitNote: IApDebitNoteHd | undefined
-  ) => {
-    if (!selectedDebitNote) return
-
-    try {
-      // Fetch debitNote details directly using selected debitNote's values
-      const response = await getById(
-        `${ApDebitNote.getByIdNo}/${selectedDebitNote.debitNoteId}/${selectedDebitNote.debitNoteNo}`
-      )
-
-      if (response?.result === 1) {
-        const detailedDebitNote = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedDebitNote) {
-          {
-            const parsed = parseDate(detailedDebitNote.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedDebitNote.accountDate as string)
+  const transformToSchemaType = useCallback(
+    (apiDebitNote: IApDebitNoteHd): ApDebitNoteHdSchemaType => {
+      return {
+        debitNoteId: apiDebitNote.debitNoteId?.toString() ?? "0",
+        debitNoteNo: apiDebitNote.debitNoteNo ?? "",
+        referenceNo: apiDebitNote.referenceNo ?? "",
+        suppDebitNoteNo: apiDebitNote.suppDebitNoteNo ?? "",
+        trnDate: apiDebitNote.trnDate
+          ? format(
+              parseDate(apiDebitNote.trnDate as string) || new Date(),
+              dateFormat
             )
-          }
-          // Parse dates properly
-          const updatedDebitNote = {
-            ...detailedDebitNote,
-            debitNoteId: detailedDebitNote.debitNoteId?.toString() ?? "0",
-            debitNoteNo: detailedDebitNote.debitNoteNo ?? "",
-            referenceNo: detailedDebitNote.referenceNo ?? "",
-            suppDebitNoteNo: detailedDebitNote.suppDebitNoteNo ?? "",
-            trnDate: detailedDebitNote.trnDate
-              ? format(
-                  parseDate(detailedDebitNote.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedDebitNote.accountDate
-              ? format(
-                  parseDate(detailedDebitNote.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedDebitNote.dueDate
-              ? format(
-                  parseDate(detailedDebitNote.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedDebitNote.deliveryDate
-              ? format(
-                  parseDate(detailedDebitNote.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedDebitNote.gstClaimDate
-              ? format(
-                  parseDate(detailedDebitNote.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
+          : dateFormat,
+        accountDate: apiDebitNote.accountDate
+          ? format(
+              parseDate(apiDebitNote.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        dueDate: apiDebitNote.dueDate
+          ? format(
+              parseDate(apiDebitNote.dueDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        deliveryDate: apiDebitNote.deliveryDate
+          ? format(
+              parseDate(apiDebitNote.deliveryDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiDebitNote.gstClaimDate
+          ? format(
+              parseDate(apiDebitNote.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        supplierId: apiDebitNote.supplierId ?? 0,
+        currencyId: apiDebitNote.currencyId ?? 0,
+        exhRate: apiDebitNote.exhRate ?? 0,
+        ctyExhRate: apiDebitNote.ctyExhRate ?? 0,
+        creditTermId: apiDebitNote.creditTermId ?? 0,
+        bankId: apiDebitNote.bankId ?? 0,
+        invoiceId: apiDebitNote.invoiceId ?? "0",
+        invoiceNo: apiDebitNote.invoiceNo ?? "",
+        totAmt: apiDebitNote.totAmt ?? 0,
+        totLocalAmt: apiDebitNote.totLocalAmt ?? 0,
+        totCtyAmt: apiDebitNote.totCtyAmt ?? 0,
+        gstAmt: apiDebitNote.gstAmt ?? 0,
+        gstLocalAmt: apiDebitNote.gstLocalAmt ?? 0,
+        gstCtyAmt: apiDebitNote.gstCtyAmt ?? 0,
+        totAmtAftGst: apiDebitNote.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiDebitNote.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiDebitNote.totCtyAmtAftGst ?? 0,
+        balAmt: apiDebitNote.balAmt ?? 0,
+        balLocalAmt: apiDebitNote.balLocalAmt ?? 0,
+        payAmt: apiDebitNote.payAmt ?? 0,
+        payLocalAmt: apiDebitNote.payLocalAmt ?? 0,
+        exGainLoss: apiDebitNote.exGainLoss ?? 0,
+        operationId: apiDebitNote.operationId ?? 0,
+        operationNo: apiDebitNote.operationNo ?? "",
+        remarks: apiDebitNote.remarks ?? "",
+        addressId: apiDebitNote.addressId ?? 0, // Not available in IApDebitNoteHd
+        contactId: apiDebitNote.contactId ?? 0, // Not available in IApDebitNoteHd
+        address1: apiDebitNote.address1 ?? "",
+        address2: apiDebitNote.address2 ?? "",
+        address3: apiDebitNote.address3 ?? "",
+        address4: apiDebitNote.address4 ?? "",
+        pinCode: apiDebitNote.pinCode ?? "",
+        countryId: apiDebitNote.countryId ?? 0,
+        phoneNo: apiDebitNote.phoneNo ?? "",
+        faxNo: apiDebitNote.faxNo ?? "",
+        contactName: apiDebitNote.contactName ?? "",
+        mobileNo: apiDebitNote.mobileNo ?? "",
+        emailAdd: apiDebitNote.emailAdd ?? "",
+        moduleFrom: apiDebitNote.moduleFrom ?? "",
+        customerName: apiDebitNote.customerName ?? "",
+        arDebitNoteId: apiDebitNote.arDebitNoteId ?? "",
+        arDebitNoteNo: apiDebitNote.arDebitNoteNo ?? "",
+        editVersion: apiDebitNote.editVersion ?? 0,
+        purchaseOrderId: apiDebitNote.purchaseOrderId ?? 0,
+        purchaseOrderNo: apiDebitNote.purchaseOrderNo ?? "",
 
-            supplierId: detailedDebitNote.supplierId ?? 0,
-            currencyId: detailedDebitNote.currencyId ?? 0,
-            exhRate: detailedDebitNote.exhRate ?? 0,
-            ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
-            creditTermId: detailedDebitNote.creditTermId ?? 0,
-            bankId: detailedDebitNote.bankId ?? 0,
-            invoiceId: detailedDebitNote.invoiceId ?? "0",
-            invoiceNo: detailedDebitNote.invoiceNo ?? "",
-            totAmt: detailedDebitNote.totAmt ?? 0,
-            totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,
-            gstAmt: detailedDebitNote.gstAmt ?? 0,
-            gstLocalAmt: detailedDebitNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedDebitNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedDebitNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedDebitNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedDebitNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedDebitNote.balAmt ?? 0,
-            balLocalAmt: detailedDebitNote.balLocalAmt ?? 0,
-            payAmt: detailedDebitNote.payAmt ?? 0,
-            payLocalAmt: detailedDebitNote.payLocalAmt ?? 0,
-            exGainLoss: detailedDebitNote.exGainLoss ?? 0,
-            operationId: detailedDebitNote.operationId ?? 0,
-            operationNo: detailedDebitNote.operationNo ?? "",
-            remarks: detailedDebitNote.remarks ?? "",
-            addressId: detailedDebitNote.addressId ?? 0, // Not available in IApDebitNoteHd
-            contactId: detailedDebitNote.contactId ?? 0, // Not available in IApDebitNoteHd
-            address1: detailedDebitNote.address1 ?? "",
-            address2: detailedDebitNote.address2 ?? "",
-            address3: detailedDebitNote.address3 ?? "",
-            address4: detailedDebitNote.address4 ?? "",
-            pinCode: detailedDebitNote.pinCode ?? "",
-            countryId: detailedDebitNote.countryId ?? 0,
-            phoneNo: detailedDebitNote.phoneNo ?? "",
-            faxNo: detailedDebitNote.faxNo ?? "",
-            contactName: detailedDebitNote.contactName ?? "",
-            mobileNo: detailedDebitNote.mobileNo ?? "",
-            emailAdd: detailedDebitNote.emailAdd ?? "",
-            moduleFrom: detailedDebitNote.moduleFrom ?? "",
-            customerName: detailedDebitNote.customerName ?? "",
-            arDebitNoteId: detailedDebitNote.arDebitNoteId ?? "",
-            arDebitNoteNo: detailedDebitNote.arDebitNoteNo ?? "",
-            editVersion: detailedDebitNote.editVersion ?? 0,
-            purchaseOrderId: detailedDebitNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedDebitNote.purchaseOrderNo ?? "",
-            serviceTypeId: detailedDebitNote.serviceTypeId ?? 0,
-            createBy: detailedDebitNote.createBy ?? "",
-            createDate: detailedDebitNote.createDate
-              ? format(
-                  parseDate(detailedDebitNote.createDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            editBy: detailedDebitNote.editBy ?? "",
-            editDate: detailedDebitNote.editDate
-              ? format(
-                  parseDate(detailedDebitNote.editDate as string) || new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            cancelBy: detailedDebitNote.cancelBy ?? "",
-            cancelDate: detailedDebitNote.cancelDate
-              ? format(
-                  parseDate(detailedDebitNote.cancelDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            isCancel: detailedDebitNote.isCancel ?? false,
-            cancelRemarks: detailedDebitNote.cancelRemarks ?? "",
-            data_details:
-              detailedDebitNote.data_details?.map((detail: IApDebitNoteDt) => ({
+        serviceTypeId: apiDebitNote.serviceTypeId ?? 0,
+        createBy: apiDebitNote.createBy ?? "",
+        editBy: apiDebitNote.editBy ?? "",
+        cancelBy: apiDebitNote.cancelBy ?? "",
+        createDate: apiDebitNote.createDate
+          ? format(
+              parseDate(apiDebitNote.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+
+        editDate: apiDebitNote.editDate
+          ? format(
+              parseDate(apiDebitNote.editDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiDebitNote.cancelDate
+          ? format(
+              parseDate(apiDebitNote.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiDebitNote.isCancel ?? false,
+        cancelRemarks: apiDebitNote.cancelRemarks ?? "",
+        data_details:
+          apiDebitNote.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
                 debitNoteId: detail.debitNoteId?.toString() ?? "0",
                 debitNoteNo: detail.debitNoteNo ?? "",
                 itemNo: detail.itemNo ?? 0,
@@ -1144,7 +921,6 @@ export default function DebitNotePage() {
                 departmentId: detail.departmentId ?? 0,
                 departmentCode: detail.departmentCode ?? "",
                 departmentName: detail.departmentName ?? "",
-
                 jobOrderId: detail.jobOrderId ?? 0,
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
@@ -1170,6 +946,7 @@ export default function DebitNotePage() {
                 opRefNo: detail.opRefNo ?? "",
                 purchaseOrderId: detail.purchaseOrderId ?? "",
                 purchaseOrderNo: detail.purchaseOrderNo ?? "",
+
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
@@ -1181,30 +958,109 @@ export default function DebitNotePage() {
                 arDebitNoteId: detail.arDebitNoteId ?? "",
                 arDebitNoteNo: detail.arDebitNoteNo ?? "",
                 editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setDebitNote(updatedDebitNote as ApDebitNoteHdSchemaType)
-          setDebitNote(transformToSchemaType(updatedDebitNote))
-          form.reset(updatedDebitNote)
-          form.trigger()
-
-          // Set the debitNote number in search input
-          setSearchNo(updatedDebitNote.debitNoteNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
-        }
-      } else {
-        toast.error(response?.message || "Failed to fetch debitNote details")
-        // Keep dialog open on failure so user can try again
+              }) as unknown as ApDebitNoteDtSchemaType
+          ) || [],
       }
-    } catch (error) {
-      console.error("Error fetching debitNote details:", error)
-      toast.error("Error loading debitNote. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+    },
+    [dateFormat, decimals]
+  )
+
+  const loadDebitNote = useCallback(
+    async ({
+      debitNoteId,
+      debitNoteNo,
+      showLoader = false,
+    }: {
+      debitNoteId?: string | number | null
+      debitNoteNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("debitNoteId", debitNoteId)
+      console.log("debitNoteNo", debitNoteNo)
+      const trimmedDebitNoteNo = debitNoteNo?.trim() ?? ""
+      const trimmedDebitNoteId =
+        typeof debitNoteId === "number"
+          ? debitNoteId.toString()
+          : (debitNoteId?.toString().trim() ?? "")
+
+      if (!trimmedDebitNoteNo && !trimmedDebitNoteId) return null
+
+      if (showLoader) {
+        setIsLoadingDebitNote(true)
+      }
+
+      const requestDebitNoteId = trimmedDebitNoteId || "0"
+      const requestDebitNoteNo = trimmedDebitNoteNo || ""
+
+      try {
+        const response = await getById(
+          `${ApDebitNote.getByIdNo}/${requestDebitNoteId}/${requestDebitNoteNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedDebitNote = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedDebitNote) {
+            const parsed = parseDate(detailedDebitNote.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedDebitNote.accountDate as string)
+            )
+
+            const updatedDebitNote = transformToSchemaType(detailedDebitNote)
+
+            setDebitNote(updatedDebitNote)
+            form.reset(updatedDebitNote)
+            form.trigger()
+
+            const resolvedDebitNoteNo =
+              updatedDebitNote.debitNoteNo ||
+              trimmedDebitNoteNo ||
+              trimmedDebitNoteId
+            setSearchNo(resolvedDebitNoteNo)
+
+            return resolvedDebitNoteNo
+          }
+        } else {
+          toast.error(response?.message || "Failed to fetch debitNote details")
+        }
+      } catch (error) {
+        console.error("Error fetching debitNote details:", error)
+        toast.error("Error loading debitNote. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingDebitNote(false)
+        }
+      }
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setDebitNote,
+      setIsLoadingDebitNote,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleDebitNoteSelect = async (
+    selectedDebitNote: IApDebitNoteHd | undefined
+  ) => {
+    if (!selectedDebitNote) return
+
+    const loadedDebitNoteNo = await loadDebitNote({
+      debitNoteId: selectedDebitNote.debitNoteId ?? "0",
+      debitNoteNo: selectedDebitNote.debitNoteNo ?? "",
+    })
+
+    if (loadedDebitNoteNo) {
+      setShowListDialog(false)
     }
   }
 
@@ -1272,240 +1128,39 @@ export default function DebitNotePage() {
   }, [activeTab, form])
 
   const handleDebitNoteSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingDebitNote(true)
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(`${ApDebitNote.getByIdNo}/0/${value}`)
+      const loadedDebitNoteNo = await loadDebitNote({
+        debitNoteId: "0",
+        debitNoteNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedDebitNote = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedDebitNote) {
-          {
-            const parsed = parseDate(detailedDebitNote.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedDebitNote.accountDate as string)
-            )
-          }
-          // Parse dates properly
-          const updatedDebitNote = {
-            ...detailedDebitNote,
-            debitNoteId: detailedDebitNote.debitNoteId?.toString() ?? "0",
-            debitNoteNo: detailedDebitNote.debitNoteNo ?? "",
-            referenceNo: detailedDebitNote.referenceNo ?? "",
-            suppDebitNoteNo: detailedDebitNote.suppDebitNoteNo ?? "",
-            trnDate: detailedDebitNote.trnDate
-              ? format(
-                  parseDate(detailedDebitNote.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedDebitNote.accountDate
-              ? format(
-                  parseDate(detailedDebitNote.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedDebitNote.dueDate
-              ? format(
-                  parseDate(detailedDebitNote.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedDebitNote.deliveryDate
-              ? format(
-                  parseDate(detailedDebitNote.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedDebitNote.gstClaimDate
-              ? format(
-                  parseDate(detailedDebitNote.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            supplierId: detailedDebitNote.supplierId ?? 0,
-            currencyId: detailedDebitNote.currencyId ?? 0,
-            exhRate: detailedDebitNote.exhRate ?? 0,
-            ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
-            creditTermId: detailedDebitNote.creditTermId ?? 0,
-            bankId: detailedDebitNote.bankId ?? 0,
-            invoiceId: detailedDebitNote.invoiceId ?? "0",
-            invoiceNo: detailedDebitNote.invoiceNo ?? "",
-            totAmt: detailedDebitNote.totAmt ?? 0,
-            totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,
-            gstAmt: detailedDebitNote.gstAmt ?? 0,
-            gstLocalAmt: detailedDebitNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedDebitNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedDebitNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedDebitNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedDebitNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedDebitNote.balAmt ?? 0,
-            balLocalAmt: detailedDebitNote.balLocalAmt ?? 0,
-            payAmt: detailedDebitNote.payAmt ?? 0,
-            payLocalAmt: detailedDebitNote.payLocalAmt ?? 0,
-            exGainLoss: detailedDebitNote.exGainLoss ?? 0,
-            operationId: detailedDebitNote.operationId ?? 0,
-            operationNo: detailedDebitNote.operationNo ?? "",
-            remarks: detailedDebitNote.remarks ?? "",
-            addressId: detailedDebitNote.addressId ?? 0, // Not available in IApDebitNoteHd
-            contactId: detailedDebitNote.contactId ?? 0, // Not available in IApDebitNoteHd
-            address1: detailedDebitNote.address1 ?? "",
-            address2: detailedDebitNote.address2 ?? "",
-            address3: detailedDebitNote.address3 ?? "",
-            address4: detailedDebitNote.address4 ?? "",
-            pinCode: detailedDebitNote.pinCode ?? "",
-            countryId: detailedDebitNote.countryId ?? 0,
-            phoneNo: detailedDebitNote.phoneNo ?? "",
-            faxNo: detailedDebitNote.faxNo ?? "",
-            contactName: detailedDebitNote.contactName ?? "",
-            mobileNo: detailedDebitNote.mobileNo ?? "",
-            emailAdd: detailedDebitNote.emailAdd ?? "",
-            moduleFrom: detailedDebitNote.moduleFrom ?? "",
-            customerName: detailedDebitNote.customerName ?? "",
-            arDebitNoteId: detailedDebitNote.arDebitNoteId ?? "",
-            arDebitNoteNo: detailedDebitNote.arDebitNoteNo ?? "",
-            editVersion: detailedDebitNote.editVersion ?? 0,
-            purchaseOrderId: detailedDebitNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedDebitNote.purchaseOrderNo ?? "",
-            serviceTypeId: detailedDebitNote.serviceTypeId ?? 0,
-            isCancel: detailedDebitNote.isCancel ?? false,
-            cancelRemarks: detailedDebitNote.cancelRemarks ?? "",
-
-            data_details:
-              detailedDebitNote.data_details?.map((detail: IApDebitNoteDt) => ({
-                debitNoteId: detail.debitNoteId?.toString() ?? "0",
-                debitNoteNo: detail.debitNoteNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                seqNo: detail.seqNo ?? 0,
-                docItemNo: detail.docItemNo ?? 0,
-                productId: detail.productId ?? 0,
-                productCode: detail.productCode ?? "",
-                productName: detail.productName ?? "",
-                glId: detail.glId ?? 0,
-                glCode: detail.glCode ?? "",
-                glName: detail.glName ?? "",
-                qty: detail.qty ?? 0,
-                billQTY: detail.billQTY ?? 0,
-                uomId: detail.uomId ?? 0,
-                uomCode: detail.uomCode ?? "",
-                uomName: detail.uomName ?? "",
-                unitPrice: detail.unitPrice ?? 0,
-                totAmt: detail.totAmt ?? 0,
-                totLocalAmt: detail.totLocalAmt ?? 0,
-                totCtyAmt: detail.totCtyAmt ?? 0,
-                remarks: detail.remarks ?? "",
-                gstId: detail.gstId ?? 0,
-                gstName: detail.gstName ?? "",
-                gstPercentage: detail.gstPercentage ?? 0,
-                gstAmt: detail.gstAmt ?? 0,
-                gstLocalAmt: detail.gstLocalAmt ?? 0,
-                gstCtyAmt: detail.gstCtyAmt ?? 0,
-                deliveryDate: detail.deliveryDate
-                  ? format(
-                      parseDate(detail.deliveryDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                departmentId: detail.departmentId ?? 0,
-                departmentCode: detail.departmentCode ?? "",
-                departmentName: detail.departmentName ?? "",
-                jobOrderId: detail.jobOrderId ?? 0,
-                jobOrderNo: detail.jobOrderNo ?? "",
-                taskId: detail.taskId ?? 0,
-                taskName: detail.taskName ?? "",
-                serviceId: detail.serviceId ?? 0,
-                serviceName: detail.serviceName ?? "",
-                employeeId: detail.employeeId ?? 0,
-                employeeCode: detail.employeeCode ?? "",
-                employeeName: detail.employeeName ?? "",
-                portId: detail.portId ?? 0,
-                portCode: detail.portCode ?? "",
-                portName: detail.portName ?? "",
-                vesselId: detail.vesselId ?? 0,
-                vesselCode: detail.vesselCode ?? "",
-                vesselName: detail.vesselName ?? "",
-                bargeId: detail.bargeId ?? 0,
-                bargeCode: detail.bargeCode ?? "",
-                bargeName: detail.bargeName ?? "",
-                voyageId: detail.voyageId ?? 0,
-                voyageNo: detail.voyageNo ?? "",
-                operationId: detail.operationId ?? "",
-                operationNo: detail.operationNo ?? "",
-                opRefNo: detail.opRefNo ?? "",
-                purchaseOrderId: detail.purchaseOrderId ?? "",
-                purchaseOrderNo: detail.purchaseOrderNo ?? "",
-                supplyDate: detail.supplyDate
-                  ? format(
-                      parseDate(detail.supplyDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                customerName: detail.customerName ?? "",
-                custDebitNoteNo: detail.custDebitNoteNo ?? "",
-                arDebitNoteId: detail.arDebitNoteId ?? "",
-                arDebitNoteNo: detail.arDebitNoteNo ?? "",
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setDebitNote(updatedDebitNote as ApDebitNoteHdSchemaType)
-          setDebitNote(transformToSchemaType(updatedDebitNote))
-          form.reset(updatedDebitNote)
-          form.trigger()
-
-          // Set the debitNote number in search input to the actual debitNote number from database
-          setSearchNo(updatedDebitNote.debitNoteNo || "")
-
-          // Show success message
-          toast.success(
-            `DebitNote ${updatedDebitNote.debitNoteNo || value} loaded successfully`
-          )
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        // Close the load confirmation dialog on success
-        setShowLoadConfirm(false)
-        toast.error(
-          response?.message || "Failed to fetch debitNote details (direct)"
-        )
+      if (loadedDebitNoteNo) {
+        toast.success(`DebitNote ${loadedDebitNoteNo} loaded successfully`)
       }
-    } catch {
-      toast.error("Error searching for debitNote")
     } finally {
-      setIsLoadingDebitNote(false)
+      setShowLoadConfirm(false)
     }
   }
 
-  handleDebitNoteSearchRef.current = handleDebitNoteSearch
-
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleDebitNoteSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadDebitNote({
+        debitNoteId: trimmedId,
+        debitNoteNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadDebitNote, pendingDocId])
 
   // Determine mode and debitNote ID from URL
   const debitNoteNo = form.getValues("debitNoteNo")

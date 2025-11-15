@@ -2,22 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import {
-  setDueDate,
-  setExchangeRate,
-  setRecExchangeRate,
-} from "@/helpers/account"
-import {
-  IApDocSetOffDt,
-  IApDocSetOffFilter,
-  IApDocSetOffHd,
-} from "@/interfaces/ap-docsetoff"
+import { setExchangeRate } from "@/helpers/account"
+import { IApDocSetOffFilter, IApDocSetOffHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApDocSetOffDtSchemaType,
   ApDocSetOffHdSchema,
   ApDocSetOffHdSchemaType,
-} from "@/schemas/ap-docsetoff"
+} from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -44,7 +36,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDocSetOff, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId } from "@/lib/utils"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -74,7 +66,7 @@ export default function DocSetOffPage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.docsetoff
+  const transactionId = ARTransactionId.docsetoff
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -85,36 +77,6 @@ export default function DocSetOffPage() {
     () => decimals[0]?.dateFormat || clientDateFormat,
     [decimals]
   )
-
-  const documentNoFromQuery = useMemo(() => {
-    const value =
-      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
-    return value ? value.trim() : ""
-  }, [searchParams])
-
-  const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/docSetOff`,
-    [companyId]
-  )
-
-  const [pendingDocNo, setPendingDocNo] = useState<string>("")
-
-  useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
-      return
-    }
-
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem(autoLoadStorageKey)
-      if (stored) {
-        window.localStorage.removeItem(autoLoadStorageKey)
-        setPendingDocNo(stored)
-        setSearchNo(stored)
-      }
-    }
-  }, [autoLoadStorageKey, documentNoFromQuery])
 
   const parseWithFallback = useCallback(
     (value: string | Date | null | undefined): Date | null => {
@@ -149,11 +111,43 @@ export default function DocSetOffPage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
+  const [isLoadingDocSetOff, setIsLoadingDocSetOff] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [docSetOff, setReceipt] = useState<ApDocSetOffHdSchemaType | null>(null)
+  const [docSetOff, setDocSetOff] = useState<ApDocSetOffHdSchemaType | null>(
+    null
+  )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocId, setPendingDocId] = useState("")
+
+  const documentIdFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ar/docsetoff`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocId(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -178,8 +172,8 @@ export default function DocSetOffPage() {
     pageSize: pageSize,
   })
 
-  const { defaultDocSetOff: defaultDocSetOffValues } = useMemo(
-    () => getDefaultValues(dateFormat),
+  const defaultDocSetOffValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultDocSetOff,
     [dateFormat]
   )
 
@@ -207,17 +201,14 @@ export default function DocSetOffPage() {
           referenceNo: docSetOff.referenceNo ?? "",
           trnDate: docSetOff.trnDate ?? new Date(),
           accountDate: docSetOff.accountDate ?? new Date(),
-
           supplierId: docSetOff.supplierId ?? 0,
           currencyId: docSetOff.currencyId ?? 0,
           exhRate: docSetOff.exhRate ?? 0,
-
-          unAllocTotAmt: docSetOff.unAllocTotAmt ?? 0,
-          allocTotAmt: docSetOff.allocTotAmt ?? 0,
-          balTotAmt: docSetOff.balTotAmt ?? 0,
           exhGainLoss: docSetOff.exhGainLoss ?? 0,
           remarks: docSetOff.remarks ?? "",
-
+          allocTotAmt: docSetOff.allocTotAmt ?? 0,
+          balTotAmt: docSetOff.balTotAmt ?? 0,
+          unAllocTotAmt: docSetOff.unAllocTotAmt ?? 0,
           moduleFrom: docSetOff.moduleFrom ?? "",
           editVersion: docSetOff.editVersion ?? 0,
           data_details:
@@ -256,15 +247,11 @@ export default function DocSetOffPage() {
             ...defaultDocSetOffValues,
             createBy: userName,
             createDate: currentDateTime,
-            data_details: [],
           }
         })(),
   })
 
-  // Data fetching moved to ReceiptTable component for better performance
-
   const previousDateFormatRef = useRef<string>(dateFormat)
-  const lastQueriedDocRef = useRef<string | null>(null)
   const { isDirty } = form.formState
 
   useEffect(() => {
@@ -273,10 +260,10 @@ export default function DocSetOffPage() {
 
     if (isDirty) return
 
-    const currentReceiptId = form.getValues("setoffId") || "0"
+    const currentDocSetOffId = form.getValues("setoffId") || "0"
     if (
       (docSetOff && docSetOff.setoffId && docSetOff.setoffId !== "0") ||
-      currentReceiptId !== "0"
+      currentDocSetOffId !== "0"
     ) {
       return
     }
@@ -309,11 +296,11 @@ export default function DocSetOffPage() {
   )
   const deleteMutation = useDeleteWithRemarks(`${ApDocSetOff.delete}`)
 
-  // Remove the useGetReceiptById hook for selection
-  // const { data: receiptByIdData, refetch: refetchReceiptById } = ...
+  // Remove the useGetDocSetOffById hook for selection
+  // const { data: docSetOffByIdData, refetch: refetchDocSetOffById } = ...
 
   // Handle Save
-  const handleSaveReceipt = async () => {
+  const handleSaveDocSetOff = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -326,8 +313,6 @@ export default function DocSetOffPage() {
       const formValues = transformToSchemaType(
         form.getValues() as unknown as IApDocSetOffHd
       )
-
-      console.log("formValues", formValues)
 
       // Validate the form data using the schema
       const validationResult = ApDocSetOffHdSchema(required, visible).safeParse(
@@ -352,21 +337,15 @@ export default function DocSetOffPage() {
         return
       }
 
-      console.log("formValues.allocTotAmt", formValues.allocTotAmt)
-      console.log("formValues.balTotAmt", formValues.balTotAmt)
-      console.log("formValues", formValues)
-
       //check totamt and totlocalamt should be zero
-      if (formValues.allocTotAmt === 0 || formValues.balTotAmt === 0) {
-        toast.error("Total Amount and Total Local Amount should not be zero")
+      if (formValues.allocTotAmt === 0) {
+        toast.error("Allocated Total Amount should not be zero")
         return
       }
 
-      if (formValues.data_details?.length === 0) {
-        toast.error("Data details should not be empty")
-        return
-      }
+      console.log("handleSaveDocSetOff formValues", formValues)
 
+      // Check GL period closed before saving (supports previous account date)
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
         const isNew = Number(formValues.setoffId) === 0
@@ -375,13 +354,17 @@ export default function DocSetOffPage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const parsedAccountDate = parseWithFallback(accountDate)
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
         if (!parsedAccountDate) {
           toast.error("Invalid account date")
           return
         }
 
-        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
         const acc = format(parsedAccountDate, "yyyy-MM-dd")
         const prev = parsedPrevAccountDate
@@ -401,6 +384,7 @@ export default function DocSetOffPage() {
         toast.error("Failed to validate GL Period. Please try again.")
         return
       }
+
       {
         const response =
           Number(formValues.setoffId) === 0
@@ -408,17 +392,18 @@ export default function DocSetOffPage() {
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const receiptData = Array.isArray(response.data)
+          const docSetOffData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (receiptData) {
+          if (docSetOffData) {
             const updatedSchemaType = transformToSchemaType(
-              receiptData as unknown as IApDocSetOffHd
+              docSetOffData as unknown as IApDocSetOffHd
             )
+
             setSearchNo(updatedSchemaType.setoffNo || "")
-            setReceipt(updatedSchemaType)
+            setDocSetOff(updatedSchemaType)
             const parsed = parseDate(updatedSchemaType.accountDate as string)
             setPreviousAccountDate(
               parsed
@@ -432,7 +417,18 @@ export default function DocSetOffPage() {
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
 
-          // Data refresh handled by ReceiptTable component
+          // Check if this was a new docSetOff or update
+          const wasNewDocSetOff = Number(formValues.setoffId) === 0
+
+          if (wasNewDocSetOff) {
+            //toast.success(
+            // `DocSetOff ${docSetOffData?.setoffNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("DocSetOff updated successfully")
+          }
+
+          // Data refresh handled by DocSetOffTable component
         } else {
           toast.error(response.message || "Failed to save docSetOff")
         }
@@ -446,20 +442,19 @@ export default function DocSetOffPage() {
   }
 
   // Handle Clone
-  const handleCloneReceipt = async () => {
+  const handleCloneDocSetOff = async () => {
     if (docSetOff) {
       // Create a proper clone with form values
       const currentDate = new Date()
       const dateStr = format(currentDate, dateFormat)
 
-      const clonedReceipt: ApDocSetOffHdSchemaType = {
+      const clonedDocSetOff: ApDocSetOffHdSchemaType = {
         ...docSetOff,
         setoffId: "0",
         setoffNo: "",
         // Set all dates to current date
         trnDate: dateStr,
         accountDate: dateStr,
-
         // Clear all audit fields
         createBy: "",
         editBy: "",
@@ -467,34 +462,29 @@ export default function DocSetOffPage() {
         createDate: "",
         editDate: "",
         cancelDate: "",
-        // Clear all amounts for new docSetOff
-        unAllocTotAmt: 0,
+        // Clear all amounts for new refund
+        exhGainLoss: 0,
         allocTotAmt: 0,
         balTotAmt: 0,
-        exhGainLoss: 0,
-
+        unAllocTotAmt: 0,
         // Clear data details - remove all records
         data_details: [],
       }
 
-      setReceipt(clonedReceipt)
-      form.reset(clonedReceipt)
+      setDocSetOff(clonedDocSetOff)
+      form.reset(clonedDocSetOff)
       form.trigger("accountDate")
 
       // Get exchange rate decimal places
       const exhRateDec = decimals[0]?.exhRateDec || 6
 
       // Fetch and set new exchange rates based on new account date
-      if (clonedReceipt.currencyId && clonedReceipt.accountDate) {
+      if (clonedDocSetOff.currencyId && clonedDocSetOff.accountDate) {
         try {
           // Wait a tick to ensure form state is updated before calling setExchangeRate
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
-
-          // Calculate and set due date (for detail records)
-          await setDueDate(form)
         } catch (error) {
           console.error("Error updating exchange rates:", error)
         }
@@ -514,11 +504,45 @@ export default function DocSetOffPage() {
     setShowCancelConfirm(true)
   }
 
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
   // Handle Delete - Second Level: With Cancel Remarks
-  const handleReceiptDelete = async (cancelRemarks: string) => {
+  const handleDocSetOffDelete = async (cancelRemarks: string) => {
     if (!docSetOff) return
 
     try {
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("DocSetOff ID:", docSetOff.setoffId)
+      console.log("DocSetOff No:", docSetOff.setoffNo)
+
       const response = await deleteMutation.mutateAsync({
         documentId: docSetOff.setoffId?.toString() ?? "",
         documentNo: docSetOff.setoffNo ?? "",
@@ -526,14 +550,14 @@ export default function DocSetOffPage() {
       })
 
       if (response.result === 1) {
-        setReceipt(null)
+        setDocSetOff(null)
         setSearchNo("") // Clear search input
         form.reset({
           ...defaultDocSetOffValues,
           data_details: [],
         })
         toast.success(`DocSetOff ${docSetOff.setoffNo} deleted successfully`)
-        // Data refresh handled by ReceiptTable component
+        // Data refresh handled by DocSetOffTable component
       } else {
         toast.error(response.message || "Failed to delete docSetOff")
       }
@@ -543,8 +567,8 @@ export default function DocSetOffPage() {
   }
 
   // Handle Reset
-  const handleReceiptReset = () => {
-    setReceipt(null)
+  const handleDocSetOffReset = () => {
+    setDocSetOff(null)
     setSearchNo("") // Clear search input
 
     // Get current date/time and user name - always set for reset (new docSetOff)
@@ -565,61 +589,60 @@ export default function DocSetOffPage() {
 
   // Helper function to transform IApDocSetOffHd to ApDocSetOffHdSchemaType
   const transformToSchemaType = useCallback(
-    (apiReceipt: IApDocSetOffHd): ApDocSetOffHdSchemaType => {
+    (apiDocSetOff: IApDocSetOffHd): ApDocSetOffHdSchemaType => {
       return {
-        setoffId: apiReceipt.setoffId?.toString() ?? "0",
-        setoffNo: apiReceipt.setoffNo ?? "",
-        referenceNo: apiReceipt.referenceNo ?? "",
-        trnDate: apiReceipt.trnDate
+        setoffId: apiDocSetOff.setoffId?.toString() ?? "0",
+        setoffNo: apiDocSetOff.setoffNo ?? "",
+        referenceNo: apiDocSetOff.referenceNo ?? "",
+        trnDate: apiDocSetOff.trnDate
           ? format(
-              parseDate(apiReceipt.trnDate as string) || new Date(),
+              parseDate(apiDocSetOff.trnDate as string) || new Date(),
               dateFormat
             )
           : dateFormat,
-        accountDate: apiReceipt.accountDate
+        accountDate: apiDocSetOff.accountDate
           ? format(
-              parseDate(apiReceipt.accountDate as string) || new Date(),
+              parseDate(apiDocSetOff.accountDate as string) || new Date(),
               dateFormat
             )
           : dateFormat,
-
-        supplierId: apiReceipt.supplierId ?? 0,
-        currencyId: apiReceipt.currencyId ?? 0,
-        exhRate: apiReceipt.exhRate ?? 0,
-        unAllocTotAmt: apiReceipt.unAllocTotAmt ?? 0,
-        allocTotAmt: apiReceipt.allocTotAmt ?? 0,
-        balTotAmt: apiReceipt.balTotAmt ?? 0,
-        exhGainLoss: apiReceipt.exhGainLoss ?? 0,
-        remarks: apiReceipt.remarks ?? "",
-
-        moduleFrom: apiReceipt.moduleFrom ?? "",
-        editVersion: apiReceipt.editVersion ?? 0,
-        createBy: apiReceipt.createById?.toString() ?? "",
-        editBy: apiReceipt.editById?.toString() ?? "",
-        cancelBy: apiReceipt.cancelById?.toString() ?? "",
-        isCancel: apiReceipt.isCancel ?? false,
-        createDate: apiReceipt.createDate
+        supplierId: apiDocSetOff.supplierId ?? 0,
+        currencyId: apiDocSetOff.currencyId ?? 0,
+        exhRate: apiDocSetOff.exhRate ?? 0,
+        exhGainLoss: apiDocSetOff.exhGainLoss ?? 0,
+        remarks: apiDocSetOff.remarks ?? "",
+        allocTotAmt: apiDocSetOff.allocTotAmt ?? 0,
+        balTotAmt: apiDocSetOff.balTotAmt ?? 0,
+        unAllocTotAmt: apiDocSetOff.unAllocTotAmt ?? 0,
+        moduleFrom: apiDocSetOff.moduleFrom ?? "",
+        editVersion: apiDocSetOff.editVersion ?? 0,
+        createBy: apiDocSetOff.createById?.toString() ?? "",
+        editBy: apiDocSetOff.editById?.toString() ?? "",
+        cancelBy: apiDocSetOff.cancelById?.toString() ?? "",
+        isCancel: apiDocSetOff.isCancel ?? false,
+        createDate: apiDocSetOff.createDate
           ? format(
-              parseDate(apiReceipt.createDate as string) || new Date(),
+              parseDate(apiDocSetOff.createDate as string) || new Date(),
               decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        editDate: apiReceipt.editDate
+        editDate: apiDocSetOff.editDate
           ? format(
-              parseDate(apiReceipt.editDate as unknown as string) || new Date(),
-              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-            )
-          : "",
-        cancelDate: apiReceipt.cancelDate
-          ? format(
-              parseDate(apiReceipt.cancelDate as unknown as string) ||
+              parseDate(apiDocSetOff.editDate as unknown as string) ||
                 new Date(),
               decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        cancelRemarks: apiReceipt.cancelRemarks ?? "",
+        cancelDate: apiDocSetOff.cancelDate
+          ? format(
+              parseDate(apiDocSetOff.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelRemarks: apiDocSetOff.cancelRemarks ?? "",
         data_details:
-          apiReceipt.data_details?.map(
+          apiDocSetOff.data_details?.map(
             (detail) =>
               ({
                 ...detail,
@@ -662,150 +685,122 @@ export default function DocSetOffPage() {
     [dateFormat, decimals]
   )
 
+  const loadDocSetOff = useCallback(
+    async ({
+      setoffId,
+      setoffNo,
+      showLoader = false,
+    }: {
+      setoffId?: string | number | null
+      setoffNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("setoffId", setoffId)
+      console.log("setoffNo", setoffNo)
+      const trimmedDocSetOffNo = setoffNo?.trim() ?? ""
+      const trimmedDocSetOffId =
+        typeof setoffId === "number"
+          ? setoffId.toString()
+          : (setoffId?.toString().trim() ?? "")
+
+      if (!trimmedDocSetOffNo && !trimmedDocSetOffId) return null
+
+      if (showLoader) {
+        setIsLoadingDocSetOff(true)
+      }
+
+      const requestDocSetOffId = trimmedDocSetOffId || "0"
+      const requestDocSetOffNo = trimmedDocSetOffNo || ""
+
+      try {
+        const response = await getById(
+          `${ApDocSetOff.getByIdNo}/${requestDocSetOffId}/${requestDocSetOffNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedDocSetOff = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedDocSetOff) {
+            const parsed = parseDate(detailedDocSetOff.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedDocSetOff.accountDate as string)
+            )
+
+            const updatedDocSetOff = transformToSchemaType(detailedDocSetOff)
+
+            setDocSetOff(updatedDocSetOff)
+            form.reset(updatedDocSetOff)
+            form.trigger()
+
+            const resolvedDocSetOffNo =
+              updatedDocSetOff.setoffNo ||
+              trimmedDocSetOffNo ||
+              trimmedDocSetOffId
+            setSearchNo(resolvedDocSetOffNo)
+
+            return resolvedDocSetOffNo
+          }
+        } else {
+          toast.error(response?.message || "Failed to fetch docSetOff details")
+        }
+      } catch (error) {
+        console.error("Error fetching docSetOff details:", error)
+        toast.error("Error loading docSetOff. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingDocSetOff(false)
+        }
+      }
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setDocSetOff,
+      setIsLoadingDocSetOff,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
   const handleDocSetOffSelect = async (
     selectedDocSetOff: IApDocSetOffHd | undefined
   ) => {
     if (!selectedDocSetOff) return
 
-    try {
-      // Fetch docSetOff details directly using selected docSetOff's values
-      const response = await getById(
-        `${ApDocSetOff.getByIdNo}/${selectedDocSetOff.setoffId}/${selectedDocSetOff.setoffNo}`
-      )
+    const loadedDocSetOffNo = await loadDocSetOff({
+      setoffId: selectedDocSetOff.setoffId ?? "0",
+      setoffNo: selectedDocSetOff.setoffNo ?? "",
+    })
 
-      if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedReceipt) {
-          {
-            const parsed = parseDate(detailedReceipt.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedReceipt.accountDate as string)
-            )
-          }
-
-          // Parse dates properly
-          const updatedReceipt = {
-            ...detailedReceipt,
-            setoffId: detailedReceipt.setoffId?.toString() ?? "0",
-            setoffNo: detailedReceipt.setoffNo ?? "",
-            referenceNo: detailedReceipt.referenceNo ?? "",
-            trnDate: detailedReceipt.trnDate
-              ? format(
-                  parseDate(detailedReceipt.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedReceipt.accountDate
-              ? format(
-                  parseDate(detailedReceipt.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            supplierId: detailedReceipt.supplierId ?? 0,
-            currencyId: detailedReceipt.currencyId ?? 0,
-            exhRate: detailedReceipt.exhRate ?? 0,
-            bankId: detailedReceipt.bankId ?? 0,
-            totAmt: detailedReceipt.totAmt ?? 0,
-            totLocalAmt: detailedReceipt.totLocalAmt ?? 0,
-            payTotAmt: detailedReceipt.payTotAmt ?? 0,
-            payTotLocalAmt: detailedReceipt.payTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-            remarks: detailedReceipt.remarks ?? "",
-            docExhRate: detailedReceipt.docExhRate ?? 0,
-            docTotAmt: detailedReceipt.docTotAmt ?? 0,
-            docTotLocalAmt: detailedReceipt.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-            bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
-            data_details:
-              detailedReceipt.data_details?.map((detail: IApDocSetOffDt) => ({
-                setoffId: detail.setoffId?.toString() ?? "0",
-                setoffNo: detail.setoffNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId?.toString() ?? "0",
-                documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
-                docCurrencyId: detail.docCurrencyId ?? 0,
-                docExhRate: detail.docExhRate ?? 0,
-                docAccountDate: detail.docAccountDate
-                  ? format(
-                      parseDate(detail.docAccountDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docDueDate: detail.docDueDate
-                  ? format(
-                      parseDate(detail.docDueDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docTotAmt: detail.docTotAmt ?? 0,
-                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                docBalAmt: detail.docBalAmt ?? 0,
-                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                allocAmt: detail.allocAmt ?? 0,
-                allocLocalAmt: detail.allocLocalAmt ?? 0,
-                docAllocAmt: detail.docAllocAmt ?? 0,
-                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                centDiff: detail.centDiff ?? 0,
-                exhGainLoss: detail.exhGainLoss ?? 0,
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setReceipt(updatedReceipt as ApDocSetOffHdSchemaType)
-          setReceipt(transformToSchemaType(updatedReceipt))
-          form.reset(updatedReceipt)
-          form.trigger()
-
-          // Set the docSetOff number in search input
-          setSearchNo(updatedReceipt.setoffNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
-          toast.success(
-            `DocSetOff ${updatedReceipt.setoffNo} loaded successfully`
-          )
-        }
-      } else {
-        toast.error(response?.message || "Failed to fetch docSetOff details")
-        // Keep dialog open on failure so user can try again
-      }
-    } catch (error) {
-      console.error("Error fetching docSetOff details:", error)
-      toast.error("Error loading docSetOff. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+    if (loadedDocSetOffNo) {
+      setShowListDialog(false)
     }
   }
 
-  // Remove direct refetchReceipts from handleFilterChange
+  // Remove direct refetchDocSetOffs from handleFilterChange
   const handleFilterChange = (newFilters: IApDocSetOffFilter) => {
     setFilters(newFilters)
-    // refetchReceipts(); // Removed: will be handled by useEffect
+    // Data refresh handled by DocSetOffTable component
   }
 
-  // Set createBy and createDate for new receipts on page load/refresh
+  // Data refresh handled by DocSetOffTable component
+
+  // Set createBy and createDate for new docSetOffs on page load/refresh
   useEffect(() => {
     if (!docSetOff && user && decimals.length > 0) {
-      const currentReceiptId = form.getValues("setoffId")
-      const currentReceiptNo = form.getValues("setoffNo")
-      const isNewReceipt =
-        !currentReceiptId || currentReceiptId === "0" || !currentReceiptNo
+      const currentDocSetOffId = form.getValues("setoffId")
+      const currentDocSetOffNo = form.getValues("setoffNo")
+      const isNewDocSetOff =
+        !currentDocSetOffId || currentDocSetOffId === "0" || !currentDocSetOffNo
 
-      if (isNewReceipt) {
+      if (isNewDocSetOff) {
         const currentDateTime = decimals[0]?.longDateFormat
           ? format(new Date(), decimals[0].longDateFormat)
           : format(new Date(), "dd/MM/yyyy HH:mm:ss")
@@ -852,178 +847,40 @@ export default function DocSetOffPage() {
     form.clearErrors()
   }, [activeTab, form])
 
-  const handleReceiptSearch = useCallback(
-    async (value: string) => {
-      if (!value) return
+  const handleDocSetOffSearch = async (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
-      setIsLoadingReceipt(true)
+    try {
+      const loadedDocSetOffNo = await loadDocSetOff({
+        setoffId: "0",
+        setoffNo: trimmedValue,
+        showLoader: true,
+      })
 
-      try {
-        const response = await getById(`${ApDocSetOff.getByIdNo}/0/${value}`)
-
-        if (response?.result === 1) {
-          const detailedReceipt = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
-
-          if (detailedReceipt) {
-            {
-              const parsed = parseDate(detailedReceipt.accountDate as string)
-              setPreviousAccountDate(
-                parsed
-                  ? format(parsed, dateFormat)
-                  : (detailedReceipt.accountDate as string)
-              )
-            }
-            // Parse dates properly
-            const updatedReceipt = {
-              ...detailedReceipt,
-              setoffId: detailedReceipt.setoffId?.toString() ?? "0",
-              setoffNo: detailedReceipt.setoffNo ?? "",
-              referenceNo: detailedReceipt.referenceNo ?? "",
-              suppInvoiceNo: "", // Required by schema but not in interface
-              trnDate: detailedReceipt.trnDate
-                ? format(
-                    parseDate(detailedReceipt.trnDate as string) || new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-              accountDate: detailedReceipt.accountDate
-                ? format(
-                    parseDate(detailedReceipt.accountDate as string) ||
-                      new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-
-              supplierId: detailedReceipt.supplierId ?? 0,
-              currencyId: detailedReceipt.currencyId ?? 0,
-              exhRate: detailedReceipt.exhRate ?? 0,
-
-              unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-              unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-              exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-              remarks: detailedReceipt.remarks ?? "",
-
-              allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-              allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-              balTotAmt: detailedReceipt.balTotAmt ?? 0,
-              balLocalAmt: detailedReceipt.balLocalAmt ?? 0,
-
-              moduleFrom: detailedReceipt.moduleFrom ?? "",
-              editVersion: detailedReceipt.editVersion ?? 0,
-              createBy: detailedReceipt.createById?.toString() ?? "",
-              createDate: detailedReceipt.createDate
-                ? format(
-                    parseDate(detailedReceipt.createDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              editBy: detailedReceipt.editById?.toString() ?? "",
-              editDate: detailedReceipt.editDate
-                ? format(
-                    parseDate(detailedReceipt.editDate as string) || new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              isCancel: detailedReceipt.isCancel ?? false,
-              cancelBy: detailedReceipt.cancelById?.toString() ?? "",
-              cancelDate: detailedReceipt.cancelDate
-                ? format(
-                    parseDate(detailedReceipt.cancelDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              cancelRemarks: detailedReceipt.cancelRemarks ?? "",
-
-              data_details:
-                detailedReceipt.data_details?.map((detail: IApDocSetOffDt) => ({
-                  setoffId: detail.setoffId?.toString() ?? "0",
-                  setoffNo: detail.setoffNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  transactionId: detail.transactionId ?? 0,
-                  documentId: detail.documentId?.toString() ?? "0",
-                  documentNo: detail.documentNo ?? "",
-                  referenceNo: detail.referenceNo ?? "",
-                  docCurrencyId: detail.docCurrencyId ?? 0,
-                  docExhRate: detail.docExhRate ?? 0,
-                  docAccountDate: detail.docAccountDate
-                    ? format(
-                        parseDate(detail.docAccountDate as string) ||
-                          new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docDueDate: detail.docDueDate
-                    ? format(
-                        parseDate(detail.docDueDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docTotAmt: detail.docTotAmt ?? 0,
-                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                  docBalAmt: detail.docBalAmt ?? 0,
-                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                  allocAmt: detail.allocAmt ?? 0,
-                  allocLocalAmt: detail.allocLocalAmt ?? 0,
-                  docAllocAmt: detail.docAllocAmt ?? 0,
-                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                  centDiff: detail.centDiff ?? 0,
-                  exhGainLoss: detail.exhGainLoss ?? 0,
-                  editVersion: detail.editVersion ?? 0,
-                })) || [],
-            }
-
-            //setReceipt(updatedReceipt as ApDocSetOffHdSchemaType)
-            setReceipt(transformToSchemaType(updatedReceipt))
-            form.reset(updatedReceipt)
-            form.trigger()
-
-            // Set the docSetOff number in search input to the actual docSetOff number from database
-            setSearchNo(updatedReceipt.setoffNo || "")
-
-            // Show success message
-            toast.success(
-              `DocSetOff ${updatedReceipt.setoffNo || value} loaded successfully`
-            )
-
-            // Close the load confirmation dialog on success
-            setShowLoadConfirm(false)
-          }
-        } else {
-          toast.error(response?.message || "Failed to fetch docSetOff details")
-          // Keep dialog open on failure so user can try again
-        }
-      } catch (error) {
-        console.error("Error fetching docSetOff details:", error)
-        toast.error("Error loading docSetOff. Please try again.")
-        // Keep dialog open on error
-      } finally {
-        setIsLoadingReceipt(false)
+      if (loadedDocSetOffNo) {
+        toast.success(`DocSetOff ${loadedDocSetOffNo} loaded successfully`)
       }
-    },
-    [
-      dateFormat,
-      decimals,
-      form,
-      setIsLoadingReceipt,
-      setPreviousAccountDate,
-      setReceipt,
-      setShowLoadConfirm,
-      transformToSchemaType,
-    ]
-  )
+    } finally {
+      setShowLoadConfirm(false)
+    }
+  }
 
   useEffect(() => {
-    if (!pendingDocNo) return
-    if (lastQueriedDocRef.current === pendingDocNo) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    lastQueriedDocRef.current = pendingDocNo
-    setSearchNo(pendingDocNo)
-    void handleReceiptSearch(pendingDocNo)
-  }, [handleReceiptSearch, pendingDocNo])
+    const executeLoad = async () => {
+      await loadDocSetOff({
+        setoffId: trimmedId,
+        setoffNo: "0",
+        showLoader: true,
+      })
+    }
+
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadDocSetOff, pendingDocId])
 
   // Determine mode and docSetOff ID from URL
   const setoffNo = form.getValues("setoffNo")
@@ -1112,7 +969,7 @@ export default function DocSetOffPage() {
                     setShowLoadConfirm(true)
                   }
                 }}
-                disabled={isLoadingReceipt}
+                disabled={isLoadingDocSetOff}
                 className="h-4 w-4 p-0"
                 title="Refresh docSetOff data"
               >
@@ -1125,17 +982,8 @@ export default function DocSetOffPage() {
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search DocSetOff No"
               className="h-8 text-sm"
               readOnly={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
@@ -1195,7 +1043,7 @@ export default function DocSetOffPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              //disabled={!invoice}
+              //disabled={!docSetOff}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -1238,7 +1086,7 @@ export default function DocSetOffPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveReceipt()
+              handleSaveDocSetOff()
             }}
             isEdit={isEdit}
             visible={visible}
@@ -1274,8 +1122,8 @@ export default function DocSetOffPage() {
               DocSetOff List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing receipts from the list below. Use
-              search to filter records or create new receipts.
+              Manage and select existing docSetOffs from the list below. Use
+              search to filter records or create new docSetOffs.
             </p>
           </div>
 
@@ -1296,7 +1144,7 @@ export default function DocSetOffPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveReceipt}
+        onConfirm={handleSaveDocSetOff}
         itemName={docSetOff?.setoffNo || "New DocSetOff"}
         operationType={
           docSetOff?.setoffId && docSetOff.setoffId !== "0"
@@ -1308,22 +1156,22 @@ export default function DocSetOffPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
         itemName={docSetOff?.setoffNo}
         title="Delete DocSetOff"
-        description="This action cannot be undone. All docSetOff details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this docSetOff? You will be asked to provide a reason."
+        isDeleting={false}
       />
 
-      {/* Cancel Confirmation */}
+      {/* Cancel Confirmation - Second Level */}
       <CancelConfirmation
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}
-        onConfirmAction={handleReceiptDelete}
+        onConfirmAction={handleDocSetOffDelete}
         itemName={docSetOff?.setoffNo}
         title="Cancel DocSetOff"
         description="Please provide a reason for cancelling this docSetOff."
@@ -1334,19 +1182,19 @@ export default function DocSetOffPage() {
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleReceiptSearch(searchNo)}
+        onLoad={() => handleDocSetOffSearch(searchNo)}
         code={searchNo}
         typeLabel="DocSetOff"
         showDetails={false}
         description={`Do you want to load DocSetOff ${searchNo}?`}
-        isLoading={isLoadingReceipt}
+        isLoading={isLoadingDocSetOff}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleReceiptReset}
+        onConfirm={handleDocSetOffReset}
         itemName={docSetOff?.setoffNo}
         title="Reset DocSetOff"
         description="This will clear all unsaved changes."
@@ -1356,7 +1204,7 @@ export default function DocSetOffPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneReceipt}
+        onConfirm={handleCloneDocSetOff}
         itemName={docSetOff?.setoffNo}
         title="Clone DocSetOff"
         description="This will create a copy as a new docSetOff."

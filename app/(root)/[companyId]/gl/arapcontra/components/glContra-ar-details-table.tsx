@@ -10,7 +10,7 @@ import { format } from "date-fns"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import {
-  APTransactionId,
+  ARTransactionId,
   GLTransactionId,
   ModuleId,
   TableName,
@@ -139,7 +139,7 @@ export default function ArGLContraDetailsTable({
   const canNavigateToTransaction = useCallback(
     (transactionIdValue: number) => {
       if (!Number.isFinite(transactionIdValue)) return false
-      return hasPermission(ModuleId.ap, transactionIdValue, "isRead")
+      return hasPermission(ModuleId.ar, transactionIdValue, "isRead")
     },
     [hasPermission]
   )
@@ -149,20 +149,21 @@ export default function ArGLContraDetailsTable({
       if (!companyId) return null
 
       switch (transactionIdValue) {
-        case APTransactionId.invoice:
-          return `/${companyId}/ap/invoice`
-        case APTransactionId.debitNote:
-          return `/${companyId}/ap/debitnote`
-        case APTransactionId.creditNote:
-          return `/${companyId}/ap/creditnote`
-        case APTransactionId.adjustment:
-          return `/${companyId}/ap/adjustment`
-        case APTransactionId.docsetoff:
-          return `/${companyId}/ap/docSetOff`
-        case APTransactionId.refund:
-          return `/${companyId}/ap/refund`
-        case APTransactionId.docsetoff:
-          return `/${companyId}/ap/docsetoff`
+        case ARTransactionId.receipt:
+          return `/${companyId}/ar/receipt`
+        case ARTransactionId.refund:
+          return `/${companyId}/ar/refund`
+        case ARTransactionId.docsetoff:
+          return `/${companyId}/ar/docsetoff`
+
+        case ARTransactionId.invoice:
+          return `/${companyId}/ar/invoice`
+        case ARTransactionId.debitNote:
+          return `/${companyId}/ar/debitnote`
+        case ARTransactionId.creditNote:
+          return `/${companyId}/ar/creditnote`
+        case ARTransactionId.adjustment:
+          return `/${companyId}/ar/adjustment`
         default:
           return null
       }
@@ -217,10 +218,9 @@ export default function ArGLContraDetailsTable({
   const handleDocumentNavigation = useCallback(
     (detail: IGLContraDt) => {
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
-
+      const documentId = detail.documentId?.toString().trim()
       if (
-        !documentNo ||
+        !documentId ||
         !Number.isFinite(transactionIdValue) ||
         !canNavigateToTransaction(transactionIdValue)
       ) {
@@ -233,7 +233,7 @@ export default function ArGLContraDetailsTable({
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }

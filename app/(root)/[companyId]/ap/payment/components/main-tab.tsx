@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+  applyCentDiffAdjustment,
   autoAllocateAmounts,
   calauteLocalAmtandGainLoss,
   calculateManualAllocation,
@@ -316,11 +317,11 @@ export default function Main({
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
       const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-      const sumAllocLocalAmt = arr.reduce(
+      let sumAllocLocalAmt = arr.reduce(
         (s, r) => s + (Number(r.allocLocalAmt) || 0),
         0
       )
-      const sumExhGainLoss = arr.reduce(
+      let sumExhGainLoss = arr.reduce(
         (s, r) => s + (Number(r.exhGainLoss) || 0),
         0
       )
@@ -336,13 +337,40 @@ export default function Main({
 
       const totLocalAmt = Number(form.getValues("totLocalAmt"))
 
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+      let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
         totAmt,
         totLocalAmt,
         sumAllocAmt,
         sumAllocLocalAmt,
         dec
       )
+
+      const centDiffUpdated = applyCentDiffAdjustment(
+        arr,
+        unAllocAmt,
+        unAllocLocalAmt,
+        dec
+      )
+
+      if (centDiffUpdated) {
+        sumAllocLocalAmt = arr.reduce(
+          (s, r) => s + (Number(r.allocLocalAmt) || 0),
+          0
+        )
+        sumExhGainLoss = arr.reduce(
+          (s, r) => s + (Number(r.exhGainLoss) || 0),
+          0
+        )
+        const recalculatedUnallocated = calculateUnallocated(
+          totAmt,
+          totLocalAmt,
+          sumAllocAmt,
+          sumAllocLocalAmt,
+          dec
+        )
+        unAllocAmt = recalculatedUnallocated.unAllocAmt
+        unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
+      }
 
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
@@ -438,11 +466,11 @@ export default function Main({
     }
     const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
     const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-    const sumAllocLocalAmt = arr.reduce(
+    let sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
       0
     )
-    const sumExhGainLoss = arr.reduce(
+    let sumExhGainLoss = arr.reduce(
       (s, r) => s + (Number(r.exhGainLoss) || 0),
       0
     )
@@ -450,13 +478,37 @@ export default function Main({
     // If totAmt was 0, update it with the calculated sumAllocAmt
     const finalTotAmt = totAmt === 0 ? sumAllocAmt : totAmt
 
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+    let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
       finalTotAmt,
       totLocalAmt,
       sumAllocAmt,
       sumAllocLocalAmt,
       dec
     )
+
+    const centDiffUpdated = applyCentDiffAdjustment(
+      arr,
+      unAllocAmt,
+      unAllocLocalAmt,
+      dec
+    )
+
+    if (centDiffUpdated) {
+      sumAllocLocalAmt = arr.reduce(
+        (s, r) => s + (Number(r.allocLocalAmt) || 0),
+        0
+      )
+      sumExhGainLoss = arr.reduce((s, r) => s + (Number(r.exhGainLoss) || 0), 0)
+      const recalculatedUnallocated = calculateUnallocated(
+        finalTotAmt,
+        totLocalAmt,
+        sumAllocAmt,
+        sumAllocLocalAmt,
+        dec
+      )
+      unAllocAmt = recalculatedUnallocated.unAllocAmt
+      unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
+    }
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,

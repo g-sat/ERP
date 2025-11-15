@@ -5,9 +5,9 @@ import { useParams, useSearchParams } from "next/navigation"
 import {
   setDueDate,
   setExchangeRate,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
-import { IApPaymentDt, IApPaymentFilter, IApPaymentHd } from "@/interfaces"
+import { IApPaymentFilter, IApPaymentHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApPaymentDtSchemaType,
@@ -82,36 +82,6 @@ export default function PaymentPage() {
     [decimals]
   )
 
-  const documentNoFromQuery = useMemo(() => {
-    const value =
-      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
-    return value ? value.trim() : ""
-  }, [searchParams])
-
-  const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/payment`,
-    [companyId]
-  )
-
-  const [pendingDocNo, setPendingDocNo] = useState<string>("")
-
-  useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
-      return
-    }
-
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem(autoLoadStorageKey)
-      if (stored) {
-        window.localStorage.removeItem(autoLoadStorageKey)
-        setPendingDocNo(stored)
-        setSearchNo(stored)
-      }
-    }
-  }, [autoLoadStorageKey, documentNoFromQuery])
-
   const parseWithFallback = useCallback(
     (value: string | Date | null | undefined): Date | null => {
       if (!value) return null
@@ -150,6 +120,36 @@ export default function PaymentPage() {
   const [payment, setPayment] = useState<ApPaymentHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocId, setPendingDocId] = useState("")
+
+  const documentIdFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ar/payment`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocId(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -174,8 +174,8 @@ export default function PaymentPage() {
     pageSize: pageSize,
   })
 
-  const { defaultPayment: defaultPaymentValues } = useMemo(
-    () => getDefaultValues(dateFormat),
+  const defaultPaymentValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultPayment,
     [dateFormat]
   )
 
@@ -213,19 +213,18 @@ export default function PaymentPage() {
           supplierId: payment.supplierId ?? 0,
           currencyId: payment.currencyId ?? 0,
           exhRate: payment.exhRate ?? 0,
-          totAmt: payment.totAmt ?? 0,
+          unAllocTotAmt: payment.unAllocTotAmt ?? 0,
+          unAllocTotLocalAmt: payment.unAllocTotLocalAmt ?? 0,
+          docExhRate: payment.docExhRate ?? 0,
+          docTotAmt: payment.docTotAmt ?? 0,
+          docTotLocalAmt: payment.docTotLocalAmt ?? 0,
           totLocalAmt: payment.totLocalAmt ?? 0,
           payCurrencyId: payment.payCurrencyId ?? 0,
           payExhRate: payment.payExhRate ?? 0,
           payTotAmt: payment.payTotAmt ?? 0,
           payTotLocalAmt: payment.payTotLocalAmt ?? 0,
-          unAllocTotAmt: payment.unAllocTotAmt ?? 0,
-          unAllocTotLocalAmt: payment.unAllocTotLocalAmt ?? 0,
           exhGainLoss: payment.exhGainLoss ?? 0,
           remarks: payment.remarks ?? "",
-          docExhRate: payment.docExhRate ?? 0,
-          docTotAmt: payment.docTotAmt ?? 0,
-          docTotLocalAmt: payment.docTotLocalAmt ?? 0,
           allocTotAmt: payment.allocTotAmt ?? 0,
           allocTotLocalAmt: payment.allocTotLocalAmt ?? 0,
           moduleFrom: payment.moduleFrom ?? "",
@@ -266,15 +265,11 @@ export default function PaymentPage() {
             ...defaultPaymentValues,
             createBy: userName,
             createDate: currentDateTime,
-            data_details: [],
           }
         })(),
   })
 
-  // Data fetching moved to PaymentTable component for better performance
-
   const previousDateFormatRef = useRef<string>(dateFormat)
-  const lastQueriedDocRef = useRef<string | null>(null)
   const { isDirty } = form.formState
 
   useEffect(() => {
@@ -327,8 +322,6 @@ export default function PaymentPage() {
         form.getValues() as unknown as IApPaymentHd
       )
 
-      console.log("formValues", formValues)
-
       // Validate the form data using the schema
       const validationResult = ApPaymentHdSchema(required, visible).safeParse(
         formValues
@@ -356,6 +349,9 @@ export default function PaymentPage() {
         return
       }
 
+      console.log("handleSavePayment formValues", formValues)
+
+      // Check GL period closed before saving (supports previous account date)
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
         const isNew = Number(formValues.paymentId) === 0
@@ -364,13 +360,17 @@ export default function PaymentPage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const parsedAccountDate = parseWithFallback(accountDate)
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
         if (!parsedAccountDate) {
           toast.error("Invalid account date")
           return
         }
 
-        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
         const acc = format(parsedAccountDate, "yyyy-MM-dd")
         const prev = parsedPrevAccountDate
@@ -390,6 +390,7 @@ export default function PaymentPage() {
         toast.error("Failed to validate GL Period. Please try again.")
         return
       }
+
       {
         const response =
           Number(formValues.paymentId) === 0
@@ -406,6 +407,7 @@ export default function PaymentPage() {
             const updatedSchemaType = transformToSchemaType(
               paymentData as unknown as IApPaymentHd
             )
+
             setSearchNo(updatedSchemaType.paymentNo || "")
             setPayment(updatedSchemaType)
             const parsed = parseDate(updatedSchemaType.accountDate as string)
@@ -420,6 +422,17 @@ export default function PaymentPage() {
 
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
+
+          // Check if this was a new payment or update
+          const wasNewPayment = Number(formValues.paymentId) === 0
+
+          if (wasNewPayment) {
+            //toast.success(
+            // `Payment ${paymentData?.paymentNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("Payment updated successfully")
+          }
 
           // Data refresh handled by PaymentTable component
         } else {
@@ -456,16 +469,12 @@ export default function PaymentPage() {
         createDate: "",
         editDate: "",
         cancelDate: "",
-        // Clear all amounts for new payment
+        // Clear all amounts for new refund
         totAmt: 0,
         totLocalAmt: 0,
         payTotAmt: 0,
         payTotLocalAmt: 0,
-        unAllocTotAmt: 0,
-        unAllocTotLocalAmt: 0,
         exhGainLoss: 0,
-        docTotAmt: 0,
-        docTotLocalAmt: 0,
         allocTotAmt: 0,
         allocTotLocalAmt: 0,
         bankChgAmt: 0,
@@ -488,7 +497,7 @@ export default function PaymentPage() {
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
 
           // Calculate and set due date (for detail records)
           await setDueDate(form)
@@ -511,11 +520,45 @@ export default function PaymentPage() {
     setShowCancelConfirm(true)
   }
 
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
   // Handle Delete - Second Level: With Cancel Remarks
   const handlePaymentDelete = async (cancelRemarks: string) => {
     if (!payment) return
 
     try {
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Payment ID:", payment.paymentId)
+      console.log("Payment No:", payment.paymentNo)
+
       const response = await deleteMutation.mutateAsync({
         documentId: payment.paymentId?.toString() ?? "",
         documentNo: payment.paymentNo ?? "",
@@ -594,19 +637,19 @@ export default function PaymentPage() {
         supplierId: apiPayment.supplierId ?? 0,
         currencyId: apiPayment.currencyId ?? 0,
         exhRate: apiPayment.exhRate ?? 0,
+        unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
+        docExhRate: apiPayment.docExhRate ?? 0,
+        docTotAmt: apiPayment.docTotAmt ?? 0,
+        docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
         totAmt: apiPayment.totAmt ?? 0,
         totLocalAmt: apiPayment.totLocalAmt ?? 0,
         payCurrencyId: apiPayment.payCurrencyId ?? 0,
         payExhRate: apiPayment.payExhRate ?? 0,
         payTotAmt: apiPayment.payTotAmt ?? 0,
         payTotLocalAmt: apiPayment.payTotLocalAmt ?? 0,
-        unAllocTotAmt: apiPayment.unAllocTotAmt ?? 0,
-        unAllocTotLocalAmt: apiPayment.unAllocTotLocalAmt ?? 0,
         exhGainLoss: apiPayment.exhGainLoss ?? 0,
         remarks: apiPayment.remarks ?? "",
-        docExhRate: apiPayment.docExhRate ?? 0,
-        docTotAmt: apiPayment.docTotAmt ?? 0,
-        docTotLocalAmt: apiPayment.docTotLocalAmt ?? 0,
         allocTotAmt: apiPayment.allocTotAmt ?? 0,
         allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
         moduleFrom: apiPayment.moduleFrom ?? "",
@@ -679,140 +722,110 @@ export default function PaymentPage() {
     [dateFormat, decimals]
   )
 
-  const handlePaymentSelect = async (
-    selectedPayment: IApPaymentHd | undefined
-  ) => {
-    if (!selectedPayment) return
+  const loadPayment = useCallback(
+    async ({
+      paymentId,
+      paymentNo,
+      showLoader = false,
+    }: {
+      paymentId?: string | number | null
+      paymentNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("paymentId", paymentId)
+      console.log("paymentNo", paymentNo)
+      const trimmedPaymentNo = paymentNo?.trim() ?? ""
+      const trimmedPaymentId =
+        typeof paymentId === "number"
+          ? paymentId.toString()
+          : (paymentId?.toString().trim() ?? "")
 
-    try {
-      // Fetch payment details directly using selected payment's values
-      const response = await getById(
-        `${ApPayment.getByIdNo}/${selectedPayment.paymentId}/${selectedPayment.paymentNo}`
-      )
+      if (!trimmedPaymentNo && !trimmedPaymentId) return null
 
-      if (response?.result === 1) {
-        const detailedPayment = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      if (showLoader) {
+        setIsLoadingPayment(true)
+      }
 
-        if (detailedPayment) {
-          {
+      const requestPaymentId = trimmedPaymentId || "0"
+      const requestPaymentNo = trimmedPaymentNo || ""
+
+      try {
+        const response = await getById(
+          `${ApPayment.getByIdNo}/${requestPaymentId}/${requestPaymentNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedPayment = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedPayment) {
             const parsed = parseDate(detailedPayment.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
                 : (detailedPayment.accountDate as string)
             )
+
+            const updatedPayment = transformToSchemaType(detailedPayment)
+
+            setPayment(updatedPayment)
+            form.reset(updatedPayment)
+            form.trigger()
+
+            const resolvedPaymentNo =
+              updatedPayment.paymentNo || trimmedPaymentNo || trimmedPaymentId
+            setSearchNo(resolvedPaymentNo)
+
+            return resolvedPaymentNo
           }
-
-          // Parse dates properly
-          const updatedPayment = {
-            ...detailedPayment,
-            paymentId: detailedPayment.paymentId?.toString() ?? "0",
-            paymentNo: detailedPayment.paymentNo ?? "",
-            referenceNo: detailedPayment.referenceNo ?? "",
-            trnDate: detailedPayment.trnDate
-              ? format(
-                  parseDate(detailedPayment.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedPayment.accountDate
-              ? format(
-                  parseDate(detailedPayment.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            supplierId: detailedPayment.supplierId ?? 0,
-            currencyId: detailedPayment.currencyId ?? 0,
-            exhRate: detailedPayment.exhRate ?? 0,
-            bankId: detailedPayment.bankId ?? 0,
-            totAmt: detailedPayment.totAmt ?? 0,
-            totLocalAmt: detailedPayment.totLocalAmt ?? 0,
-            payTotAmt: detailedPayment.payTotAmt ?? 0,
-            payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedPayment.exhGainLoss ?? 0,
-            remarks: detailedPayment.remarks ?? "",
-            docExhRate: detailedPayment.docExhRate ?? 0,
-            docTotAmt: detailedPayment.docTotAmt ?? 0,
-            docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedPayment.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
-            bankChgAmt: detailedPayment.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
-            data_details:
-              detailedPayment.data_details?.map((detail: IApPaymentDt) => ({
-                paymentId: detail.paymentId?.toString() ?? "0",
-                paymentNo: detail.paymentNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId?.toString() ?? "0",
-                documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
-                docCurrencyId: detail.docCurrencyId ?? 0,
-                docExhRate: detail.docExhRate ?? 0,
-                docAccountDate: detail.docAccountDate
-                  ? format(
-                      parseDate(detail.docAccountDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docDueDate: detail.docDueDate
-                  ? format(
-                      parseDate(detail.docDueDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docTotAmt: detail.docTotAmt ?? 0,
-                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                docBalAmt: detail.docBalAmt ?? 0,
-                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                allocAmt: detail.allocAmt ?? 0,
-                allocLocalAmt: detail.allocLocalAmt ?? 0,
-                docAllocAmt: detail.docAllocAmt ?? 0,
-                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                centDiff: detail.centDiff ?? 0,
-                exhGainLoss: detail.exhGainLoss ?? 0,
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setPayment(updatedPayment as ApPaymentHdSchemaType)
-          setPayment(transformToSchemaType(updatedPayment))
-          form.reset(updatedPayment)
-          form.trigger()
-
-          // Set the payment number in search input
-          setSearchNo(updatedPayment.paymentNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
-          toast.success(
-            `Payment ${updatedPayment.paymentNo} loaded successfully`
-          )
+        } else {
+          toast.error(response?.message || "Failed to fetch payment details")
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch payment details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching payment details:", error)
+        toast.error("Error loading payment. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingPayment(false)
+        }
       }
-    } catch (error) {
-      console.error("Error fetching payment details:", error)
-      toast.error("Error loading payment. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setPayment,
+      setIsLoadingPayment,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handlePaymentSelect = async (
+    selectedPayment: IApPaymentHd | undefined
+  ) => {
+    if (!selectedPayment) return
+
+    const loadedPaymentNo = await loadPayment({
+      paymentId: selectedPayment.paymentId ?? "0",
+      paymentNo: selectedPayment.paymentNo ?? "",
+    })
+
+    if (loadedPaymentNo) {
+      setShowListDialog(false)
     }
   }
 
   // Remove direct refetchPayments from handleFilterChange
   const handleFilterChange = (newFilters: IApPaymentFilter) => {
     setFilters(newFilters)
-    // refetchPayments(); // Removed: will be handled by useEffect
+    // Data refresh handled by PaymentTable component
   }
+
+  // Data refresh handled by PaymentTable component
 
   // Set createBy and createDate for new payments on page load/refresh
   useEffect(() => {
@@ -869,197 +882,40 @@ export default function PaymentPage() {
     form.clearErrors()
   }, [activeTab, form])
 
-  const handlePaymentSearch = useCallback(
-    async (value: string) => {
-      if (!value) return
+  const handlePaymentSearch = async (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
-      setIsLoadingPayment(true)
+    try {
+      const loadedPaymentNo = await loadPayment({
+        paymentId: "0",
+        paymentNo: trimmedValue,
+        showLoader: true,
+      })
 
-      try {
-        const response = await getById(`${ApPayment.getByIdNo}/0/${value}`)
-
-        if (response?.result === 1) {
-          const detailedPayment = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
-
-          if (detailedPayment) {
-            {
-              const parsed = parseDate(detailedPayment.accountDate as string)
-              setPreviousAccountDate(
-                parsed
-                  ? format(parsed, dateFormat)
-                  : (detailedPayment.accountDate as string)
-              )
-            }
-            // Parse dates properly
-            const updatedPayment = {
-              ...detailedPayment,
-              paymentId: detailedPayment.paymentId?.toString() ?? "0",
-              paymentNo: detailedPayment.paymentNo ?? "",
-              referenceNo: detailedPayment.referenceNo ?? "",
-              suppInvoiceNo: "", // Required by schema but not in interface
-              trnDate: detailedPayment.trnDate
-                ? format(
-                    parseDate(detailedPayment.trnDate as string) || new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-              accountDate: detailedPayment.accountDate
-                ? format(
-                    parseDate(detailedPayment.accountDate as string) ||
-                      new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-
-              supplierId: detailedPayment.supplierId ?? 0,
-              currencyId: detailedPayment.currencyId ?? 0,
-              exhRate: detailedPayment.exhRate ?? 0,
-              bankId: detailedPayment.bankId ?? 0,
-              paymentTypeId: detailedPayment.paymentTypeId ?? 0,
-              chequeNo: detailedPayment.chequeNo ?? "",
-              chequeDate: detailedPayment.chequeDate
-                ? format(
-                    parseDate(detailedPayment.chequeDate as string) ||
-                      new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-              bankChgGLId: detailedPayment.bankChgGLId ?? 0,
-              bankChgAmt: detailedPayment.bankChgAmt ?? 0,
-              bankChgLocalAmt: detailedPayment.bankChgLocalAmt ?? 0,
-              totAmt: detailedPayment.totAmt ?? 0,
-              totLocalAmt: detailedPayment.totLocalAmt ?? 0,
-              payCurrencyId: detailedPayment.payCurrencyId ?? 0,
-              payExhRate: detailedPayment.payExhRate ?? 0,
-              payTotAmt: detailedPayment.payTotAmt ?? 0,
-              payTotLocalAmt: detailedPayment.payTotLocalAmt ?? 0,
-              unAllocTotAmt: detailedPayment.unAllocTotAmt ?? 0,
-              unAllocTotLocalAmt: detailedPayment.unAllocTotLocalAmt ?? 0,
-              exhGainLoss: detailedPayment.exhGainLoss ?? 0,
-              remarks: detailedPayment.remarks ?? "",
-              docExhRate: detailedPayment.docExhRate ?? 0,
-              docTotAmt: detailedPayment.docTotAmt ?? 0,
-              docTotLocalAmt: detailedPayment.docTotLocalAmt ?? 0,
-              allocTotAmt: detailedPayment.allocTotAmt ?? 0,
-              allocTotLocalAmt: detailedPayment.allocTotLocalAmt ?? 0,
-              jobOrderId: detailedPayment.jobOrderId ?? 0,
-              jobOrderNo: detailedPayment.jobOrderNo ?? "",
-              moduleFrom: detailedPayment.moduleFrom ?? "",
-              editVersion: detailedPayment.editVersion ?? 0,
-              createBy: detailedPayment.createById?.toString() ?? "",
-              createDate: detailedPayment.createDate
-                ? format(
-                    parseDate(detailedPayment.createDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              editBy: detailedPayment.editById?.toString() ?? "",
-              editDate: detailedPayment.editDate
-                ? format(
-                    parseDate(detailedPayment.editDate as string) || new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              isCancel: detailedPayment.isCancel ?? false,
-              cancelBy: detailedPayment.cancelById?.toString() ?? "",
-              cancelDate: detailedPayment.cancelDate
-                ? format(
-                    parseDate(detailedPayment.cancelDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              cancelRemarks: detailedPayment.cancelRemarks ?? "",
-
-              data_details:
-                detailedPayment.data_details?.map((detail: IApPaymentDt) => ({
-                  paymentId: detail.paymentId?.toString() ?? "0",
-                  paymentNo: detail.paymentNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  transactionId: detail.transactionId ?? 0,
-                  documentId: detail.documentId?.toString() ?? "0",
-                  documentNo: detail.documentNo ?? "",
-                  referenceNo: detail.referenceNo ?? "",
-                  docCurrencyId: detail.docCurrencyId ?? 0,
-                  docExhRate: detail.docExhRate ?? 0,
-                  docAccountDate: detail.docAccountDate
-                    ? format(
-                        parseDate(detail.docAccountDate as string) ||
-                          new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docDueDate: detail.docDueDate
-                    ? format(
-                        parseDate(detail.docDueDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docTotAmt: detail.docTotAmt ?? 0,
-                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                  docBalAmt: detail.docBalAmt ?? 0,
-                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                  allocAmt: detail.allocAmt ?? 0,
-                  allocLocalAmt: detail.allocLocalAmt ?? 0,
-                  docAllocAmt: detail.docAllocAmt ?? 0,
-                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                  centDiff: detail.centDiff ?? 0,
-                  exhGainLoss: detail.exhGainLoss ?? 0,
-                  editVersion: detail.editVersion ?? 0,
-                })) || [],
-            }
-
-            //setPayment(updatedPayment as ApPaymentHdSchemaType)
-            setPayment(transformToSchemaType(updatedPayment))
-            form.reset(updatedPayment)
-            form.trigger()
-
-            // Set the payment number in search input to the actual payment number from database
-            setSearchNo(updatedPayment.paymentNo || "")
-
-            // Show success message
-            toast.success(
-              `Payment ${updatedPayment.paymentNo || value} loaded successfully`
-            )
-
-            // Close the load confirmation dialog on success
-            setShowLoadConfirm(false)
-          }
-        } else {
-          toast.error(response?.message || "Failed to fetch payment details")
-          // Keep dialog open on failure so user can try again
-        }
-      } catch (error) {
-        console.error("Error fetching payment details:", error)
-        toast.error("Error loading payment. Please try again.")
-        // Keep dialog open on error
-      } finally {
-        setIsLoadingPayment(false)
+      if (loadedPaymentNo) {
+        toast.success(`Payment ${loadedPaymentNo} loaded successfully`)
       }
-    },
-    [
-      dateFormat,
-      decimals,
-      form,
-      setIsLoadingPayment,
-      setPreviousAccountDate,
-      setPayment,
-      setShowLoadConfirm,
-      transformToSchemaType,
-    ]
-  )
+    } finally {
+      setShowLoadConfirm(false)
+    }
+  }
 
   useEffect(() => {
-    if (!pendingDocNo) return
-    if (lastQueriedDocRef.current === pendingDocNo) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    lastQueriedDocRef.current = pendingDocNo
-    setSearchNo(pendingDocNo)
-    void handlePaymentSearch(pendingDocNo)
-  }, [handlePaymentSearch, pendingDocNo])
+    const executeLoad = async () => {
+      await loadPayment({
+        paymentId: trimmedId,
+        paymentNo: "0",
+        showLoader: true,
+      })
+    }
+
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadPayment, pendingDocId])
 
   // Determine mode and payment ID from URL
   const paymentNo = form.getValues("paymentNo")
@@ -1159,17 +1015,8 @@ export default function PaymentPage() {
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search Payment No"
               className="h-8 text-sm"
               readOnly={!!payment?.paymentId && payment.paymentId !== "0"}
@@ -1229,7 +1076,7 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              //disabled={!invoice}
+              //disabled={!payment}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -1340,18 +1187,18 @@ export default function PaymentPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
         itemName={payment?.paymentNo}
         title="Delete Payment"
-        description="This action cannot be undone. All payment details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this payment? You will be asked to provide a reason."
+        isDeleting={false}
       />
 
-      {/* Cancel Confirmation */}
+      {/* Cancel Confirmation - Second Level */}
       <CancelConfirmation
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}

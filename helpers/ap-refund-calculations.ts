@@ -191,22 +191,27 @@ export const calauteLocalAmtandGainLoss = (
     return details[rowNumber]
   }
 
+  const allocLocalAmt = calculateMultiplierAmount(
+    allocAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+
+  const docAllocAmt = allocAmt
+
   const isFullBalanceAllocation =
     calculateSubtractionAmount(docBalAmt, allocAmt, decimals.amtDec) === 0
 
-  const allocLocalAmt = isFullBalanceAllocation
+  const docAllocLocalAmt = isFullBalanceAllocation
     ? docBalLocalAmt
-    : calculateMultiplierAmount(allocAmt, exhRate, decimals.locAmtDec)
-
-  const docAllocAmt = allocAmt
-  const docAllocLocalAmt = calculateMultiplierAmount(
-    allocAmt,
-    details[rowNumber].docExhRate,
-    decimals.locAmtDec
-  )
+    : calculateMultiplierAmount(
+        allocAmt,
+        details[rowNumber].docExhRate,
+        decimals.locAmtDec
+      )
   const exhGainLoss = calculateSubtractionAmount(
-    docAllocLocalAmt,
     allocLocalAmt,
+    docAllocLocalAmt,
     decimals.locAmtDec
   )
   // centDiff is always set to 0

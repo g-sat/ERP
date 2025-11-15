@@ -144,6 +144,13 @@ export default function RefundDetailsTable({
       if (!companyId) return null
 
       switch (transactionIdValue) {
+        case APTransactionId.payment:
+          return `/${companyId}/ap/payment`
+        case APTransactionId.refund:
+          return `/${companyId}/ap/refund`
+        case APTransactionId.docsetoff:
+          return `/${companyId}/ap/docsetoff`
+
         case APTransactionId.invoice:
           return `/${companyId}/ap/invoice`
         case APTransactionId.debitNote:
@@ -152,12 +159,6 @@ export default function RefundDetailsTable({
           return `/${companyId}/ap/creditnote`
         case APTransactionId.adjustment:
           return `/${companyId}/ap/adjustment`
-        case APTransactionId.payment:
-          return `/${companyId}/ap/payment`
-        case APTransactionId.refund:
-          return `/${companyId}/ap/refund`
-        case APTransactionId.docsetoff:
-          return `/${companyId}/ap/docsetoff`
         default:
           return null
       }
@@ -212,10 +213,10 @@ export default function RefundDetailsTable({
   const handleDocumentNavigation = useCallback(
     (detail: IApRefundDt) => {
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
+      const documentId = detail.documentId?.toString().trim()
 
       if (
-        !documentNo ||
+        !documentId ||
         !Number.isFinite(transactionIdValue) ||
         !canNavigateToTransaction(transactionIdValue)
       ) {
@@ -228,7 +229,7 @@ export default function RefundDetailsTable({
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }

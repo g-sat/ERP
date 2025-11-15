@@ -51,7 +51,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApCreditNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId } from "@/lib/utils"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -81,7 +81,7 @@ export default function CreditNotePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.creditNote
+  const transactionId = ARTransactionId.creditNote
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -133,27 +133,22 @@ export default function CreditNotePage() {
   )
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
-  const [pendingDocNo, setPendingDocNo] = useState("")
+  const [pendingDocId, setPendingDocId] = useState("")
 
-  const handleCreditNoteSearchRef = useRef<
-    ((value: string) => Promise<void> | void) | null
-  >(null)
-
-  const documentNoFromQuery = useMemo(() => {
+  const documentIdFromQuery = useMemo(() => {
     const value =
-      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/creditnote`,
+    () => `history-doc:/${companyId}/ap/debitnote`,
     [companyId]
   )
 
   useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
       return
     }
 
@@ -163,12 +158,11 @@ export default function CreditNotePage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
-          setPendingDocNo(trimmed)
-          setSearchNo(trimmed)
+          setPendingDocId(trimmed)
         }
       }
     }
-  }, [autoLoadStorageKey, documentNoFromQuery])
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -783,439 +777,297 @@ export default function CreditNotePage() {
   }
 
   // Helper function to transform IApCreditNoteHd to ApCreditNoteHdSchemaType
-  const transformToSchemaType = (
-    apiCreditNote: IApCreditNoteHd
-  ): ApCreditNoteHdSchemaType => {
-    return {
-      creditNoteId: apiCreditNote.creditNoteId?.toString() ?? "0",
-      creditNoteNo: apiCreditNote.creditNoteNo ?? "",
-      referenceNo: apiCreditNote.referenceNo ?? "",
-      suppCreditNoteNo: apiCreditNote.suppCreditNoteNo ?? "",
-      trnDate: apiCreditNote.trnDate
-        ? format(
-            parseDate(apiCreditNote.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiCreditNote.accountDate
-        ? format(
-            parseDate(apiCreditNote.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      dueDate: apiCreditNote.dueDate
-        ? format(
-            parseDate(apiCreditNote.dueDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      deliveryDate: apiCreditNote.deliveryDate
-        ? format(
-            parseDate(apiCreditNote.deliveryDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiCreditNote.gstClaimDate
-        ? format(
-            parseDate(apiCreditNote.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      supplierId: apiCreditNote.supplierId ?? 0,
-      currencyId: apiCreditNote.currencyId ?? 0,
-      exhRate: apiCreditNote.exhRate ?? 0,
-      ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
-      creditTermId: apiCreditNote.creditTermId ?? 0,
-      bankId: apiCreditNote.bankId ?? 0,
-      invoiceId: apiCreditNote.invoiceId ?? "0",
-      invoiceNo: apiCreditNote.invoiceNo ?? "",
-      totAmt: apiCreditNote.totAmt ?? 0,
-      totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
-      totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
-      gstAmt: apiCreditNote.gstAmt ?? 0,
-      gstLocalAmt: apiCreditNote.gstLocalAmt ?? 0,
-      gstCtyAmt: apiCreditNote.gstCtyAmt ?? 0,
-      totAmtAftGst: apiCreditNote.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiCreditNote.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiCreditNote.totCtyAmtAftGst ?? 0,
-      balAmt: apiCreditNote.balAmt ?? 0,
-      balLocalAmt: apiCreditNote.balLocalAmt ?? 0,
-      payAmt: apiCreditNote.payAmt ?? 0,
-      payLocalAmt: apiCreditNote.payLocalAmt ?? 0,
-      exGainLoss: apiCreditNote.exGainLoss ?? 0,
-      operationId: apiCreditNote.operationId ?? 0,
-      operationNo: apiCreditNote.operationNo ?? "",
-      remarks: apiCreditNote.remarks ?? "",
-      addressId: apiCreditNote.addressId ?? 0, // Not available in IApCreditNoteHd
-      contactId: apiCreditNote.contactId ?? 0, // Not available in IApCreditNoteHd
-      address1: apiCreditNote.address1 ?? "",
-      address2: apiCreditNote.address2 ?? "",
-      address3: apiCreditNote.address3 ?? "",
-      address4: apiCreditNote.address4 ?? "",
-      pinCode: apiCreditNote.pinCode ?? "",
-      countryId: apiCreditNote.countryId ?? 0,
-      phoneNo: apiCreditNote.phoneNo ?? "",
-      faxNo: apiCreditNote.faxNo ?? "",
-      contactName: apiCreditNote.contactName ?? "",
-      mobileNo: apiCreditNote.mobileNo ?? "",
-      emailAdd: apiCreditNote.emailAdd ?? "",
-      moduleFrom: apiCreditNote.moduleFrom ?? "",
-      customerName: apiCreditNote.customerName ?? "",
-      arCreditNoteId: apiCreditNote.arCreditNoteId ?? "",
-      arCreditNoteNo: apiCreditNote.arCreditNoteNo ?? "",
-      editVersion: apiCreditNote.editVersion ?? 0,
-      purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
-      purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
+  const transformToSchemaType = useCallback(
+    (apiCreditNote: IApCreditNoteHd): ApCreditNoteHdSchemaType => {
+      return {
+        creditNoteId: apiCreditNote.creditNoteId?.toString() ?? "0",
+        creditNoteNo: apiCreditNote.creditNoteNo ?? "",
+        referenceNo: apiCreditNote.referenceNo ?? "",
+        suppCreditNoteNo: apiCreditNote.suppCreditNoteNo ?? "",
+        trnDate: apiCreditNote.trnDate
+          ? format(
+              parseDate(apiCreditNote.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiCreditNote.accountDate
+          ? format(
+              parseDate(apiCreditNote.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        dueDate: apiCreditNote.dueDate
+          ? format(
+              parseDate(apiCreditNote.dueDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        deliveryDate: apiCreditNote.deliveryDate
+          ? format(
+              parseDate(apiCreditNote.deliveryDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiCreditNote.gstClaimDate
+          ? format(
+              parseDate(apiCreditNote.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        supplierId: apiCreditNote.supplierId ?? 0,
+        currencyId: apiCreditNote.currencyId ?? 0,
+        exhRate: apiCreditNote.exhRate ?? 0,
+        ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
+        creditTermId: apiCreditNote.creditTermId ?? 0,
+        bankId: apiCreditNote.bankId ?? 0,
+        invoiceId: apiCreditNote.invoiceId ?? "0",
+        invoiceNo: apiCreditNote.invoiceNo ?? "",
+        totAmt: apiCreditNote.totAmt ?? 0,
+        totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
+        totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
+        gstAmt: apiCreditNote.gstAmt ?? 0,
+        gstLocalAmt: apiCreditNote.gstLocalAmt ?? 0,
+        gstCtyAmt: apiCreditNote.gstCtyAmt ?? 0,
+        totAmtAftGst: apiCreditNote.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiCreditNote.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiCreditNote.totCtyAmtAftGst ?? 0,
+        balAmt: apiCreditNote.balAmt ?? 0,
+        balLocalAmt: apiCreditNote.balLocalAmt ?? 0,
+        payAmt: apiCreditNote.payAmt ?? 0,
+        payLocalAmt: apiCreditNote.payLocalAmt ?? 0,
+        exGainLoss: apiCreditNote.exGainLoss ?? 0,
+        operationId: apiCreditNote.operationId ?? 0,
+        operationNo: apiCreditNote.operationNo ?? "",
+        remarks: apiCreditNote.remarks ?? "",
+        addressId: apiCreditNote.addressId ?? 0, // Not available in IApCreditNoteHd
+        contactId: apiCreditNote.contactId ?? 0, // Not available in IApCreditNoteHd
+        address1: apiCreditNote.address1 ?? "",
+        address2: apiCreditNote.address2 ?? "",
+        address3: apiCreditNote.address3 ?? "",
+        address4: apiCreditNote.address4 ?? "",
+        pinCode: apiCreditNote.pinCode ?? "",
+        countryId: apiCreditNote.countryId ?? 0,
+        phoneNo: apiCreditNote.phoneNo ?? "",
+        faxNo: apiCreditNote.faxNo ?? "",
+        contactName: apiCreditNote.contactName ?? "",
+        mobileNo: apiCreditNote.mobileNo ?? "",
+        emailAdd: apiCreditNote.emailAdd ?? "",
+        moduleFrom: apiCreditNote.moduleFrom ?? "",
+        customerName: apiCreditNote.customerName ?? "",
+        arCreditNoteId: apiCreditNote.arCreditNoteId ?? "",
+        arCreditNoteNo: apiCreditNote.arCreditNoteNo ?? "",
+        editVersion: apiCreditNote.editVersion ?? 0,
+        purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
+        purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
 
-      serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
-      createBy: apiCreditNote.createBy ?? "",
-      editBy: apiCreditNote.editBy ?? "",
-      cancelBy: apiCreditNote.cancelBy ?? "",
-      createDate: apiCreditNote.createDate
-        ? format(
-            parseDate(apiCreditNote.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
+        serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
+        createBy: apiCreditNote.createBy ?? "",
+        editBy: apiCreditNote.editBy ?? "",
+        cancelBy: apiCreditNote.cancelBy ?? "",
+        createDate: apiCreditNote.createDate
+          ? format(
+              parseDate(apiCreditNote.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
 
-      editDate: apiCreditNote.editDate
-        ? format(
-            parseDate(apiCreditNote.editDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiCreditNote.cancelDate
-        ? format(
-            parseDate(apiCreditNote.cancelDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiCreditNote.isCancel ?? false,
-      cancelRemarks: apiCreditNote.cancelRemarks ?? "",
-      data_details:
-        apiCreditNote.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              creditNoteId: detail.creditNoteId?.toString() ?? "0",
-              creditNoteNo: detail.creditNoteNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              docItemNo: detail.docItemNo ?? 0,
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              qty: detail.qty ?? 0,
-              billQTY: detail.billQTY ?? 0,
-              uomId: detail.uomId ?? 0,
-              uomCode: detail.uomCode ?? "",
-              uomName: detail.uomName ?? "",
-              unitPrice: detail.unitPrice ?? 0,
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              deliveryDate: detail.deliveryDate
-                ? format(
-                    parseDate(detail.deliveryDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              taskId: detail.taskId ?? 0,
-              taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              operationId: detail.operationId ?? "",
-              operationNo: detail.operationNo ?? "",
-              opRefNo: detail.opRefNo ?? "",
-              purchaseOrderId: detail.purchaseOrderId ?? "",
-              purchaseOrderNo: detail.purchaseOrderNo ?? "",
+        editDate: apiCreditNote.editDate
+          ? format(
+              parseDate(apiCreditNote.editDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiCreditNote.cancelDate
+          ? format(
+              parseDate(apiCreditNote.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiCreditNote.isCancel ?? false,
+        cancelRemarks: apiCreditNote.cancelRemarks ?? "",
+        data_details:
+          apiCreditNote.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                creditNoteId: detail.creditNoteId?.toString() ?? "0",
+                creditNoteNo: detail.creditNoteNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                docItemNo: detail.docItemNo ?? 0,
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                qty: detail.qty ?? 0,
+                billQTY: detail.billQTY ?? 0,
+                uomId: detail.uomId ?? 0,
+                uomCode: detail.uomCode ?? "",
+                uomName: detail.uomName ?? "",
+                unitPrice: detail.unitPrice ?? 0,
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                deliveryDate: detail.deliveryDate
+                  ? format(
+                      parseDate(detail.deliveryDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                operationId: detail.operationId ?? "",
+                operationNo: detail.operationNo ?? "",
+                opRefNo: detail.opRefNo ?? "",
+                purchaseOrderId: detail.purchaseOrderId ?? "",
+                purchaseOrderNo: detail.purchaseOrderNo ?? "",
 
-              supplyDate: detail.supplyDate
-                ? format(
-                    parseDate(detail.supplyDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              customerName: detail.customerName ?? "",
-              custCreditNoteNo: detail.custCreditNoteNo ?? "",
-              arCreditNoteId: detail.arCreditNoteId ?? "",
-              arCreditNoteNo: detail.arCreditNoteNo ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ApCreditNoteDtSchemaType
-        ) || [],
-    }
-  }
+                supplyDate: detail.supplyDate
+                  ? format(
+                      parseDate(detail.supplyDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : "",
+                customerName: detail.customerName ?? "",
+                custCreditNoteNo: detail.custCreditNoteNo ?? "",
+                arCreditNoteId: detail.arCreditNoteId ?? "",
+                arCreditNoteNo: detail.arCreditNoteNo ?? "",
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as ApCreditNoteDtSchemaType
+          ) || [],
+      }
+    },
+    [dateFormat, decimals]
+  )
 
-  const handleCreditNoteSelect = async (
-    selectedCreditNote: IApCreditNoteHd | undefined
-  ) => {
-    if (!selectedCreditNote) return
+  const loadCreditNote = useCallback(
+    async ({
+      creditNoteId,
+      creditNoteNo,
+      showLoader = false,
+    }: {
+      creditNoteId?: string | number | null
+      creditNoteNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("creditNoteId", creditNoteId)
+      console.log("creditNoteNo", creditNoteNo)
+      const trimmedCreditNoteNo = creditNoteNo?.trim() ?? ""
+      const trimmedCreditNoteId =
+        typeof creditNoteId === "number"
+          ? creditNoteId.toString()
+          : (creditNoteId?.toString().trim() ?? "")
 
-    try {
-      // Fetch creditNote details directly using selected creditNote's values
-      const response = await getById(
-        `${ApCreditNote.getByIdNo}/${selectedCreditNote.creditNoteId}/${selectedCreditNote.creditNoteNo}`
-      )
+      if (!trimmedCreditNoteNo && !trimmedCreditNoteId) return null
 
-      if (response?.result === 1) {
-        const detailedCreditNote = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      if (showLoader) {
+        setIsLoadingCreditNote(true)
+      }
 
-        if (detailedCreditNote) {
-          {
+      const requestCreditNoteId = trimmedCreditNoteId || "0"
+      const requestCreditNoteNo = trimmedCreditNoteNo || ""
+
+      try {
+        const response = await getById(
+          `${ApCreditNote.getByIdNo}/${requestCreditNoteId}/${requestCreditNoteNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedCreditNote = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedCreditNote) {
             const parsed = parseDate(detailedCreditNote.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
                 : (detailedCreditNote.accountDate as string)
             )
+
+            const updatedCreditNote = transformToSchemaType(detailedCreditNote)
+
+            setCreditNote(updatedCreditNote)
+            form.reset(updatedCreditNote)
+            form.trigger()
+
+            const resolvedCreditNoteNo =
+              updatedCreditNote.creditNoteNo ||
+              trimmedCreditNoteNo ||
+              trimmedCreditNoteId
+            setSearchNo(resolvedCreditNoteNo)
+
+            return resolvedCreditNoteNo
           }
-          // Parse dates properly
-          const updatedCreditNote = {
-            ...detailedCreditNote,
-            creditNoteId: detailedCreditNote.creditNoteId?.toString() ?? "0",
-            creditNoteNo: detailedCreditNote.creditNoteNo ?? "",
-            referenceNo: detailedCreditNote.referenceNo ?? "",
-            suppCreditNoteNo: detailedCreditNote.suppCreditNoteNo ?? "",
-            trnDate: detailedCreditNote.trnDate
-              ? format(
-                  parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCreditNote.accountDate
-              ? format(
-                  parseDate(detailedCreditNote.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedCreditNote.dueDate
-              ? format(
-                  parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedCreditNote.deliveryDate
-              ? format(
-                  parseDate(detailedCreditNote.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedCreditNote.gstClaimDate
-              ? format(
-                  parseDate(detailedCreditNote.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            supplierId: detailedCreditNote.supplierId ?? 0,
-            currencyId: detailedCreditNote.currencyId ?? 0,
-            exhRate: detailedCreditNote.exhRate ?? 0,
-            ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
-            creditTermId: detailedCreditNote.creditTermId ?? 0,
-            bankId: detailedCreditNote.bankId ?? 0,
-            invoiceId: detailedCreditNote.invoiceId ?? "0",
-            invoiceNo: detailedCreditNote.invoiceNo ?? "",
-            totAmt: detailedCreditNote.totAmt ?? 0,
-            totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
-            gstAmt: detailedCreditNote.gstAmt ?? 0,
-            gstLocalAmt: detailedCreditNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCreditNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCreditNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCreditNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCreditNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedCreditNote.balAmt ?? 0,
-            balLocalAmt: detailedCreditNote.balLocalAmt ?? 0,
-            payAmt: detailedCreditNote.payAmt ?? 0,
-            payLocalAmt: detailedCreditNote.payLocalAmt ?? 0,
-            exGainLoss: detailedCreditNote.exGainLoss ?? 0,
-            operationId: detailedCreditNote.operationId ?? 0,
-            operationNo: detailedCreditNote.operationNo ?? "",
-            remarks: detailedCreditNote.remarks ?? "",
-            addressId: detailedCreditNote.addressId ?? 0, // Not available in IApCreditNoteHd
-            contactId: detailedCreditNote.contactId ?? 0, // Not available in IApCreditNoteHd
-            address1: detailedCreditNote.address1 ?? "",
-            address2: detailedCreditNote.address2 ?? "",
-            address3: detailedCreditNote.address3 ?? "",
-            address4: detailedCreditNote.address4 ?? "",
-            pinCode: detailedCreditNote.pinCode ?? "",
-            countryId: detailedCreditNote.countryId ?? 0,
-            phoneNo: detailedCreditNote.phoneNo ?? "",
-            faxNo: detailedCreditNote.faxNo ?? "",
-            contactName: detailedCreditNote.contactName ?? "",
-            mobileNo: detailedCreditNote.mobileNo ?? "",
-            emailAdd: detailedCreditNote.emailAdd ?? "",
-            moduleFrom: detailedCreditNote.moduleFrom ?? "",
-            customerName: detailedCreditNote.customerName ?? "",
-            arCreditNoteId: detailedCreditNote.arCreditNoteId ?? "",
-            arCreditNoteNo: detailedCreditNote.arCreditNoteNo ?? "",
-            editVersion: detailedCreditNote.editVersion ?? 0,
-            purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
-            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            createBy: detailedCreditNote.createBy ?? "",
-            createDate: detailedCreditNote.createDate
-              ? format(
-                  parseDate(detailedCreditNote.createDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            editBy: detailedCreditNote.editBy ?? "",
-            editDate: detailedCreditNote.editDate
-              ? format(
-                  parseDate(detailedCreditNote.editDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            cancelBy: detailedCreditNote.cancelBy ?? "",
-            cancelDate: detailedCreditNote.cancelDate
-              ? format(
-                  parseDate(detailedCreditNote.cancelDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            isCancel: detailedCreditNote.isCancel ?? false,
-            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
-            data_details:
-              detailedCreditNote.data_details?.map(
-                (detail: IApCreditNoteDt) => ({
-                  creditNoteId: detail.creditNoteId?.toString() ?? "0",
-                  creditNoteNo: detail.creditNoteNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  docItemNo: detail.docItemNo ?? 0,
-                  productId: detail.productId ?? 0,
-                  productCode: detail.productCode ?? "",
-                  productName: detail.productName ?? "",
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  qty: detail.qty ?? 0,
-                  billQTY: detail.billQTY ?? 0,
-                  uomId: detail.uomId ?? 0,
-                  uomCode: detail.uomCode ?? "",
-                  uomName: detail.uomName ?? "",
-                  unitPrice: detail.unitPrice ?? 0,
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  deliveryDate: detail.deliveryDate
-                    ? format(
-                        parseDate(detail.deliveryDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  operationId: detail.operationId ?? "",
-                  operationNo: detail.operationNo ?? "",
-                  opRefNo: detail.opRefNo ?? "",
-                  purchaseOrderId: detail.purchaseOrderId ?? "",
-                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
-                  supplyDate: detail.supplyDate
-                    ? format(
-                        parseDate(detail.supplyDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  customerName: detail.customerName ?? "",
-                  custCreditNoteNo: detail.custCreditNoteNo ?? "",
-                  arCreditNoteId: detail.arCreditNoteId ?? "",
-                  arCreditNoteNo: detail.arCreditNoteNo ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCreditNote(updatedCreditNote as ApCreditNoteHdSchemaType)
-          setCreditNote(transformToSchemaType(updatedCreditNote))
-          form.reset(updatedCreditNote)
-          form.trigger()
-
-          // Set the creditNote number in search input
-          setSearchNo(updatedCreditNote.creditNoteNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
+        } else {
+          toast.error(response?.message || "Failed to fetch creditNote details")
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch creditNote details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching creditNote details:", error)
+        toast.error("Error loading creditNote. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingCreditNote(false)
+        }
       }
-    } catch (error) {
-      console.error("Error fetching creditNote details:", error)
-      toast.error("Error loading creditNote. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setCreditNote,
+      setIsLoadingCreditNote,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleCreditNoteSelect = async (
+    selectedCreditNote: IApCreditNoteHd | undefined
+  ) => {
+    if (!selectedCreditNote) return
+
+    const loadedCreditNoteNo = await loadCreditNote({
+      creditNoteId: selectedCreditNote.creditNoteId ?? "0",
+      creditNoteNo: selectedCreditNote.creditNoteNo ?? "",
+    })
+
+    if (loadedCreditNoteNo) {
+      setShowListDialog(false)
     }
   }
 
@@ -1285,242 +1137,39 @@ export default function CreditNotePage() {
   }, [activeTab, form])
 
   const handleCreditNoteSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingCreditNote(true)
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(`${ApCreditNote.getByIdNo}/0/${value}`)
+      const loadedCreditNoteNo = await loadCreditNote({
+        creditNoteId: "0",
+        creditNoteNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedCreditNote = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedCreditNote) {
-          {
-            const parsed = parseDate(detailedCreditNote.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedCreditNote.accountDate as string)
-            )
-          }
-          // Parse dates properly
-          const updatedCreditNote = {
-            ...detailedCreditNote,
-            creditNoteId: detailedCreditNote.creditNoteId?.toString() ?? "0",
-            creditNoteNo: detailedCreditNote.creditNoteNo ?? "",
-            referenceNo: detailedCreditNote.referenceNo ?? "",
-            suppCreditNoteNo: detailedCreditNote.suppCreditNoteNo ?? "",
-            trnDate: detailedCreditNote.trnDate
-              ? format(
-                  parseDate(detailedCreditNote.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCreditNote.accountDate
-              ? format(
-                  parseDate(detailedCreditNote.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedCreditNote.dueDate
-              ? format(
-                  parseDate(detailedCreditNote.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedCreditNote.deliveryDate
-              ? format(
-                  parseDate(detailedCreditNote.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedCreditNote.gstClaimDate
-              ? format(
-                  parseDate(detailedCreditNote.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            supplierId: detailedCreditNote.supplierId ?? 0,
-            currencyId: detailedCreditNote.currencyId ?? 0,
-            exhRate: detailedCreditNote.exhRate ?? 0,
-            ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
-            creditTermId: detailedCreditNote.creditTermId ?? 0,
-            bankId: detailedCreditNote.bankId ?? 0,
-            invoiceId: detailedCreditNote.invoiceId ?? "0",
-            invoiceNo: detailedCreditNote.invoiceNo ?? "",
-            totAmt: detailedCreditNote.totAmt ?? 0,
-            totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
-            gstAmt: detailedCreditNote.gstAmt ?? 0,
-            gstLocalAmt: detailedCreditNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCreditNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCreditNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCreditNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCreditNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedCreditNote.balAmt ?? 0,
-            balLocalAmt: detailedCreditNote.balLocalAmt ?? 0,
-            payAmt: detailedCreditNote.payAmt ?? 0,
-            payLocalAmt: detailedCreditNote.payLocalAmt ?? 0,
-            exGainLoss: detailedCreditNote.exGainLoss ?? 0,
-            operationId: detailedCreditNote.operationId ?? 0,
-            operationNo: detailedCreditNote.operationNo ?? "",
-            remarks: detailedCreditNote.remarks ?? "",
-            addressId: detailedCreditNote.addressId ?? 0, // Not available in IApCreditNoteHd
-            contactId: detailedCreditNote.contactId ?? 0, // Not available in IApCreditNoteHd
-            address1: detailedCreditNote.address1 ?? "",
-            address2: detailedCreditNote.address2 ?? "",
-            address3: detailedCreditNote.address3 ?? "",
-            address4: detailedCreditNote.address4 ?? "",
-            pinCode: detailedCreditNote.pinCode ?? "",
-            countryId: detailedCreditNote.countryId ?? 0,
-            phoneNo: detailedCreditNote.phoneNo ?? "",
-            faxNo: detailedCreditNote.faxNo ?? "",
-            contactName: detailedCreditNote.contactName ?? "",
-            mobileNo: detailedCreditNote.mobileNo ?? "",
-            emailAdd: detailedCreditNote.emailAdd ?? "",
-            moduleFrom: detailedCreditNote.moduleFrom ?? "",
-            customerName: detailedCreditNote.customerName ?? "",
-            arCreditNoteId: detailedCreditNote.arCreditNoteId ?? "",
-            arCreditNoteNo: detailedCreditNote.arCreditNoteNo ?? "",
-            editVersion: detailedCreditNote.editVersion ?? 0,
-            purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
-            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            isCancel: detailedCreditNote.isCancel ?? false,
-            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
-
-            data_details:
-              detailedCreditNote.data_details?.map(
-                (detail: IApCreditNoteDt) => ({
-                  creditNoteId: detail.creditNoteId?.toString() ?? "0",
-                  creditNoteNo: detail.creditNoteNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  docItemNo: detail.docItemNo ?? 0,
-                  productId: detail.productId ?? 0,
-                  productCode: detail.productCode ?? "",
-                  productName: detail.productName ?? "",
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  qty: detail.qty ?? 0,
-                  billQTY: detail.billQTY ?? 0,
-                  uomId: detail.uomId ?? 0,
-                  uomCode: detail.uomCode ?? "",
-                  uomName: detail.uomName ?? "",
-                  unitPrice: detail.unitPrice ?? 0,
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  deliveryDate: detail.deliveryDate
-                    ? format(
-                        parseDate(detail.deliveryDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  operationId: detail.operationId ?? "",
-                  operationNo: detail.operationNo ?? "",
-                  opRefNo: detail.opRefNo ?? "",
-                  purchaseOrderId: detail.purchaseOrderId ?? "",
-                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
-                  supplyDate: detail.supplyDate
-                    ? format(
-                        parseDate(detail.supplyDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  customerName: detail.customerName ?? "",
-                  custCreditNoteNo: detail.custCreditNoteNo ?? "",
-                  arCreditNoteId: detail.arCreditNoteId ?? "",
-                  arCreditNoteNo: detail.arCreditNoteNo ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCreditNote(updatedCreditNote as ApCreditNoteHdSchemaType)
-          setCreditNote(transformToSchemaType(updatedCreditNote))
-          form.reset(updatedCreditNote)
-          form.trigger()
-
-          // Set the creditNote number in search input to the actual creditNote number from database
-          setSearchNo(updatedCreditNote.creditNoteNo || "")
-
-          // Show success message
-          toast.success(
-            `CreditNote ${updatedCreditNote.creditNoteNo || value} loaded successfully`
-          )
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        // Close the load confirmation dialog on success
-        setShowLoadConfirm(false)
-        toast.error(
-          response?.message || "Failed to fetch creditNote details (direct)"
-        )
+      if (loadedCreditNoteNo) {
+        toast.success(`CreditNote ${loadedCreditNoteNo} loaded successfully`)
       }
-    } catch {
-      toast.error("Error searching for creditNote")
     } finally {
-      setIsLoadingCreditNote(false)
+      setShowLoadConfirm(false)
     }
   }
 
-  handleCreditNoteSearchRef.current = handleCreditNoteSearch
-
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleCreditNoteSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadCreditNote({
+        creditNoteId: trimmedId,
+        creditNoteNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadCreditNote, pendingDocId])
 
   // Determine mode and creditNote ID from URL
   const creditNoteNo = form.getValues("creditNoteNo")

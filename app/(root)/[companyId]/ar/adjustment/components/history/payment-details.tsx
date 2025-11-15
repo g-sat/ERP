@@ -47,40 +47,28 @@ export default function PaymentDetails({ adjustmentId }: PaymentDetailsProps) {
     }
 
   const getTargetPath = useCallback(
-    (moduleIdValue: number, transactionIdValue: number): string | null => {
+    (transactionIdValue: number): string | null => {
       if (!companyId) return null
 
-      if (moduleIdValue === ModuleId.ar) {
-        switch (transactionIdValue) {
-          case ARTransactionId.receipt:
-            return `/${companyId}/ar/receipt`
-          case ARTransactionId.adjustment:
-            return `/${companyId}/ar/adjustment`
-          case ARTransactionId.refund:
-            return `/${companyId}/ar/refund`
-          case ARTransactionId.docsetoff:
-            return `/${companyId}/ar/docsetoff`
-          default:
-            return null
-        }
-      }
+      switch (transactionIdValue) {
+        case ARTransactionId.receipt:
+          return `/${companyId}/ar/receipt`
+        case ARTransactionId.refund:
+          return `/${companyId}/ar/refund`
+        case ARTransactionId.docsetoff:
+          return `/${companyId}/ar/docsetoff`
 
-      if (moduleIdValue === ModuleId.ap) {
-        switch (transactionIdValue) {
-          case APTransactionId.payment:
-            return `/${companyId}/ap/payment`
-          case APTransactionId.adjustment:
-            return `/${companyId}/ap/adjustment`
-          case APTransactionId.refund:
-            return `/${companyId}/ap/refund`
-          case APTransactionId.docsetoff:
-            return `/${companyId}/ap/docsetoff`
-          default:
-            return null
-        }
+        case ARTransactionId.invoice:
+          return `/${companyId}/ar/invoice`
+        case ARTransactionId.debitNote:
+          return `/${companyId}/ar/debitnote`
+        case ARTransactionId.creditNote:
+          return `/${companyId}/ar/creditnote`
+        case ARTransactionId.adjustment:
+          return `/${companyId}/ar/adjustment`
+        default:
+          return null
       }
-
-      return null
     },
     [companyId]
   )
@@ -93,23 +81,23 @@ export default function PaymentDetails({ adjustmentId }: PaymentDetailsProps) {
     (detail: IPaymentHistoryDetails) => {
       const moduleIdValue = Number(detail.moduleId)
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
+      const documentId = detail.documentId?.toString().trim()
 
       if (
-        !documentNo ||
+        !documentId ||
         !Number.isFinite(moduleIdValue) ||
         !Number.isFinite(transactionIdValue)
       ) {
         return
       }
 
-      const targetPath = getTargetPath(moduleIdValue, transactionIdValue)
+      const targetPath = getTargetPath(transactionIdValue)
       if (!targetPath) return
 
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }

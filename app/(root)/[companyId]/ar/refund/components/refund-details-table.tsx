@@ -144,6 +144,13 @@ export default function RefundDetailsTable({
       if (!companyId) return null
 
       switch (transactionIdValue) {
+        case ARTransactionId.receipt:
+          return `/${companyId}/ar/receipt`
+        case ARTransactionId.refund:
+          return `/${companyId}/ar/refund`
+        case ARTransactionId.docsetoff:
+          return `/${companyId}/ar/docsetoff`
+
         case ARTransactionId.invoice:
           return `/${companyId}/ar/invoice`
         case ARTransactionId.debitNote:
@@ -152,14 +159,6 @@ export default function RefundDetailsTable({
           return `/${companyId}/ar/creditnote`
         case ARTransactionId.adjustment:
           return `/${companyId}/ar/adjustment`
-        case ARTransactionId.refund:
-          return `/${companyId}/ar/refund`
-        case ARTransactionId.refund:
-          return `/${companyId}/ar/refund`
-        case ARTransactionId.docsetoff:
-          return `/${companyId}/ar/docsetoff`
-        case ARTransactionId.invoice_edit:
-          return `/${companyId}/ar/invoice_edit`
         default:
           return null
       }
@@ -214,13 +213,9 @@ export default function RefundDetailsTable({
   const handleDocumentNavigation = useCallback(
     (detail: IArRefundDt) => {
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
+      const documentId = detail.documentId?.toString().trim()
 
-      if (
-        !documentNo ||
-        !Number.isFinite(transactionIdValue) ||
-        !canNavigateToTransaction(transactionIdValue)
-      ) {
+      if (!documentId || !Number.isFinite(transactionIdValue)) {
         return
       }
 
@@ -230,12 +225,12 @@ export default function RefundDetailsTable({
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }
     },
-    [canNavigateToTransaction, getStorageKey, getTargetPath]
+    [getStorageKey, getTargetPath]
   )
 
   // Define columns with visible prop checks - Refund specific fields

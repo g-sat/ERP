@@ -127,15 +127,11 @@ export default function InvoicePage() {
   const [invoice, setInvoice] = useState<ArInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
-  const [pendingDocNo, setPendingDocNo] = useState("")
+  const [pendingDocId, setPendingDocId] = useState("")
 
-  const handleInvoiceSearchRef = useRef<
-    ((value: string) => Promise<void> | void) | null
-  >(null)
-
-  const documentNoFromQuery = useMemo(() => {
+  const documentIdFromQuery = useMemo(() => {
     const value =
-      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
@@ -145,9 +141,8 @@ export default function InvoicePage() {
   )
 
   useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
       return
     }
 
@@ -157,12 +152,11 @@ export default function InvoicePage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
-          setPendingDocNo(trimmed)
-          setSearchNo(trimmed)
+          setPendingDocId(trimmed)
         }
       }
     }
-  }, [autoLoadStorageKey, documentNoFromQuery])
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -759,336 +753,124 @@ export default function InvoicePage() {
   }
 
   // Helper function to transform IArInvoiceHd to ArInvoiceHdSchemaType
-  const transformToSchemaType = (
-    apiInvoice: IArInvoiceHd
-  ): ArInvoiceHdSchemaType => {
-    return {
-      invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
-      invoiceNo: apiInvoice.invoiceNo ?? "",
-      referenceNo: apiInvoice.referenceNo ?? "",
-      suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
-      trnDate: apiInvoice.trnDate
-        ? format(
-            parseDate(apiInvoice.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiInvoice.accountDate
-        ? format(
-            parseDate(apiInvoice.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      dueDate: apiInvoice.dueDate
-        ? format(
-            parseDate(apiInvoice.dueDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      deliveryDate: apiInvoice.deliveryDate
-        ? format(
-            parseDate(apiInvoice.deliveryDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiInvoice.gstClaimDate
-        ? format(
-            parseDate(apiInvoice.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      customerId: apiInvoice.customerId ?? 0,
-      currencyId: apiInvoice.currencyId ?? 0,
-      exhRate: apiInvoice.exhRate ?? 0,
-      ctyExhRate: apiInvoice.ctyExhRate ?? 0,
-      creditTermId: apiInvoice.creditTermId ?? 0,
-      bankId: apiInvoice.bankId ?? 0,
-
-      totAmt: apiInvoice.totAmt ?? 0,
-      totLocalAmt: apiInvoice.totLocalAmt ?? 0,
-      totCtyAmt: apiInvoice.totCtyAmt ?? 0,
-      gstAmt: apiInvoice.gstAmt ?? 0,
-      gstLocalAmt: apiInvoice.gstLocalAmt ?? 0,
-      gstCtyAmt: apiInvoice.gstCtyAmt ?? 0,
-      totAmtAftGst: apiInvoice.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiInvoice.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiInvoice.totCtyAmtAftGst ?? 0,
-      balAmt: apiInvoice.balAmt ?? 0,
-      balLocalAmt: apiInvoice.balLocalAmt ?? 0,
-      payAmt: apiInvoice.payAmt ?? 0,
-      payLocalAmt: apiInvoice.payLocalAmt ?? 0,
-      exGainLoss: apiInvoice.exGainLoss ?? 0,
-      operationId: apiInvoice.operationId ?? 0,
-      operationNo: apiInvoice.operationNo ?? "",
-      remarks: apiInvoice.remarks ?? "",
-      addressId: apiInvoice.addressId ?? 0, // Not available in IArInvoiceHd
-      contactId: apiInvoice.contactId ?? 0, // Not available in IArInvoiceHd
-      address1: apiInvoice.address1 ?? "",
-      address2: apiInvoice.address2 ?? "",
-      address3: apiInvoice.address3 ?? "",
-      address4: apiInvoice.address4 ?? "",
-      pinCode: apiInvoice.pinCode ?? "",
-      countryId: apiInvoice.countryId ?? 0,
-      phoneNo: apiInvoice.phoneNo ?? "",
-      faxNo: apiInvoice.faxNo ?? "",
-      contactName: apiInvoice.contactName ?? "",
-      mobileNo: apiInvoice.mobileNo ?? "",
-      emailAdd: apiInvoice.emailAdd ?? "",
-      moduleFrom: apiInvoice.moduleFrom ?? "",
-      supplierName: apiInvoice.supplierName ?? "",
-      apInvoiceId: apiInvoice.apInvoiceId ?? "",
-      apInvoiceNo: apiInvoice.apInvoiceNo ?? "",
-      editVersion: apiInvoice.editVersion ?? 0,
-      salesOrderId: apiInvoice.salesOrderId ?? 0,
-      salesOrderNo: apiInvoice.salesOrderNo ?? "",
-      jobOrderId: apiInvoice.jobOrderId ?? 0,
-      jobOrderNo: apiInvoice.jobOrderNo ?? "",
-      vesselId: apiInvoice.vesselId ?? 0,
-      portId: apiInvoice.portId ?? 0,
-      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
-      otherRemarks: apiInvoice.otherRemarks ?? "",
-      advRecAmt: apiInvoice.advRecAmt ?? 0,
-      createBy: apiInvoice.createBy ?? "",
-      editBy: apiInvoice.editBy ?? "",
-      cancelBy: apiInvoice.cancelBy ?? "",
-      createDate: apiInvoice.createDate
-        ? format(
-            parseDate(apiInvoice.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-
-      editDate: apiInvoice.editDate
-        ? format(
-            parseDate(apiInvoice.editDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiInvoice.cancelDate
-        ? format(
-            parseDate(apiInvoice.cancelDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiInvoice.isCancel ?? false,
-      cancelRemarks: apiInvoice.cancelRemarks ?? "",
-      data_details:
-        apiInvoice.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              invoiceId: detail.invoiceId?.toString() ?? "0",
-              invoiceNo: detail.invoiceNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              docItemNo: detail.docItemNo ?? 0,
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              qty: detail.qty ?? 0,
-              billQTY: detail.billQTY ?? 0,
-              uomId: detail.uomId ?? 0,
-              uomCode: detail.uomCode ?? "",
-              uomName: detail.uomName ?? "",
-              unitPrice: detail.unitPrice ?? 0,
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              deliveryDate: detail.deliveryDate
-                ? format(
-                    parseDate(detail.deliveryDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              operationId: detail.operationId ?? "",
-              operationNo: detail.operationNo ?? "",
-              opRefNo: detail.opRefNo ?? "",
-              salesOrderId: detail.salesOrderId ?? "",
-              salesOrderNo: detail.salesOrderNo ?? "",
-
-              supplyDate: detail.supplyDate
-                ? format(
-                    parseDate(detail.supplyDate as string) || new Date(),
-                    dateFormat
-                  )
-                : "",
-              supplierName: detail.supplierName ?? "",
-              suppInvoiceNo: detail.suppInvoiceNo ?? "",
-              apInvoiceId: detail.apInvoiceId ?? "",
-              apInvoiceNo: detail.apInvoiceNo ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as ArInvoiceDtSchemaType
-        ) || [],
-    }
-  }
-
-  const handleInvoiceSelect = async (
-    selectedInvoice: IArInvoiceHd | undefined
-  ) => {
-    if (!selectedInvoice) return
-
-    try {
-      // Fetch invoice details directly using selected invoice's values
-      const response = await getById(
-        `${ArInvoice.getByIdNo}/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`
-      )
-
-      if (response?.result === 1) {
-        const detailedInvoice = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedInvoice) {
-          {
-            const parsed = parseDate(detailedInvoice.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedInvoice.accountDate as string)
+  const transformToSchemaType = useCallback(
+    (apiInvoice: IArInvoiceHd): ArInvoiceHdSchemaType => {
+      return {
+        invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
+        invoiceNo: apiInvoice.invoiceNo ?? "",
+        referenceNo: apiInvoice.referenceNo ?? "",
+        suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
+        trnDate: apiInvoice.trnDate
+          ? format(
+              parseDate(apiInvoice.trnDate as string) || new Date(),
+              dateFormat
             )
-          }
-          // Parse dates properly
-          const updatedInvoice = {
-            ...detailedInvoice,
-            invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
-            invoiceNo: detailedInvoice.invoiceNo ?? "",
-            referenceNo: detailedInvoice.referenceNo ?? "",
-            suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
-            trnDate: detailedInvoice.trnDate
-              ? format(
-                  parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedInvoice.accountDate
-              ? format(
-                  parseDate(detailedInvoice.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedInvoice.dueDate
-              ? format(
-                  parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedInvoice.deliveryDate
-              ? format(
-                  parseDate(detailedInvoice.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedInvoice.gstClaimDate
-              ? format(
-                  parseDate(detailedInvoice.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
+          : dateFormat,
+        accountDate: apiInvoice.accountDate
+          ? format(
+              parseDate(apiInvoice.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        dueDate: apiInvoice.dueDate
+          ? format(
+              parseDate(apiInvoice.dueDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        deliveryDate: apiInvoice.deliveryDate
+          ? format(
+              parseDate(apiInvoice.deliveryDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiInvoice.gstClaimDate
+          ? format(
+              parseDate(apiInvoice.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        customerId: apiInvoice.customerId ?? 0,
+        currencyId: apiInvoice.currencyId ?? 0,
+        exhRate: apiInvoice.exhRate ?? 0,
+        ctyExhRate: apiInvoice.ctyExhRate ?? 0,
+        creditTermId: apiInvoice.creditTermId ?? 0,
+        bankId: apiInvoice.bankId ?? 0,
 
-            customerId: detailedInvoice.customerId ?? 0,
-            currencyId: detailedInvoice.currencyId ?? 0,
-            exhRate: detailedInvoice.exhRate ?? 0,
-            ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
-            creditTermId: detailedInvoice.creditTermId ?? 0,
-            bankId: detailedInvoice.bankId ?? 0,
-            totAmt: detailedInvoice.totAmt ?? 0,
-            totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
-            totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
-            gstAmt: detailedInvoice.gstAmt ?? 0,
-            gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
-            balAmt: detailedInvoice.balAmt ?? 0,
-            balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
-            payAmt: detailedInvoice.payAmt ?? 0,
-            payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
-            exGainLoss: detailedInvoice.exGainLoss ?? 0,
-            operationId: detailedInvoice.operationId ?? 0,
-            operationNo: detailedInvoice.operationNo ?? "",
-            remarks: detailedInvoice.remarks ?? "",
-            addressId: detailedInvoice.addressId ?? 0, // Not available in IArInvoiceHd
-            contactId: detailedInvoice.contactId ?? 0, // Not available in IArInvoiceHd
-            address1: detailedInvoice.address1 ?? "",
-            address2: detailedInvoice.address2 ?? "",
-            address3: detailedInvoice.address3 ?? "",
-            address4: detailedInvoice.address4 ?? "",
-            pinCode: detailedInvoice.pinCode ?? "",
-            countryId: detailedInvoice.countryId ?? 0,
-            phoneNo: detailedInvoice.phoneNo ?? "",
-            faxNo: detailedInvoice.faxNo ?? "",
-            contactName: detailedInvoice.contactName ?? "",
-            mobileNo: detailedInvoice.mobileNo ?? "",
-            emailAdd: detailedInvoice.emailAdd ?? "",
-            moduleFrom: detailedInvoice.moduleFrom ?? "",
-            customerName: detailedInvoice.customerName ?? "",
-            apInvoiceId: detailedInvoice.apInvoiceId ?? "",
-            apInvoiceNo: detailedInvoice.apInvoiceNo ?? "",
-            editVersion: detailedInvoice.editVersion ?? 0,
-            salesOrderId: detailedInvoice.salesOrderId ?? 0,
-            salesOrderNo: detailedInvoice.salesOrderNo ?? "",
-            jobOrderId: detailedInvoice.jobOrderId ?? 0,
-            vesselId: detailedInvoice.vesselId ?? 0,
-            portId: detailedInvoice.portId ?? 0,
-            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
-            otherRemarks: detailedInvoice.otherRemarks ?? "",
-            advRecAmt: detailedInvoice.advRecAmt ?? 0,
-            createBy: detailedInvoice.createBy ?? "",
-            createDate: detailedInvoice.createDate
-              ? format(
-                  parseDate(detailedInvoice.createDate as string) || new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            editBy: detailedInvoice.editBy ?? "",
-            editDate: detailedInvoice.editDate
-              ? format(
-                  parseDate(detailedInvoice.editDate as string) || new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            cancelBy: detailedInvoice.cancelBy ?? "",
-            cancelDate: detailedInvoice.cancelDate
-              ? format(
-                  parseDate(detailedInvoice.cancelDate as string) || new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            isCancel: detailedInvoice.isCancel ?? false,
-            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
-            data_details:
-              detailedInvoice.data_details?.map((detail: IArInvoiceDt) => ({
+        totAmt: apiInvoice.totAmt ?? 0,
+        totLocalAmt: apiInvoice.totLocalAmt ?? 0,
+        totCtyAmt: apiInvoice.totCtyAmt ?? 0,
+        gstAmt: apiInvoice.gstAmt ?? 0,
+        gstLocalAmt: apiInvoice.gstLocalAmt ?? 0,
+        gstCtyAmt: apiInvoice.gstCtyAmt ?? 0,
+        totAmtAftGst: apiInvoice.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiInvoice.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiInvoice.totCtyAmtAftGst ?? 0,
+        balAmt: apiInvoice.balAmt ?? 0,
+        balLocalAmt: apiInvoice.balLocalAmt ?? 0,
+        payAmt: apiInvoice.payAmt ?? 0,
+        payLocalAmt: apiInvoice.payLocalAmt ?? 0,
+        exGainLoss: apiInvoice.exGainLoss ?? 0,
+        operationId: apiInvoice.operationId ?? 0,
+        operationNo: apiInvoice.operationNo ?? "",
+        remarks: apiInvoice.remarks ?? "",
+        addressId: apiInvoice.addressId ?? 0, // Not available in IArInvoiceHd
+        contactId: apiInvoice.contactId ?? 0, // Not available in IArInvoiceHd
+        address1: apiInvoice.address1 ?? "",
+        address2: apiInvoice.address2 ?? "",
+        address3: apiInvoice.address3 ?? "",
+        address4: apiInvoice.address4 ?? "",
+        pinCode: apiInvoice.pinCode ?? "",
+        countryId: apiInvoice.countryId ?? 0,
+        phoneNo: apiInvoice.phoneNo ?? "",
+        faxNo: apiInvoice.faxNo ?? "",
+        contactName: apiInvoice.contactName ?? "",
+        mobileNo: apiInvoice.mobileNo ?? "",
+        emailAdd: apiInvoice.emailAdd ?? "",
+        moduleFrom: apiInvoice.moduleFrom ?? "",
+        supplierName: apiInvoice.supplierName ?? "",
+        apInvoiceId: apiInvoice.apInvoiceId ?? "",
+        apInvoiceNo: apiInvoice.apInvoiceNo ?? "",
+        editVersion: apiInvoice.editVersion ?? 0,
+        salesOrderId: apiInvoice.salesOrderId ?? 0,
+        salesOrderNo: apiInvoice.salesOrderNo ?? "",
+        jobOrderId: apiInvoice.jobOrderId ?? 0,
+        jobOrderNo: apiInvoice.jobOrderNo ?? "",
+        vesselId: apiInvoice.vesselId ?? 0,
+        portId: apiInvoice.portId ?? 0,
+        serviceTypeId: apiInvoice.serviceTypeId ?? 0,
+        otherRemarks: apiInvoice.otherRemarks ?? "",
+        advRecAmt: apiInvoice.advRecAmt ?? 0,
+        createBy: apiInvoice.createBy ?? "",
+        editBy: apiInvoice.editBy ?? "",
+        cancelBy: apiInvoice.cancelBy ?? "",
+        createDate: apiInvoice.createDate
+          ? format(
+              parseDate(apiInvoice.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+
+        editDate: apiInvoice.editDate
+          ? format(
+              parseDate(apiInvoice.editDate as unknown as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiInvoice.cancelDate
+          ? format(
+              parseDate(apiInvoice.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiInvoice.isCancel ?? false,
+        cancelRemarks: apiInvoice.cancelRemarks ?? "",
+        data_details:
+          apiInvoice.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
                 invoiceId: detail.invoiceId?.toString() ?? "0",
                 invoiceNo: detail.invoiceNo ?? "",
                 itemNo: detail.itemNo ?? 0,
@@ -1144,6 +926,7 @@ export default function InvoicePage() {
                 opRefNo: detail.opRefNo ?? "",
                 salesOrderId: detail.salesOrderId ?? "",
                 salesOrderNo: detail.salesOrderNo ?? "",
+
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
@@ -1155,30 +938,107 @@ export default function InvoicePage() {
                 apInvoiceId: detail.apInvoiceId ?? "",
                 apInvoiceNo: detail.apInvoiceNo ?? "",
                 editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setInvoice(updatedInvoice as ArInvoiceHdSchemaType)
-          setInvoice(transformToSchemaType(updatedInvoice))
-          form.reset(updatedInvoice)
-          form.trigger()
-
-          // Set the invoice number in search input
-          setSearchNo(updatedInvoice.invoiceNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
-        }
-      } else {
-        toast.error(response?.message || "Failed to fetch invoice details")
-        // Keep dialog open on failure so user can try again
+              }) as unknown as ArInvoiceDtSchemaType
+          ) || [],
       }
-    } catch (error) {
-      console.error("Error fetching invoice details:", error)
-      toast.error("Error loading invoice. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+    },
+    [dateFormat, decimals]
+  )
+
+  const loadInvoice = useCallback(
+    async ({
+      invoiceId,
+      invoiceNo,
+      showLoader = false,
+    }: {
+      invoiceId?: string | number | null
+      invoiceNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("invoiceId", invoiceId)
+      console.log("invoiceNo", invoiceNo)
+      const trimmedInvoiceNo = invoiceNo?.trim() ?? ""
+      const trimmedInvoiceId =
+        typeof invoiceId === "number"
+          ? invoiceId.toString()
+          : (invoiceId?.toString().trim() ?? "")
+
+      if (!trimmedInvoiceNo && !trimmedInvoiceId) return null
+
+      if (showLoader) {
+        setIsLoadingInvoice(true)
+      }
+
+      const requestInvoiceId = trimmedInvoiceId || "0"
+      const requestInvoiceNo = trimmedInvoiceNo || ""
+
+      try {
+        const response = await getById(
+          `${ArInvoice.getByIdNo}/${requestInvoiceId}/${requestInvoiceNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedInvoice = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedInvoice) {
+            const parsed = parseDate(detailedInvoice.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedInvoice.accountDate as string)
+            )
+
+            const updatedInvoice = transformToSchemaType(detailedInvoice)
+
+            setInvoice(updatedInvoice)
+            form.reset(updatedInvoice)
+            form.trigger()
+
+            const resolvedInvoiceNo =
+              updatedInvoice.invoiceNo || trimmedInvoiceNo || trimmedInvoiceId
+            setSearchNo(resolvedInvoiceNo)
+
+            return resolvedInvoiceNo
+          }
+        } else {
+          toast.error(response?.message || "Failed to fetch invoice details")
+        }
+      } catch (error) {
+        console.error("Error fetching invoice details:", error)
+        toast.error("Error loading invoice. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingInvoice(false)
+        }
+      }
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setInvoice,
+      setIsLoadingInvoice,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleInvoiceSelect = async (
+    selectedInvoice: IArInvoiceHd | undefined
+  ) => {
+    if (!selectedInvoice) return
+
+    const loadedInvoiceNo = await loadInvoice({
+      invoiceId: selectedInvoice.invoiceId ?? "0",
+      invoiceNo: selectedInvoice.invoiceNo ?? "",
+    })
+
+    if (loadedInvoiceNo) {
+      setShowListDialog(false)
     }
   }
 
@@ -1246,237 +1106,39 @@ export default function InvoicePage() {
   }, [activeTab, form])
 
   const handleInvoiceSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingInvoice(true)
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(`${ArInvoice.getByIdNo}/0/${value}`)
+      const loadedInvoiceNo = await loadInvoice({
+        invoiceId: "0",
+        invoiceNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedInvoice = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedInvoice) {
-          {
-            const parsed = parseDate(detailedInvoice.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedInvoice.accountDate as string)
-            )
-          }
-          // Parse dates properly
-          const updatedInvoice = {
-            ...detailedInvoice,
-            invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
-            invoiceNo: detailedInvoice.invoiceNo ?? "",
-            referenceNo: detailedInvoice.referenceNo ?? "",
-            suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
-            trnDate: detailedInvoice.trnDate
-              ? format(
-                  parseDate(detailedInvoice.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedInvoice.accountDate
-              ? format(
-                  parseDate(detailedInvoice.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            dueDate: detailedInvoice.dueDate
-              ? format(
-                  parseDate(detailedInvoice.dueDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            deliveryDate: detailedInvoice.deliveryDate
-              ? format(
-                  parseDate(detailedInvoice.deliveryDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedInvoice.gstClaimDate
-              ? format(
-                  parseDate(detailedInvoice.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            customerId: detailedInvoice.customerId ?? 0,
-            currencyId: detailedInvoice.currencyId ?? 0,
-            exhRate: detailedInvoice.exhRate ?? 0,
-            ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
-            creditTermId: detailedInvoice.creditTermId ?? 0,
-            bankId: detailedInvoice.bankId ?? 0,
-            totAmt: detailedInvoice.totAmt ?? 0,
-            totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
-            totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
-            gstAmt: detailedInvoice.gstAmt ?? 0,
-            gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
-            balAmt: detailedInvoice.balAmt ?? 0,
-            balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
-            payAmt: detailedInvoice.payAmt ?? 0,
-            payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
-            exGainLoss: detailedInvoice.exGainLoss ?? 0,
-            operationId: detailedInvoice.operationId ?? 0,
-            operationNo: detailedInvoice.operationNo ?? "",
-            remarks: detailedInvoice.remarks ?? "",
-            addressId: detailedInvoice.addressId ?? 0, // Not available in IArInvoiceHd
-            contactId: detailedInvoice.contactId ?? 0, // Not available in IArInvoiceHd
-            address1: detailedInvoice.address1 ?? "",
-            address2: detailedInvoice.address2 ?? "",
-            address3: detailedInvoice.address3 ?? "",
-            address4: detailedInvoice.address4 ?? "",
-            pinCode: detailedInvoice.pinCode ?? "",
-            countryId: detailedInvoice.countryId ?? 0,
-            phoneNo: detailedInvoice.phoneNo ?? "",
-            faxNo: detailedInvoice.faxNo ?? "",
-            contactName: detailedInvoice.contactName ?? "",
-            mobileNo: detailedInvoice.mobileNo ?? "",
-            emailAdd: detailedInvoice.emailAdd ?? "",
-            moduleFrom: detailedInvoice.moduleFrom ?? "",
-            customerName: detailedInvoice.customerName ?? "",
-            apInvoiceId: detailedInvoice.apInvoiceId ?? "",
-            apInvoiceNo: detailedInvoice.apInvoiceNo ?? "",
-            editVersion: detailedInvoice.editVersion ?? 0,
-            salesOrderId: detailedInvoice.salesOrderId ?? 0,
-            salesOrderNo: detailedInvoice.salesOrderNo ?? "",
-            jobOrderId: detailedInvoice.jobOrderId ?? 0,
-            vesselId: detailedInvoice.vesselId ?? 0,
-            portId: detailedInvoice.portId ?? 0,
-            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
-            otherRemarks: detailedInvoice.otherRemarks ?? "",
-            advRecAmt: detailedInvoice.advRecAmt ?? 0,
-            isCancel: detailedInvoice.isCancel ?? false,
-            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
-
-            data_details:
-              detailedInvoice.data_details?.map((detail: IArInvoiceDt) => ({
-                invoiceId: detail.invoiceId?.toString() ?? "0",
-                invoiceNo: detail.invoiceNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                seqNo: detail.seqNo ?? 0,
-                docItemNo: detail.docItemNo ?? 0,
-                productId: detail.productId ?? 0,
-                productCode: detail.productCode ?? "",
-                productName: detail.productName ?? "",
-                glId: detail.glId ?? 0,
-                glCode: detail.glCode ?? "",
-                glName: detail.glName ?? "",
-                qty: detail.qty ?? 0,
-                billQTY: detail.billQTY ?? 0,
-                uomId: detail.uomId ?? 0,
-                uomCode: detail.uomCode ?? "",
-                uomName: detail.uomName ?? "",
-                unitPrice: detail.unitPrice ?? 0,
-                totAmt: detail.totAmt ?? 0,
-                totLocalAmt: detail.totLocalAmt ?? 0,
-                totCtyAmt: detail.totCtyAmt ?? 0,
-                remarks: detail.remarks ?? "",
-                gstId: detail.gstId ?? 0,
-                gstName: detail.gstName ?? "",
-                gstPercentage: detail.gstPercentage ?? 0,
-                gstAmt: detail.gstAmt ?? 0,
-                gstLocalAmt: detail.gstLocalAmt ?? 0,
-                gstCtyAmt: detail.gstCtyAmt ?? 0,
-                deliveryDate: detail.deliveryDate
-                  ? format(
-                      parseDate(detail.deliveryDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                departmentId: detail.departmentId ?? 0,
-                departmentCode: detail.departmentCode ?? "",
-                departmentName: detail.departmentName ?? "",
-                employeeId: detail.employeeId ?? 0,
-                employeeCode: detail.employeeCode ?? "",
-                employeeName: detail.employeeName ?? "",
-                portId: detail.portId ?? 0,
-                portCode: detail.portCode ?? "",
-                portName: detail.portName ?? "",
-                vesselId: detail.vesselId ?? 0,
-                vesselCode: detail.vesselCode ?? "",
-                vesselName: detail.vesselName ?? "",
-                bargeId: detail.bargeId ?? 0,
-                bargeCode: detail.bargeCode ?? "",
-                bargeName: detail.bargeName ?? "",
-                voyageId: detail.voyageId ?? 0,
-                voyageNo: detail.voyageNo ?? "",
-                operationId: detail.operationId ?? "",
-                operationNo: detail.operationNo ?? "",
-                opRefNo: detail.opRefNo ?? "",
-                salesOrderId: detail.salesOrderId ?? "",
-                salesOrderNo: detail.salesOrderNo ?? "",
-                supplyDate: detail.supplyDate
-                  ? format(
-                      parseDate(detail.supplyDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                supplierName: detail.supplierName ?? "",
-                suppInvoiceNo: detail.suppInvoiceNo ?? "",
-                apInvoiceId: detail.apInvoiceId ?? "",
-                apInvoiceNo: detail.apInvoiceNo ?? "",
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setInvoice(updatedInvoice as ArInvoiceHdSchemaType)
-          setInvoice(transformToSchemaType(updatedInvoice))
-          form.reset(updatedInvoice)
-          form.trigger()
-
-          // Set the invoice number in search input to the actual invoice number from database
-          setSearchNo(updatedInvoice.invoiceNo || "")
-
-          // Show success message
-          toast.success(
-            `Invoice ${updatedInvoice.invoiceNo || value} loaded successfully`
-          )
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        // Close the load confirmation dialog on success
-        setShowLoadConfirm(false)
-        toast.error(
-          response?.message || "Failed to fetch invoice details (direct)"
-        )
+      if (loadedInvoiceNo) {
+        toast.success(`Invoice ${loadedInvoiceNo} loaded successfully`)
       }
-    } catch {
-      toast.error("Error searching for invoice")
     } finally {
-      setIsLoadingInvoice(false)
+      setShowLoadConfirm(false)
     }
   }
 
-  handleInvoiceSearchRef.current = handleInvoiceSearch
-
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleInvoiceSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadInvoice({
+        invoiceId: trimmedId,
+        invoiceNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadInvoice, pendingDocId])
 
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")

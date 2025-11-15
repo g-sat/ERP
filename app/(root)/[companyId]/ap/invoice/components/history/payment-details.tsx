@@ -42,31 +42,28 @@ export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
     }
 
   const getTargetPath = useCallback(
-    (moduleIdValue: number, transactionIdValue: number): string | null => {
+    (transactionIdValue: number): string | null => {
       if (!companyId) return null
 
-      if (moduleIdValue === ModuleId.ap) {
-        switch (transactionIdValue) {
-          case APTransactionId.payment:
-            return `/${companyId}/ap/payment`
-          case APTransactionId.refund:
-            return `/${companyId}/ap/refund`
-          case APTransactionId.docsetoff:
-            return `/${companyId}/ap/docsetoff`
+      switch (transactionIdValue) {
+        case APTransactionId.payment:
+          return `/${companyId}/ap/payment`
+        case APTransactionId.refund:
+          return `/${companyId}/ap/refund`
+        case APTransactionId.docsetoff:
+          return `/${companyId}/ap/docsetoff`
 
-          case APTransactionId.invoice:
-            return `/${companyId}/ap/invoice`
-          case APTransactionId.invoice:
-            return `/${companyId}/ap/debitnote`
-          case APTransactionId.invoice:
-            return `/${companyId}/ap/creditnote`
-          case APTransactionId.adjustment:
-            return `/${companyId}/ap/adjustment`
-          default:
-            return null
-        }
+        case APTransactionId.invoice:
+          return `/${companyId}/ap/invoice`
+        case APTransactionId.debitNote:
+          return `/${companyId}/ap/debitnote`
+        case APTransactionId.creditNote:
+          return `/${companyId}/ap/creditnote`
+        case APTransactionId.adjustment:
+          return `/${companyId}/ap/adjustment`
+        default:
+          return null
       }
-      return null
     },
     [companyId]
   )
@@ -77,25 +74,20 @@ export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
 
   const handleDocumentNavigation = useCallback(
     (detail: IPaymentHistoryDetails) => {
-      const moduleIdValue = Number(detail.moduleId)
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
+      const documentId = detail.documentId?.toString().trim()
 
-      if (
-        !documentNo ||
-        !Number.isFinite(moduleIdValue) ||
-        !Number.isFinite(transactionIdValue)
-      ) {
+      if (!documentId || !Number.isFinite(transactionIdValue)) {
         return
       }
 
-      const targetPath = getTargetPath(moduleIdValue, transactionIdValue)
+      const targetPath = getTargetPath(transactionIdValue)
       if (!targetPath) return
 
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }

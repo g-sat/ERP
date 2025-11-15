@@ -7,7 +7,7 @@ import {
   setExchangeRate,
   setRecExchangeRate,
 } from "@/helpers/account"
-import { IArReceiptDt, IArReceiptFilter, IArReceiptHd } from "@/interfaces"
+import { IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ArReceiptDtSchemaType,
@@ -82,36 +82,6 @@ export default function ReceiptPage() {
     [decimals]
   )
 
-  const documentNoFromQuery = useMemo(() => {
-    const value =
-      searchParams.get("docNo") ?? searchParams.get("documentNo") ?? ""
-    return value ? value.trim() : ""
-  }, [searchParams])
-
-  const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/receipt`,
-    [companyId]
-  )
-
-  const [pendingDocNo, setPendingDocNo] = useState<string>("")
-
-  useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
-      return
-    }
-
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem(autoLoadStorageKey)
-      if (stored) {
-        window.localStorage.removeItem(autoLoadStorageKey)
-        setPendingDocNo(stored)
-        setSearchNo(stored)
-      }
-    }
-  }, [autoLoadStorageKey, documentNoFromQuery])
-
   const parseWithFallback = useCallback(
     (value: string | Date | null | undefined): Date | null => {
       if (!value) return null
@@ -150,6 +120,36 @@ export default function ReceiptPage() {
   const [receipt, setReceipt] = useState<ArReceiptHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocId, setPendingDocId] = useState("")
+
+  const documentIdFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/ar/receipt`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocId(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -174,8 +174,8 @@ export default function ReceiptPage() {
     pageSize: pageSize,
   })
 
-  const { defaultReceipt: defaultReceiptValues } = useMemo(
-    () => getDefaultValues(dateFormat),
+  const defaultReceiptValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultReceipt,
     [dateFormat]
   )
 
@@ -213,19 +213,18 @@ export default function ReceiptPage() {
           customerId: receipt.customerId ?? 0,
           currencyId: receipt.currencyId ?? 0,
           exhRate: receipt.exhRate ?? 0,
-          totAmt: receipt.totAmt ?? 0,
+          unAllocTotAmt: receipt.unAllocTotAmt ?? 0,
+          unAllocTotLocalAmt: receipt.unAllocTotLocalAmt ?? 0,
+          docExhRate: receipt.docExhRate ?? 0,
+          docTotAmt: receipt.docTotAmt ?? 0,
+          docTotLocalAmt: receipt.docTotLocalAmt ?? 0,
           totLocalAmt: receipt.totLocalAmt ?? 0,
           recCurrencyId: receipt.recCurrencyId ?? 0,
           recExhRate: receipt.recExhRate ?? 0,
           recTotAmt: receipt.recTotAmt ?? 0,
           recTotLocalAmt: receipt.recTotLocalAmt ?? 0,
-          unAllocTotAmt: receipt.unAllocTotAmt ?? 0,
-          unAllocTotLocalAmt: receipt.unAllocTotLocalAmt ?? 0,
           exhGainLoss: receipt.exhGainLoss ?? 0,
           remarks: receipt.remarks ?? "",
-          docExhRate: receipt.docExhRate ?? 0,
-          docTotAmt: receipt.docTotAmt ?? 0,
-          docTotLocalAmt: receipt.docTotLocalAmt ?? 0,
           allocTotAmt: receipt.allocTotAmt ?? 0,
           allocTotLocalAmt: receipt.allocTotLocalAmt ?? 0,
           jobOrderId: receipt.jobOrderId ?? 0,
@@ -268,15 +267,11 @@ export default function ReceiptPage() {
             ...defaultReceiptValues,
             createBy: userName,
             createDate: currentDateTime,
-            data_details: [],
           }
         })(),
   })
 
-  // Data fetching moved to ReceiptTable component for better performance
-
   const previousDateFormatRef = useRef<string>(dateFormat)
-  const lastQueriedDocRef = useRef<string | null>(null)
   const { isDirty } = form.formState
 
   useEffect(() => {
@@ -329,8 +324,6 @@ export default function ReceiptPage() {
         form.getValues() as unknown as IArReceiptHd
       )
 
-      console.log("formValues", formValues)
-
       // Validate the form data using the schema
       const validationResult = ArReceiptHdSchema(required, visible).safeParse(
         formValues
@@ -358,6 +351,9 @@ export default function ReceiptPage() {
         return
       }
 
+      console.log("handleSaveReceipt formValues", formValues)
+
+      // Check GL period closed before saving (supports previous account date)
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
         const isNew = Number(formValues.receiptId) === 0
@@ -366,13 +362,17 @@ export default function ReceiptPage() {
         console.log("accountDate", accountDate)
         console.log("prevAccountDate", prevAccountDate)
 
-        const parsedAccountDate = parseWithFallback(accountDate)
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
         if (!parsedAccountDate) {
           toast.error("Invalid account date")
           return
         }
 
-        const parsedPrevAccountDate = parseWithFallback(prevAccountDate)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
         const acc = format(parsedAccountDate, "yyyy-MM-dd")
         const prev = parsedPrevAccountDate
@@ -392,6 +392,7 @@ export default function ReceiptPage() {
         toast.error("Failed to validate GL Period. Please try again.")
         return
       }
+
       {
         const response =
           Number(formValues.receiptId) === 0
@@ -408,6 +409,7 @@ export default function ReceiptPage() {
             const updatedSchemaType = transformToSchemaType(
               receiptData as unknown as IArReceiptHd
             )
+
             setSearchNo(updatedSchemaType.receiptNo || "")
             setReceipt(updatedSchemaType)
             const parsed = parseDate(updatedSchemaType.accountDate as string)
@@ -422,6 +424,17 @@ export default function ReceiptPage() {
 
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
+
+          // Check if this was a new receipt or update
+          const wasNewReceipt = Number(formValues.receiptId) === 0
+
+          if (wasNewReceipt) {
+            //toast.success(
+            // `Receipt ${receiptData?.receiptNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("Receipt updated successfully")
+          }
 
           // Data refresh handled by ReceiptTable component
         } else {
@@ -458,16 +471,12 @@ export default function ReceiptPage() {
         createDate: "",
         editDate: "",
         cancelDate: "",
-        // Clear all amounts for new receipt
+        // Clear all amounts for new refund
         totAmt: 0,
         totLocalAmt: 0,
         recTotAmt: 0,
         recTotLocalAmt: 0,
-        unAllocTotAmt: 0,
-        unAllocTotLocalAmt: 0,
         exhGainLoss: 0,
-        docTotAmt: 0,
-        docTotLocalAmt: 0,
         allocTotAmt: 0,
         allocTotLocalAmt: 0,
         bankChgAmt: 0,
@@ -513,11 +522,45 @@ export default function ReceiptPage() {
     setShowCancelConfirm(true)
   }
 
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
   // Handle Delete - Second Level: With Cancel Remarks
   const handleReceiptDelete = async (cancelRemarks: string) => {
     if (!receipt) return
 
     try {
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Receipt ID:", receipt.receiptId)
+      console.log("Receipt No:", receipt.receiptNo)
+
       const response = await deleteMutation.mutateAsync({
         documentId: receipt.receiptId?.toString() ?? "",
         documentNo: receipt.receiptNo ?? "",
@@ -596,19 +639,19 @@ export default function ReceiptPage() {
         customerId: apiReceipt.customerId ?? 0,
         currencyId: apiReceipt.currencyId ?? 0,
         exhRate: apiReceipt.exhRate ?? 0,
+        unAllocTotAmt: apiReceipt.unAllocTotAmt ?? 0,
+        unAllocTotLocalAmt: apiReceipt.unAllocTotLocalAmt ?? 0,
+        docExhRate: apiReceipt.docExhRate ?? 0,
+        docTotAmt: apiReceipt.docTotAmt ?? 0,
+        docTotLocalAmt: apiReceipt.docTotLocalAmt ?? 0,
         totAmt: apiReceipt.totAmt ?? 0,
         totLocalAmt: apiReceipt.totLocalAmt ?? 0,
         recCurrencyId: apiReceipt.recCurrencyId ?? 0,
         recExhRate: apiReceipt.recExhRate ?? 0,
         recTotAmt: apiReceipt.recTotAmt ?? 0,
         recTotLocalAmt: apiReceipt.recTotLocalAmt ?? 0,
-        unAllocTotAmt: apiReceipt.unAllocTotAmt ?? 0,
-        unAllocTotLocalAmt: apiReceipt.unAllocTotLocalAmt ?? 0,
         exhGainLoss: apiReceipt.exhGainLoss ?? 0,
         remarks: apiReceipt.remarks ?? "",
-        docExhRate: apiReceipt.docExhRate ?? 0,
-        docTotAmt: apiReceipt.docTotAmt ?? 0,
-        docTotLocalAmt: apiReceipt.docTotLocalAmt ?? 0,
         allocTotAmt: apiReceipt.allocTotAmt ?? 0,
         allocTotLocalAmt: apiReceipt.allocTotLocalAmt ?? 0,
         jobOrderId: apiReceipt.jobOrderId ?? 0,
@@ -683,140 +726,110 @@ export default function ReceiptPage() {
     [dateFormat, decimals]
   )
 
-  const handleReceiptSelect = async (
-    selectedReceipt: IArReceiptHd | undefined
-  ) => {
-    if (!selectedReceipt) return
+  const loadReceipt = useCallback(
+    async ({
+      receiptId,
+      receiptNo,
+      showLoader = false,
+    }: {
+      receiptId?: string | number | null
+      receiptNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("receiptId", receiptId)
+      console.log("receiptNo", receiptNo)
+      const trimmedReceiptNo = receiptNo?.trim() ?? ""
+      const trimmedReceiptId =
+        typeof receiptId === "number"
+          ? receiptId.toString()
+          : (receiptId?.toString().trim() ?? "")
 
-    try {
-      // Fetch receipt details directly using selected receipt's values
-      const response = await getById(
-        `${ArReceipt.getByIdNo}/${selectedReceipt.receiptId}/${selectedReceipt.receiptNo}`
-      )
+      if (!trimmedReceiptNo && !trimmedReceiptId) return null
 
-      if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      if (showLoader) {
+        setIsLoadingReceipt(true)
+      }
 
-        if (detailedReceipt) {
-          {
+      const requestReceiptId = trimmedReceiptId || "0"
+      const requestReceiptNo = trimmedReceiptNo || ""
+
+      try {
+        const response = await getById(
+          `${ArReceipt.getByIdNo}/${requestReceiptId}/${requestReceiptNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedReceipt = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedReceipt) {
             const parsed = parseDate(detailedReceipt.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
                 : (detailedReceipt.accountDate as string)
             )
+
+            const updatedReceipt = transformToSchemaType(detailedReceipt)
+
+            setReceipt(updatedReceipt)
+            form.reset(updatedReceipt)
+            form.trigger()
+
+            const resolvedReceiptNo =
+              updatedReceipt.receiptNo || trimmedReceiptNo || trimmedReceiptId
+            setSearchNo(resolvedReceiptNo)
+
+            return resolvedReceiptNo
           }
-
-          // Parse dates properly
-          const updatedReceipt = {
-            ...detailedReceipt,
-            receiptId: detailedReceipt.receiptId?.toString() ?? "0",
-            receiptNo: detailedReceipt.receiptNo ?? "",
-            referenceNo: detailedReceipt.referenceNo ?? "",
-            trnDate: detailedReceipt.trnDate
-              ? format(
-                  parseDate(detailedReceipt.trnDate as string) || new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedReceipt.accountDate
-              ? format(
-                  parseDate(detailedReceipt.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            customerId: detailedReceipt.customerId ?? 0,
-            currencyId: detailedReceipt.currencyId ?? 0,
-            exhRate: detailedReceipt.exhRate ?? 0,
-            bankId: detailedReceipt.bankId ?? 0,
-            totAmt: detailedReceipt.totAmt ?? 0,
-            totLocalAmt: detailedReceipt.totLocalAmt ?? 0,
-            recTotAmt: detailedReceipt.recTotAmt ?? 0,
-            recTotLocalAmt: detailedReceipt.recTotLocalAmt ?? 0,
-            unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-            unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-            exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-            remarks: detailedReceipt.remarks ?? "",
-            docExhRate: detailedReceipt.docExhRate ?? 0,
-            docTotAmt: detailedReceipt.docTotAmt ?? 0,
-            docTotLocalAmt: detailedReceipt.docTotLocalAmt ?? 0,
-            allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-            allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-            bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
-            data_details:
-              detailedReceipt.data_details?.map((detail: IArReceiptDt) => ({
-                receiptId: detail.receiptId?.toString() ?? "0",
-                receiptNo: detail.receiptNo ?? "",
-                itemNo: detail.itemNo ?? 0,
-                transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId?.toString() ?? "0",
-                documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
-                docCurrencyId: detail.docCurrencyId ?? 0,
-                docExhRate: detail.docExhRate ?? 0,
-                docAccountDate: detail.docAccountDate
-                  ? format(
-                      parseDate(detail.docAccountDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docDueDate: detail.docDueDate
-                  ? format(
-                      parseDate(detail.docDueDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : "",
-                docTotAmt: detail.docTotAmt ?? 0,
-                docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                docBalAmt: detail.docBalAmt ?? 0,
-                docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                allocAmt: detail.allocAmt ?? 0,
-                allocLocalAmt: detail.allocLocalAmt ?? 0,
-                docAllocAmt: detail.docAllocAmt ?? 0,
-                docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                centDiff: detail.centDiff ?? 0,
-                exhGainLoss: detail.exhGainLoss ?? 0,
-                editVersion: detail.editVersion ?? 0,
-              })) || [],
-          }
-
-          //setReceipt(updatedReceipt as ArReceiptHdSchemaType)
-          setReceipt(transformToSchemaType(updatedReceipt))
-          form.reset(updatedReceipt)
-          form.trigger()
-
-          // Set the receipt number in search input
-          setSearchNo(updatedReceipt.receiptNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
-          toast.success(
-            `Receipt ${updatedReceipt.receiptNo} loaded successfully`
-          )
+        } else {
+          toast.error(response?.message || "Failed to fetch receipt details")
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch receipt details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching receipt details:", error)
+        toast.error("Error loading receipt. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingReceipt(false)
+        }
       }
-    } catch (error) {
-      console.error("Error fetching receipt details:", error)
-      toast.error("Error loading receipt. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setReceipt,
+      setIsLoadingReceipt,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleReceiptSelect = async (
+    selectedReceipt: IArReceiptHd | undefined
+  ) => {
+    if (!selectedReceipt) return
+
+    const loadedReceiptNo = await loadReceipt({
+      receiptId: selectedReceipt.receiptId ?? "0",
+      receiptNo: selectedReceipt.receiptNo ?? "",
+    })
+
+    if (loadedReceiptNo) {
+      setShowListDialog(false)
     }
   }
 
   // Remove direct refetchReceipts from handleFilterChange
   const handleFilterChange = (newFilters: IArReceiptFilter) => {
     setFilters(newFilters)
-    // refetchReceipts(); // Removed: will be handled by useEffect
+    // Data refresh handled by ReceiptTable component
   }
+
+  // Data refresh handled by ReceiptTable component
 
   // Set createBy and createDate for new receipts on page load/refresh
   useEffect(() => {
@@ -873,197 +886,40 @@ export default function ReceiptPage() {
     form.clearErrors()
   }, [activeTab, form])
 
-  const handleReceiptSearch = useCallback(
-    async (value: string) => {
-      if (!value) return
+  const handleReceiptSearch = async (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
-      setIsLoadingReceipt(true)
+    try {
+      const loadedReceiptNo = await loadReceipt({
+        receiptId: "0",
+        receiptNo: trimmedValue,
+        showLoader: true,
+      })
 
-      try {
-        const response = await getById(`${ArReceipt.getByIdNo}/0/${value}`)
-
-        if (response?.result === 1) {
-          const detailedReceipt = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
-
-          if (detailedReceipt) {
-            {
-              const parsed = parseDate(detailedReceipt.accountDate as string)
-              setPreviousAccountDate(
-                parsed
-                  ? format(parsed, dateFormat)
-                  : (detailedReceipt.accountDate as string)
-              )
-            }
-            // Parse dates properly
-            const updatedReceipt = {
-              ...detailedReceipt,
-              receiptId: detailedReceipt.receiptId?.toString() ?? "0",
-              receiptNo: detailedReceipt.receiptNo ?? "",
-              referenceNo: detailedReceipt.referenceNo ?? "",
-              suppInvoiceNo: "", // Required by schema but not in interface
-              trnDate: detailedReceipt.trnDate
-                ? format(
-                    parseDate(detailedReceipt.trnDate as string) || new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-              accountDate: detailedReceipt.accountDate
-                ? format(
-                    parseDate(detailedReceipt.accountDate as string) ||
-                      new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-
-              customerId: detailedReceipt.customerId ?? 0,
-              currencyId: detailedReceipt.currencyId ?? 0,
-              exhRate: detailedReceipt.exhRate ?? 0,
-              bankId: detailedReceipt.bankId ?? 0,
-              paymentTypeId: detailedReceipt.paymentTypeId ?? 0,
-              chequeNo: detailedReceipt.chequeNo ?? "",
-              chequeDate: detailedReceipt.chequeDate
-                ? format(
-                    parseDate(detailedReceipt.chequeDate as string) ||
-                      new Date(),
-                    dateFormat
-                  )
-                : dateFormat,
-              bankChgGLId: detailedReceipt.bankChgGLId ?? 0,
-              bankChgAmt: detailedReceipt.bankChgAmt ?? 0,
-              bankChgLocalAmt: detailedReceipt.bankChgLocalAmt ?? 0,
-              totAmt: detailedReceipt.totAmt ?? 0,
-              totLocalAmt: detailedReceipt.totLocalAmt ?? 0,
-              recCurrencyId: detailedReceipt.recCurrencyId ?? 0,
-              recExhRate: detailedReceipt.recExhRate ?? 0,
-              recTotAmt: detailedReceipt.recTotAmt ?? 0,
-              recTotLocalAmt: detailedReceipt.recTotLocalAmt ?? 0,
-              unAllocTotAmt: detailedReceipt.unAllocTotAmt ?? 0,
-              unAllocTotLocalAmt: detailedReceipt.unAllocTotLocalAmt ?? 0,
-              exhGainLoss: detailedReceipt.exhGainLoss ?? 0,
-              remarks: detailedReceipt.remarks ?? "",
-              docExhRate: detailedReceipt.docExhRate ?? 0,
-              docTotAmt: detailedReceipt.docTotAmt ?? 0,
-              docTotLocalAmt: detailedReceipt.docTotLocalAmt ?? 0,
-              allocTotAmt: detailedReceipt.allocTotAmt ?? 0,
-              allocTotLocalAmt: detailedReceipt.allocTotLocalAmt ?? 0,
-              jobOrderId: detailedReceipt.jobOrderId ?? 0,
-              jobOrderNo: detailedReceipt.jobOrderNo ?? "",
-              moduleFrom: detailedReceipt.moduleFrom ?? "",
-              editVersion: detailedReceipt.editVersion ?? 0,
-              createBy: detailedReceipt.createById?.toString() ?? "",
-              createDate: detailedReceipt.createDate
-                ? format(
-                    parseDate(detailedReceipt.createDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              editBy: detailedReceipt.editById?.toString() ?? "",
-              editDate: detailedReceipt.editDate
-                ? format(
-                    parseDate(detailedReceipt.editDate as string) || new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              isCancel: detailedReceipt.isCancel ?? false,
-              cancelBy: detailedReceipt.cancelById?.toString() ?? "",
-              cancelDate: detailedReceipt.cancelDate
-                ? format(
-                    parseDate(detailedReceipt.cancelDate as string) ||
-                      new Date(),
-                    decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                  )
-                : "",
-              cancelRemarks: detailedReceipt.cancelRemarks ?? "",
-
-              data_details:
-                detailedReceipt.data_details?.map((detail: IArReceiptDt) => ({
-                  receiptId: detail.receiptId?.toString() ?? "0",
-                  receiptNo: detail.receiptNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  transactionId: detail.transactionId ?? 0,
-                  documentId: detail.documentId?.toString() ?? "0",
-                  documentNo: detail.documentNo ?? "",
-                  referenceNo: detail.referenceNo ?? "",
-                  docCurrencyId: detail.docCurrencyId ?? 0,
-                  docExhRate: detail.docExhRate ?? 0,
-                  docAccountDate: detail.docAccountDate
-                    ? format(
-                        parseDate(detail.docAccountDate as string) ||
-                          new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docDueDate: detail.docDueDate
-                    ? format(
-                        parseDate(detail.docDueDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : "",
-                  docTotAmt: detail.docTotAmt ?? 0,
-                  docTotLocalAmt: detail.docTotLocalAmt ?? 0,
-                  docBalAmt: detail.docBalAmt ?? 0,
-                  docBalLocalAmt: detail.docBalLocalAmt ?? 0,
-                  allocAmt: detail.allocAmt ?? 0,
-                  allocLocalAmt: detail.allocLocalAmt ?? 0,
-                  docAllocAmt: detail.docAllocAmt ?? 0,
-                  docAllocLocalAmt: detail.docAllocLocalAmt ?? 0,
-                  centDiff: detail.centDiff ?? 0,
-                  exhGainLoss: detail.exhGainLoss ?? 0,
-                  editVersion: detail.editVersion ?? 0,
-                })) || [],
-            }
-
-            //setReceipt(updatedReceipt as ArReceiptHdSchemaType)
-            setReceipt(transformToSchemaType(updatedReceipt))
-            form.reset(updatedReceipt)
-            form.trigger()
-
-            // Set the receipt number in search input to the actual receipt number from database
-            setSearchNo(updatedReceipt.receiptNo || "")
-
-            // Show success message
-            toast.success(
-              `Receipt ${updatedReceipt.receiptNo || value} loaded successfully`
-            )
-
-            // Close the load confirmation dialog on success
-            setShowLoadConfirm(false)
-          }
-        } else {
-          toast.error(response?.message || "Failed to fetch receipt details")
-          // Keep dialog open on failure so user can try again
-        }
-      } catch (error) {
-        console.error("Error fetching receipt details:", error)
-        toast.error("Error loading receipt. Please try again.")
-        // Keep dialog open on error
-      } finally {
-        setIsLoadingReceipt(false)
+      if (loadedReceiptNo) {
+        toast.success(`Receipt ${loadedReceiptNo} loaded successfully`)
       }
-    },
-    [
-      dateFormat,
-      decimals,
-      form,
-      setIsLoadingReceipt,
-      setPreviousAccountDate,
-      setReceipt,
-      setShowLoadConfirm,
-      transformToSchemaType,
-    ]
-  )
+    } finally {
+      setShowLoadConfirm(false)
+    }
+  }
 
   useEffect(() => {
-    if (!pendingDocNo) return
-    if (lastQueriedDocRef.current === pendingDocNo) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    lastQueriedDocRef.current = pendingDocNo
-    setSearchNo(pendingDocNo)
-    void handleReceiptSearch(pendingDocNo)
-  }, [handleReceiptSearch, pendingDocNo])
+    const executeLoad = async () => {
+      await loadReceipt({
+        receiptId: trimmedId,
+        receiptNo: "0",
+        showLoader: true,
+      })
+    }
+
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadReceipt, pendingDocId])
 
   // Determine mode and receipt ID from URL
   const receiptNo = form.getValues("receiptNo")
@@ -1163,17 +1019,8 @@ export default function ReceiptPage() {
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search Receipt No"
               className="h-8 text-sm"
               readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
@@ -1233,7 +1080,7 @@ export default function ReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              //disabled={!invoice}
+              //disabled={!receipt}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -1344,18 +1191,18 @@ export default function ReceiptPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
         itemName={receipt?.receiptNo}
         title="Delete Receipt"
-        description="This action cannot be undone. All receipt details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this receipt? You will be asked to provide a reason."
+        isDeleting={false}
       />
 
-      {/* Cancel Confirmation */}
+      {/* Cancel Confirmation - Second Level */}
       <CancelConfirmation
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}

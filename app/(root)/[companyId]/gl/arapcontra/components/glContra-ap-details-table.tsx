@@ -157,8 +157,9 @@ export default function ApGLContraDetailsTable({
           return `/${companyId}/ap/creditnote`
         case APTransactionId.adjustment:
           return `/${companyId}/ap/adjustment`
-        case APTransactionId.docsetoff:
-          return `/${companyId}/ap/docSetOff`
+
+        case APTransactionId.payment:
+          return `/${companyId}/ap/payment`
         case APTransactionId.refund:
           return `/${companyId}/ap/refund`
         case APTransactionId.docsetoff:
@@ -217,10 +218,11 @@ export default function ApGLContraDetailsTable({
   const handleDocumentNavigation = useCallback(
     (detail: IGLContraDt) => {
       const transactionIdValue = Number(detail.transactionId)
-      const documentNo = detail.documentNo?.toString().trim()
+
+      const documentId = detail.documentId?.toString().trim()
 
       if (
-        !documentNo ||
+        !documentId ||
         !Number.isFinite(transactionIdValue) ||
         !canNavigateToTransaction(transactionIdValue)
       ) {
@@ -233,7 +235,7 @@ export default function ApGLContraDetailsTable({
       if (typeof window !== "undefined") {
         const storageKey = getStorageKey(targetPath)
         if (storageKey) {
-          window.localStorage.setItem(storageKey, documentNo)
+          window.localStorage.setItem(storageKey, documentId)
         }
         window.open(targetPath, "_blank", "noopener,noreferrer")
       }
