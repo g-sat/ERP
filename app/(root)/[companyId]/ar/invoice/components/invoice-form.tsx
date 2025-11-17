@@ -629,16 +629,6 @@ export default function InvoiceForm({
             isFutureShow={false}
           />
 
-          {/* Customer by company*/}
-          {/* <CompanyCustomerAutocomplete
-            form={form}
-            name="customerId"
-            label="Customer"
-            isRequired={true}
-            onChangeEvent={handleCustomerChange}
-            companyId={_companyId}
-          /> */}
-
           {/* Customer */}
           {isDynamicCustomer ? (
             <DynamicCustomerAutocomplete
