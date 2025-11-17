@@ -9,7 +9,6 @@ import {
   setRecExchangeRate,
 } from "@/helpers/account"
 import {
-  applyCentDiffAdjustment,
   calauteLocalAmtandGainLoss,
   calculateDiffCurrency,
   calculateSameCurrency,
@@ -204,11 +203,11 @@ export default function PaymentForm({
           (s, r) => s + (Number(r.allocAmt) || 0),
           0
         )
-        let sumAllocLocalAmt = arr.reduce(
+        const sumAllocLocalAmt = arr.reduce(
           (s, r) => s + (Number(r.allocLocalAmt) || 0),
           0
         )
-        let sumExhGainLoss = arr.reduce(
+        const sumExhGainLoss = arr.reduce(
           (s, r) => s + (Number(r.exhGainLoss) || 0),
           0
         )
@@ -216,40 +215,13 @@ export default function PaymentForm({
         // Recalculate unallocated amounts with updated totals
         const currentTotAmt = form.getValues("totAmt") || 0
         const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
-        let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
           currentTotAmt,
           currentTotLocalAmt,
           sumAllocAmt,
           sumAllocLocalAmt,
           dec
         )
-
-        const centDiffUpdated = applyCentDiffAdjustment(
-          arr,
-          unAllocAmt,
-          unAllocLocalAmt,
-          dec
-        )
-
-        if (centDiffUpdated) {
-          sumAllocLocalAmt = arr.reduce(
-            (s, r) => s + (Number(r.allocLocalAmt) || 0),
-            0
-          )
-          sumExhGainLoss = arr.reduce(
-            (s, r) => s + (Number(r.exhGainLoss) || 0),
-            0
-          )
-          const recalculatedUnallocated = calculateUnallocated(
-            currentTotAmt,
-            currentTotLocalAmt,
-            sumAllocAmt,
-            sumAllocLocalAmt,
-            dec
-          )
-          unAllocAmt = recalculatedUnallocated.unAllocAmt
-          unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
-        }
 
         form.setValue("data_details", updatedDetails, {
           shouldDirty: true,

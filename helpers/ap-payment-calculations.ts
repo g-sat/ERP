@@ -159,23 +159,9 @@ export const applyCentDiffAdjustment = (
   })
 
   const targetRow = details[targetIndex]
-  const baseAllocLocal = Number(targetRow.allocLocalAmt) || 0
-  const updatedAllocLocal = mathRound(
-    baseAllocLocal + roundedUnAllocLocal,
-    precision
-  )
-
-  targetRow.allocLocalAmt = updatedAllocLocal
   const existingCentDiff = Number(targetRow.centDiff) || 0
   targetRow.centDiff = mathRound(
     existingCentDiff + roundedUnAllocLocal,
-    precision
-  )
-
-  const docAllocLocal = Number(targetRow.docAllocLocalAmt) || 0
-  targetRow.exhGainLoss = calculateSubtractionAmount(
-    docAllocLocal,
-    updatedAllocLocal,
     precision
   )
 
@@ -300,6 +286,9 @@ export const calauteLocalAmtandGainLoss = (
     exhRate,
     decimals.locAmtDec
   )
+  console.log("allocAmt", allocAmt)
+  console.log("exhRate", exhRate)
+  console.log("allocLocalAmt", allocLocalAmt)
 
   const docAllocAmt = allocAmt
 
@@ -313,6 +302,7 @@ export const calauteLocalAmtandGainLoss = (
         details[rowNumber].docExhRate,
         decimals.locAmtDec
       )
+
   const exhGainLoss = calculateSubtractionAmount(
     docAllocLocalAmt,
     allocLocalAmt,
@@ -322,10 +312,20 @@ export const calauteLocalAmtandGainLoss = (
   const centDiff = 0
 
   details[rowNumber].allocLocalAmt = allocLocalAmt
+  console.log("calauteLocalAmtandGainLoss allocLocalAmt", allocLocalAmt)
   details[rowNumber].docAllocAmt = docAllocAmt
+  console.log("calauteLocalAmtandGainLoss docAllocAmt", docAllocAmt)
   details[rowNumber].docAllocLocalAmt = docAllocLocalAmt
+  console.log("calauteLocalAmtandGainLoss docAllocLocalAmt", docAllocLocalAmt)
   details[rowNumber].centDiff = centDiff
+  console.log("calauteLocalAmtandGainLoss centDiff", centDiff)
   details[rowNumber].exhGainLoss = exhGainLoss
+  console.log("calauteLocalAmtandGainLoss exhGainLoss", exhGainLoss)
+
+  console.log(
+    "calauteLocalAmtandGainLoss details[rowNumber]",
+    details[rowNumber]
+  )
   return details[rowNumber]
 }
 

@@ -354,7 +354,8 @@ export default function Main({
 
       if (centDiffUpdated) {
         sumAllocLocalAmt = arr.reduce(
-          (s, r) => s + (Number(r.allocLocalAmt) || 0),
+          (s, r) =>
+            s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
           0
         )
         sumExhGainLoss = arr.reduce(
@@ -495,7 +496,8 @@ export default function Main({
 
     if (centDiffUpdated) {
       sumAllocLocalAmt = arr.reduce(
-        (s, r) => s + (Number(r.allocLocalAmt) || 0),
+        (s, r) =>
+          s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
         0
       )
       sumExhGainLoss = arr.reduce((s, r) => s + (Number(r.exhGainLoss) || 0), 0)
