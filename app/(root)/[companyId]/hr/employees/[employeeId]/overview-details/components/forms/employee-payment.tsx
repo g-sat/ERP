@@ -21,6 +21,8 @@ interface Props {
 export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
   const saveMutation = useSaveEmployeeBank()
 
+  console.log("companyId", companyId)
+
   // Debug logging
   console.log("Employee data in payment dialog:", employee)
 
@@ -56,7 +58,17 @@ export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
     console.log("Form is valid:", form.formState.isValid)
     console.log("Form errors:", form.formState.errors)
 
-    saveMutation.mutate(data)
+    const processedData = {
+      employeeId: Number(data.employeeId),
+      bankName: data.bankName || "",
+      accountNo: data.accountNo || "",
+      swiftCode: data.swiftCode || "",
+      iban: data.iban || "",
+      glId: Number(data.glId),
+    }
+    console.log("processedData :", processedData)
+
+    saveMutation.mutate(processedData as IEmployeeBank)
     form.reset()
   }
 
@@ -93,11 +105,12 @@ export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
             name="iban"
             placeholder="Enter IBAN number"
           />
+          {/* Chart Of Account */}
           <ChartOfAccountAutocomplete
             form={form}
-            label="GL Account"
             name="glId"
-            companyId={companyId || 0}
+            label="Chart Of Account"
+            companyId={companyId}
           />
         </div>
 

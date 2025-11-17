@@ -21,6 +21,7 @@ import { EmployeeOverview } from "./components/employee-overview"
 export default function EmployeeOverviewPage() {
   const params = useParams()
   const employeeId = params.employeeId as string
+  const companyId = Number(params.companyId) || 0
 
   const {
     data: employeeData,
@@ -109,6 +110,7 @@ export default function EmployeeOverviewPage() {
       employeeBasic={employeeBasic}
       employeePersonal={employeePersonal}
       employeeBank={employeeBank}
+      companyId={companyId}
     />
   )
 }

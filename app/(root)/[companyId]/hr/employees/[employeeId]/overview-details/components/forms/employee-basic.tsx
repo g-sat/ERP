@@ -57,12 +57,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
-      confirmationDate: employee?.confirmationDate
-        ? format(
-            parseDate(employee?.confirmationDate as string) || new Date(),
-            clientDateFormat
-          )
-        : format(new Date(), clientDateFormat),
+
       lastDate: employee?.lastDate
         ? format(
             parseDate(employee?.lastDate as string) || new Date(),
@@ -99,12 +94,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
               clientDateFormat
             )
           : "",
-        confirmationDate: employee?.confirmationDate
-          ? format(
-              parseDate(employee?.confirmationDate as string) || new Date(),
-              clientDateFormat
-            )
-          : "",
+
         lastDate: employee?.lastDate
           ? format(
               parseDate(employee?.lastDate as string) || new Date(),
@@ -218,12 +208,6 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             isRequired
           />
           <CustomDateNew form={form} label="Date of Joining" name="joinDate" />
-          <CustomDateNew
-            form={form}
-            label="Date of Confirmation"
-            name="confirmationDate"
-          />
-
           <ContractTypeAutocomplete
             form={form}
             label="Contract Type"

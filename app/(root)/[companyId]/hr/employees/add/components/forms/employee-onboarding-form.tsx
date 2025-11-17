@@ -42,7 +42,6 @@ const basicDetailsSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
   employmentType: z.string().min(1, "Employment type is required"),
   dateOfJoining: z.string().min(1, "Date of joining is required"),
-  confirmationDate: z.string().optional(),
   workEmail: z.string().email("Invalid email address"),
   mobileNumber: z.string().optional(),
   workLocation: z.string().min(1, "Work location is required"),
@@ -128,7 +127,6 @@ export function EmployeeOnboardingForm({
       employeeId: "",
       employmentType: "",
       dateOfJoining: "",
-      confirmationDate: "",
       workEmail: "",
       mobileNumber: "",
       workLocation: "",
@@ -334,15 +332,6 @@ export function EmployeeOnboardingForm({
             placeholder="Enter employee ID"
             isRequired
           />
-
-          <div className="flex items-center space-x-2">
-            <CustomDateNew
-              form={form}
-              label="Confirmation Date"
-              name="confirmationDate"
-            />
-            <Info className="h-4 w-4 text-gray-400" />
-          </div>
 
           <CustomInput
             form={form}

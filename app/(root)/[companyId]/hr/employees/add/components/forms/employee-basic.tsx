@@ -41,7 +41,6 @@ export function EmployeeBasicForm({ onCancel, onSave }: Props) {
       workLocationId: 0,
       genderId: 0,
       joinDate: format(new Date(), clientDateFormat),
-      confirmationDate: format(new Date(), clientDateFormat),
       lastDate: format(new Date(), clientDateFormat),
       offPhoneNo: "",
       offEmailAdd: "",
@@ -125,12 +124,6 @@ export function EmployeeBasicForm({ onCancel, onSave }: Props) {
             name="joinDate"
             isRequired
           />
-          <CustomDateNew
-            form={form}
-            label="Date of Confirmation"
-            name="confirmationDate"
-          />
-
           <ContractTypeAutocomplete
             form={form}
             label="Contract Type"

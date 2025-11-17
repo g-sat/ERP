@@ -7,6 +7,8 @@ import {
   IEmployeeBasic,
   IEmployeePersonalDetails,
 } from "@/interfaces/employee"
+import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 import {
   Briefcase,
   Building,
@@ -31,6 +33,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import { getDayName } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -52,6 +55,7 @@ interface Props {
   employeeBasic: IEmployeeBasic
   employeePersonal: IEmployeePersonalDetails
   employeeBank: IEmployeeBank
+  companyId: number
 }
 
 export function EmployeeOverview({
@@ -59,7 +63,11 @@ export function EmployeeOverview({
   employeeBasic,
   employeePersonal,
   employeeBank,
+  companyId,
 }: Props) {
+  const { decimals } = useAuthStore()
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
+
   const [showIban, setShowIban] = useState(false)
   const [basicDialogOpen, setBasicDialogOpen] = useState(false)
   const [personalDialogOpen, setPersonalDialogOpen] = useState(false)
@@ -149,20 +157,9 @@ export function EmployeeOverview({
                     <Calendar className="h-4 w-4 text-orange-500" />
                     <span className="text-sm">
                       {employeeBasic?.joinDate
-                        ? new Date(employeeBasic?.joinDate).toLocaleDateString()
-                        : "01 Jul 2025"}{" "}
+                        ? format(new Date(employeeBasic?.joinDate), dateFormat)
+                        : "-"}{" "}
                       (Date of Joining)
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Check className="h-4 w-4 text-emerald-500" />
-                    <span className="text-sm">
-                      {employeeBasic?.confirmationDate
-                        ? new Date(
-                            employeeBasic?.confirmationDate
-                          ).toLocaleDateString()
-                        : "01 Aug 2025"}{" "}
-                      (Date of Confirmation)
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -250,8 +247,8 @@ export function EmployeeOverview({
                     </label>
                     <span className="text-sm">
                       {employeePersonal?.dob
-                        ? new Date(employeePersonal?.dob).toLocaleDateString()
-                        : ""}
+                        ? format(new Date(employeePersonal?.dob), dateFormat)
+                        : "-"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -328,10 +325,13 @@ export function EmployeeOverview({
                     </label>
                     <span className="text-sm">
                       {employeePersonal?.passportExpiryDate
-                        ? new Date(
-                            employeePersonal?.passportExpiryDate as string
-                          ).toLocaleDateString()
-                        : ""}
+                        ? format(
+                            new Date(
+                              employeePersonal?.passportExpiryDate as string
+                            ),
+                            dateFormat
+                          )
+                        : "-"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -350,10 +350,13 @@ export function EmployeeOverview({
                     </label>
                     <span className="text-sm">
                       {employeePersonal?.emiratesIdExpiryDate
-                        ? new Date(
-                            employeePersonal?.emiratesIdExpiryDate as string
-                          ).toLocaleDateString()
-                        : ""}
+                        ? format(
+                            new Date(
+                              employeePersonal?.emiratesIdExpiryDate as string
+                            ),
+                            dateFormat
+                          )
+                        : "-"}
                     </span>
                   </div>
                 </div>
@@ -565,7 +568,7 @@ export function EmployeeOverview({
           <div className="mt-6">
             <EmployeePaymentForm
               employee={employeeBank}
-              companyId={employee?.companyId || 0}
+              companyId={companyId}
               onCancel={() => setPaymentDialogOpen(false)}
             />
           </div>

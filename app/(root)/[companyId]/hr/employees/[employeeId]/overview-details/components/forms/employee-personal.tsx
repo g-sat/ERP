@@ -1,11 +1,12 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import { IEmployeePersonalDetails } from "@/interfaces/employee"
 import {
   EmployeePersonalDetailsValues,
   employeePersonalDetailsSchema,
 } from "@/schemas/employee"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInYears, format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -24,6 +25,11 @@ interface Props {
 }
 
 export function EmployeePersonalForm({ employee, onCancel }: Props) {
+  const { decimals } = useAuthStore()
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
   const saveMutation = useSaveEmployeePersonalDetails()
 
   const form = useForm<EmployeePersonalDetailsValues>({
@@ -32,10 +38,10 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
       employeeId: employee?.employeeId || 0,
       dob: employee?.dob
         ? format(
-            parseDate(employee?.dob as string) || new Date(),
-            clientDateFormat
+            parseDate(employee?.dob as unknown as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), clientDateFormat),
+        : "",
       fatherName: employee?.fatherName || "",
       age: employee?.age || 0,
       permanentAddress: employee?.permanentAddress || "",
@@ -46,15 +52,17 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
       passportNo: employee?.passportNo || "",
       passportExpiryDate: employee?.passportExpiryDate
         ? format(
-            parseDate(employee?.passportExpiryDate as string) || new Date(),
-            clientDateFormat
+            parseDate(employee?.passportExpiryDate as unknown as string) ||
+              new Date(),
+            dateFormat
           )
         : "",
       emiratesIdNo: employee?.emiratesIdNo || "",
       emiratesIdExpiryDate: employee?.emiratesIdExpiryDate
         ? format(
-            parseDate(employee?.emiratesIdExpiryDate as string) || new Date(),
-            clientDateFormat
+            parseDate(employee?.emiratesIdExpiryDate as unknown as string) ||
+              new Date(),
+            dateFormat
           )
         : "",
     },
@@ -80,8 +88,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
         employeeId: employee.employeeId || 0,
         dob: employee.dob
           ? format(
-              parseDate(employee?.dob as string) || new Date(),
-              clientDateFormat
+              parseDate(employee?.dob as unknown as string) || new Date(),
+              dateFormat
             )
           : "",
         fatherName: employee.fatherName || "",
@@ -94,22 +102,24 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
         passportNo: employee.passportNo || "",
         passportExpiryDate: employee.passportExpiryDate
           ? format(
-              parseDate(employee?.passportExpiryDate as string) || new Date(),
-              clientDateFormat
+              parseDate(employee?.passportExpiryDate as unknown as string) ||
+                new Date(),
+              dateFormat
             )
           : "",
         emiratesIdNo: employee.emiratesIdNo || "",
         emiratesIdExpiryDate: employee.emiratesIdExpiryDate
           ? format(
-              parseDate(employee?.emiratesIdExpiryDate as string) || new Date(),
-              clientDateFormat
+              parseDate(employee?.emiratesIdExpiryDate as unknown as string) ||
+                new Date(),
+              dateFormat
             )
           : "",
         emergencyContactNo: employee.emergencyContactNo || "",
         personalContactNo: employee.personalContactNo || "",
       })
     }
-  }, [employee, form])
+  }, [employee, form, dateFormat])
 
   // Calculate age when form opens with existing date of birth
   React.useEffect(() => {
@@ -160,12 +170,14 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
             form={form}
             label="Passport Expiry Date"
             name="passportExpiryDate"
+            isFutureShow={true}
           />
           <CustomInput form={form} label="Emirates ID No" name="emiratesIdNo" />
           <CustomDateNew
             form={form}
             label="Emirates ID Expiry Date"
             name="emiratesIdExpiryDate"
+            isFutureShow={true}
           />
           <CustomInput
             form={form}

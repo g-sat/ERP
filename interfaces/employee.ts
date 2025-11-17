@@ -16,7 +16,6 @@ export interface IEmployee {
   martialStatus?: string
   dob?: Date | string
   joinDate?: Date | string
-  confirmationDate?: Date | string
   lastDate?: Date | string
   phoneNo?: string
   offPhoneNo?: string
@@ -83,7 +82,6 @@ export interface IEmployeeBasic {
   genderId?: number
   genderName?: string
   joinDate?: Date | string
-  confirmationDate?: Date | string
   lastDate?: Date | string
   phoneNo?: string
   offPhoneNo?: string

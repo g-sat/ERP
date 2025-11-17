@@ -82,7 +82,6 @@ export const employeeBasicSchema = z.object({
     .refine((val) => val !== "" && val !== null && val !== undefined, {
       message: "Join date is required",
     }),
-  confirmationDate: z.union([z.date(), z.string()]).optional(),
   lastDate: z.union([z.date(), z.string()]).optional(),
   phoneNo: z.string().optional(),
   offPhoneNo: z.string().optional(),
@@ -135,11 +134,6 @@ export const employeeBankSchema = z.object({
   accountNo: z.string().min(1, { message: "Account number is required" }),
   swiftCode: z.string().min(1, { message: "Swift code is required" }),
   iban: z.string().min(1, { message: "IBAN is required" }),
-  remarks: z
-    .string()
-    .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
-  isActive: z.boolean(),
   glId: z.number(),
 })
 
