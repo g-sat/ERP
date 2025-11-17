@@ -1,8 +1,9 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import { IEmployeeBasic } from "@/interfaces/employee"
 import { EmployeeBasicValues, employeeBasicSchema } from "@/schemas/employee"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -33,6 +34,11 @@ interface Props {
 }
 
 export function EmployeeBasicForm({ employee, onCancel }: Props) {
+  const { decimals } = useAuthStore()
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
   const saveMutation = useSaveEmployeeBasic()
 
   // Debug logging
@@ -53,15 +59,15 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
       dayOfWeek: employee?.dayOfWeek || 0,
       joinDate: employee?.joinDate
         ? format(
-            parseDate(employee?.joinDate as string) || new Date(),
-            clientDateFormat
+            parseDate(employee?.joinDate as unknown as string) || new Date(),
+            dateFormat
           )
-        : format(new Date(), clientDateFormat),
+        : "",
 
       lastDate: employee?.lastDate
         ? format(
-            parseDate(employee?.lastDate as string) || new Date(),
-            clientDateFormat
+            parseDate(employee?.lastDate as unknown as string) || new Date(),
+            dateFormat
           )
         : "",
       offPhoneNo: employee?.offPhoneNo || "",
@@ -90,15 +96,15 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
         dayOfWeek: employee.dayOfWeek || 0,
         joinDate: employee?.joinDate
           ? format(
-              parseDate(employee?.joinDate as string) || new Date(),
-              clientDateFormat
+              parseDate(employee?.joinDate as unknown as string) || new Date(),
+              dateFormat
             )
           : "",
 
         lastDate: employee?.lastDate
           ? format(
-              parseDate(employee?.lastDate as string) || new Date(),
-              clientDateFormat
+              parseDate(employee?.lastDate as unknown as string) || new Date(),
+              dateFormat
             )
           : "",
         offPhoneNo: employee.offPhoneNo || "",
@@ -113,7 +119,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
       console.log("Setting form data:", formData)
       form.reset(formData)
     }
-  }, [employee, form])
+  }, [employee, form, dateFormat])
 
   // Debug current form values
   const currentValues = form.watch()
@@ -125,7 +131,40 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     console.log("Form is valid:", form.formState.isValid)
     console.log("Form errors:", form.formState.errors)
 
-    saveMutation.mutate(data)
+    const processedData = {
+      employeeId: data.employeeId || 0,
+      employerId: data.employerId || 0,
+      employeeCode: data.employeeCode || "",
+      employeeName: data.employeeName || "",
+      photo: data.photo || "",
+      departmentId: data.departmentId || 0,
+      designationId: data.designationId || 0,
+      workLocationId: data.workLocationId || 0,
+      genderId: data.genderId || 0,
+      dayOfWeek: data.dayOfWeek || 0,
+      joinDate: data?.joinDate
+        ? format(
+            parseDate(data?.joinDate as unknown as string) || new Date(),
+            dateFormat
+          )
+        : "",
+
+      lastDate: data?.lastDate
+        ? format(
+            parseDate(data?.lastDate as unknown as string) || new Date(),
+            dateFormat
+          )
+        : "",
+      offPhoneNo: data.offPhoneNo || "",
+      offEmailAdd: data.offEmailAdd || "",
+      nationalityId: data.nationalityId || 0,
+      employmentType: data.employmentType || "",
+      contractType: data.contractType || "",
+      remarks: data.remarks || "",
+      isActive: data.isActive ?? true,
+    }
+
+    saveMutation.mutate(processedData as EmployeeBasicValues)
   }
 
   const handleSubmit = form.handleSubmit(onSubmit)
@@ -233,9 +272,9 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             label="Nationality"
             name="nationalityId"
           />
-        </div>
-        <CustomSwitch form={form} label="Is Active" name="isActive" />
 
+          <CustomSwitch form={form} label="Is Active" name="isActive" />
+        </div>
         <CustomTextarea form={form} label="Remarks" name="remarks" />
 
         <div className="flex justify-end space-x-2">

@@ -6,7 +6,7 @@ import {
   IEmployeePersonalDetails,
 } from "@/interfaces/employee"
 import { ISalaryComponent, ISalaryHistory } from "@/interfaces/payroll"
-import { EmployeeBankValues } from "@/schemas"
+import { EmployeeBankValues, EmployeeBasicValues } from "@/schemas"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { getById } from "@/lib/api-client"
@@ -89,11 +89,11 @@ export function useSaveEmployee() {
 // Hook for saving employee basic information
 export function useSaveEmployeeBasic() {
   const queryClient = useQueryClient()
-  const saveMutation = usePersist<IEmployeeBasic>(Employee.add)
+  const saveMutation = usePersist<EmployeeBasicValues>(Employee.add)
 
   return {
     ...saveMutation,
-    mutate: (data: Partial<IEmployeeBasic>) => {
+    mutate: (data: Partial<EmployeeBasicValues>) => {
       saveMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {
