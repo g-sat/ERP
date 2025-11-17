@@ -57,11 +57,11 @@ export function PayRunSummaryForm({
   // Calculate Net Pay based on current data
   const calculateNetPay = () => {
     const totalEarnings = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .filter((item) => item.componentType?.toLowerCase() === "earning")
       .reduce((sum, item) => sum + (item.amount || 0), 0)
 
     const totalDeductions = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .filter((item) => item.componentType?.toLowerCase() === "deduction")
       .reduce((sum, item) => sum + (item.amount || 0), 0)
 
     return totalEarnings - totalDeductions
@@ -72,11 +72,11 @@ export function PayRunSummaryForm({
   // Calculate Basic Net Pay
   const calculateBasicNetPay = () => {
     const totalBasicEarnings = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .filter((item) => item.componentType?.toLowerCase() === "earning")
       .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
 
     const totalBasicDeductions = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .filter((item) => item.componentType?.toLowerCase() === "deduction")
       .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
 
     return totalBasicEarnings - totalBasicDeductions
@@ -131,14 +131,14 @@ export function PayRunSummaryForm({
         joinDate: employee.joinDate || "",
         whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
         earnings: employeeData
-          .filter((item) => item.componentType.toLowerCase() === "earning")
+          .filter((item) => item.componentType?.toLowerCase() === "earning")
           .map((item) => ({
             componentName: item.componentName,
             basicAmount: item.basicAmount || 0,
             currentAmount: item.amount || 0,
           })),
         deductions: employeeData
-          .filter((item) => item.componentType.toLowerCase() === "deduction")
+          .filter((item) => item.componentType?.toLowerCase() === "deduction")
           .map((item) => ({
             componentName: item.componentName,
             basicAmount: item.basicAmount || 0,
@@ -259,7 +259,7 @@ export function PayRunSummaryForm({
 
       console.log("📊 PayRunSummaryForm: Creating payslip data for download")
       const earnings = employeeData
-        .filter((item) => item.componentType.toLowerCase() === "earning")
+        .filter((item) => item.componentType?.toLowerCase() === "earning")
         .map((item) => ({
           componentName: item.componentName,
           basicAmount: item.basicAmount || 0,
@@ -267,7 +267,7 @@ export function PayRunSummaryForm({
         }))
 
       const deductions = employeeData
-        .filter((item) => item.componentType.toLowerCase() === "deduction")
+        .filter((item) => item.componentType?.toLowerCase() === "deduction")
         .map((item) => ({
           componentName: item.componentName,
           basicAmount: item.basicAmount || 0,
@@ -417,7 +417,7 @@ export function PayRunSummaryForm({
 
           <div className="space-y-1">
             {employeeData
-              .filter((item) => item.componentType.toLowerCase() === "earning")
+              .filter((item) => item.componentType?.toLowerCase() === "earning")
               .map((item) => (
                 <div key={item.componentId}>
                   <div className="grid grid-cols-3 items-center gap-4">
@@ -438,7 +438,7 @@ export function PayRunSummaryForm({
                 </div>
               ))}
             {employeeData.filter(
-              (item) => item.componentType.toLowerCase() === "earning"
+              (item) => item.componentType?.toLowerCase() === "earning"
             ).length === 0 && (
               <div className="text-sm text-gray-500 italic">
                 No earnings found
@@ -458,7 +458,7 @@ export function PayRunSummaryForm({
           <div className="space-y-1">
             {employeeData
               .filter(
-                (item) => item.componentType.toLowerCase() === "deduction"
+                (item) => item.componentType?.toLowerCase() === "deduction"
               )
               .map((item) => (
                 <div key={item.componentId}>
@@ -480,7 +480,7 @@ export function PayRunSummaryForm({
                 </div>
               ))}
             {employeeData.filter(
-              (item) => item.componentType.toLowerCase() === "deduction"
+              (item) => item.componentType?.toLowerCase() === "deduction"
             ).length === 0 && (
               <div className="grid grid-cols-3 items-center gap-4">
                 <span className="text-sm font-medium">Loan Amount</span>

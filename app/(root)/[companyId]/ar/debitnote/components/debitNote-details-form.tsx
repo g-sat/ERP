@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
+  calculateMultiplierAmount,
   handleGstPercentageChange,
   handleQtyChange,
   handleTotalamountChange,
@@ -105,6 +106,10 @@ export default function DebitNoteDetailsForm({
   const originalTotAmtRef = useRef<number>(0)
   const originalUnitPriceRef = useRef<number>(0)
   const originalGstPercentageRef = useRef<number>(0)
+
+  // Refs to track previous exchange rates to detect changes
+  const prevExchangeRateRef = useRef<number>(0)
+  const prevCityExchangeRateRef = useRef<number>(0)
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -304,6 +309,15 @@ export default function DebitNoteDetailsForm({
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
 
+  // Initialize exchange rate refs with current values on mount
+  useEffect(() => {
+    const currentExhRate = Hdform.getValues("exhRate") || 0
+    const currentCtyExhRate = Hdform.getValues("ctyExhRate") || 0
+    prevExchangeRateRef.current = currentExhRate
+    prevCityExchangeRateRef.current = currentCtyExhRate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Apply default IDs when they become available (only for new records)
   useEffect(() => {
     if (editingDetail) return // Skip for edit mode
@@ -404,27 +418,87 @@ export default function DebitNoteDetailsForm({
     defaultGstId,
   ])
 
-  // Recalculate local amounts when exchange rate changes
+  // Recalculate local amounts when exchange rate changes (only on actual change, works in edit mode too)
   useEffect(() => {
+    const currentExchangeRate = watchedExchangeRate || 0
+    const currentCityExchangeRate = watchedCityExchangeRate || 0
+
+    // Check if exchange rates have actually changed
+    const exchangeRateChanged =
+      currentExchangeRate !== prevExchangeRateRef.current
+    const cityExchangeRateChanged =
+      currentCityExchangeRate !== prevCityExchangeRateRef.current
+
+    // Only recalculate if exchange rates have changed
+    if (!exchangeRateChanged && !cityExchangeRateChanged) {
+      return
+    }
+
+    // Update refs with current values
+    prevExchangeRateRef.current = currentExchangeRate
+    prevCityExchangeRateRef.current = currentCityExchangeRate
+
     const currentValues = form.getValues()
 
-    // Only recalculate if form has values
-    if ((currentValues.totAmt ?? 0) > 0 || (currentValues.qty ?? 0) > 0) {
+    // Only recalculate if form has a valid totAmt (don't recalculate if totAmt is 0)
+    // We need totAmt to exist to calculate local amounts
+    if ((currentValues.totAmt ?? 0) > 0) {
       const rowData = form.getValues()
+      const totAmt = rowData.totAmt || 0
+      const gstAmt = rowData.gstAmt || 0
 
       // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+      const exchangeRate = currentExchangeRate
       if (!visible?.m_CtyCurr) {
-        Hdform.setValue("ctyExhRate", watchedExchangeRate)
+        Hdform.setValue("ctyExhRate", exchangeRate)
       }
 
-      // Recalculate all amounts with new exchange rate
-      handleQtyChange(Hdform, rowData, decimals[0], visible)
+      // Recalculate total local amount (preserve existing totAmt)
+      const totLocalAmt = calculateMultiplierAmount(
+        totAmt,
+        exchangeRate,
+        decimals[0]?.locAmtDec || 2
+      )
+
+      // Recalculate total city amount
+      const cityExchangeRate = visible?.m_CtyCurr
+        ? currentCityExchangeRate
+        : exchangeRate
+      let totCtyAmt = 0
+      if (visible?.m_CtyCurr) {
+        totCtyAmt = calculateMultiplierAmount(
+          totAmt,
+          cityExchangeRate,
+          decimals[0]?.locAmtDec || 2
+        )
+      } else {
+        totCtyAmt = totLocalAmt
+      }
+
+      // Recalculate GST local amount (preserve existing gstAmt, don't recalculate from percentage)
+      const gstLocalAmt = calculateMultiplierAmount(
+        gstAmt,
+        exchangeRate,
+        decimals[0]?.locAmtDec || 2
+      )
+
+      // Recalculate GST city amount
+      let gstCtyAmt = 0
+      if (visible?.m_CtyCurr) {
+        gstCtyAmt = calculateMultiplierAmount(
+          gstAmt,
+          cityExchangeRate,
+          decimals[0]?.locAmtDec || 2
+        )
+      } else {
+        gstCtyAmt = gstLocalAmt
+      }
 
       // Update form with recalculated values
-      form.setValue("totLocalAmt", rowData.totLocalAmt)
-      form.setValue("totCtyAmt", rowData.totCtyAmt)
-      form.setValue("gstLocalAmt", rowData.gstLocalAmt)
-      form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+      form.setValue("totLocalAmt", totLocalAmt)
+      form.setValue("totCtyAmt", totCtyAmt)
+      form.setValue("gstLocalAmt", gstLocalAmt)
+      form.setValue("gstCtyAmt", gstCtyAmt)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedExchangeRate, watchedCityExchangeRate])
@@ -1265,7 +1339,7 @@ export default function DebitNoteDetailsForm({
             name="gstAmt"
             label="GST Amount"
             round={amtDec}
-            isDisabled
+            isDisabled={false}
             className="text-right"
             onChangeEvent={handleGstAmountChange}
           />

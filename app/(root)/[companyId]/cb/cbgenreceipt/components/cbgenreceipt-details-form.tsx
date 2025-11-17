@@ -940,7 +940,7 @@ export default function CbGenReceiptDetailsForm({
             name="gstAmt"
             label="GST Amount"
             round={amtDec}
-            isDisabled
+            isDisabled={false}
             className="text-right"
             onChangeEvent={handleGstAmountChange}
           />

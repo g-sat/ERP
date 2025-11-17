@@ -113,11 +113,11 @@ export function PayRunPreviewForm({
   // Calculate Net Pay based on current edited data
   const calculateNetPay = () => {
     const totalEarnings = displayData
-      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .filter((item) => item.componentType?.toLowerCase() === "earning")
       .reduce((sum, item) => sum + (item.amount || 0), 0)
 
     const totalDeductions = displayData
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .filter((item) => item.componentType?.toLowerCase() === "deduction")
       .reduce((sum, item) => sum + (item.amount || 0), 0)
 
     return totalEarnings - totalDeductions
@@ -128,11 +128,11 @@ export function PayRunPreviewForm({
   // Calculate Basic Net Pay
   const calculateBasicNetPay = () => {
     const totalBasicEarnings = displayData
-      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .filter((item) => item.componentType?.toLowerCase() === "earning")
       .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
 
     const totalBasicDeductions = displayData
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .filter((item) => item.componentType?.toLowerCase() === "deduction")
       .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
 
     return totalBasicEarnings - totalBasicDeductions
@@ -503,7 +503,7 @@ export function PayRunPreviewForm({
 
           <div className="space-y-1">
             {displayData
-              .filter((item) => item.componentType.toLowerCase() === "earning")
+              .filter((item) => item.componentType?.toLowerCase() === "earning")
               .map((item) => (
                 <div key={item.componentId}>
                   <div className="grid grid-cols-3 items-center gap-4">
@@ -587,7 +587,7 @@ export function PayRunPreviewForm({
                 </div>
               ))}
             {displayData.filter(
-              (item) => item.componentType.toLowerCase() === "earning"
+              (item) => item.componentType?.toLowerCase() === "earning"
             ).length === 0 && (
               <div className="text-sm text-gray-500 italic">
                 No earnings found
@@ -607,7 +607,7 @@ export function PayRunPreviewForm({
           <div className="space-y-1">
             {displayData
               .filter(
-                (item) => item.componentType.toLowerCase() === "deduction"
+                (item) => item.componentType?.toLowerCase() === "deduction"
               )
               .map((item) => (
                 <div key={item.componentId}>
@@ -693,7 +693,7 @@ export function PayRunPreviewForm({
                 </div>
               ))}
             {displayData.filter(
-              (item) => item.componentType.toLowerCase() === "deduction"
+              (item) => item.componentType?.toLowerCase() === "deduction"
             ).length === 0 && (
               <div className="text-sm text-gray-500 italic">
                 No earnings found

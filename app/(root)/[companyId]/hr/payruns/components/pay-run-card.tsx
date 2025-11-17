@@ -57,7 +57,8 @@ export function ProcessPayRunCard({
   )
 
   // Function to get badge color based on status
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadgeColor = (status: string | undefined | null) => {
+    if (!status) return "bg-gray-500"
     switch (status.toLowerCase()) {
       case "ready":
         return "bg-blue-600"
@@ -108,7 +109,6 @@ export function ProcessPayRunCard({
                 console.log(
                   "🎯 ProcessPayRunCard: Pay run created successfully, calling onProcess"
                 )
-                debugger
                 onProcess?.(typedResponse.result)
               } else {
                 console.log(

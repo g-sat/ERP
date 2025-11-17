@@ -472,13 +472,13 @@ export default function AdjustmentForm({
     )
   }, [form])
 
-  // Handle exchange rate change
-  const handleExchangeRateChange = React.useCallback(
-    (value: number) => {
-      const exchangeRate = value || 0
+  // Handle exchange rate blur - recalculate amounts when user leaves the field
+  const handleExchangeRateBlur = React.useCallback(
+    (_e: React.FocusEvent<HTMLInputElement>) => {
+      const exchangeRate = form.getValues("exhRate") || 0
       const originalExhRate = originalExhRateRef.current
 
-      console.log("handleExchangeRateChange", {
+      console.log("handleExchangeRateBlur", {
         newValue: exchangeRate,
         originalValue: originalExhRate,
         isDifferent: exchangeRate !== originalExhRate,
@@ -536,13 +536,13 @@ export default function AdjustmentForm({
     )
   }, [form])
 
-  // Handle city exchange rate change
-  const handleCityExchangeRateChange = React.useCallback(
-    (value: number) => {
-      const cityExchangeRate = value || 0
+  // Handle city exchange rate blur - recalculate amounts when user leaves the field
+  const handleCityExchangeRateBlur = React.useCallback(
+    (_e: React.FocusEvent<HTMLInputElement>) => {
+      const cityExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
-      console.log("handleCityExchangeRateChange", {
+      console.log("handleCityExchangeRateBlur", {
         newValue: cityExchangeRate,
         originalValue: originalCtyExhRate,
         isDifferent: cityExchangeRate !== originalCtyExhRate,
@@ -707,7 +707,7 @@ export default function AdjustmentForm({
             round={exhRateDec}
             className="text-right"
             onFocusEvent={handleExchangeRateFocus}
-            onChangeEvent={handleExchangeRateChange}
+            onBlurEvent={handleExchangeRateBlur}
           />
           {visible?.m_CtyCurr && (
             <>
@@ -720,7 +720,7 @@ export default function AdjustmentForm({
                 round={exhRateDec}
                 className="text-right"
                 onFocusEvent={handleCityExchangeRateFocus}
-                onChangeEvent={handleCityExchangeRateChange}
+                onBlurEvent={handleCityExchangeRateBlur}
               />
             </>
           )}

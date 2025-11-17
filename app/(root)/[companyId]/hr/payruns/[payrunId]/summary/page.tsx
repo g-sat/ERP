@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPayrollAccountViewModel } from "@/interfaces/payroll-account"
-import { IPayrollEmployeeHd, ISIFEmployee } from "@/interfaces/payrun"
+import {
+  IPayrollDashboardDetails,
+  IPayrollEmployeeHd,
+  ISIFEmployee,
+} from "@/interfaces/payrun"
 import {
   ArrowLeft,
   CheckCircle,
@@ -77,6 +81,13 @@ export default function PayRunSummaryPage() {
     }
   }, [])
 
+  // API call to get dashboard details
+  const { data: payRunDataDetails } = useGetById<IPayrollDashboardDetails>(
+    `/hr/payrollruns/dashboard-details`,
+    "pay-run-data-details",
+    payrunId
+  )
+
   // API call to get pay run summary data
   const {
     data: payRunData,
@@ -129,6 +140,16 @@ export default function PayRunSummaryPage() {
   const employees = (payRunData?.data as unknown as IPayrollEmployeeHd[]) || []
   const accounts =
     (accountingData?.data as unknown as IPayrollAccountViewModel[]) || []
+
+  // Helper function to get dashboard details data
+  const getDashboardDetails = () => {
+    if (Array.isArray(payRunDataDetails?.data)) {
+      return payRunDataDetails?.data[0] || null
+    }
+    return payRunDataDetails?.data || null
+  }
+
+  const dashboardDetails = getDashboardDetails()
 
   // Calculate totals from actual data
   const totalEarnings = employees.reduce(
@@ -291,7 +312,7 @@ export default function PayRunSummaryPage() {
     try {
       // Generate PDF
       const earnings = (employee?.data_details || [])
-        .filter((item) => item.componentType.toLowerCase() === "earning")
+        .filter((item) => item.componentType?.toLowerCase() === "earning")
         .map((item) => ({
           componentName: item.componentName || "",
           basicAmount: item.basicAmount || 0,
@@ -303,7 +324,7 @@ export default function PayRunSummaryPage() {
       }>
 
       const deductions = (employee?.data_details || [])
-        .filter((item) => item.componentType.toLowerCase() === "deduction")
+        .filter((item) => item.componentType?.toLowerCase() === "deduction")
         .map((item) => ({
           componentName: item.componentName || "",
           basicAmount: item.basicAmount || 0,
@@ -639,7 +660,8 @@ export default function PayRunSummaryPage() {
                     Payroll Summary
                   </h3>
                   <p className="text-sm text-gray-600">
-                    August 2025 • 30 Base Days
+                    {dashboardDetails?.payName} •{" "}
+                    {dashboardDetails?.workingDaysPerMonth} Base Days
                   </p>
                 </div>
               </div>
@@ -649,7 +671,15 @@ export default function PayRunSummaryPage() {
                     Pay Day
                   </div>
                   <div className="text-lg font-bold text-gray-900">
-                    03 SEP, 2025
+                    {dashboardDetails?.payDate
+                      ? new Date(dashboardDetails.payDate)
+                          .toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                          .toUpperCase()
+                      : ""}
                   </div>
                 </div>
                 {/* Check if status is rejected */}
