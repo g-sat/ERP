@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -45,6 +46,9 @@ export function TariffForm({
   taskId,
   onValidationError,
 }: TariffFormProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
     defaultValues: {
@@ -304,7 +308,7 @@ export function TariffForm({
               label="Display Rate"
               isRequired
               isDisabled={mode === "view"}
-              round={2}
+              round={amtDec}
             />
             <CustomNumberInput
               form={form}
@@ -312,7 +316,7 @@ export function TariffForm({
               label="Basic Rate"
               isRequired
               isDisabled={mode === "view"}
-              round={2}
+              round={amtDec}
             />
             <CustomNumberInput
               form={form}
@@ -320,7 +324,7 @@ export function TariffForm({
               label="Min Unit"
               isRequired
               isDisabled={mode === "view"}
-              round={2}
+              round={amtDec}
             />
             <CustomNumberInput
               form={form}
@@ -328,7 +332,7 @@ export function TariffForm({
               label="Max Unit"
               isRequired
               isDisabled={mode === "view"}
-              round={2}
+              round={amtDec}
             />
 
             <CustomSwitch
@@ -343,7 +347,7 @@ export function TariffForm({
               label="Additional Unit"
               isRequired={isAdditional}
               isDisabled={mode === "view" || !isAdditional}
-              round={2}
+              round={amtDec}
             />
 
             <CustomNumberInput
@@ -352,7 +356,7 @@ export function TariffForm({
               label="Additional Rate"
               isRequired={isAdditional}
               isDisabled={mode === "view" || !isAdditional}
-              round={2}
+              round={amtDec}
             />
 
             <CustomSwitch
@@ -367,7 +371,7 @@ export function TariffForm({
               label="Prepayment Rate"
               isRequired={isPrepayment}
               isDisabled={mode === "view" || !isPrepayment}
-              round={2}
+              round={amtDec}
             />
             <CustomTextarea
               form={form}

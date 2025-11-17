@@ -7,6 +7,7 @@ import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { ArInvoiceHdSchemaType } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { ARTransactionId, ModuleId } from "@/lib/utils"
@@ -32,6 +33,8 @@ interface OtherProps {
 export default function Other({ form, visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
 
   const [selectedAddress, setSelectedAddress] =
     useState<ICustomerAddress | null>(null)
@@ -284,7 +287,7 @@ export default function Other({ form, visible }: OtherProps) {
                     name="advRecAmt"
                     label="Advance Received Amount"
                     isRequired={false}
-                    round={2}
+                    round={amtDec}
                     className="text-right"
                   />
                 )}

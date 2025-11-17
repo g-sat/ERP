@@ -406,8 +406,9 @@ export default function InvoiceDetailsForm({
   useEffect(() => {
     const currentValues = form.getValues()
 
-    // Only recalculate if form has values
-    if ((currentValues.totAmt ?? 0) > 0 || (currentValues.qty ?? 0) > 0) {
+    // Only recalculate if form has a valid totAmt (don't recalculate if totAmt is 0)
+    // We need totAmt to exist to calculate local amounts
+    if ((currentValues.totAmt ?? 0) > 0) {
       const rowData = form.getValues()
 
       // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
@@ -415,8 +416,9 @@ export default function InvoiceDetailsForm({
         Hdform.setValue("ctyExhRate", watchedExchangeRate)
       }
 
-      // Recalculate all amounts with new exchange rate
-      handleQtyChange(Hdform, rowData, decimals[0], visible)
+      // Recalculate local amounts with new exchange rate (preserve existing totAmt)
+      // Use handleTotalamountChange instead of handleQtyChange to avoid recalculating totAmt
+      handleTotalamountChange(Hdform, rowData, decimals[0], visible)
 
       // Update form with recalculated values
       form.setValue("totLocalAmt", rowData.totLocalAmt)
@@ -1249,7 +1251,7 @@ export default function InvoiceDetailsForm({
             form={form}
             name="gstPercentage"
             label="GST Percentage"
-            round={2}
+            round={amtDec}
             className="text-right"
             onFocusEvent={handleGstPercentageFocus}
             onChangeEvent={handleGstPercentageManualChange}

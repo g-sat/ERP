@@ -1274,7 +1274,7 @@ export default function CbPettyCashDetailsForm({
             form={form}
             name="gstPercentage"
             label="GST Percentage"
-            round={2}
+            round={amtDec}
             className="text-right"
             onFocusEvent={handleGstPercentageFocus}
             onChangeEvent={handleGstPercentageManualChange}

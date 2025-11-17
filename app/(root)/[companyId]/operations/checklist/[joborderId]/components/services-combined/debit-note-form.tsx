@@ -5,6 +5,7 @@ import { calculateDebitNoteDetailAmounts } from "@/helpers/debit-note-calculatio
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
 import { DebitNoteDtSchemaType, debitNoteDtSchema } from "@/schemas/checklist"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -69,6 +70,9 @@ export default function DebitNoteForm({
   summaryTotals,
   currencyCode,
 }: DebitNoteFormProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(companyId)
   )
@@ -153,7 +157,7 @@ export default function DebitNoteForm({
 
   // Calculation functions using helper functions
   const calculateTotalAmount = (qty: number, unitPrice: number): number => {
-    return calculateDebitNoteDetailAmounts(qty, unitPrice, 0, { amtDec: 2 })
+    return calculateDebitNoteDetailAmounts(qty, unitPrice, 0, { amtDec })
       .totalAmount
   }
 
@@ -162,7 +166,7 @@ export default function DebitNoteForm({
     gstPercentage: number
   ): number => {
     return calculateDebitNoteDetailAmounts(1, totalAmount, gstPercentage, {
-      amtDec: 2,
+      amtDec,
     }).vatAmount
   }
 
@@ -722,7 +726,7 @@ export default function DebitNoteForm({
               form={form}
               name="unitPrice"
               label="Unit Price"
-              round={2}
+              round={amtDec}
               isDisabled={isConfirmed}
               onFocusEvent={handleUnitPriceFocus}
               onChangeEvent={handleUnitPriceChange}
@@ -735,7 +739,7 @@ export default function DebitNoteForm({
               form={form}
               name="totLocalAmt"
               label="Amt Local"
-              round={2}
+              round={locAmtDec}
               isDisabled={isConfirmed}
               onFocusEvent={handleTotLocalAmtFocus}
               onChangeEvent={handleTotLocalAmtChange}
@@ -748,7 +752,7 @@ export default function DebitNoteForm({
               form={form}
               name="totAmt"
               label="Total Amt"
-              round={2}
+              round={amtDec}
               isDisabled={isConfirmed}
             />
           </div>
@@ -769,7 +773,7 @@ export default function DebitNoteForm({
               form={form}
               name="gstPercentage"
               label="Vat %"
-              round={2}
+              round={amtDec}
               isDisabled={true}
             />
           </div>
@@ -779,7 +783,7 @@ export default function DebitNoteForm({
               form={form}
               name="gstAmt"
               label="Vat Amt"
-              round={2}
+              round={amtDec}
               isDisabled={isConfirmed}
             />
           </div>
@@ -789,7 +793,7 @@ export default function DebitNoteForm({
               form={form}
               name="totAftGstAmt"
               label="Tot Aft Vat"
-              round={2}
+              round={amtDec}
               isDisabled={true}
             />
           </div>
@@ -808,7 +812,7 @@ export default function DebitNoteForm({
               form={form}
               name="serviceCharge"
               label="Service Chg"
-              round={2}
+              round={amtDec}
               isDisabled={isConfirmed || !watchedValues.isServiceCharge}
             />
           </div>

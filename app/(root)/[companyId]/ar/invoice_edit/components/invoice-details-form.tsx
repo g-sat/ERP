@@ -218,7 +218,7 @@ export default function InvoiceDetailsForm() {
             form={form}
             name="gstPercentage"
             label="GST Percentage"
-            round={2}
+            round={amtDec}
             className="text-right"
           />
 
