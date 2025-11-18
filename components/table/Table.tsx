@@ -16,7 +16,8 @@ import {
   RowSelectionState,
   Row,
   CellContext,
-  Header
+  Header,
+  ColumnSizingState
 } from "@tanstack/react-table";
 import {
   DndContext,
@@ -29,6 +30,10 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 import {
+  restrictToHorizontalAxis,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
+import {
   arrayMove,
   SortableContext,
   useSortable,
@@ -36,7 +41,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState, useMemo, useCallback, ReactNode } from "react";
+import { useState, useMemo, useCallback, ReactNode, CSSProperties, useEffect, useRef } from "react";
 import {
   GripVertical,
 } from "lucide-react";
@@ -58,11 +63,13 @@ interface TableMeta<T extends object> {
 }
 
 export interface Column<T extends object> {
-  accessorKey: keyof T;
+  accessorKey: string;
   header: string;
   cell?: (info: CellContext<T, unknown>) => ReactNode; // Use TanStack's type
   sortable?: boolean;
   size?: number;
+  minSize?: number;
+  maxSize?: number;
   enableHiding?: boolean;
   align?: "left" | "center" | "right";
   editable?: boolean;
@@ -100,7 +107,9 @@ interface TableContainerProps<T extends object> {
   onRowSelectionChange?: (selectedRows: RowSelectionState) => void;
   onResetLayout?: () => void;
   initialVisibility?: VisibilityState;
+  initialColumnSizing?: ColumnSizingState;
   onDataUpdate?: (updatedData: T[]) => void;
+  onColumnSizingChange?: (sizing: ColumnSizingState) => void;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -113,27 +122,56 @@ function EditableCell<T extends object>({
   table,
 }: CellContext<T, unknown>) {
   const meta = table.options.meta as TableMeta<T>;
-  const initialValue = getValue();
-  const [value, setValue] = useState(initialValue);
+  const rawValue = getValue();
+  const isNumericColumn = ['age', 'salary', 'experience', 'bonus', 'vacationDays', 'zip'].includes(id);
+  const value = isNumericColumn ? String(rawValue ?? '') : String(rawValue ?? '');
 
-  const onBlur = () => {
-    meta.updateData(index, id, value); // index = row.index
+  const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChange = (newValue: string) => {
+    const parsedValue = isNumericColumn && !isNaN(Number(newValue)) ? Number(newValue) : newValue;
+    meta.updateData(index, id, parsedValue);
   };
 
+  const handleBlur = () => {
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
+
+  if (isEditing) {
+    return (
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={handleBlur}
+        className="h-6 w-full border-0 bg-transparent p-0 text-sm focus:ring-1 focus:ring-ring"
+        data-no-dnd="true"
+      />
+    );
+  }
+
   return (
-    <Input
-      value={value as string}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={onBlur}
-      className="h-8 w-full border-0 bg-transparent p-0 text-sm focus:ring-1 focus:ring-ring"
-    />
+    <div
+      onClick={() => setIsEditing(true)}
+      className="truncate w-full h-full cursor-text"
+      title={String(value)}
+    >
+      {value || <span className="text-muted-foreground">...</span>}
+    </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
 /*  Sortable Row Component                                                    */
 /* -------------------------------------------------------------------------- */
-function SortableRow<T extends object>({ row }: { row: Row<T> }) {
+function SortableRow<T extends object>({ row, columnOrder }: { row: Row<T>; columnOrder: string[] }) {
   const {
     attributes,
     listeners,
@@ -141,9 +179,9 @@ function SortableRow<T extends object>({ row }: { row: Row<T> }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: row.id });
+  } = useSortable({ id: row.id, disabled: !row.getCanSelect() });
 
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
@@ -157,55 +195,141 @@ function SortableRow<T extends object>({ row }: { row: Row<T> }) {
       {...listeners}
       className="border-b border-border hover:bg-muted/50 transition-colors"
     >
-      {row.getVisibleCells().map((cell) => {
-        const align = (cell.column.columnDef as Column<T>).align ?? "left";
-        return (
-          <td
-            key={cell.id}
-            style={{ textAlign: align }}
-            className="p-3 text-sm"
-          >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        );
-      })}
+      <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+        {row.getVisibleCells().map((cell) => (
+          <DragAlongCell key={cell.id} cell={cell.getContext()} />
+        ))}
+      </SortableContext>
     </tr>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Draggable Header Component                                                */
+/*  Draggable Header Component (for Column Reorder + Resize)                  */
 /* -------------------------------------------------------------------------- */
 function DraggableHeader<T extends object>({ header }: { header: Header<T, unknown> }) {
+  const isActions = header.column.id === "actions";
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: header.column.id,
+    disabled: isActions,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const commonStyle: CSSProperties = {
+    transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.8 : 1,
     position: "relative" as const,
-    width: header.getSize(),
+    transition: "transform 0.2s ease-in-out",
     zIndex: isDragging ? 1 : 0,
+  };
+
+  const headerStyle: CSSProperties = {
+    ...commonStyle,
+    width: header.getSize(),
   };
 
   return (
     <th
-      ref={setNodeRef}
-      style={style}
-      className="border-r border-border p-3 text-left text-sm font-medium text-foreground bg-muted/30"
+      colSpan={header.colSpan}
+      style={{
+        width: header.getSize(),
+        position: isActions ? "sticky" : "relative",
+        left: isActions ? 0 : undefined,
+        zIndex: isActions ? 20 : undefined,
+        background: isActions ? "RGBA(12, 11, 9,1)" : undefined, // bg-muted/30 fallback
+        whiteSpace: isActions ? "nowrap" : undefined,
+      }}
+      className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30${isActions ? " sticky-action-header" : ""}`}
     >
-      <div className="flex items-center gap-1">
-        {flexRender(header.column.columnDef.header, header.getContext())}
-        <button
+      {!isActions ? (
+        <div
+          ref={setNodeRef}
+          style={headerStyle}
           {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+          className="flex items-center justify-center gap-2 h-full pr-1"
         >
-          ≡
-        </button>
-      </div>
+          <div className="truncate flex-1" onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}>
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </div>
+          <button
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground text-xs"
+            aria-label="Drag column"
+          >
+            ≡
+          </button>
+        </div>
+      ) : (
+        <div style={{ minHeight: "32px" }} />
+      )}
+      {header.column.getCanResize() && (
+        <div
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            header.getResizeHandler()(e);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            header.getResizeHandler()(e);
+          }}
+          className="absolute right-0"
+          style={{
+            top: "25%",
+            height: "50%",
+            width: "4px",
+            background: "var(--border)",
+            cursor: "col-resize",
+            zIndex: 15,
+            borderLeft: "1px solid var(--border)",
+            borderRadius: "2px",
+            pointerEvents: "auto",
+          }}
+          data-no-dnd="true"
+        />
+      )}
     </th>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Drag-Along Cell (for Column Reorder - cells follow header during drag)    */
+/* -------------------------------------------------------------------------- */
+function DragAlongCell<T extends object>({ cell }: { cell: CellContext<T, unknown> }) {
+  const { setNodeRef, transform, isDragging } = useSortable({
+    id: cell.column.id,
+  });
+
+  const style: CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.8 : 1,
+    position: "relative",
+    transition: "transform 0.2s ease-in-out",
+    width: cell.column.getSize(),
+    zIndex: isDragging ? 1 : 0,
+  };
+
+  const align = (cell.column.columnDef.meta as { align?: "left" | "center" | "right" } | undefined)?.align ?? "left";
+  const isActions = cell.column.id === "actions";
+
+  return (
+    <td
+      ref={setNodeRef}
+      style={{
+        textAlign: align,
+        ...style,
+        position: isActions ? "sticky" : undefined,
+        left: isActions ? 0 : undefined,
+        zIndex: isActions ? 20 : undefined,
+        background: isActions ? "rgba(0,0,0,1)" : undefined,
+        whiteSpace: isActions ? "nowrap" : undefined,
+      }}
+      className={`px-1 py-0.5 text-sm align-middle whitespace-nowrap overflow-hidden${isActions ? " sticky-action-cell" : ""}`}
+    >
+      <div className="truncate">
+        {flexRender(cell.column.columnDef.cell, cell)}
+      </div>
+    </td>
   );
 }
 
@@ -217,14 +341,14 @@ export function TableContainer<T extends object>({
   data,
   actions = [],
   settings = {
-    pageSize: 10,
+    pageSize: 15,
     showPagination: true,
     enableRowSelection: false,
     enableSorting: true,
     enableColumnFilters: true,
     enableColumnResizing: true,
     enableColumnVisibility: true,
-    enableRowReorder: false,
+    enableRowReorder: true,
     enableColumnReorder: false,
     globalFilterPlaceholder: "Search...",
   },
@@ -234,68 +358,91 @@ export function TableContainer<T extends object>({
   onRowSelectionChange,
   onResetLayout,
   initialVisibility = {},
+  initialColumnSizing = {},
   onDataUpdate,
+  onColumnSizingChange,
 }: TableContainerProps<T>): React.JSX.Element {
   /* -------------------------- State -------------------------------------- */
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialVisibility);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialVisibility)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [globalFilter, setGlobalFilter] = useState("")
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: settings.pageSize ?? 10,
-  });
+    pageSize: settings.pageSize ?? 15,
+  })
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(initialColumnSizing)
   const [columnOrder, setColumnOrder] = useState<string[]>(
-    columns.map((c) => c.accessorKey as string)
-  );
+    ["actions", ...columns.map((c) => c.accessorKey as string)]
+  )
 
   /* -------------------------- DndKit Sensors ----------------------------- */
+  // Call useSensors directly in component body, not inside useMemo
   const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 15,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor)
   );
 
   /* -------------------------- Actions Column --------------------------- */
+  // Actions column definition (icon-only, drag handle for row reorder)
   const actionsColumn: ColumnDef<T> = useMemo(
     () => ({
       id: "actions",
-      header: "Actions",
-      size: 180,
+      header: () => (
+        <div className="sticky left-0 z-20 whitespace-nowrap bg-muted/30" style={{ minHeight: "32px" }}>
+          {/* Blank header for actions column */}
+        </div>
+      ),
+      size: 56,
       enableHiding: false,
+      enableResizing: false,
       cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          {settings.enableRowSelection && (
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(v) => row.toggleSelected(!!v)}
-              className="h-4 w-4"
-            />
-          )}
+        <div className="flex items-center justify-center gap-1 ">
           {settings.enableRowReorder && (
-            <GripVertical className="h-4 w-4 cursor-move text-muted-foreground" />
+            <span
+              className="cursor-move text-muted-foreground hover:text-foreground"
+              title="Drag to reorder"
+              data-dnd-kit-sortable-handle="true"
+            >
+              <GripVertical className="h-4 w-4" />
+            </span>
           )}
           {actions.map((act, i) =>
             (!act.isVisible || act.isVisible(row.original)) ? (
               <Button
                 key={i}
-                variant={act.variant ?? "ghost"}
+                variant={act.variant ?? "link"}
                 size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
                   act.onClick(row.original);
                 }}
-                className="h-7 w-7"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="h-8 w-8 flex items-center justify-center"
+                tabIndex={0}
+                aria-label={typeof act.label === "string" ? act.label : undefined}
+                data-no-dnd="true"
               >
-                {act.icon ?? act.label}
+                {act.icon}
               </Button>
             ) : null
           )}
         </div>
       ),
+      meta: { align: "center" },
     }),
-    [actions, settings.enableRowSelection, settings.enableRowReorder]
+    [actions, settings.enableRowReorder]
   );
 
   /* -------------------------- Map Columns to TanStack ------------------- */
@@ -303,21 +450,29 @@ export function TableContainer<T extends object>({
     () => [
       actionsColumn,
       ...columns.map((col) => ({
-        accessorKey: col.accessorKey as string,
+        accessorKey: col.accessorKey,
         header: col.header,
         cell: col.editable
-            ? EditableCell
-            : col.cell
-            ? col.cell  // Direct pass — no wrapper
-            : undefined,
+          ? EditableCell
+          : (info: CellContext<T, unknown>) => {
+              const value = String(info.getValue() ?? "");
+              // Updated: Use truncate div for fixed overflow handling without affecting height or width
+              return (
+                <div className="truncate" title={value}>
+                  {value || <span className="text-muted-foreground">...</span>}
+                </div>
+              );
+            },
         enableSorting: col.sortable ?? true,
-        size: col.size,
+        size: col.size ?? 120, // Fixed default size
+        minSize: col.minSize ?? 80, // Fixed min width
+        maxSize: col.maxSize ?? 300, // Fixed max width - enforced by TanStack
         enableHiding: col.enableHiding ?? true,
         meta: { align: col.align },
       })),
     ],
     [columns, actionsColumn]
-  );
+  )
 
   /* -------------------------- TanStack Table --------------------------- */
   const table = useReactTable({
@@ -331,6 +486,7 @@ export function TableContainer<T extends object>({
       globalFilter,
       pagination,
       columnOrder,
+      columnSizing,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -343,6 +499,11 @@ export function TableContainer<T extends object>({
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: (updater) => {
+      const newSizing = typeof updater === "function" ? updater(columnSizing) : updater;
+      setColumnSizing(newSizing);
+      onColumnSizingChange?.(newSizing);
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: settings.enableSorting ? getSortedRowModel() : undefined,
     getFilteredRowModel: settings.enableColumnFilters ? getFilteredRowModel() : undefined,
@@ -396,15 +557,17 @@ export function TableContainer<T extends object>({
     setColumnVisibility({});
     setSorting([]);
     setColumnFilters([]);
-    setColumnOrder(columns.map((c) => c.accessorKey as string));
+    setColumnOrder(["actions", ...columns.map((c) => c.accessorKey)]);
+    setColumnSizing({});
     onResetLayout?.();
   }, [columns, onResetLayout]);
 
   /* -------------------------- Render ------------------------------------ */
   return (
     <div
-      className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm ${className}`}
+      className={`rounded-md bg-card text-card-foreground shadow-sm ${className ?? ""}`}
       style={style}
+      suppressHydrationWarning={true} // Suppress hydration warnings for dynamic DndKit elements
     >
       {/* Header Controls */}
       <div className="flex items-center justify-between p-4 border-b border-border">
@@ -435,7 +598,7 @@ export function TableContainer<T extends object>({
                       onClick={() => c.toggleVisibility(!c.getIsVisible())}
                     >
                       <Checkbox checked={c.getIsVisible()} className="mr-2 h-4 w-4" />
-                      {c.id}
+                      <div className="truncate">{c.id}</div>
                     </DropdownMenuItem>
                   ))}
               </DropdownMenuContent>
@@ -447,75 +610,225 @@ export function TableContainer<T extends object>({
         )}
       </div>
 
-      {/* Table Wrapper */}
-      <div className="overflow-auto" style={{ maxHeight: "500px" }}>
-        <table className="w-full border-collapse">
-          {/* Sticky Header */}
-          <thead className="sticky top-0 bg-muted/50 border-b border-border">
+      {settings.enableRowReorder ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleRowDragEnd}
+        >
+          <SortableContext
+            items={table.getRowModel().rows.map((r) => r.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {settings.enableColumnReorder ? (
+              <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleColumnDragEnd}
+              >
+          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+            <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+              <table className="min-w-full table-auto">
+                <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {/* Sticky Actions Header */}
+              <tr key={hg.id} className="bg-muted/30">
+                {hg.headers.map((header) => (
+                  <DraggableHeader key={header.id} header={header} />
+                ))}
+              </tr>
+            ))}
+                </thead>
+                <tbody className="divide-y divide-border">
+            {table.getRowModel().rows.map((row) => (
+              <SortableRow key={row.id} row={row} columnOrder={columnOrder} />
+            ))}
+                </tbody>
+              </table>
+            </div>
+          </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+          <table className="min-w-full table-auto">
+            <thead className="sticky top-0 z-10">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id} className="bg-muted/30">
+            {hg.headers.map((header) => {
+              const isActions = header.column.id === "actions";
+              return (
                 <th
-                  className="sticky left-0 bg-muted/50 z-20 border-r border-border p-3 text-left text-sm font-medium text-foreground"
-                  style={{ width: actionsColumn.size }}
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
+                  style={{
+              width: header.getSize(),
+              position: "relative",
+              cursor: header.column.getCanSort() ? "pointer" : "default",
+                  }}
+                  className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30 truncate ${isActions ? "sticky left-0 z-20 whitespace-nowrap" : ""}`}
                 >
-                  Actions
+                  <div className="flex items-center justify-center gap-2 relative">
+              <div className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+              {settings.enableColumnResizing && header.column.getCanResize() && (
+                <div
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    header.getResizeHandler()(e);
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    header.getResizeHandler()(e);
+                  }}
+                  className="absolute right-0"
+                  style={{
+                    top: "25%",
+                    height: "50%",
+                    width: "4px",
+                    background: "var(--border)",
+                    cursor: "col-resize",
+                    zIndex: 30,
+                    borderLeft: "1px solid var(--border)",
+                    borderRadius: "2px",
+                    pointerEvents: "auto",
+                  }}
+                  data-no-dnd="true"
+                />
+              )}
+                  </div>
                 </th>
-                {settings.enableColumnReorder ? (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleColumnDragEnd}
-                  >
-                    <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-                      {hg.headers.map((header) => (
-                        <DraggableHeader key={header.id} header={header} />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                ) : (
-                  hg.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
-                      style={{
-                        width: header.getSize(),
-                        position: "relative",
-                        cursor: header.column.getCanSort() ? "pointer" : "default",
-                      }}
-                      className="border-r border-border p-3 text-left text-sm font-medium text-foreground bg-muted/30"
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {settings.enableColumnResizing && header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className="absolute right-0 top-0 h-full w-1 bg-border cursor-col-resize hover:bg-primary/20"
-                        />
-                      )}
-                    </th>
-                  ))
-                )}
+              );
+            })}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y divide-border">
+              {table.getRowModel().rows.map((row) => (
+                <SortableRow key={row.id} row={row} columnOrder={columnOrder} />
+              ))}
+            </tbody>
+          </table>
+              </div>
+            )}
+          </SortableContext>
+        </DndContext>
+      ) : settings.enableColumnReorder ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleColumnDragEnd}
+        >
+          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+            <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+              <table className="min-w-full table-auto">
+          <thead className="sticky top-0 z-10">
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id} className="bg-muted/30">
+                {hg.headers.map((header) => (
+            <DraggableHeader key={header.id} header={header} />
+                ))}
               </tr>
             ))}
           </thead>
-
-          {/* Body with Drag & Drop */}
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleRowDragEnd}>
-            <SortableContext
-              items={table.getRowModel().rows.map((r) => r.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <SortableRow key={row.id} row={row} />
-                ))}
-              </tbody>
-            </SortableContext>
-          </DndContext>
-        </table>
-      </div>
+          <tbody className="divide-y divide-border">
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+                  {row.getVisibleCells().map((cell) => (
+                    <DragAlongCell key={cell.id} cell={cell.getContext()} />
+                  ))}
+                </SortableContext>
+              </tr>
+            ))}
+          </tbody>
+              </table>
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+          <table className="min-w-full table-auto">
+            <thead className="sticky top-0 z-10">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id} className="bg-muted/30">
+                  {hg.headers.map((header) => {
+                    const isActions = header.column.id === "actions";
+                    return (
+                      <th
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
+                        style={{
+                          width: header.getSize(),
+                          position: "relative",
+                          cursor: header.column.getCanSort() ? "pointer" : "default",
+                        }}
+                        className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30 truncate ${isActions ? "sticky left-0 z-20 whitespace-nowrap" : ""}`}
+                      >
+                        <div className="flex items-center justify-center gap-2 relative">
+                          <div className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                          {settings.enableColumnResizing && header.column.getCanResize() && (
+                            <div
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                header.getResizeHandler()(e);
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                header.getResizeHandler()(e);
+                              }}
+                              className="absolute right-0"
+                              style={{
+                                top: "25%",
+                                height: "50%",
+                                width: "4px",
+                                background: "var(--border)",
+                                cursor: "col-resize",
+                                zIndex: 30,
+                                borderLeft: "1px solid var(--border)",
+                                borderRadius: "2px",
+                                pointerEvents: "auto",
+                              }}
+                              data-no-dnd="true"
+                            />
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y divide-border">
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                  {row.getVisibleCells().map((cell) => {
+                    const align = (cell.column.columnDef.meta as { align?: "left" | "center" | "right" } | undefined)?.align ?? "left";
+                    const isActions = cell.column.id === "actions";
+                    return (
+                      <td
+                        key={cell.id}
+                        style={{ textAlign: align }}
+                        className={`px-1 py-0.5 text-sm align-middle whitespace-nowrap overflow-hidden ${isActions ? "sticky left-0 z-20 whitespace-nowrap" : ""}`}
+                      >
+                        <div className="truncate">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Pagination */}
       {settings.showPagination && (
@@ -546,52 +859,3 @@ export function TableContainer<T extends object>({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-  // const { data: gridSettings } = useGetGridLayout(
-  //   moduleId?.toString() || "", // Convert module ID to string
-  //   transactionId?.toString() || "", // Convert transaction ID to string
-  //   tableName // Table name for settings lookup
-  // )
-  // //const gridSettings = gridSettings?.data
-  // // ============================================================================
-  // // STATE MANAGEMENT WITH GRID SETTINGS
-  // // ============================================================================
-  // // Initialize table state with grid settings if available
-  // const getInitialSorting = (): SortingState => {
-  //   if (gridSettings?.grdSort) {
-  //     try {
-  //       return JSON.parse(gridSettings.grdSort) || []
-  //     } catch {
-  //       return []
-  //     }
-  //   }
-  //   return []
-  // }
-  // const getInitialColumnVisibility = (): VisibilityState => {
-  //   if (gridSettings?.grdColVisible) {
-  //     try {
-  //       return JSON.parse(gridSettings.grdColVisible) || {}
-  //     } catch {
-  //       return {}
-  //     }
-  //   }
-  //   return {}
-  // }
-  // const getInitialColumnSizing = () => {
-  //   if (gridSettings?.grdColSize) {
-  //     try {
-  //       return JSON.parse(gridSettings.grdColSize) || {}
-  //     } catch {
-  //       return {}
-  //     }
-  //   }
-  //   return {}
-  // }
