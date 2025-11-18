@@ -387,7 +387,7 @@ InvoiceDetailsForm.onSubmit()
   │   ├── totAmt = billQTY × unitPrice
   │   ├── handleTotalamountChange()
   │   │   ├── totLocalAmt = totAmt × exhRate
-  │   │   ├── handleTotalCityamountChange()
+  │   │   ├── handleTotalCountryamountChange()
   │   │   └── handleGstPercentageChange()
   │   │       ├── gstAmt = totAmt × gstPercentage
   │   │       ├── gstLocalAmt = gstAmt × exhRate
@@ -576,7 +576,7 @@ handleDtQtyChange(value)
       ├── rowData.totAmt = totAmt
       └── handleTotalamountChange()
           ├── totLocalAmt = totAmt × exhRate
-          ├── handleTotalCityamountChange()
+          ├── handleTotalCountryamountChange()
           └── handleGstPercentageChange()
               ├── gstAmt = totAmt × gstRate / 100
               ├── gstLocalAmt = gstAmt × exhRate
@@ -991,7 +991,7 @@ handleTotalamountChange(hdForm, rowData, decimals, visible)
 ├── exchangeRate = hdForm.getValues().exhRate ?? 0
 ├── totLocalAmt = calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
 ├── rowData.totLocalAmt = totLocalAmt
-├── handleTotalCityamountChange() → City amount
+├── handleTotalCountryamountChange() → City amount
 └── handleGstPercentageChange() → GST amounts
 ```
 
@@ -1017,19 +1017,19 @@ handleGstPercentageChange(hdForm, rowData, decimals, visible)
 
 ---
 
-#### 4. `handleTotalCityamountChange()`
+#### 4. `handleTotalCountryamountChange()`
 
 **Purpose:** Calculate city currency amount
 
 **Flow:**
 
 ```javascript
-handleTotalCityamountChange(hdForm, rowData, decimals, visible)
+handleTotalCountryamountChange(hdForm, rowData, decimals, visible)
 ├── totAmt = rowData.totAmt ?? 0
 ├── exchangeRate = hdForm.getValues().exhRate ?? 0
-├── cityExchangeRate = hdForm.getValues().ctyExhRate ?? 0
+├── countryExchangeRate = hdForm.getValues().ctyExhRate ?? 0
 ├── If visible.m_CtyCurr:
-│   └── totCtyAmt = totAmt × cityExchangeRate
+│   └── totCtyAmt = totAmt × countryExchangeRate
 └── Else:
     └── totCtyAmt = totAmt × exchangeRate
 ├── rowData.totCtyAmt = totCtyAmt
@@ -1047,9 +1047,9 @@ handleTotalCityamountChange(hdForm, rowData, decimals, visible)
 handleGstCityPercentageChange(hdForm, rowData, decimals, visible)
 ├── gstAmt = rowData.gstAmt ?? 0
 ├── exchangeRate = hdForm.getValues().exhRate ?? 0
-├── cityExchangeRate = hdForm.getValues().ctyExhRate ?? 0
+├── countryExchangeRate = hdForm.getValues().ctyExhRate ?? 0
 ├── If visible.m_CtyCurr:
-│   └── gstCtyAmt = gstAmt × cityExchangeRate
+│   └── gstCtyAmt = gstAmt × countryExchangeRate
 └── Else:
     └── gstCtyAmt = gstAmt × exchangeRate
 ├── rowData.gstCtyAmt = gstCtyAmt

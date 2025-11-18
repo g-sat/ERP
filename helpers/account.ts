@@ -230,7 +230,7 @@ export const handleQtyChange = (
 /**
  * Handle total amount change
  * Calculates: Local Amount = Total × Exchange Rate
- * Then triggers city amount and GST calculations
+ * Then triggers country amount and GST calculations
  * Modules: AP, AR
  */
 export const handleTotalamountChange = (
@@ -250,8 +250,8 @@ export const handleTotalamountChange = (
   )
   rowData.totLocalAmt = totLocalAmt
 
-  // Calculate city amount
-  handleTotalCityamountChange(hdForm, rowData, decimals, visible)
+  // Calculate country amount
+  handleTotalCountryamountChange(hdForm, rowData, decimals, visible)
 
   // Calculate GST amounts
   handleGstPercentageChange(hdForm, rowData, decimals, visible)
@@ -279,11 +279,11 @@ export const handleGstPercentageChange = (
   )
   rowData.gstLocalAmt = gstLocalAmt
 
-  // Calculate GST city amount
-  handleGstCityPercentageChange(hdForm, rowData, decimals, visible)
+  // Calculate GST country amount
+  handleGstCountryPercentageChange(hdForm, rowData, decimals, visible)
 }
 
-export const handleTotalCityamountChange = (
+export const handleTotalCountryamountChange = (
   hdForm: HdForm,
   rowData: DtForm,
   decimals: IDecimal,
@@ -291,13 +291,13 @@ export const handleTotalCityamountChange = (
 ) => {
   const totAmt = rowData?.totAmt ?? 0
   const exchangeRate = hdForm.getValues()?.exhRate ?? 0
-  const cityExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
+  const countryExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
   let totCtyAmt = 0
 
   if (visible?.m_CtyCurr) {
     totCtyAmt = calculateMultiplierAmount(
       totAmt,
-      cityExchangeRate,
+      countryExchangeRate,
       decimals?.locAmtDec
     )
   } else {
@@ -311,7 +311,7 @@ export const handleTotalCityamountChange = (
   rowData.totCtyAmt = totCtyAmt
 }
 
-export const handleGstCityPercentageChange = (
+export const handleGstCountryPercentageChange = (
   hdForm: HdForm,
   rowData: DtForm,
   decimals: IDecimal,
@@ -319,13 +319,13 @@ export const handleGstCityPercentageChange = (
 ) => {
   const gstAmt = rowData?.gstAmt ?? 0
   const exchangeRate = hdForm.getValues()?.exhRate ?? 0
-  const cityExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
+  const countryExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
   let gstCtyAmt = 0
 
   if (visible?.m_CtyCurr) {
     gstCtyAmt = calculateMultiplierAmount(
       gstAmt,
-      cityExchangeRate,
+      countryExchangeRate,
       decimals?.locAmtDec
     )
   } else {
@@ -463,7 +463,7 @@ export const setDueDate = async (form: HdForm) => {
 
 /**
  * Fetch and set exchange rate based on currency and date
- * Also sets city exchange rate if not using separate city currency
+ * Also sets country exchange rate if not using separate country currency
  * Modules: AP, AR, CB, GL
  */
 export const setExchangeRate = async (
@@ -497,7 +497,7 @@ export const setExchangeRate = async (
 
 /**
  * Fetch and set local currency exchange rate
- * Used for city/country currency conversions
+ * Used for country/country currency conversions
  * Modules: AP, AR, CB, GL
  */
 export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
@@ -521,7 +521,7 @@ export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
 
 /**
  * Fetch and set exchange rate based on currency and date
- * Also sets city exchange rate if not using separate city currency
+ * Also sets country exchange rate if not using separate country currency
  * Modules: AP, AR, CB, GL
  */
 export const setFromExchangeRate = async (
@@ -554,7 +554,7 @@ export const setFromExchangeRate = async (
 
 /**
  * Fetch and set exchange rate based on currency and date
- * Also sets city exchange rate if not using separate city currency
+ * Also sets country exchange rate if not using separate country currency
  * Modules: AP, AR, CB, GL
  */
 export const setToExchangeRate = async (
@@ -627,7 +627,7 @@ export const setToExchangeRateDetails = async (
 
 /**
  * Fetch and set exchange rate based on currency and date
- * Also sets city exchange rate if not using separate city currency
+ * Also sets country exchange rate if not using separate country currency
  * Modules: AP, AR, CB, GL
  */
 export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
@@ -809,7 +809,7 @@ export const setAddressContactDetails = async (
 
 /**
  * Fetch and set exchange rate based on currency and date
- * Also sets city exchange rate if not using separate city currency
+ * Also sets country exchange rate if not using separate country currency
  * Modules: AP, AR, CB, GL
  */
 export const setExchangeRate_JobOrder = async (

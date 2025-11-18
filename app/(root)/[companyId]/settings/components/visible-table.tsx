@@ -380,7 +380,9 @@ export function VisibleTable() {
     {
       accessorKey: "m_CtyCurr",
       header: () => (
-        <div className="text-center font-medium text-wrap">City Currency</div>
+        <div className="text-center font-medium text-wrap">
+          Country Currency
+        </div>
       ),
       cell: ({ row }) => (
         <div className="text-center">

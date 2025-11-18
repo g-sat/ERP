@@ -12,7 +12,7 @@ import {
 import {
   recalculateAllDetailsLocalAndCtyAmounts,
   recalculateAndSetHeaderTotals,
-  syncCityExchangeRate,
+  syncCountryExchangeRate,
 } from "@/helpers/ap-invoice-calculations"
 import { IApInvoiceDt } from "@/interfaces"
 import {
@@ -368,13 +368,13 @@ export default function InvoiceForm({
 
         // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
-        const cityExchangeRate = form.getValues("ctyExhRate") || 0
+        const countryExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IApInvoiceDt[],
           exchangeRate,
-          cityExchangeRate,
+          countryExchangeRate,
           decimals[0],
           !!visible?.m_CtyCurr
         )
@@ -412,7 +412,11 @@ export default function InvoiceForm({
       const formDetails = form.getValues("data_details")
 
       // Sync city exchange rate with exchange rate if needed
-      const cityExchangeRate = syncCityExchangeRate(form, exchangeRate, visible)
+      const countryExchangeRate = syncCountryExchangeRate(
+        form,
+        exchangeRate,
+        visible
+      )
 
       // Recalculate all details in table if they exist
       if (formDetails && formDetails.length > 0) {
@@ -420,7 +424,7 @@ export default function InvoiceForm({
         const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IApInvoiceDt[],
           exchangeRate,
-          cityExchangeRate,
+          countryExchangeRate,
           decimals[0],
           !!visible?.m_CtyCurr
         )
@@ -442,7 +446,7 @@ export default function InvoiceForm({
       if (detailsFormRef?.current) {
         detailsFormRef.current.recalculateAmounts(
           exchangeRate,
-          cityExchangeRate
+          countryExchangeRate
         )
       }
     },
@@ -450,18 +454,18 @@ export default function InvoiceForm({
   )
 
   // Handle city exchange rate focus - capture original value
-  const handleCityExchangeRateFocus = React.useCallback(() => {
+  const handleCountryExchangeRateFocus = React.useCallback(() => {
     originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
   }, [form])
 
   // Handle city exchange rate blur - recalculate amounts when user leaves the field
-  const handleCityExchangeRateBlur = React.useCallback(
+  const handleCountryExchangeRateBlur = React.useCallback(
     (_e: React.FocusEvent<HTMLInputElement>) => {
-      const cityExchangeRate = form.getValues("ctyExhRate") || 0
+      const countryExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
       // Only recalculate if value is different from original
-      if (cityExchangeRate === originalCtyExhRate) {
+      if (countryExchangeRate === originalCtyExhRate) {
         return
       }
 
@@ -476,7 +480,7 @@ export default function InvoiceForm({
       const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IApInvoiceDt[],
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
@@ -496,7 +500,7 @@ export default function InvoiceForm({
       if (detailsFormRef?.current) {
         detailsFormRef.current.recalculateAmounts(
           exchangeRate,
-          cityExchangeRate
+          countryExchangeRate
         )
       }
     },
@@ -619,16 +623,16 @@ export default function InvoiceForm({
           />
           {visible?.m_CtyCurr && (
             <>
-              {/* City Exchange Rate */}
+              {/* Country Exchange Rate */}
               <CustomNumberInput
                 form={form}
                 name="ctyExhRate"
-                label="City Exchange Rate"
+                label="Country Exchange Rate"
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onFocusEvent={handleCityExchangeRateFocus}
-                onBlurEvent={handleCityExchangeRateBlur}
+                onFocusEvent={handleCountryExchangeRateFocus}
+                onBlurEvent={handleCountryExchangeRateBlur}
               />
             </>
           )}

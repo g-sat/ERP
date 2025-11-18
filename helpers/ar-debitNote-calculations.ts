@@ -119,16 +119,20 @@ export const calculateLocalAmount = (
 //used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateCtyAmount = (
   totAmt: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal
 ) => {
-  return calculateMultiplierAmount(totAmt, cityExchangeRate, decimals.ctyAmtDec)
+  return calculateMultiplierAmount(
+    totAmt,
+    countryExchangeRate,
+    decimals.ctyAmtDec
+  )
 }
 
 export const recalculateDetailLocalAndCtyAmounts = (
   detail: IArDebitNoteDt,
   exchangeRate: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal,
   hasCountryCurrency: boolean
 ) => {
@@ -144,8 +148,8 @@ export const recalculateDetailLocalAndCtyAmounts = (
   let totCtyAmt = 0
   let gstCtyAmt = 0
   if (hasCountryCurrency) {
-    totCtyAmt = calculateCtyAmount(totAmt, cityExchangeRate, decimals)
-    gstCtyAmt = calculateCtyAmount(gstAmt, cityExchangeRate, decimals)
+    totCtyAmt = calculateCtyAmount(totAmt, countryExchangeRate, decimals)
+    gstCtyAmt = calculateCtyAmount(gstAmt, countryExchangeRate, decimals)
   } else {
     // If m_CtyCurr is false, city amounts = local amounts
     totCtyAmt = totLocalAmt
@@ -165,7 +169,7 @@ export const recalculateDetailLocalAndCtyAmounts = (
 export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IArDebitNoteDt[],
   exchangeRate: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal,
   hasCountryCurrency: boolean
 ) => {
@@ -173,7 +177,7 @@ export const recalculateAllDetailsLocalAndCtyAmounts = (
     recalculateDetailLocalAndCtyAmounts(
       detail,
       exchangeRate,
-      cityExchangeRate,
+      countryExchangeRate,
       decimals,
       hasCountryCurrency
     )
@@ -188,7 +192,7 @@ export const recalculateDetailFormAmounts = (
   decimals: IDecimal,
   visible: IVisibleFields,
   exchangeRate?: number,
-  cityExchangeRate?: number
+  countryExchangeRate?: number
 ) => {
   // Use provided exchange rates or read from form
   const currentExchangeRate =
@@ -196,13 +200,13 @@ export const recalculateDetailFormAmounts = (
 
   // Always recalculate if exchange rate is valid (even if totAmt is 0, we should update local amounts to 0)
   if (currentExchangeRate > 0) {
-    // Use provided cityExchangeRate if available, otherwise sync with exchange rate
-    let finalCityExchangeRate: number
-    if (cityExchangeRate !== undefined && visible?.m_CtyCurr) {
-      finalCityExchangeRate = cityExchangeRate
+    // Use provided countryExchangeRate if available, otherwise sync with exchange rate
+    let finalCountryExchangeRate: number
+    if (countryExchangeRate !== undefined && visible?.m_CtyCurr) {
+      finalCountryExchangeRate = countryExchangeRate
     } else {
       // Sync city exchange rate with exchange rate if needed
-      finalCityExchangeRate = syncCityExchangeRate(
+      finalCountryExchangeRate = syncCountryExchangeRate(
         hdForm,
         currentExchangeRate,
         visible
@@ -221,7 +225,7 @@ export const recalculateDetailFormAmounts = (
     const recalculatedDetail = recalculateDetailLocalAndCtyAmounts(
       detail,
       currentExchangeRate,
-      finalCityExchangeRate,
+      finalCountryExchangeRate,
       decimals,
       !!visible?.m_CtyCurr
     )
@@ -310,7 +314,7 @@ export const recalculateAndSetHeaderTotals = (
 }
 
 //sync city exchange rate with exchange rate if needed
-export const syncCityExchangeRate = (
+export const syncCountryExchangeRate = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>,
   exchangeRate: number,
@@ -327,7 +331,7 @@ export const syncCityExchangeRate = (
 export const calculateGstLocalAndCtyAmounts = (
   gstAmt: number,
   exchangeRate: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -343,7 +347,7 @@ export const calculateGstLocalAndCtyAmounts = (
   if (visible?.m_CtyCurr) {
     gstCtyAmt = calculateMultiplierAmount(
       gstAmt,
-      cityExchangeRate,
+      countryExchangeRate,
       decimals?.ctyAmtDec || 2
     )
   } else {

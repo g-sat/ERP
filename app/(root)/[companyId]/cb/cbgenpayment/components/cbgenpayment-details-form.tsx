@@ -97,7 +97,7 @@ export default function CbGenPaymentDetailsForm({
 
   // Refs to track previous exchange rates to detect changes
   const prevExchangeRateRef = useRef<number>(0)
-  const prevCityExchangeRateRef = useRef<number>(0)
+  const prevCountryExchangeRateRef = useRef<number>(0)
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -256,14 +256,14 @@ export default function CbGenPaymentDetailsForm({
 
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
-  const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+  const watchedCountryExchangeRate = Hdform.watch("ctyExhRate")
 
   // Initialize exchange rate refs with current values on mount
   useEffect(() => {
     const currentExhRate = Hdform.getValues("exhRate") || 0
     const currentCtyExhRate = Hdform.getValues("ctyExhRate") || 0
     prevExchangeRateRef.current = currentExhRate
-    prevCityExchangeRateRef.current = currentCtyExhRate
+    prevCountryExchangeRateRef.current = currentCtyExhRate
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -334,22 +334,22 @@ export default function CbGenPaymentDetailsForm({
   // Recalculate local amounts when exchange rate changes (only on actual change, works in edit mode too)
   useEffect(() => {
     const currentExchangeRate = watchedExchangeRate || 0
-    const currentCityExchangeRate = watchedCityExchangeRate || 0
+    const currentCountryExchangeRate = watchedCountryExchangeRate || 0
 
     // Check if exchange rates have actually changed
     const exchangeRateChanged =
       currentExchangeRate !== prevExchangeRateRef.current
-    const cityExchangeRateChanged =
-      currentCityExchangeRate !== prevCityExchangeRateRef.current
+    const countryExchangeRateChanged =
+      currentCountryExchangeRate !== prevCountryExchangeRateRef.current
 
     // Only recalculate if exchange rates have changed
-    if (!exchangeRateChanged && !cityExchangeRateChanged) {
+    if (!exchangeRateChanged && !countryExchangeRateChanged) {
       return
     }
 
     // Update refs with current values
     prevExchangeRateRef.current = currentExchangeRate
-    prevCityExchangeRateRef.current = currentCityExchangeRate
+    prevCountryExchangeRateRef.current = currentCountryExchangeRate
 
     const currentValues = form.getValues()
 
@@ -360,7 +360,7 @@ export default function CbGenPaymentDetailsForm({
       const totAmt = rowData.totAmt || 0
       const gstAmt = rowData.gstAmt || 0
 
-      // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+      // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
       const exchangeRate = currentExchangeRate
       if (!visible?.m_CtyCurr) {
         Hdform.setValue("ctyExhRate", exchangeRate)
@@ -374,14 +374,14 @@ export default function CbGenPaymentDetailsForm({
       )
 
       // Recalculate total city amount
-      const cityExchangeRate = visible?.m_CtyCurr
-        ? currentCityExchangeRate
+      const countryExchangeRate = visible?.m_CtyCurr
+        ? currentCountryExchangeRate
         : exchangeRate
       let totCtyAmt = 0
       if (visible?.m_CtyCurr) {
         totCtyAmt = calculateMultiplierAmount(
           totAmt,
-          cityExchangeRate,
+          countryExchangeRate,
           decimals[0]?.locAmtDec || 2
         )
       } else {
@@ -400,7 +400,7 @@ export default function CbGenPaymentDetailsForm({
       if (visible?.m_CtyCurr) {
         gstCtyAmt = calculateMultiplierAmount(
           gstAmt,
-          cityExchangeRate,
+          countryExchangeRate,
           decimals[0]?.locAmtDec || 2
         )
       } else {
@@ -414,7 +414,7 @@ export default function CbGenPaymentDetailsForm({
       form.setValue("gstCtyAmt", gstCtyAmt)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedExchangeRate, watchedCityExchangeRate])
+  }, [watchedExchangeRate, watchedCountryExchangeRate])
 
   // Reset form when editingDetail changes
   useEffect(() => {
@@ -709,7 +709,7 @@ export default function CbGenPaymentDetailsForm({
   const triggerTotalAmountCalculation = () => {
     const rowData = form.getValues()
 
-    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
     if (!visible?.m_CtyCurr) {
       Hdform.setValue("ctyExhRate", exchangeRate)
@@ -727,7 +727,7 @@ export default function CbGenPaymentDetailsForm({
   const triggerGstCalculation = () => {
     const rowData = form.getValues()
 
-    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
     if (!visible?.m_CtyCurr) {
       Hdform.setValue("ctyExhRate", exchangeRate)
@@ -974,12 +974,12 @@ export default function CbGenPaymentDetailsForm({
             isDisabled={true}
           />
 
-          {/* City Amount */}
+          {/* Country Amount */}
           {visible?.m_CtyCurr && (
             <CustomNumberInput
               form={form}
               name="totCtyAmt"
-              label="Total City Amount"
+              label="Total Country Amount"
               round={locAmtDec}
               className="text-right"
               isDisabled={true}
@@ -1029,12 +1029,12 @@ export default function CbGenPaymentDetailsForm({
             isDisabled={true}
           />
 
-          {/* GST City Amount */}
+          {/* GST Country Amount */}
           {visible?.m_CtyCurr && (
             <CustomNumberInput
               form={form}
               name="gstCtyAmt"
-              label="GST City Amount"
+              label="GST Country Amount"
               round={locAmtDec}
               className="text-right"
               isDisabled={true}

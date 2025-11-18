@@ -21,7 +21,7 @@ export const CbGenReceiptHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.0, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "Country Exchange Rate must be greater than 0"),
 
     // Bank Fields
     bankId:

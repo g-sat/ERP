@@ -12,7 +12,7 @@ recalculateAllDetailsLocalAndCtyAmounts (cb-bankrecon-calculations.ts)
 ┌─────────────────────────────────────────────────────────┐
 │ FOR EACH RECONCILIATION ITEM:                          │
 │ 1. Calculate totLocalAmt = totAmt * newExhRate        │
-│ 2. Calculate ctyAmt = totAmt * cityExhRate             │
+│ 2. Calculate ctyAmt = totAmt * countryExhRate             │
 │ 3. Update reconciliation amounts                       │
 └─────────────────────────────────────────────────────────┘
     ↓
@@ -62,7 +62,7 @@ handleCurrencyChange (cbbankrecon-form.tsx)
 │ Currency Setup Logic:                                  │
 │ 1. Set currencyId = selectedCurrency.currencyId        │
 │ 2. Set exchangeRate = currency's exchange rate        │
-│ 3. Set cityExchangeRate = currency's city exchange rate │
+│ 3. Set countryExchangeRate = currency's city exchange rate │
 │ 4. Recalculate all amounts with new rates             │
 └─────────────────────────────────────────────────────────┘
     ↓

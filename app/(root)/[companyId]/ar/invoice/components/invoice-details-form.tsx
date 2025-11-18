@@ -16,7 +16,7 @@ import {
 import {
   calculateGstLocalAndCtyAmounts,
   recalculateDetailFormAmounts,
-  syncCityExchangeRate,
+  syncCountryExchangeRate,
 } from "@/helpers/ar-invoice-calculations"
 import { IArInvoiceDt } from "@/interfaces"
 import {
@@ -68,7 +68,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 import { getDefaultValues } from "./invoice-defaultvalues"
 
 export interface InvoiceDetailsFormRef {
-  recalculateAmounts: (exchangeRate?: number, cityExchangeRate?: number) => void
+  recalculateAmounts: (
+    exchangeRate?: number,
+    countryExchangeRate?: number
+  ) => void
 }
 
 interface InvoiceDetailsFormProps {
@@ -131,7 +134,7 @@ const InvoiceDetailsForm = React.forwardRef<
     // Store exchange rates when detail is loaded for editing
     // This allows us to check if exchange rate changed and only recalculate if needed
     const exchangeRateWhenLoadedRef = useRef<number>(0)
-    const cityExchangeRateWhenLoadedRef = useRef<number>(0)
+    const countryExchangeRateWhenLoadedRef = useRef<number>(0)
 
     // Calculate next itemNo based on existing details
     const getNextItemNo = () => {
@@ -332,7 +335,7 @@ const InvoiceDetailsForm = React.forwardRef<
     // Uses reusable helper function from ar-invoice-calculations
     const recalculateAmountsOnExchangeRateChange = (
       exchangeRate?: number,
-      cityExchangeRate?: number
+      countryExchangeRate?: number
     ) => {
       recalculateDetailFormAmounts(
         form,
@@ -340,7 +343,7 @@ const InvoiceDetailsForm = React.forwardRef<
         decimals[0],
         visible,
         exchangeRate,
-        cityExchangeRate
+        countryExchangeRate
       )
     }
 
@@ -460,7 +463,7 @@ const InvoiceDetailsForm = React.forwardRef<
         // Store exchange rates when detail is loaded for editing
         // This allows us to check if exchange rate changed and only recalculate if needed
         exchangeRateWhenLoadedRef.current = Hdform.getValues("exhRate") || 0
-        cityExchangeRateWhenLoadedRef.current =
+        countryExchangeRateWhenLoadedRef.current =
           Hdform.getValues("ctyExhRate") || 0
 
         // Determine if editing detail is job-specific or department-specific
@@ -529,7 +532,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
         // Store current exchange rates for new record
         exchangeRateWhenLoadedRef.current = Hdform.getValues("exhRate") || 0
-        cityExchangeRateWhenLoadedRef.current =
+        countryExchangeRateWhenLoadedRef.current =
           Hdform.getValues("ctyExhRate") || 0
 
         // Reset submit attempted flag when creating new record
@@ -543,17 +546,18 @@ const InvoiceDetailsForm = React.forwardRef<
         // Only recalculate amounts if exchange rate has changed since detail was loaded
         // This prevents unnecessary recalculation when user only changes remarks or other non-amount fields
         const currentExchangeRate = Hdform.getValues("exhRate") || 0
-        const currentCityExchangeRate = Hdform.getValues("ctyExhRate") || 0
+        const currentCountryExchangeRate = Hdform.getValues("ctyExhRate") || 0
         const exchangeRateChanged =
           currentExchangeRate !== exchangeRateWhenLoadedRef.current ||
-          currentCityExchangeRate !== cityExchangeRateWhenLoadedRef.current
+          currentCountryExchangeRate !==
+            countryExchangeRateWhenLoadedRef.current
 
         if (exchangeRateChanged) {
           // Recalculate amounts based on current exchange rate before validation
           // This happens during form submission, not immediately on exchange rate change
           recalculateAmountsOnExchangeRateChange(
             currentExchangeRate,
-            currentCityExchangeRate
+            currentCountryExchangeRate
           )
         }
 
@@ -748,7 +752,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
         // Sync city exchange rate with exchange rate if needed
         const exchangeRate = Hdform.getValues("exhRate") || 0
-        syncCityExchangeRate(Hdform, exchangeRate, visible)
+        syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
         // Calculate GST amounts with the new percentage
         handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
@@ -854,7 +858,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      syncCityExchangeRate(Hdform, exchangeRate, visible)
+      syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
       handleTotalamountChange(Hdform, rowData, decimals[0], visible)
       // Update only the calculated fields
@@ -870,7 +874,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      syncCityExchangeRate(Hdform, exchangeRate, visible)
+      syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
       handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
       // Update only the calculated fields
@@ -924,7 +928,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      const cityExchangeRate = syncCityExchangeRate(
+      const countryExchangeRate = syncCountryExchangeRate(
         Hdform,
         exchangeRate,
         visible
@@ -934,7 +938,7 @@ const InvoiceDetailsForm = React.forwardRef<
       const { gstLocalAmt, gstCtyAmt } = calculateGstLocalAndCtyAmounts(
         value,
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         decimals[0],
         visible
       )
@@ -965,7 +969,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      syncCityExchangeRate(Hdform, exchangeRate, visible)
+      syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
       handleQtyChange(Hdform, rowData, decimals[0], visible)
       // Update only the calculated fields
@@ -988,7 +992,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      syncCityExchangeRate(Hdform, exchangeRate, visible)
+      syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
       handleQtyChange(Hdform, rowData, decimals[0], visible)
       // Update only the calculated fields
@@ -1023,7 +1027,7 @@ const InvoiceDetailsForm = React.forwardRef<
 
       // Sync city exchange rate with exchange rate if needed
       const exchangeRate = Hdform.getValues("exhRate") || 0
-      syncCityExchangeRate(Hdform, exchangeRate, visible)
+      syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
       // Recalculate using billQTY (not the value parameter)
       handleQtyChange(Hdform, rowData, decimals[0], visible)
@@ -1272,12 +1276,12 @@ const InvoiceDetailsForm = React.forwardRef<
               isDisabled={true}
             />
 
-            {/* City Amount */}
+            {/* Country Amount */}
             {visible?.m_CtyCurr && (
               <CustomNumberInput
                 form={form}
                 name="totCtyAmt"
-                label="Total City Amount"
+                label="Total Country Amount"
                 round={locAmtDec}
                 className="text-right"
                 isDisabled={true}
@@ -1327,12 +1331,12 @@ const InvoiceDetailsForm = React.forwardRef<
               isDisabled={true}
             />
 
-            {/* GST City Amount */}
+            {/* GST Country Amount */}
             {visible?.m_CtyCurr && (
               <CustomNumberInput
                 form={form}
                 name="gstCtyAmt"
-                label="GST City Amount"
+                label="GST Country Amount"
                 round={locAmtDec}
                 className="text-right"
                 isDisabled={true}

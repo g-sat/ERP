@@ -30,7 +30,7 @@ export const ApAdjustmentHdSchema = (
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
-      .min(0.0, "City Exchange Rate must be greater than 0"),
+      .min(0.0, "Country Exchange Rate must be greater than 0"),
 
     // Credit Terms
     creditTermId: z.number().min(1, "Credit Term is required"),

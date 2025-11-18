@@ -180,12 +180,12 @@ export default function InvoiceForm({
 
         // Recalculate all details with new exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
-        const cityExchangeRate = form.getValues("ctyExhRate") || 0
+        const countryExchangeRate = form.getValues("ctyExhRate") || 0
 
         const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           details,
           exchangeRate,
-          cityExchangeRate,
+          countryExchangeRate,
           {
             amtDec: decimals[0]?.amtDec || 2,
             locAmtDec: decimals[0]?.locAmtDec || 2,
@@ -237,13 +237,13 @@ export default function InvoiceForm({
     (e: React.FocusEvent<HTMLInputElement>) => {
       const details = form.getValues("data_details") as IInvoiceDetail[]
       const exchangeRate = parseFloat(e.target.value) || 0
-      const cityExchangeRate = form.getValues("ctyExhRate") || 0
+      const countryExchangeRate = form.getValues("ctyExhRate") || 0
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         details,
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
@@ -284,17 +284,17 @@ export default function InvoiceForm({
   )
 
   // Handle city exchange rate change
-  const handleCityExchangeRateChange = React.useCallback(
+  const handleCountryExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const details = form.getValues("data_details") as IInvoiceDetail[]
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
+      const countryExchangeRate = parseFloat(e.target.value) || 0
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         details,
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         {
           amtDec: decimals[0]?.amtDec || 2,
           locAmtDec: decimals[0]?.locAmtDec || 2,
@@ -405,15 +405,15 @@ export default function InvoiceForm({
         />
         {visible?.m_CtyCurr && (
           <>
-            {/* City Exchange Rate */}
+            {/* Country Exchange Rate */}
             <CustomNumberInput
               form={form}
               name="ctyExhRate"
-              label="City Exchange Rate"
+              label="Country Exchange Rate"
               isRequired={true}
               round={exhRateDec}
               className="text-right"
-              onBlurEvent={handleCityExchangeRateChange}
+              onBlurEvent={handleCountryExchangeRateChange}
             />
           </>
         )}

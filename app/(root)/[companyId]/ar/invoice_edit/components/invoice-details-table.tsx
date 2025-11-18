@@ -582,7 +582,7 @@ export default function InvoiceDetailsTable({
     nextField?: string
   ) => {
     const exchangeRate = form.getValues().exhRate || 0
-    const cityExchangeRate = form.getValues().ctyExhRate || 0
+    const countryExchangeRate = form.getValues().ctyExhRate || 0
     const newBillQTY =
       field === "billQTY"
         ? parseFloat(rawValue) || 0
@@ -617,7 +617,7 @@ export default function InvoiceDetailsTable({
       const recalculatedRow = recalculateDetailAmounts(
         updatedRow as IInvoiceDetail,
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         {
           amtDec: decimals[0]?.amtDec || 2,
           locAmtDec: decimals[0]?.locAmtDec || 2,
@@ -688,7 +688,7 @@ export default function InvoiceDetailsTable({
   // Update the handleTotalAmountChange function
   const handleTotalAmountChange = (rowId: string) => {
     const exchangeRate = form.getValues().exhRate || 0
-    const cityExchangeRate = form.getValues().ctyExhRate || 0
+    const countryExchangeRate = form.getValues().ctyExhRate || 0
 
     setData((prev) =>
       prev.map((row) => {
@@ -696,7 +696,7 @@ export default function InvoiceDetailsTable({
           return recalculateDetailAmounts(
             { ...row } as IInvoiceDetail,
             exchangeRate,
-            cityExchangeRate,
+            countryExchangeRate,
             {
               amtDec: decimals[0]?.amtDec || 2,
               locAmtDec: decimals[0]?.locAmtDec || 2,
@@ -723,7 +723,7 @@ export default function InvoiceDetailsTable({
         setData((prev) =>
           prev.map((row) => {
             const exchangeRate = form.getValues().exhRate || 0
-            const cityExchangeRate = form.getValues().ctyExhRate || 0
+            const countryExchangeRate = form.getValues().ctyExhRate || 0
             const totAmt = parseFloat(row.totAmt?.toString() as string) || 0
             const gstPercentage = parseFloat(row.gstPercentage?.toString()) || 0
             const gstAmt = calculateMultiplierAmount(
@@ -750,12 +750,12 @@ export default function InvoiceDetailsTable({
             if (visible?.m_CtyCurr) {
               totCtyAmt = calculateMultiplierAmount(
                 totAmt,
-                cityExchangeRate,
+                countryExchangeRate,
                 ctyAmtDec
               )
               gstCtyAmt = calculateMultiplierAmount(
                 gstAmt,
-                cityExchangeRate,
+                countryExchangeRate,
                 ctyAmtDec
               )
             }
@@ -1190,11 +1190,11 @@ export default function InvoiceDetailsTable({
 
                       // Update GST country amount if visible
                       if (visible?.m_CtyCurr) {
-                        const cityExchangeRate =
+                        const countryExchangeRate =
                           form.getValues().ctyExhRate || 0
                         const gstCtyAmt = calculateMultiplierAmount(
                           gstAmt,
-                          cityExchangeRate,
+                          countryExchangeRate,
                           ctyAmtDec
                         )
                         await updateData(

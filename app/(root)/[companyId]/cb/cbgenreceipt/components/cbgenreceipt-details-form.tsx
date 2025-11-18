@@ -251,7 +251,7 @@ export default function CbGenReceiptDetailsForm({
 
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
-  const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+  const watchedCountryExchangeRate = Hdform.watch("ctyExhRate")
 
   // Apply default IDs when they become available (only for new records)
   useEffect(() => {
@@ -325,7 +325,7 @@ export default function CbGenReceiptDetailsForm({
     if ((currentValues.totAmt ?? 0) > 0) {
       const rowData = form.getValues()
 
-      // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+      // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
       if (!visible?.m_CtyCurr) {
         Hdform.setValue("ctyExhRate", watchedExchangeRate)
       }
@@ -340,7 +340,7 @@ export default function CbGenReceiptDetailsForm({
       form.setValue("gstCtyAmt", rowData.gstCtyAmt)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedExchangeRate, watchedCityExchangeRate])
+  }, [watchedExchangeRate, watchedCountryExchangeRate])
 
   // Reset form when editingDetail changes
   useEffect(() => {
@@ -635,7 +635,7 @@ export default function CbGenReceiptDetailsForm({
   const triggerTotalAmountCalculation = () => {
     const rowData = form.getValues()
 
-    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
     if (!visible?.m_CtyCurr) {
       Hdform.setValue("ctyExhRate", exchangeRate)
@@ -653,7 +653,7 @@ export default function CbGenReceiptDetailsForm({
   const triggerGstCalculation = () => {
     const rowData = form.getValues()
 
-    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    // Ensure countryExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
     if (!visible?.m_CtyCurr) {
       Hdform.setValue("ctyExhRate", exchangeRate)
@@ -900,12 +900,12 @@ export default function CbGenReceiptDetailsForm({
             isDisabled={true}
           />
 
-          {/* City Amount */}
+          {/* Country Amount */}
           {visible?.m_CtyCurr && (
             <CustomNumberInput
               form={form}
               name="totCtyAmt"
-              label="Total City Amount"
+              label="Total Country Amount"
               round={locAmtDec}
               className="text-right"
               isDisabled={true}
@@ -955,12 +955,12 @@ export default function CbGenReceiptDetailsForm({
             isDisabled={true}
           />
 
-          {/* GST City Amount */}
+          {/* GST Country Amount */}
           {visible?.m_CtyCurr && (
             <CustomNumberInput
               form={form}
               name="gstCtyAmt"
-              label="GST City Amount"
+              label="GST Country Amount"
               round={locAmtDec}
               className="text-right"
               isDisabled={true}

@@ -139,10 +139,14 @@ export const calculateLocalAmount = (
  */
 export const calculateCtyAmount = (
   totAmt: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal
 ) => {
-  return calculateMultiplierAmount(totAmt, cityExchangeRate, decimals.ctyAmtDec)
+  return calculateMultiplierAmount(
+    totAmt,
+    countryExchangeRate,
+    decimals.ctyAmtDec
+  )
 }
 
 /**
@@ -162,7 +166,7 @@ export const calculateTotalAmount = (
 export const recalculateDetailAmounts = (
   detail: ICbGenReceiptDt,
   exchangeRate: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal,
   hasCountryCurrency: boolean
 ) => {
@@ -180,8 +184,8 @@ export const recalculateDetailAmounts = (
   let totCtyAmt = 0
   let gstCtyAmt = 0
   if (hasCountryCurrency) {
-    totCtyAmt = calculateCtyAmount(totAmt, cityExchangeRate, decimals)
-    gstCtyAmt = calculateCtyAmount(gstAmt, cityExchangeRate, decimals)
+    totCtyAmt = calculateCtyAmount(totAmt, countryExchangeRate, decimals)
+    gstCtyAmt = calculateCtyAmount(gstAmt, countryExchangeRate, decimals)
   }
 
   return {
@@ -200,7 +204,7 @@ export const recalculateDetailAmounts = (
 export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: ICbGenReceiptDt[],
   exchangeRate: number,
-  cityExchangeRate: number,
+  countryExchangeRate: number,
   decimals: IDecimal,
   hasCountryCurrency: boolean
 ) => {
@@ -208,7 +212,7 @@ export const recalculateAllDetailsLocalAndCtyAmounts = (
     recalculateDetailAmounts(
       detail,
       exchangeRate,
-      cityExchangeRate,
+      countryExchangeRate,
       decimals,
       hasCountryCurrency
     )

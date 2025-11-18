@@ -276,13 +276,13 @@ export default function CbGenPaymentForm({
 
         // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
-        const cityExchangeRate = form.getValues("ctyExhRate") || 0
+        const countryExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as ICbGenPaymentDt[],
           exchangeRate,
-          cityExchangeRate,
+          countryExchangeRate,
           decimals[0],
           !!visible?.m_CtyCurr
         )
@@ -332,10 +332,10 @@ export default function CbGenPaymentForm({
 
       const formDetails = form.getValues("data_details")
 
-      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
-      let cityExchangeRate = form.getValues("ctyExhRate") || 0
+      // If m_CtyCurr is false, set countryExchangeRate = exchangeRate
+      let countryExchangeRate = form.getValues("ctyExhRate") || 0
       if (!visible?.m_CtyCurr) {
-        cityExchangeRate = exchangeRate
+        countryExchangeRate = exchangeRate
         form.setValue("ctyExhRate", exchangeRate)
       }
 
@@ -347,7 +347,7 @@ export default function CbGenPaymentForm({
       const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
@@ -366,33 +366,33 @@ export default function CbGenPaymentForm({
   )
 
   // Handle city exchange rate focus - capture original value
-  const handleCityExchangeRateFocus = React.useCallback(() => {
+  const handleCountryExchangeRateFocus = React.useCallback(() => {
     originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
     console.log(
-      "handleCityExchangeRateFocus - original value:",
+      "handleCountryExchangeRateFocus - original value:",
       originalCtyExhRateRef.current
     )
   }, [form])
 
   // Handle city exchange rate blur - recalculate amounts when user leaves the field
-  const handleCityExchangeRateBlur = React.useCallback(
+  const handleCountryExchangeRateBlur = React.useCallback(
     (_e: React.FocusEvent<HTMLInputElement>) => {
-      const cityExchangeRate = form.getValues("ctyExhRate") || 0
+      const countryExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
-      console.log("handleCityExchangeRateBlur", {
-        newValue: cityExchangeRate,
+      console.log("handleCountryExchangeRateBlur", {
+        newValue: countryExchangeRate,
         originalValue: originalCtyExhRate,
-        isDifferent: cityExchangeRate !== originalCtyExhRate,
+        isDifferent: countryExchangeRate !== originalCtyExhRate,
       })
 
       // Only recalculate if value is different from original
-      if (cityExchangeRate === originalCtyExhRate) {
-        console.log("City Exchange Rate unchanged - skipping recalculation")
+      if (countryExchangeRate === originalCtyExhRate) {
+        console.log("Country Exchange Rate unchanged - skipping recalculation")
         return
       }
 
-      console.log("City Exchange Rate changed - recalculating amounts")
+      console.log("Country Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
@@ -405,7 +405,7 @@ export default function CbGenPaymentForm({
       const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
-        cityExchangeRate,
+        countryExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
@@ -575,16 +575,16 @@ export default function CbGenPaymentForm({
           />
           {visible?.m_CtyCurr && (
             <>
-              {/* City Exchange Rate */}
+              {/* Country Exchange Rate */}
               <CustomNumberInput
                 form={form}
                 name="ctyExhRate"
-                label="City Exchange Rate"
+                label="Country Exchange Rate"
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onFocusEvent={handleCityExchangeRateFocus}
-                onBlurEvent={handleCityExchangeRateBlur}
+                onFocusEvent={handleCountryExchangeRateFocus}
+                onBlurEvent={handleCountryExchangeRateBlur}
               />
             </>
           )}

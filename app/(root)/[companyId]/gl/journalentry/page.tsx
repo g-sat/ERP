@@ -575,7 +575,7 @@ export default function GLJournalPage() {
 
           // Get updated exchange rates
           const exchangeRate = form.getValues("exhRate") || 0
-          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+          const countryExchangeRate = form.getValues("ctyExhRate") || 0
 
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
@@ -583,7 +583,7 @@ export default function GLJournalPage() {
             const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IGLJournalDt[],
               exchangeRate,
-              cityExchangeRate,
+              countryExchangeRate,
               decimals[0],
               !!visible?.m_CtyCurr
             )

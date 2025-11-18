@@ -14,8 +14,8 @@ recalculateAllDetailsLocalAndCtyAmounts (gl-journalentry-calculations.ts)
 │ 1. Calculate totLocalAmt = totAmt * newExhRate        │
 │ 2. Calculate gstLocalAmt = gstAmt * newExhRate        │
 │ 3. Calculate totLocalAmtAftGst = totLocalAmt + gstLocalAmt │
-│ 4. Calculate ctyAmt = totAmt * cityExhRate             │
-│ 5. Calculate ctyGstAmt = gstAmt * cityExhRate         │
+│ 4. Calculate ctyAmt = totAmt * countryExhRate             │
+│ 5. Calculate ctyGstAmt = gstAmt * countryExhRate         │
 │ 6. Calculate ctyTotAmtAftGst = ctyAmt + ctyGstAmt     │
 └─────────────────────────────────────────────────────────┘
     ↓
@@ -91,7 +91,7 @@ handleCurrencyChange (journalentry-form.tsx)
 │ Currency Setup Logic:                                  │
 │ 1. Set currencyId = selectedCurrency.currencyId        │
 │ 2. Set exchangeRate = currency's exchange rate        │
-│ 3. Set cityExchangeRate = currency's city exchange rate │
+│ 3. Set countryExchangeRate = currency's city exchange rate │
 │ 4. Recalculate all amounts with new rates             │
 └─────────────────────────────────────────────────────────┘
     ↓
@@ -222,7 +222,7 @@ calculateCtyAmounts
 recalculateAllDetailsLocalAndCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
-│ Input: details array, exchangeRate, cityExchangeRate    │
+│ Input: details array, exchangeRate, countryExchangeRate    │
 │ Output: updated details array                          │
 │                                                         │
 │ Formula:                                                │
@@ -230,8 +230,8 @@ recalculateAllDetailsLocalAndCtyAmounts
 │ - totLocalAmt = totAmt * exchangeRate                   │
 │ - gstLocalAmt = gstAmt * exchangeRate                  │
 │ - totLocalAmtAftGst = totLocalAmt + gstLocalAmt       │
-│ - ctyAmt = totAmt * cityExchangeRate                   │
-│ - ctyGstAmt = gstAmt * cityExchangeRate                │
+│ - ctyAmt = totAmt * countryExchangeRate                   │
+│ - ctyGstAmt = gstAmt * countryExchangeRate                │
 │ - ctyTotAmtAftGst = ctyAmt + ctyGstAmt                │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -273,7 +273,7 @@ setExchangeRate
 │ Logic:                                                  │
 │ - Get currency exchange rate from API                   │
 │ - Set exchangeRate in form                             │
-│ - Set cityExchangeRate if city currency enabled        │
+│ - Set countryExchangeRate if city currency enabled        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -284,11 +284,11 @@ setExchangeRateLocal
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: form, exhRateDec                               │
-│ Output: Sets cityExchangeRate in form                  │
+│ Output: Sets countryExchangeRate in form                  │
 │                                                         │
 │ Logic:                                                  │
 │ - Get city currency exchange rate from API               │
-│ - Set cityExchangeRate in form                         │
+│ - Set countryExchangeRate in form                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -322,7 +322,7 @@ setGSTPercentage
    - totLocalAmtAftGst = totLocalAmt + gstLocalAmt
 ```
 
-### B. Multi-Currency Mode (City Currency Enabled)
+### B. Multi-Currency Mode (Country Currency Enabled)
 
 ```
 1. Calculate all details with base amounts
@@ -375,7 +375,7 @@ Update header totals
 
 ## 12. KEY DECISION POINTS
 
-### A. City Currency Mode Detection
+### A. Country Currency Mode Detection
 
 ```
 IF visible?.m_CtyCurr === true:
