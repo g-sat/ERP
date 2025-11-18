@@ -157,7 +157,7 @@ export const recalculateDetailAmounts = (
   }
 }
 
-export const recalculateAllDetailAmounts = (
+export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IArDebitNoteDt[],
   exchangeRate: number,
   cityExchangeRate: number,
@@ -341,7 +341,7 @@ export const syncCityExchangeRate = (
   return hdForm.getValues("ctyExhRate") || exchangeRate
 }
 
-export const calculateGstLocalAndCityAmounts = (
+export const calculateGstLocalAndCtyAmounts = (
   gstAmt: number,
   exchangeRate: number,
   cityExchangeRate: number,

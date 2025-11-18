@@ -7,7 +7,7 @@ User Changes exhRate
     ↓
 handleExchangeRateChange (cbbankrecon-form.tsx)
     ↓
-recalculateAllDetailAmounts (cb-bankrecon-calculations.ts)
+recalculateAllDetailsLocalAndCtyAmounts (cb-bankrecon-calculations.ts)
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ FOR EACH RECONCILIATION ITEM:                          │
@@ -66,7 +66,7 @@ handleCurrencyChange (cbbankrecon-form.tsx)
 │ 4. Recalculate all amounts with new rates             │
 └─────────────────────────────────────────────────────────┘
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local and country amounts
     ↓
@@ -248,7 +248,7 @@ Archive reconciliation
 ```
 Exchange Rate Change
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local amounts (totLocalAmt, ctyAmt)
     ↓

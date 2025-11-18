@@ -12,7 +12,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ap-creditNote-calculations"
 import {
   IApCreditNoteDt,
@@ -626,7 +626,7 @@ export default function CreditNotePage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IApCreditNoteDt[],
               exchangeRate,
               cityExchangeRate,

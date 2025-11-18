@@ -7,7 +7,7 @@ User Changes exhRate
     ↓
 handleExchangeRateChange (journalentry-form.tsx)
     ↓
-recalculateAllDetailAmounts (gl-journalentry-calculations.ts)
+recalculateAllDetailsLocalAndCtyAmounts (gl-journalentry-calculations.ts)
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ FOR EACH JOURNAL ITEM:                                  │
@@ -95,7 +95,7 @@ handleCurrencyChange (journalentry-form.tsx)
 │ 4. Recalculate all amounts with new rates             │
 └─────────────────────────────────────────────────────────┘
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local and country amounts
     ↓
@@ -219,7 +219,7 @@ calculateCtyAmounts
 ### D. Detail Amount Recalculation
 
 ```
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: details array, exchangeRate, cityExchangeRate    │
@@ -338,7 +338,7 @@ setGSTPercentage
 ```
 Exchange Rate Change
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local amounts (totLocalAmt, gstLocalAmt, etc.)
     ↓
@@ -366,7 +366,7 @@ Currency Change
     ↓
 Set new exchange rates
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all amounts with new rates
     ↓

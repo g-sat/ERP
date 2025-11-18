@@ -11,7 +11,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/cb-genreceipt-calculations"
 import { ICbGenReceiptDt } from "@/interfaces"
 import {
@@ -279,7 +279,7 @@ export default function CbGenReceiptForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as ICbGenReceiptDt[],
           exchangeRate,
           cityExchangeRate,
@@ -344,7 +344,7 @@ export default function CbGenReceiptForm({
       }
 
       // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenReceiptDt[],
         exchangeRate,
         cityExchangeRate,
@@ -402,7 +402,7 @@ export default function CbGenReceiptForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenReceiptDt[],
         exchangeRate,
         cityExchangeRate,

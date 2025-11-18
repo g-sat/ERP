@@ -12,7 +12,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/cb-genpayment-calculations"
 import {
   ICbPettyCashDt,
@@ -562,7 +562,7 @@ export default function CbPettyCashPage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as ICbPettyCashDt[],
               exchangeRate,
               cityExchangeRate,

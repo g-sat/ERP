@@ -12,7 +12,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ar-debitNote-calculations"
 import {
   IArDebitNoteDt,
@@ -617,7 +617,7 @@ export default function DebitNotePage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IArDebitNoteDt[],
               exchangeRate,
               cityExchangeRate,

@@ -209,7 +209,7 @@ export const recalculateDetailAmounts = (
 /**
  * Recalculate all amounts for all detail rows based on exchange rates
  */
-export const recalculateAllDetailAmounts = (
+export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IGLJournalDt[],
   exchangeRate: number,
   cityExchangeRate: number,

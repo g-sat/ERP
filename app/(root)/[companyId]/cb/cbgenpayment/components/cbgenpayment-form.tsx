@@ -11,7 +11,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/cb-genpayment-calculations"
 import { ICbGenPaymentDt } from "@/interfaces"
 import {
@@ -279,7 +279,7 @@ export default function CbGenPaymentForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as ICbGenPaymentDt[],
           exchangeRate,
           cityExchangeRate,
@@ -344,7 +344,7 @@ export default function CbGenPaymentForm({
       }
 
       // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
         cityExchangeRate,
@@ -402,7 +402,7 @@ export default function CbGenPaymentForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
         cityExchangeRate,

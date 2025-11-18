@@ -12,7 +12,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ar-invoice-calculations"
 import { IArInvoiceDt, IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -599,7 +599,7 @@ export default function InvoicePage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IArInvoiceDt[],
               exchangeRate,
               cityExchangeRate,

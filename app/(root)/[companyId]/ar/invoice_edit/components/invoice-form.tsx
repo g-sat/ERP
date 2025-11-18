@@ -16,7 +16,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/invoice-calculations"
 import {
   IBankLookup,
@@ -182,7 +182,7 @@ export default function InvoiceForm({
         const exchangeRate = form.getValues("exhRate") || 0
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           details,
           exchangeRate,
           cityExchangeRate,
@@ -240,7 +240,7 @@ export default function InvoiceForm({
       const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
       // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         details,
         exchangeRate,
         cityExchangeRate,
@@ -291,7 +291,7 @@ export default function InvoiceForm({
       const cityExchangeRate = parseFloat(e.target.value) || 0
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         details,
         exchangeRate,
         cityExchangeRate,

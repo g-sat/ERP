@@ -12,7 +12,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ap-debitNote-calculations"
 import {
   IApDebitNoteDt,
@@ -621,7 +621,7 @@ export default function DebitNotePage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IApDebitNoteDt[],
               exchangeRate,
               cityExchangeRate,

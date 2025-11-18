@@ -10,7 +10,7 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
   recalculateAndSetHeaderTotals,
   syncCityExchangeRate,
 } from "@/helpers/ar-creditNote-calculations"
@@ -448,7 +448,7 @@ export default function CreditNoteForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArCreditNoteDt[],
           exchangeRate,
           cityExchangeRate,
@@ -494,7 +494,7 @@ export default function CreditNoteForm({
       // Recalculate all details in table if they exist
       if (formDetails && formDetails.length > 0) {
         // Recalculate all details with new exchange rate
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArCreditNoteDt[],
           exchangeRate,
           cityExchangeRate,
@@ -550,7 +550,7 @@ export default function CreditNoteForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IArCreditNoteDt[],
         exchangeRate,
         cityExchangeRate,

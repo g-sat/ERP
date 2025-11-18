@@ -6,6 +6,7 @@ import { IArInvoiceDt, IDecimal } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { UseFormReturn } from "react-hook-form"
 
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateTotalAmounts = (
   details: IArInvoiceDt[],
   amtDec: number
@@ -36,6 +37,7 @@ export const calculateTotalAmounts = (
   }
 }
 
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateLocalAmounts = (
   details: IArInvoiceDt[],
   locAmtDec: number
@@ -70,6 +72,7 @@ export const calculateLocalAmounts = (
   }
 }
 
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateCtyAmounts = (
   details: IArInvoiceDt[],
   ctyAmtDec: number
@@ -104,6 +107,7 @@ export const calculateCtyAmounts = (
   }
 }
 
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateLocalAmount = (
   totAmt: number,
   exchangeRate: number,
@@ -112,6 +116,7 @@ export const calculateLocalAmount = (
   return calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
 }
 
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateCtyAmount = (
   totAmt: number,
   cityExchangeRate: number,
@@ -120,7 +125,7 @@ export const calculateCtyAmount = (
   return calculateMultiplierAmount(totAmt, cityExchangeRate, decimals.ctyAmtDec)
 }
 
-export const recalculateDetailAmounts = (
+export const recalculateDetailLocalAndCtyAmounts = (
   detail: IArInvoiceDt,
   exchangeRate: number,
   cityExchangeRate: number,
@@ -157,7 +162,7 @@ export const recalculateDetailAmounts = (
   }
 }
 
-export const recalculateAllDetailAmounts = (
+export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IArInvoiceDt[],
   exchangeRate: number,
   cityExchangeRate: number,
@@ -165,7 +170,7 @@ export const recalculateAllDetailAmounts = (
   hasCountryCurrency: boolean
 ) => {
   return details.map((detail) =>
-    recalculateDetailAmounts(
+    recalculateDetailLocalAndCtyAmounts(
       detail,
       exchangeRate,
       cityExchangeRate,
@@ -278,6 +283,7 @@ export const recalculateDetailFormAmounts = (
   return null
 }
 
+//recalculate and set header totals on invoice form
 export const recalculateAndSetHeaderTotals = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>,
@@ -328,20 +334,22 @@ export const recalculateAndSetHeaderTotals = (
   form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
 }
 
+//sync city exchange rate with exchange rate if needed
 export const syncCityExchangeRate = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  hdForm: UseFormReturn<any>,
+  form: UseFormReturn<any>,
   exchangeRate: number,
   visible: IVisibleFields
 ): number => {
   if (!visible?.m_CtyCurr) {
-    hdForm.setValue("ctyExhRate", exchangeRate)
+    form.setValue("ctyExhRate", exchangeRate)
     return exchangeRate
   }
-  return hdForm.getValues("ctyExhRate") || exchangeRate
+  return form.getValues("ctyExhRate") || exchangeRate
 }
 
-export const calculateGstLocalAndCityAmounts = (
+//calculate GST local and cty amounts on detail form
+export const calculateGstLocalAndCtyAmounts = (
   gstAmt: number,
   exchangeRate: number,
   cityExchangeRate: number,

@@ -10,7 +10,7 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
   recalculateAndSetHeaderTotals,
   syncCityExchangeRate,
 } from "@/helpers/ar-invoice-calculations"
@@ -399,7 +399,7 @@ export default function InvoiceForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArInvoiceDt[],
           exchangeRate,
           cityExchangeRate,
@@ -445,7 +445,7 @@ export default function InvoiceForm({
       // Recalculate all details in table if they exist
       if (formDetails && formDetails.length > 0) {
         // Recalculate all details with new exchange rate
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArInvoiceDt[],
           exchangeRate,
           cityExchangeRate,
@@ -501,7 +501,7 @@ export default function InvoiceForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IArInvoiceDt[],
         exchangeRate,
         cityExchangeRate,

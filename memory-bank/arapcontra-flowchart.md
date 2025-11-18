@@ -7,7 +7,7 @@ User Changes exhRate
     ↓
 handleExchangeRateChange (arapcontra-form.tsx)
     ↓
-recalculateAllDetailAmounts (gl-arapcontra-calculations.ts)
+recalculateAllDetailsLocalAndCtyAmounts (gl-arapcontra-calculations.ts)
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ FOR EACH CONTRA ITEM:                                   │
@@ -69,7 +69,7 @@ handleCurrencyChange (arapcontra-form.tsx)
 │ 4. Update AR and AP transaction amounts                │
 └─────────────────────────────────────────────────────────┘
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local amounts
     ↓
@@ -193,7 +193,7 @@ calculateCtyAmounts
 ### D. Detail Amount Recalculation
 
 ```
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: details array, exchangeRate                     │
@@ -283,7 +283,7 @@ Update header totals
 ```
 Exchange Rate Change
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local amounts (docTotLocalAmt, allocLocalAmt, etc.)
     ↓

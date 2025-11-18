@@ -11,7 +11,7 @@ import {
   calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/gl-journal-calculations"
 import { IGLJournalDt } from "@/interfaces"
 import { ICurrencyLookup } from "@/interfaces/lookup"
@@ -259,7 +259,7 @@ export default function GLJournalForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IGLJournalDt[],
           exchangeRate,
           cityExchangeRate,
@@ -324,7 +324,7 @@ export default function GLJournalForm({
       }
 
       // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IGLJournalDt[],
         exchangeRate,
         cityExchangeRate,
@@ -382,7 +382,7 @@ export default function GLJournalForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IGLJournalDt[],
         exchangeRate,
         cityExchangeRate,

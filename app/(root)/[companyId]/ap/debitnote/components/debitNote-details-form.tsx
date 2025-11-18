@@ -14,7 +14,7 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateGstLocalAndCityAmounts,
+  calculateGstLocalAndCtyAmounts,
   recalculateDetailFormAmounts,
   syncCityExchangeRate,
 } from "@/helpers/ap-debitNote-calculations"
@@ -1046,7 +1046,7 @@ const DebitNoteDetailsForm = React.forwardRef<
       )
 
       // Calculate GST local and city amounts
-      const { gstLocalAmt, gstCtyAmt } = calculateGstLocalAndCityAmounts(
+      const { gstLocalAmt, gstCtyAmt } = calculateGstLocalAndCtyAmounts(
         value,
         exchangeRate,
         cityExchangeRate,

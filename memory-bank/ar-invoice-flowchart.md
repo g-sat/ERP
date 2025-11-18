@@ -7,7 +7,7 @@ User Changes exhRate
     ↓
 handleExchangeRateChange (invoice-form.tsx)
     ↓
-recalculateAllDetailAmounts (ar-invoice-calculations.ts)
+recalculateAllDetailsLocalAndCtyAmounts (ar-invoice-calculations.ts)
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ FOR EACH DETAIL ITEM:                                   │
@@ -89,7 +89,7 @@ handleCurrencyChange (invoice-form.tsx)
 │ 4. Recalculate all amounts with new rates             │
 └─────────────────────────────────────────────────────────┘
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local and country amounts
     ↓
@@ -194,7 +194,7 @@ calculateCtyAmounts
 ### D. Detail Amount Recalculation
 
 ```
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: details array, exchangeRate, cityExchangeRate    │
@@ -290,7 +290,7 @@ setGSTPercentage
 ```
 Exchange Rate Change
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all local amounts (totLocalAmt, gstLocalAmt, etc.)
     ↓
@@ -316,7 +316,7 @@ Currency Change
     ↓
 Set new exchange rates
     ↓
-recalculateAllDetailAmounts
+recalculateAllDetailsLocalAndCtyAmounts
     ↓
 Update all amounts with new rates
     ↓
