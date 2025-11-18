@@ -9,7 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -655,7 +655,7 @@ export default function AdjustmentPage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IArAdjustmentDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )

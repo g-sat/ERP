@@ -9,7 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -595,7 +595,7 @@ export default function CbPettyCashPage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as ICbPettyCashDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )

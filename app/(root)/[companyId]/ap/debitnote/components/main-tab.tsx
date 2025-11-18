@@ -1,12 +1,8 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/ap-debitNote-calculations"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { recalculateAndSetHeaderTotals } from "@/helpers/ap-debitNote-calculations"
 import { IApDebitNoteDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ApDebitNoteDtSchemaType, ApDebitNoteHdSchemaType } from "@/schemas"
@@ -16,7 +12,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import DebitNoteDetailsForm from "./debitNote-details-form"
+import DebitNoteDetailsForm, {
+  DebitNoteDetailsFormRef,
+} from "./debitNote-details-form"
 import DebitNoteDetailsTable from "./debitNote-details-table"
 import DebitNoteForm from "./debitNote-form"
 
@@ -40,9 +38,6 @@ export default function Main({
   isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   // Get user settings with defaults for all modules
   const { defaults } = useUserSettingDefaults()
@@ -58,9 +53,14 @@ export default function Main({
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousDebitNoteKeyRef = useRef<string>("")
+  const detailsFormRef = useRef<DebitNoteDetailsFormRef>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const watchedDataDetails = form.watch("data_details")
+  const dataDetails = useMemo(
+    () => watchedDataDetails || [],
+    [watchedDataDetails]
+  )
   const currentDebitNoteId = form.watch("debitNoteId")
   const currentDebitNoteNo = form.watch("debitNoteNo")
 
@@ -111,47 +111,12 @@ export default function Main({
 
   // Recalculate header totals when details change
   useEffect(() => {
-    if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      form.setValue("totCtyAmt", 0)
-      form.setValue("gstCtyAmt", 0)
-      form.setValue("totCtyAmtAftGst", 0)
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    recalculateAndSetHeaderTotals(
+      form,
       dataDetails as unknown as IApDebitNoteDt[],
-      amtDec
+      decimals[0],
+      visible
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IApDebitNoteDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as IApDebitNoteDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
 
     // Trigger form validation to update UI
     form.trigger([
@@ -166,7 +131,7 @@ export default function Main({
       "totCtyAmtAftGst",
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
+  }, [dataDetails, decimals, visible])
 
   const handleAddRow = (rowData: IApDebitNoteDt) => {
     const currentData = form.getValues("data_details") || []
@@ -238,10 +203,8 @@ export default function Main({
   }
 
   const handleEdit = (detail: IApDebitNoteDt) => {
-    // console.log("Editing detail:", detail)
     // Convert IApDebitNoteDt to ApDebitNoteDtSchemaType and set for editing
     setEditingDetail(detail as unknown as ApDebitNoteDtSchemaType)
-    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -269,10 +232,12 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.ar.currencyId}
+        defaultCurrencyId={defaults.ap.currencyId}
+        detailsFormRef={detailsFormRef}
       />
 
       <DebitNoteDetailsForm
+        ref={detailsFormRef}
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -281,7 +246,7 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as ApDebitNoteDtSchemaType[]}
-        defaultGlId={defaults.ar.debitNoteGlId}
+        defaultGlId={defaults.ap.debitNoteGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
         isCancelled={isCancelled}

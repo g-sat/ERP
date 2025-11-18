@@ -13,7 +13,7 @@ import {
 import { calculateInvoice } from "@/helpers/invoice"
 import {
   IInvoiceDetail,
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -210,10 +210,7 @@ export default function InvoiceForm({
         form?.trigger("totLocalAmtAftGst")
         // Calculate and update country amounts if visible
         if (visible?.m_CtyCurr) {
-          const countryAmounts = calculateCountryAmounts(
-            updatedDetails,
-            ctyAmtDec
-          )
+          const countryAmounts = calculateCtyAmounts(updatedDetails, ctyAmtDec)
           form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
           form?.trigger("totCtyAmt")
           form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
@@ -269,10 +266,7 @@ export default function InvoiceForm({
 
       // Calculate and update country amounts if visible
       if (visible?.m_CtyCurr) {
-        const countryAmounts = calculateCountryAmounts(
-          updatedDetails,
-          ctyAmtDec
-        )
+        const countryAmounts = calculateCtyAmounts(updatedDetails, ctyAmtDec)
         form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
         form?.trigger("totCtyAmt")
         form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)

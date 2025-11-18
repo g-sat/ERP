@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
 } from "@/helpers/gl-journal-calculations"
@@ -145,7 +145,7 @@ export default function Main({
 
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
+    const countryAmounts = calculateCtyAmounts(
       dataDetails as unknown as IGLJournalDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )

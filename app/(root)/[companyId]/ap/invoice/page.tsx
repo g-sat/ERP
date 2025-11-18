@@ -9,7 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -76,7 +76,7 @@ export default function InvoicePage() {
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.ap
+  const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
@@ -136,7 +136,7 @@ export default function InvoicePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/debitnote`,
+    () => `history-doc:/${companyId}/ar/invoice`,
     [companyId]
   )
 
@@ -257,12 +257,20 @@ export default function InvoicePage() {
           editVersion: invoice.editVersion ?? 0,
           purchaseOrderId: invoice.purchaseOrderId ?? 0,
           purchaseOrderNo: invoice.purchaseOrderNo ?? "",
+
           serviceTypeId: invoice.serviceTypeId ?? 0,
+
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
               invoiceId: detail.invoiceId?.toString() ?? "0",
               invoiceNo: detail.invoiceNo?.toString() ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -272,9 +280,6 @@ export default function InvoicePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custInvoiceNo: detail.custInvoiceNo ?? "",
               arInvoiceId: detail.arInvoiceId ?? "0",
@@ -629,7 +634,7 @@ export default function InvoicePage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IApInvoiceDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )
@@ -793,6 +798,7 @@ export default function InvoicePage() {
         ctyExhRate: apiInvoice.ctyExhRate ?? 0,
         creditTermId: apiInvoice.creditTermId ?? 0,
         bankId: apiInvoice.bankId ?? 0,
+
         totAmt: apiInvoice.totAmt ?? 0,
         totLocalAmt: apiInvoice.totLocalAmt ?? 0,
         totCtyAmt: apiInvoice.totCtyAmt ?? 0,
@@ -830,7 +836,6 @@ export default function InvoicePage() {
         editVersion: apiInvoice.editVersion ?? 0,
         purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
         purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
-
         serviceTypeId: apiInvoice.serviceTypeId ?? 0,
         createBy: apiInvoice.createBy ?? "",
         editBy: apiInvoice.editBy ?? "",

@@ -81,12 +81,6 @@ export function AccountReceiptTableHeader<TData>({
   data = [],
   onResetLayout,
 }: AccountReceiptTableHeaderProps<TData>) {
-  // Debug logging
-  // console.log("Header props:", {
-  //   hasSelectedRows,
-  //   selectedRowsCount,
-  //   dataLength: data?.length,
-  // })
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   // Filter columns based on search - memoized to prevent re-renders

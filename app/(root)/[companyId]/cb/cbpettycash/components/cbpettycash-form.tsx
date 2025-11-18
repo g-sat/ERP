@@ -8,7 +8,7 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -245,7 +245,7 @@ export default function CbPettyCashForm({
 
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
+    const countryAmounts = calculateCtyAmounts(
       formDetails as unknown as ICbPettyCashDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )

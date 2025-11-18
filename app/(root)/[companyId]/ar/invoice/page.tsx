@@ -9,7 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -632,7 +632,7 @@ export default function InvoicePage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IArInvoiceDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )

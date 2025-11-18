@@ -9,7 +9,7 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
@@ -80,7 +80,7 @@ export default function CreditNotePage() {
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.ap
+  const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.creditNote
 
   const { hasPermission } = usePermissionStore()
@@ -142,7 +142,7 @@ export default function CreditNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/debitnote`,
+    () => `history-doc:/${companyId}/ar/creditNote`,
     [companyId]
   )
 
@@ -265,12 +265,20 @@ export default function CreditNotePage() {
           editVersion: creditNote.editVersion ?? 0,
           purchaseOrderId: creditNote.purchaseOrderId ?? 0,
           purchaseOrderNo: creditNote.purchaseOrderNo ?? "",
+
           serviceTypeId: creditNote.serviceTypeId ?? 0,
+
           data_details:
             creditNote.data_details?.map((detail) => ({
               ...detail,
               creditNoteId: detail.creditNoteId?.toString() ?? "0",
               creditNoteNo: detail.creditNoteNo?.toString() ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -280,9 +288,6 @@ export default function CreditNotePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custCreditNoteNo: detail.custCreditNoteNo ?? "",
               arCreditNoteId: detail.arCreditNoteId ?? "0",
@@ -654,7 +659,7 @@ export default function CreditNotePage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IApCreditNoteDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )
@@ -859,7 +864,6 @@ export default function CreditNotePage() {
         editVersion: apiCreditNote.editVersion ?? 0,
         purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
         purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
-
         serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
         createBy: apiCreditNote.createBy ?? "",
         editBy: apiCreditNote.editBy ?? "",

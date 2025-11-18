@@ -203,7 +203,7 @@ calculateLocalAmounts
 ### C. Country Amount Calculations (Debit Only)
 
 ```
-calculateCountryAmounts
+calculateCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: details array, ctyAmtDec                        │

@@ -1,4 +1,8 @@
-import { mathRound } from "@/helpers/account"
+import {
+  calculateAdditionAmount,
+  calculateMultiplierAmount,
+  calculatePercentagecAmount,
+} from "@/helpers/account"
 import { ICbGenReceiptDt, IDecimal } from "@/interfaces"
 
 /**
@@ -15,14 +19,22 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totAmt += Number(detail.totAmt) || 0
-    totals.gstAmt += Number(detail.gstAmt) || 0
+    totals.totAmt = calculateAdditionAmount(
+      totals.totAmt,
+      Number(detail.totAmt) || 0,
+      amtDec
+    )
+    totals.gstAmt = calculateAdditionAmount(
+      totals.gstAmt,
+      Number(detail.gstAmt) || 0,
+      amtDec
+    )
   })
 
   return {
-    totAmt: mathRound(totals.totAmt, amtDec),
-    gstAmt: mathRound(totals.gstAmt, amtDec),
-    totAmtAftGst: mathRound(totals.totAmt + totals.gstAmt, amtDec),
+    totAmt: totals.totAmt,
+    gstAmt: totals.gstAmt,
+    totAmtAftGst: calculateAdditionAmount(totals.totAmt, totals.gstAmt, amtDec),
   }
 }
 
@@ -40,15 +52,24 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totLocalAmt += Number(detail.totLocalAmt) || 0
-    totals.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+    totals.totLocalAmt = calculateAdditionAmount(
+      totals.totLocalAmt,
+      Number(detail.totLocalAmt) || 0,
+      locAmtDec
+    )
+    totals.gstLocalAmt = calculateAdditionAmount(
+      totals.gstLocalAmt,
+      Number(detail.gstLocalAmt) || 0,
+      locAmtDec
+    )
   })
 
   return {
-    totLocalAmt: mathRound(totals.totLocalAmt, locAmtDec),
-    gstLocalAmt: mathRound(totals.gstLocalAmt, locAmtDec),
-    totLocalAmtAftGst: mathRound(
-      totals.totLocalAmt + totals.gstLocalAmt,
+    totLocalAmt: totals.totLocalAmt,
+    gstLocalAmt: totals.gstLocalAmt,
+    totLocalAmtAftGst: calculateAdditionAmount(
+      totals.totLocalAmt,
+      totals.gstLocalAmt,
       locAmtDec
     ),
   }
@@ -57,7 +78,7 @@ export const calculateLocalAmounts = (
 /**
  * Calculate country currency amounts
  */
-export const calculateCountryAmounts = (
+export const calculateCtyAmounts = (
   details: ICbGenReceiptDt[],
   ctyAmtDec: number
 ) => {
@@ -68,14 +89,26 @@ export const calculateCountryAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totCtyAmt += Number(detail.totCtyAmt) || 0
-    totals.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+    totals.totCtyAmt = calculateAdditionAmount(
+      totals.totCtyAmt,
+      Number(detail.totCtyAmt) || 0,
+      ctyAmtDec
+    )
+    totals.gstCtyAmt = calculateAdditionAmount(
+      totals.gstCtyAmt,
+      Number(detail.gstCtyAmt) || 0,
+      ctyAmtDec
+    )
   })
 
   return {
-    totCtyAmt: mathRound(totals.totCtyAmt, ctyAmtDec),
-    gstCtyAmt: mathRound(totals.gstCtyAmt, ctyAmtDec),
-    totCtyAmtAftGst: mathRound(totals.totCtyAmt + totals.gstCtyAmt, ctyAmtDec),
+    totCtyAmt: totals.totCtyAmt,
+    gstCtyAmt: totals.gstCtyAmt,
+    totCtyAmtAftGst: calculateAdditionAmount(
+      totals.totCtyAmt,
+      totals.gstCtyAmt,
+      ctyAmtDec
+    ),
   }
 }
 
@@ -87,8 +120,7 @@ export const calculateGstAmount = (
   gstPercentage: number,
   decimals: IDecimal
 ) => {
-  const gstAmt = (totAmt * gstPercentage) / 100
-  return mathRound(gstAmt, decimals.amtDec)
+  return calculatePercentagecAmount(totAmt, gstPercentage, decimals.amtDec)
 }
 
 /**
@@ -99,20 +131,18 @@ export const calculateLocalAmount = (
   exchangeRate: number,
   decimals: IDecimal
 ) => {
-  const localAmt = totAmt * exchangeRate
-  return mathRound(localAmt, decimals.locAmtDec)
+  return calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
 }
 
 /**
  * Calculate country amount based on total amount and city exchange rate
  */
-export const calculateCountryAmount = (
+export const calculateCtyAmount = (
   totAmt: number,
   cityExchangeRate: number,
   decimals: IDecimal
 ) => {
-  const countryAmt = totAmt * cityExchangeRate
-  return mathRound(countryAmt, decimals.ctyAmtDec)
+  return calculateMultiplierAmount(totAmt, cityExchangeRate, decimals.ctyAmtDec)
 }
 
 /**
@@ -123,8 +153,7 @@ export const calculateTotalAmount = (
   unitPrice: number,
   decimals: IDecimal
 ) => {
-  const totAmt = qty * unitPrice
-  return mathRound(totAmt, decimals.amtDec)
+  return calculateMultiplierAmount(qty, unitPrice, decimals.amtDec)
 }
 
 /**
@@ -151,8 +180,8 @@ export const recalculateDetailAmounts = (
   let totCtyAmt = 0
   let gstCtyAmt = 0
   if (hasCountryCurrency) {
-    totCtyAmt = calculateCountryAmount(totAmt, cityExchangeRate, decimals)
-    gstCtyAmt = calculateCountryAmount(gstAmt, cityExchangeRate, decimals)
+    totCtyAmt = calculateCtyAmount(totAmt, cityExchangeRate, decimals)
+    gstCtyAmt = calculateCtyAmount(gstAmt, cityExchangeRate, decimals)
   }
 
   return {

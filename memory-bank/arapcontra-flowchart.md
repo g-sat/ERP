@@ -179,7 +179,7 @@ calculateLocalAmounts
 ### C. Country Amount Calculations
 
 ```
-calculateCountryAmounts
+calculateCtyAmounts
     ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Input: details array, ctyAmtDec                        │

@@ -7,7 +7,7 @@ import {
 } from "@/helpers/account"
 import {
   IInvoiceDetail,
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmount,
   calculateTotalAmounts,
@@ -322,7 +322,7 @@ export default function InvoiceDetailsTable({
       form.trigger("totLocalAmtAftGst")
 
       const countryAmounts = visible?.m_CtyCurr
-        ? calculateCountryAmounts(formDetails as IInvoiceDetail[], ctyAmtDec)
+        ? calculateCtyAmounts(formDetails as IInvoiceDetail[], ctyAmtDec)
         : null
 
       if (countryAmounts && visible?.m_CtyCurr) {
