@@ -11,7 +11,7 @@ import {
 } from "@/helpers/account"
 import {
   calculateAdjustmentHeaderTotals,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ar-adjustment-calculations"
 import { IArAdjustmentDt } from "@/interfaces"
 import {
@@ -442,7 +442,7 @@ export default function AdjustmentForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArAdjustmentDt[],
           exchangeRate,
           cityExchangeRate,
@@ -506,7 +506,7 @@ export default function AdjustmentForm({
       }
 
       // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IArAdjustmentDt[],
         exchangeRate,
         cityExchangeRate,
@@ -564,7 +564,7 @@ export default function AdjustmentForm({
       }
 
       // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
         formDetails as unknown as IArAdjustmentDt[],
         exchangeRate,
         cityExchangeRate,

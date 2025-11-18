@@ -1,4 +1,8 @@
-import { mathRound } from "@/helpers/account"
+import {
+  calculateAdditionAmount,
+  calculateMultiplierAmount,
+  calculatePercentagecAmount,
+} from "@/helpers/account"
 import { ICbBankTransferCtmDt, IDecimal } from "@/interfaces"
 
 /**
@@ -13,11 +17,15 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totAmt += Number(detail.toTotAmt) || 0
+    totals.totAmt = calculateAdditionAmount(
+      totals.totAmt,
+      Number(detail.toTotAmt) || 0,
+      amtDec
+    )
   })
 
   return {
-    totAmt: mathRound(totals.totAmt, amtDec),
+    totAmt: totals.totAmt,
   }
 }
 
@@ -33,11 +41,15 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totLocalAmt += Number(detail.toTotLocalAmt) || 0
+    totals.totLocalAmt = calculateAdditionAmount(
+      totals.totLocalAmt,
+      Number(detail.toTotLocalAmt) || 0,
+      locAmtDec
+    )
   })
 
   return {
-    totLocalAmt: mathRound(totals.totLocalAmt, locAmtDec),
+    totLocalAmt: totals.totLocalAmt,
   }
 }
 
@@ -49,8 +61,7 @@ export const calculateGstAmount = (
   gstPercentage: number,
   decimals: IDecimal
 ) => {
-  const gstAmt = (totAmt * gstPercentage) / 100
-  return mathRound(gstAmt, decimals.amtDec)
+  return calculatePercentagecAmount(totAmt, gstPercentage, decimals.amtDec)
 }
 /**
  * Calculate total amount based on quantity and unit price
@@ -60,6 +71,5 @@ export const calculateTotalAmount = (
   unitPrice: number,
   decimals: IDecimal
 ) => {
-  const totAmt = qty * unitPrice
-  return mathRound(totAmt, decimals.amtDec)
+  return calculateMultiplierAmount(qty, unitPrice, decimals.amtDec)
 }

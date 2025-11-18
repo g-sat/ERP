@@ -9,10 +9,10 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ap-adjustment-calculations"
 import {
   IApAdjustmentDt,
@@ -620,7 +620,7 @@ export default function AdjustmentPage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IApAdjustmentDt[],
               exchangeRate,
               cityExchangeRate,
@@ -653,7 +653,7 @@ export default function AdjustmentPage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IApAdjustmentDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )

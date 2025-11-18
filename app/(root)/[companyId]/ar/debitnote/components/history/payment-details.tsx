@@ -62,7 +62,7 @@ export default function PaymentDetails({ debitNoteId }: PaymentDetailsProps) {
           return `/${companyId}/ar/invoice`
         case ARTransactionId.debitNote:
           return `/${companyId}/ar/debitnote`
-        case ARTransactionId.creditNote:
+        case ARTransactionId.debitNote:
           return `/${companyId}/ar/creditnote`
         case ARTransactionId.adjustment:
           return `/${companyId}/ar/adjustment`

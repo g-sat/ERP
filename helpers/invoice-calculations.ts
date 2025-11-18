@@ -107,7 +107,7 @@ export const calculateLocalAmounts = (
 /**
  * Calculate country currency amounts
  */
-export const calculateCountryAmounts = (
+export const calculateCtyAmounts = (
   details: IInvoiceDetail[],
   ctyAmtDec: number
 ) => {
@@ -156,7 +156,7 @@ export const calculateLocalAmount = (
 /**
  * Calculate country amount based on total amount and city exchange rate
  */
-export const calculateCountryAmount = (
+export const calculateCtyAmount = (
   totAmt: number,
   cityExchangeRate: number,
   decimals: IDecimals
@@ -201,8 +201,8 @@ export const recalculateDetailAmounts = (
   let totCtyAmt = 0
   let gstCtyAmt = 0
   if (hasCountryCurrency) {
-    totCtyAmt = calculateCountryAmount(totAmt, cityExchangeRate, decimals)
-    gstCtyAmt = calculateCountryAmount(gstAmt, cityExchangeRate, decimals)
+    totCtyAmt = calculateCtyAmount(totAmt, cityExchangeRate, decimals)
+    gstCtyAmt = calculateCtyAmount(gstAmt, cityExchangeRate, decimals)
   }
 
   return {
@@ -218,7 +218,7 @@ export const recalculateDetailAmounts = (
 /**
  * Recalculate all amounts for all detail rows based on exchange rates
  */
-export const recalculateAllDetailAmounts = (
+export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IInvoiceDetail[],
   exchangeRate: number,
   cityExchangeRate: number,

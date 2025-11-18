@@ -34,8 +34,6 @@ import {
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-// Virtual scrolling removed - using empty rows instead
-
 import {
   Table,
   TableBody,
@@ -66,7 +64,6 @@ interface AccountBaseTableProps<T> {
   onDelete?: (itemId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onPurchase?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
@@ -176,14 +173,6 @@ export function AccountBaseTable<T>({
   const selectedRowsCount = Object.keys(rowSelection).length
   const hasSelectedRows = selectedRowsCount > 0
 
-  // Debug logging
-  // console.log("Table state:", {
-  //   dataLength: data?.length,
-  //   selectedRowsCount,
-  //   hasSelectedRows,
-  //   rowSelection,
-  // })
-
   // Create a separate component for the drag handle
   function DragHandle({ id }: { id: string | number }) {
     const {
@@ -235,7 +224,7 @@ export function AccountBaseTable<T>({
           setColumnSizing(colSize)
         }
       } catch (error) {
-        // console.error("Error parsing grid settings:", error)
+        console.error("Error parsing grid settings:", error)
       }
     }
   }, [gridSettingsData])
@@ -341,8 +330,7 @@ export function AccountBaseTable<T>({
     },
   })
 
-  // Virtual scrolling removed - using empty rows instead
-  const [pageSize] = useState(pageSizeOption) // Fixed page size for empty rows
+  const [pageSize] = useState(pageSizeOption)
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -381,10 +369,6 @@ export function AccountBaseTable<T>({
         // Call the callback to update the parent component's data
         if (onDataReorder) {
           onDataReorder(newData)
-        } else {
-          // console.warn(
-          //   "onDataReorder callback not provided. Row reordering will not persist."
-          // )
         }
       }
     }
@@ -443,7 +427,6 @@ export function AccountBaseTable<T>({
   // Clear row selection when data becomes empty
   useEffect(() => {
     if (!data?.length) {
-      // console.log("Clearing row selection - data is empty")
       setRowSelection({})
     }
   }, [data?.length])
@@ -472,7 +455,6 @@ export function AccountBaseTable<T>({
           onSearchChange={handleSearch}
           onRefresh={onRefresh}
           onBulkDelete={handleBulkDelete}
-          //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()
             .flatMap((group) => group.headers)
@@ -488,18 +470,12 @@ export function AccountBaseTable<T>({
         />
       )}
 
-      {/* ========================================================================= */}
-      {/* MAIN TABLE CONTAINER - NO OUTER <Table>! */}
-      {/* ========================================================================= */}
       <div className="overflow-x-auto rounded-lg border">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          {/* ========================================================================= */}
-          {/* SINGLE TABLE - NO NESTING */}
-          {/* ========================================================================= */}
           <div className="overflow-y-auto" style={{ maxHeight: maxHeight }}>
             <Table className="w-full table-fixed border-collapse">
               <colgroup>

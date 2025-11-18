@@ -1,4 +1,7 @@
-import { mathRound } from "@/helpers/account"
+import {
+  calculateAdditionAmount,
+  calculateMultiplierAmount,
+} from "@/helpers/account"
 import { ICbBankReconDt, IDecimal } from "@/interfaces"
 
 /**
@@ -13,11 +16,15 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totAmt += Number(detail.totAmt) || 0
+    totals.totAmt = calculateAdditionAmount(
+      totals.totAmt,
+      Number(detail.totAmt) || 0,
+      amtDec
+    )
   })
 
   return {
-    totAmt: mathRound(totals.totAmt, amtDec),
+    totAmt: totals.totAmt,
   }
 }
 
@@ -33,18 +40,22 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totLocalAmt += Number(detail.totLocalAmt) || 0
+    totals.totLocalAmt = calculateAdditionAmount(
+      totals.totLocalAmt,
+      Number(detail.totLocalAmt) || 0,
+      locAmtDec
+    )
   })
 
   return {
-    totLocalAmt: mathRound(totals.totLocalAmt, locAmtDec),
+    totLocalAmt: totals.totLocalAmt,
   }
 }
 
 /**
  * Calculate country currency amounts
  */
-export const calculateCountryAmounts = (
+export const calculateCtyAmounts = (
   details: ICbBankReconDt[],
   ctyAmtDec: number
 ) => {
@@ -53,11 +64,15 @@ export const calculateCountryAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totCtyAmt += Number(detail.totAmt) || 0
+    totals.totCtyAmt = calculateAdditionAmount(
+      totals.totCtyAmt,
+      Number(detail.totAmt) || 0,
+      ctyAmtDec
+    )
   })
 
   return {
-    totCtyAmt: mathRound(totals.totCtyAmt, ctyAmtDec),
+    totCtyAmt: totals.totCtyAmt,
   }
 }
 
@@ -69,8 +84,7 @@ export const calculateLocalAmount = (
   exchangeRate: number,
   decimals: IDecimal
 ) => {
-  const localAmt = totAmt * exchangeRate
-  return mathRound(localAmt, decimals.locAmtDec)
+  return calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
 }
 
 /**
@@ -81,6 +95,5 @@ export const calculateTotalAmount = (
   unitPrice: number,
   decimals: IDecimal
 ) => {
-  const totAmt = qty * unitPrice
-  return mathRound(totAmt, decimals.amtDec)
+  return calculateMultiplierAmount(qty, unitPrice, decimals.amtDec)
 }

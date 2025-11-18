@@ -9,10 +9,10 @@ import {
   setExchangeRateLocal,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
+  calculateCtyAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
 } from "@/helpers/ap-debitNote-calculations"
 import {
   IApDebitNoteDt,
@@ -80,7 +80,7 @@ export default function DebitNotePage() {
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.ap
+  const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.debitNote
 
   const { hasPermission } = usePermissionStore()
@@ -142,7 +142,7 @@ export default function DebitNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/debitnote`,
+    () => `history-doc:/${companyId}/ar/debitNote`,
     [companyId]
   )
 
@@ -265,12 +265,20 @@ export default function DebitNotePage() {
           editVersion: debitNote.editVersion ?? 0,
           purchaseOrderId: debitNote.purchaseOrderId ?? 0,
           purchaseOrderNo: debitNote.purchaseOrderNo ?? "",
+
           serviceTypeId: debitNote.serviceTypeId ?? 0,
+
           data_details:
             debitNote.data_details?.map((detail) => ({
               ...detail,
               debitNoteId: detail.debitNoteId?.toString() ?? "0",
               debitNoteNo: detail.debitNoteNo?.toString() ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -280,9 +288,6 @@ export default function DebitNotePage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custDebitNoteNo: detail.custDebitNoteNo ?? "",
               arDebitNoteId: detail.arDebitNoteId ?? "0",
@@ -616,7 +621,7 @@ export default function DebitNotePage() {
           // Recalculate detail amounts with new exchange rates if details exist
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
-            const updatedDetails = recalculateAllDetailAmounts(
+            const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
               formDetails as unknown as IApDebitNoteDt[],
               exchangeRate,
               cityExchangeRate,
@@ -649,7 +654,7 @@ export default function DebitNotePage() {
             form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
             if (visible?.m_CtyCurr) {
-              const countryAmounts = calculateCountryAmounts(
+              const countryAmounts = calculateCtyAmounts(
                 updatedDetails as unknown as IApDebitNoteDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )
@@ -852,7 +857,6 @@ export default function DebitNotePage() {
         editVersion: apiDebitNote.editVersion ?? 0,
         purchaseOrderId: apiDebitNote.purchaseOrderId ?? 0,
         purchaseOrderNo: apiDebitNote.purchaseOrderNo ?? "",
-
         serviceTypeId: apiDebitNote.serviceTypeId ?? 0,
         createBy: apiDebitNote.createBy ?? "",
         editBy: apiDebitNote.editBy ?? "",

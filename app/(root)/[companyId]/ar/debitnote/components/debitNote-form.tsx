@@ -10,10 +10,9 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-  recalculateAllDetailAmounts,
+  recalculateAllDetailsLocalAndCtyAmounts,
+  recalculateAndSetHeaderTotals,
+  syncCityExchangeRate,
 } from "@/helpers/ar-debitNote-calculations"
 import { IArCustomerInvoice, IArDebitNoteDt } from "@/interfaces"
 import {
@@ -51,6 +50,8 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+import { DebitNoteDetailsFormRef } from "./debitNote-details-form"
+
 interface DebitNoteFormProps {
   form: UseFormReturn<ArDebitNoteHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
@@ -59,6 +60,7 @@ interface DebitNoteFormProps {
   required: IMandatoryFields
   companyId: number
   defaultCurrencyId?: number
+  detailsFormRef?: React.RefObject<DebitNoteDetailsFormRef | null>
 }
 
 export default function DebitNoteForm({
@@ -69,15 +71,17 @@ export default function DebitNoteForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
+  detailsFormRef,
 }: DebitNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+
+  const [showInvoiceDialog, setShowInvoiceDialog] = React.useState(false)
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -116,6 +120,7 @@ export default function DebitNoteForm({
     control: form.control,
     name: "invoiceId",
   })
+
   const dueDateMinDate = React.useMemo(() => {
     if (!accountDateValue) return new Date()
 
@@ -164,8 +169,6 @@ export default function DebitNoteForm({
   const originalExhRateRef = React.useRef<number>(0)
   const originalCtyExhRateRef = React.useRef<number>(0)
 
-  const [showInvoiceDialog, setShowInvoiceDialog] = React.useState(false)
-
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
@@ -174,19 +177,11 @@ export default function DebitNoteForm({
   const calculateAndSetDueDate = React.useCallback(async () => {
     const creditTermId = form.getValues("creditTermId")
     const accountDate = form.getValues("accountDate")
-    const deliveryDate = form.getValues("deliveryDate")
 
-    console.log("creditTermId", creditTermId)
-    console.log("accountDate", accountDate)
-    console.log("deliveryDate", deliveryDate)
     if (creditTermId && creditTermId > 0) {
-      console.log(
-        "Credit term available - calculate due date based on credit term"
-      )
       // Credit term available - calculate due date based on credit term
       await setDueDate(form)
     } else if (accountDate) {
-      console.log("No credit term - set due date to account date")
       // No credit term - set due date to account date
       const dueDateValue =
         typeof accountDate === "string"
@@ -195,13 +190,11 @@ export default function DebitNoteForm({
       form.setValue("dueDate", dueDateValue)
       form.trigger("dueDate")
     } else {
-      console.log("No account date either - set to today")
       // No account date either - set to today
       const todayValue = format(new Date(), dateFormat)
       form.setValue("dueDate", todayValue)
       form.trigger("dueDate")
     }
-    console.log("dueDate", form.getValues("dueDate"))
   }, [form, dateFormat])
 
   // Handle transaction date selection
@@ -402,22 +395,11 @@ export default function DebitNoteForm({
       const currentCurrencyId = form.getValues("currencyId")
       const currentCustomerId = form.getValues("customerId")
 
-      console.log("DebitNote Form - Checking defaults:", {
-        currentCurrencyId,
-        currentCustomerId,
-        defaultCurrencyId,
-        isEdit,
-      })
-
       // Only set default if no currency is set and no customer is selected
       if (
         (!currentCurrencyId || currentCurrencyId === 0) &&
         (!currentCustomerId || currentCustomerId === 0)
       ) {
-        console.log(
-          "DebitNote Form - Setting default currency:",
-          defaultCurrencyId
-        )
         form.setValue("currencyId", defaultCurrencyId)
         // Trigger exchange rate fetch when default currency is set
         setExchangeRate(form, exhRateDec, visible)
@@ -433,51 +415,13 @@ export default function DebitNoteForm({
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
     const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      if (visible?.m_CtyCurr) {
-        form.setValue("totCtyAmt", 0)
-        form.setValue("gstCtyAmt", 0)
-        form.setValue("totCtyAmtAftGst", 0)
-      }
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    recalculateAndSetHeaderTotals(
+      form,
       formDetails as unknown as IArDebitNoteDt[],
-      amtDec
+      decimals[0],
+      visible
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IArDebitNoteDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as IArDebitNoteDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
+  }, [decimals, form, visible])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
@@ -504,7 +448,7 @@ export default function DebitNoteForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
           formDetails as unknown as IArDebitNoteDt[],
           exchangeRate,
           cityExchangeRate,
@@ -529,11 +473,112 @@ export default function DebitNoteForm({
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0
-    console.log(
-      "handleExchangeRateFocus - original value:",
-      originalExhRateRef.current
-    )
   }, [form])
+
+  // Handle exchange rate blur - recalculate amounts when user leaves the field
+  const handleExchangeRateBlur = React.useCallback(
+    (_e: React.FocusEvent<HTMLInputElement>) => {
+      const exchangeRate = form.getValues("exhRate") || 0
+      const originalExhRate = originalExhRateRef.current
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        return
+      }
+
+      const formDetails = form.getValues("data_details")
+
+      // Sync city exchange rate with exchange rate if needed
+      const cityExchangeRate = syncCityExchangeRate(form, exchangeRate, visible)
+
+      // Recalculate all details in table if they exist
+      if (formDetails && formDetails.length > 0) {
+        // Recalculate all details with new exchange rate
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
+          formDetails as unknown as IArDebitNoteDt[],
+          exchangeRate,
+          cityExchangeRate,
+          decimals[0],
+          !!visible?.m_CtyCurr
+        )
+
+        // Update form with recalculated details
+        form.setValue(
+          "data_details",
+          updatedDetails as unknown as ArDebitNoteDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
+        )
+
+        // Recalculate header totals from updated details
+        recalculateHeaderTotals()
+      }
+
+      // Always trigger recalculation in details form (even if no table details exist)
+      // This ensures the form being edited gets updated with new exchange rate
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          cityExchangeRate
+        )
+      }
+    },
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
+  )
+
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+  }, [form])
+
+  // Handle city exchange rate blur - recalculate amounts when user leaves the field
+  const handleCityExchangeRateBlur = React.useCallback(
+    (_e: React.FocusEvent<HTMLInputElement>) => {
+      const cityExchangeRate = form.getValues("ctyExhRate") || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        return
+      }
+
+      const formDetails = form.getValues("data_details")
+      const exchangeRate = form.getValues("exhRate") || 0
+
+      if (!formDetails || formDetails.length === 0) {
+        return
+      }
+
+      // Recalculate all details with new city exchange rate
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
+        formDetails as unknown as IArDebitNoteDt[],
+        exchangeRate,
+        cityExchangeRate,
+        decimals[0],
+        !!visible?.m_CtyCurr
+      )
+
+      // Update form with recalculated details
+      form.setValue(
+        "data_details",
+        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
+
+      // Recalculate header totals from updated details
+      recalculateHeaderTotals()
+
+      // Trigger recalculation in details form if it exists
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          cityExchangeRate
+        )
+      }
+    },
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
+  )
 
   // Handle add invoice no to button click
   const handleAddInvoiceNo = React.useCallback(() => {
@@ -596,119 +641,6 @@ export default function DebitNoteForm({
     [form]
   )
 
-  // Handle exchange rate blur - recalculate amounts when user leaves the field
-  const handleExchangeRateBlur = React.useCallback(
-    (_e: React.FocusEvent<HTMLInputElement>) => {
-      const exchangeRate = form.getValues("exhRate") || 0
-      const originalExhRate = originalExhRateRef.current
-
-      console.log("handleExchangeRateBlur", {
-        newValue: exchangeRate,
-        originalValue: originalExhRate,
-        isDifferent: exchangeRate !== originalExhRate,
-      })
-
-      // Only recalculate if value is different from original
-      if (exchangeRate === originalExhRate) {
-        console.log("Exchange Rate unchanged - skipping recalculation")
-        return
-      }
-
-      console.log("Exchange Rate changed - recalculating amounts")
-
-      const formDetails = form.getValues("data_details")
-
-      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
-      let cityExchangeRate = form.getValues("ctyExhRate") || 0
-      if (!visible?.m_CtyCurr) {
-        cityExchangeRate = exchangeRate
-        form.setValue("ctyExhRate", exchangeRate)
-      }
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArDebitNoteDt[],
-        exchangeRate,
-        cityExchangeRate,
-        decimals[0],
-        !!visible?.m_CtyCurr
-      )
-
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
-
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
-    },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
-  )
-
-  // Handle city exchange rate focus - capture original value
-  const handleCityExchangeRateFocus = React.useCallback(() => {
-    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
-    console.log(
-      "handleCityExchangeRateFocus - original value:",
-      originalCtyExhRateRef.current
-    )
-  }, [form])
-
-  // Handle city exchange rate blur - recalculate amounts when user leaves the field
-  const handleCityExchangeRateBlur = React.useCallback(
-    (_e: React.FocusEvent<HTMLInputElement>) => {
-      const cityExchangeRate = form.getValues("ctyExhRate") || 0
-      const originalCtyExhRate = originalCtyExhRateRef.current
-
-      console.log("handleCityExchangeRateBlur", {
-        newValue: cityExchangeRate,
-        originalValue: originalCtyExhRate,
-        isDifferent: cityExchangeRate !== originalCtyExhRate,
-      })
-
-      // Only recalculate if value is different from original
-      if (cityExchangeRate === originalCtyExhRate) {
-        console.log("City Exchange Rate unchanged - skipping recalculation")
-        return
-      }
-
-      console.log("City Exchange Rate changed - recalculating amounts")
-
-      const formDetails = form.getValues("data_details")
-      const exchangeRate = form.getValues("exhRate") || 0
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      // Recalculate all details with new city exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArDebitNoteDt[],
-        exchangeRate,
-        cityExchangeRate,
-        decimals[0],
-        !!visible?.m_CtyCurr
-      )
-
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
-
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
-    },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
-  )
-
   return (
     <FormProvider {...form}>
       <form
@@ -737,16 +669,6 @@ export default function DebitNoteForm({
             onChangeEvent={handleAccountDateChange}
             isFutureShow={false}
           />
-
-          {/* Customer by company*/}
-          {/* <CompanyCustomerAutocomplete
-            form={form}
-            name="customerId"
-            label="Customer"
-            isRequired={true}
-            onChangeEvent={handleCustomerChange}
-            companyId={_companyId}
-          /> */}
 
           {/* Customer */}
           {isDynamicCustomer ? (
@@ -822,7 +744,6 @@ export default function DebitNoteForm({
             label="Currency"
             isRequired={true}
             onChangeEvent={handleCurrencyChange}
-            isDisabled={isCustomerCurrencyLocked}
           />
 
           {/* Exchange Rate */}
