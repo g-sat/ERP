@@ -70,6 +70,8 @@ import { getDefaultValues } from "./components/invoice-defaultvalues"
 import InvoiceTable from "./components/invoice-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
+import { Table } from "@/components/ui/table"
+import { TableDemo } from "@/components/table/tblcmp"
 
 export default function InvoicePage() {
   const params = useParams()
@@ -1496,6 +1498,7 @@ export default function InvoicePage() {
         title="Clone Invoice"
         description="This will create a copy as a new invoice."
       />
+      <TableDemo/>
     </div>
   )
 }
