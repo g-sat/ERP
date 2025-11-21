@@ -1,8 +1,8 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { calculateAdjustmentHeaderTotals } from "@/helpers/ar-adjustment-calculations"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { recalculateAndSetHeaderTotals } from "@/helpers/ar-adjustment-calculations"
 import { IArAdjustmentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
@@ -12,7 +12,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import AdjustmentDetailsForm from "./adjustment-details-form"
+import AdjustmentDetailsForm, {
+  AdjustmentDetailsFormRef,
+} from "./adjustment-details-form"
 import AdjustmentDetailsTable from "./adjustment-details-table"
 import AdjustmentForm from "./adjustment-form"
 
@@ -36,9 +38,6 @@ export default function Main({
   isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   // Get user settings with defaults for all modules
   const { defaults } = useUserSettingDefaults()
@@ -54,9 +53,14 @@ export default function Main({
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousAdjustmentKeyRef = useRef<string>("")
+  const detailsFormRef = useRef<AdjustmentDetailsFormRef>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const watchedDataDetails = form.watch("data_details")
+  const dataDetails = useMemo(
+    () => watchedDataDetails || [],
+    [watchedDataDetails]
+  )
   const currentAdjustmentId = form.watch("adjustmentId")
   const currentAdjustmentNo = form.watch("adjustmentNo")
 
@@ -107,43 +111,12 @@ export default function Main({
 
   // Recalculate header totals when details change
   useEffect(() => {
-    if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      form.setValue("totCtyAmt", 0)
-      form.setValue("gstCtyAmt", 0)
-      form.setValue("totCtyAmtAftGst", 0)
-      form.setValue("isDebit", false)
-      return
-    }
-
-    const headerTotals = calculateAdjustmentHeaderTotals(
+    recalculateAndSetHeaderTotals(
+      form,
       dataDetails as unknown as IArAdjustmentDt[],
       decimals[0],
-      !!visible?.m_CtyCurr
+      visible
     )
-
-    form.setValue("isDebit", headerTotals.isDebit)
-    form.setValue("totAmt", headerTotals.totAmt)
-    form.setValue("gstAmt", headerTotals.gstAmt)
-    form.setValue("totAmtAftGst", headerTotals.totAmtAftGst)
-    form.setValue("totLocalAmt", headerTotals.totLocalAmt)
-    form.setValue("gstLocalAmt", headerTotals.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", headerTotals.totLocalAmtAftGst)
-    if (visible?.m_CtyCurr) {
-      form.setValue("totCtyAmt", headerTotals.totCtyAmt)
-      form.setValue("gstCtyAmt", headerTotals.gstCtyAmt)
-      form.setValue("totCtyAmtAftGst", headerTotals.totCtyAmtAftGst)
-    } else {
-      form.setValue("totCtyAmt", 0)
-      form.setValue("gstCtyAmt", 0)
-      form.setValue("totCtyAmtAftGst", 0)
-    }
 
     // Trigger form validation to update UI
     form.trigger([
@@ -156,10 +129,9 @@ export default function Main({
       "totCtyAmt",
       "gstCtyAmt",
       "totCtyAmtAftGst",
-      "isDebit",
     ])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
+  }, [dataDetails, decimals, visible])
 
   const handleAddRow = (rowData: IArAdjustmentDt) => {
     const currentData = form.getValues("data_details") || []
@@ -231,10 +203,8 @@ export default function Main({
   }
 
   const handleEdit = (detail: IArAdjustmentDt) => {
-    // console.log("Editing detail:", detail)
     // Convert IArAdjustmentDt to ArAdjustmentDtSchemaType and set for editing
     setEditingDetail(detail as unknown as ArAdjustmentDtSchemaType)
-    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -263,9 +233,11 @@ export default function Main({
         required={required}
         companyId={companyId}
         defaultCurrencyId={defaults.ar.currencyId}
+        detailsFormRef={detailsFormRef}
       />
 
       <AdjustmentDetailsForm
+        ref={detailsFormRef}
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}

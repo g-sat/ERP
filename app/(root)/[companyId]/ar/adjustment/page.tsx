@@ -55,6 +55,7 @@ import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -274,7 +275,6 @@ export default function AdjustmentPage() {
               ...detail,
               adjustmentId: detail.adjustmentId?.toString() ?? "0",
               adjustmentNo: detail.adjustmentNo?.toString() ?? "",
-              isDebit: detail.isDebit ?? false,
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -308,6 +308,9 @@ export default function AdjustmentPage() {
 
   const previousDateFormatRef = useRef<string>(dateFormat)
   const { isDirty } = form.formState
+
+  // Watch isDebit value for badge display
+  const headerIsDebit = form.watch("isDebit")
 
   useEffect(() => {
     if (previousDateFormatRef.current === dateFormat) return
@@ -912,7 +915,6 @@ export default function AdjustmentPage() {
                 uomCode: detail.uomCode ?? "",
                 uomName: detail.uomName ?? "",
                 unitPrice: detail.unitPrice ?? 0,
-                isDebit: detail.isDebit ?? false,
                 totAmt: detail.totAmt ?? 0,
                 totLocalAmt: detail.totLocalAmt ?? 0,
                 totCtyAmt: detail.totCtyAmt ?? 0,
@@ -1280,6 +1282,13 @@ export default function AdjustmentPage() {
                 </span>
               </span>
             </h1>
+            <Badge
+              variant={headerIsDebit ? "default" : "destructive"}
+              className="px-3 py-1 text-xs font-medium"
+            >
+              {headerIsDebit ? "Debit" : "Credit"}
+            </Badge>
+
             {isEdit && (
               <Button
                 variant="ghost"

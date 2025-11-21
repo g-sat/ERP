@@ -55,10 +55,12 @@ import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import { Table } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   CancelConfirmation,
@@ -68,6 +70,7 @@ import {
   ResetConfirmation,
   SaveConfirmation,
 } from "@/components/confirmation"
+import { TableDemo } from "@/components/table/tblcmp"
 
 import { getDefaultValues } from "./components/adjustment-defaultvalues"
 import AdjustmentTable from "./components/adjustment-table"
@@ -80,7 +83,7 @@ export default function AdjustmentPage() {
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.ap
+  const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.adjustment
 
   const { hasPermission } = usePermissionStore()
@@ -142,7 +145,7 @@ export default function AdjustmentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ap/debitnote`,
+    () => `history-doc:/${companyId}/ar/adjustment`,
     [companyId]
   )
 
@@ -264,12 +267,20 @@ export default function AdjustmentPage() {
           editVersion: adjustment.editVersion ?? 0,
           purchaseOrderId: adjustment.purchaseOrderId ?? 0,
           purchaseOrderNo: adjustment.purchaseOrderNo ?? "",
+
           serviceTypeId: adjustment.serviceTypeId ?? 0,
+
           data_details:
             adjustment.data_details?.map((detail) => ({
               ...detail,
               adjustmentId: detail.adjustmentId?.toString() ?? "0",
               adjustmentNo: detail.adjustmentNo?.toString() ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -279,9 +290,6 @@ export default function AdjustmentPage() {
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              serviceId: detail.serviceId ?? 0,
               customerName: detail.customerName ?? "",
               custAdjustmentNo: detail.custAdjustmentNo ?? "",
               arAdjustmentId: detail.arAdjustmentId ?? "0",
@@ -306,6 +314,9 @@ export default function AdjustmentPage() {
 
   const previousDateFormatRef = useRef<string>(dateFormat)
   const { isDirty } = form.formState
+
+  // Watch isDebit value for badge display
+  const headerIsDebit = form.watch("isDebit")
 
   useEffect(() => {
     if (previousDateFormatRef.current === dateFormat) return
@@ -857,7 +868,6 @@ export default function AdjustmentPage() {
         editVersion: apiAdjustment.editVersion ?? 0,
         purchaseOrderId: apiAdjustment.purchaseOrderId ?? 0,
         purchaseOrderNo: apiAdjustment.purchaseOrderNo ?? "",
-
         serviceTypeId: apiAdjustment.serviceTypeId ?? 0,
         createBy: apiAdjustment.createBy ?? "",
         editBy: apiAdjustment.editBy ?? "",
@@ -907,7 +917,6 @@ export default function AdjustmentPage() {
                 uomCode: detail.uomCode ?? "",
                 uomName: detail.uomName ?? "",
                 unitPrice: detail.unitPrice ?? 0,
-                isDebit: detail.isDebit ?? false,
                 totAmt: detail.totAmt ?? 0,
                 totLocalAmt: detail.totLocalAmt ?? 0,
                 totCtyAmt: detail.totCtyAmt ?? 0,
@@ -1281,6 +1290,12 @@ export default function AdjustmentPage() {
                 </span>
               </span>
             </h1>
+            <Badge
+              variant={headerIsDebit ? "default" : "destructive"}
+              className="px-3 py-1 text-xs font-medium"
+            >
+              {headerIsDebit ? "Debit" : "Credit"}
+            </Badge>
             {isEdit && (
               <Button
                 variant="ghost"
@@ -1539,6 +1554,7 @@ export default function AdjustmentPage() {
         title="Clone Adjustment"
         description="This will create a copy as a new adjustment."
       />
+      <TableDemo />
     </div>
   )
 }

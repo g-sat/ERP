@@ -10,8 +10,9 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateAdjustmentHeaderTotals,
   recalculateAllDetailsLocalAndCtyAmounts,
+  recalculateAndSetHeaderTotals,
+  syncCountryExchangeRate,
 } from "@/helpers/ap-adjustment-calculations"
 import { IApAdjustmentDt } from "@/interfaces"
 import {
@@ -33,13 +34,15 @@ import {
   CreditTermAutocomplete,
   CurrencyAutocomplete,
   DynamicSupplierAutocomplete,
-  ServiceTypeAutocomplete,
   SupplierAutocomplete,
 } from "@/components/autocomplete"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+
+import { AdjustmentDetailsFormRef } from "./adjustment-details-form"
 
 interface AdjustmentFormProps {
   form: UseFormReturn<ApAdjustmentHdSchemaType>
@@ -49,6 +52,7 @@ interface AdjustmentFormProps {
   required: IMandatoryFields
   companyId: number
   defaultCurrencyId?: number
+  detailsFormRef?: React.RefObject<AdjustmentDetailsFormRef | null>
 }
 
 export default function AdjustmentForm({
@@ -59,15 +63,15 @@ export default function AdjustmentForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
+  detailsFormRef,
 }: AdjustmentFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
-  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
+  const isDynamicSupplier = dynamicLookup?.isCustomer ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -120,19 +124,11 @@ export default function AdjustmentForm({
   const calculateAndSetDueDate = React.useCallback(async () => {
     const creditTermId = form.getValues("creditTermId")
     const accountDate = form.getValues("accountDate")
-    const deliveryDate = form.getValues("deliveryDate")
 
-    console.log("creditTermId", creditTermId)
-    console.log("accountDate", accountDate)
-    console.log("deliveryDate", deliveryDate)
     if (creditTermId && creditTermId > 0) {
-      console.log(
-        "Credit term available - calculate due date based on credit term"
-      )
       // Credit term available - calculate due date based on credit term
       await setDueDate(form)
     } else if (accountDate) {
-      console.log("No credit term - set due date to account date")
       // No credit term - set due date to account date
       const dueDateValue =
         typeof accountDate === "string"
@@ -141,13 +137,11 @@ export default function AdjustmentForm({
       form.setValue("dueDate", dueDateValue)
       form.trigger("dueDate")
     } else {
-      console.log("No account date either - set to today")
       // No account date either - set to today
       const todayValue = format(new Date(), dateFormat)
       form.setValue("dueDate", todayValue)
       form.trigger("dueDate")
     }
-    console.log("dueDate", form.getValues("dueDate"))
   }, [form, dateFormat])
 
   // Handle transaction date selection
@@ -228,7 +222,7 @@ export default function AdjustmentForm({
     [exhRateDec, form, visible, calculateAndSetDueDate, dateFormat]
   )
 
-  // Handle supplier selection
+  // Handle customer selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
       if (selectedSupplier) {
@@ -324,22 +318,11 @@ export default function AdjustmentForm({
       const currentCurrencyId = form.getValues("currencyId")
       const currentSupplierId = form.getValues("supplierId")
 
-      console.log("Adjustment Form - Checking defaults:", {
-        currentCurrencyId,
-        currentSupplierId,
-        defaultCurrencyId,
-        isEdit,
-      })
-
-      // Only set default if no currency is set and no supplier is selected
+      // Only set default if no currency is set and no customer is selected
       if (
         (!currentCurrencyId || currentCurrencyId === 0) &&
         (!currentSupplierId || currentSupplierId === 0)
       ) {
-        console.log(
-          "Adjustment Form - Setting default currency:",
-          defaultCurrencyId
-        )
         form.setValue("currencyId", defaultCurrencyId)
         // Trigger exchange rate fetch when default currency is set
         setExchangeRate(form, exhRateDec, visible)
@@ -355,39 +338,13 @@ export default function AdjustmentForm({
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
     const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      form.setValue("totCtyAmt", 0)
-      form.setValue("gstCtyAmt", 0)
-      form.setValue("totCtyAmtAftGst", 0)
-      form.setValue("isDebit", false)
-      return
-    }
-
-    const headerTotals = calculateAdjustmentHeaderTotals(
+    recalculateAndSetHeaderTotals(
+      form,
       formDetails as unknown as IApAdjustmentDt[],
       decimals[0],
-      !!visible?.m_CtyCurr
+      visible
     )
-
-    form.setValue("isDebit", headerTotals.isDebit)
-    form.setValue("totAmt", headerTotals.totAmt)
-    form.setValue("gstAmt", headerTotals.gstAmt)
-    form.setValue("totAmtAftGst", headerTotals.totAmtAftGst)
-    form.setValue("totLocalAmt", headerTotals.totLocalAmt)
-    form.setValue("gstLocalAmt", headerTotals.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", headerTotals.totLocalAmtAftGst)
-    form.setValue("totCtyAmt", headerTotals.totCtyAmt)
-    form.setValue("gstCtyAmt", headerTotals.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", headerTotals.totCtyAmtAftGst)
-  }, [decimals, form, visible?.m_CtyCurr])
+  }, [decimals, form, visible])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
@@ -435,13 +392,10 @@ export default function AdjustmentForm({
     },
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
+
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0
-    console.log(
-      "handleExchangeRateFocus - original value:",
-      originalExhRateRef.current
-    )
   }, [form])
 
   // Handle exchange rate blur - recalculate amounts when user leaves the field
@@ -450,62 +404,58 @@ export default function AdjustmentForm({
       const exchangeRate = form.getValues("exhRate") || 0
       const originalExhRate = originalExhRateRef.current
 
-      console.log("handleExchangeRateBlur", {
-        newValue: exchangeRate,
-        originalValue: originalExhRate,
-        isDifferent: exchangeRate !== originalExhRate,
-      })
-
       // Only recalculate if value is different from original
       if (exchangeRate === originalExhRate) {
-        console.log("Exchange Rate unchanged - skipping recalculation")
         return
       }
-
-      console.log("Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
 
-      // If m_CtyCurr is false, set countryExchangeRate = exchangeRate
-      let countryExchangeRate = form.getValues("ctyExhRate") || 0
-      if (!visible?.m_CtyCurr) {
-        countryExchangeRate = exchangeRate
-        form.setValue("ctyExhRate", exchangeRate)
-      }
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
-        formDetails as unknown as IApAdjustmentDt[],
+      // Sync city exchange rate with exchange rate if needed
+      const countryExchangeRate = syncCountryExchangeRate(
+        form,
         exchangeRate,
-        countryExchangeRate,
-        decimals[0],
-        !!visible?.m_CtyCurr
+        visible
       )
 
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as ApAdjustmentDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
+      // Recalculate all details in table if they exist
+      if (formDetails && formDetails.length > 0) {
+        // Recalculate all details with new exchange rate
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
+          formDetails as unknown as IApAdjustmentDt[],
+          exchangeRate,
+          countryExchangeRate,
+          decimals[0],
+          !!visible?.m_CtyCurr
+        )
 
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
+        // Update form with recalculated details
+        form.setValue(
+          "data_details",
+          updatedDetails as unknown as ApAdjustmentDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
+        )
+
+        // Recalculate header totals from updated details
+        recalculateHeaderTotals()
+      }
+
+      // Always trigger recalculation in details form (even if no table details exist)
+      // This ensures the form being edited gets updated with new exchange rate
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          countryExchangeRate
+        )
+      }
     },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
   // Handle city exchange rate focus - capture original value
   const handleCountryExchangeRateFocus = React.useCallback(() => {
     originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
-    console.log(
-      "handleCountryExchangeRateFocus - original value:",
-      originalCtyExhRateRef.current
-    )
   }, [form])
 
   // Handle city exchange rate blur - recalculate amounts when user leaves the field
@@ -514,19 +464,10 @@ export default function AdjustmentForm({
       const countryExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
-      console.log("handleCountryExchangeRateBlur", {
-        newValue: countryExchangeRate,
-        originalValue: originalCtyExhRate,
-        isDifferent: countryExchangeRate !== originalCtyExhRate,
-      })
-
       // Only recalculate if value is different from original
       if (countryExchangeRate === originalCtyExhRate) {
-        console.log("Country Exchange Rate unchanged - skipping recalculation")
         return
       }
-
-      console.log("Country Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
@@ -553,8 +494,17 @@ export default function AdjustmentForm({
 
       // Recalculate header totals from updated details
       recalculateHeaderTotals()
+
+      // Trigger recalculation in details form if it exists
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          countryExchangeRate
+        )
+      }
     },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
   return (
@@ -586,7 +536,7 @@ export default function AdjustmentForm({
             isFutureShow={false}
           />
 
-          {/* Supplier */}
+          {/* Customer */}
           {isDynamicSupplier ? (
             <DynamicSupplierAutocomplete
               form={form}
@@ -605,11 +555,11 @@ export default function AdjustmentForm({
             />
           )}
 
-          {/* supplierAdjustmentNo */}
+          {/* customerAdjustmentNo */}
           <CustomInput
             form={form}
             name="suppAdjustmentNo"
-            label="Supplier Adjustment No."
+            label="Customer Adjustment No."
             isRequired={required?.m_SuppInvoiceNo}
           />
 

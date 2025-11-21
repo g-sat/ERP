@@ -1,15 +1,13 @@
 import {
   calculateAdditionAmount,
   calculateMultiplierAmount,
-  calculatePercentagecAmount,
   calculateSubtractionAmount,
-  mathRound,
 } from "@/helpers/account"
 import { IArAdjustmentDt, IDecimal } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
+import { UseFormReturn } from "react-hook-form"
 
-/**
- * Calculate total amounts (base currency)
- */
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateTotalAmounts = (
   details: IArAdjustmentDt[],
   amtDec: number
@@ -21,16 +19,29 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totAmt = calculateAdditionAmount(
-      totals.totAmt,
-      Number(detail.totAmt) || 0,
-      amtDec
-    )
-    totals.gstAmt = calculateAdditionAmount(
-      totals.gstAmt,
-      Number(detail.gstAmt) || 0,
-      amtDec
-    )
+    if (detail.isDebit) {
+      totals.totAmt = calculateAdditionAmount(
+        totals.totAmt,
+        Number(detail.totAmt) || 0,
+        amtDec
+      )
+      totals.gstAmt = calculateAdditionAmount(
+        totals.gstAmt,
+        Number(detail.gstAmt) || 0,
+        amtDec
+      )
+    } else {
+      totals.totAmt = calculateSubtractionAmount(
+        totals.totAmt,
+        Number(detail.totAmt) || 0,
+        amtDec
+      )
+      totals.gstAmt = calculateSubtractionAmount(
+        totals.gstAmt,
+        Number(detail.gstAmt) || 0,
+        amtDec
+      )
+    }
   })
 
   return {
@@ -40,9 +51,7 @@ export const calculateTotalAmounts = (
   }
 }
 
-/**
- * Calculate local currency amounts
- */
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateLocalAmounts = (
   details: IArAdjustmentDt[],
   locAmtDec: number
@@ -54,16 +63,29 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totLocalAmt = calculateAdditionAmount(
-      totals.totLocalAmt,
-      Number(detail.totLocalAmt) || 0,
-      locAmtDec
-    )
-    totals.gstLocalAmt = calculateAdditionAmount(
-      totals.gstLocalAmt,
-      Number(detail.gstLocalAmt) || 0,
-      locAmtDec
-    )
+    if (detail.isDebit) {
+      totals.totLocalAmt = calculateAdditionAmount(
+        totals.totLocalAmt,
+        Number(detail.totLocalAmt) || 0,
+        locAmtDec
+      )
+      totals.gstLocalAmt = calculateAdditionAmount(
+        totals.gstLocalAmt,
+        Number(detail.gstLocalAmt) || 0,
+        locAmtDec
+      )
+    } else {
+      totals.totLocalAmt = calculateSubtractionAmount(
+        totals.totLocalAmt,
+        Number(detail.totLocalAmt) || 0,
+        locAmtDec
+      )
+      totals.gstLocalAmt = calculateSubtractionAmount(
+        totals.gstLocalAmt,
+        Number(detail.gstLocalAmt) || 0,
+        locAmtDec
+      )
+    }
   })
 
   return {
@@ -77,9 +99,7 @@ export const calculateLocalAmounts = (
   }
 }
 
-/**
- * Calculate country currency amounts
- */
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateCtyAmounts = (
   details: IArAdjustmentDt[],
   ctyAmtDec: number
@@ -91,16 +111,29 @@ export const calculateCtyAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totCtyAmt = calculateAdditionAmount(
-      totals.totCtyAmt,
-      Number(detail.totCtyAmt) || 0,
-      ctyAmtDec
-    )
-    totals.gstCtyAmt = calculateAdditionAmount(
-      totals.gstCtyAmt,
-      Number(detail.gstCtyAmt) || 0,
-      ctyAmtDec
-    )
+    if (detail.isDebit) {
+      totals.totCtyAmt = calculateAdditionAmount(
+        totals.totCtyAmt,
+        Number(detail.totCtyAmt) || 0,
+        ctyAmtDec
+      )
+      totals.gstCtyAmt = calculateAdditionAmount(
+        totals.gstCtyAmt,
+        Number(detail.gstCtyAmt) || 0,
+        ctyAmtDec
+      )
+    } else {
+      totals.totCtyAmt = calculateSubtractionAmount(
+        totals.totCtyAmt,
+        Number(detail.totCtyAmt) || 0,
+        ctyAmtDec
+      )
+      totals.gstCtyAmt = calculateSubtractionAmount(
+        totals.gstCtyAmt,
+        Number(detail.gstCtyAmt) || 0,
+        ctyAmtDec
+      )
+    }
   })
 
   return {
@@ -114,20 +147,7 @@ export const calculateCtyAmounts = (
   }
 }
 
-/**
- * Calculate GST amount based on total amount and GST percentage
- */
-export const calculateGstAmount = (
-  totAmt: number,
-  gstPercentage: number,
-  decimals: IDecimal
-) => {
-  return calculatePercentagecAmount(totAmt, gstPercentage, decimals.amtDec)
-}
-
-/**
- * Calculate local amount based on total amount and exchange rate
- */
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateLocalAmount = (
   totAmt: number,
   exchangeRate: number,
@@ -136,9 +156,7 @@ export const calculateLocalAmount = (
   return calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
 }
 
-/**
- * Calculate country amount based on total amount and city exchange rate
- */
+//used for cloning invoice & recalculateAndSetHeaderTotals invoice function
 export const calculateCtyAmount = (
   totAmt: number,
   countryExchangeRate: number,
@@ -151,21 +169,7 @@ export const calculateCtyAmount = (
   )
 }
 
-/**
- * Calculate total amount based on quantity and unit price
- */
-export const calculateTotalAmount = (
-  qty: number,
-  unitPrice: number,
-  decimals: IDecimal
-) => {
-  return calculateMultiplierAmount(qty, unitPrice, decimals.amtDec)
-}
-
-/**
- * Recalculate all amounts for a detail row based on exchange rates
- */
-export const recalculateDetailAmounts = (
+export const recalculateDetailLocalAndCtyAmounts = (
   detail: IArAdjustmentDt,
   exchangeRate: number,
   countryExchangeRate: number,
@@ -173,10 +177,8 @@ export const recalculateDetailAmounts = (
   hasCountryCurrency: boolean
 ) => {
   const totAmt = detail.totAmt || 0
-  const gstPercentage = detail.gstPercentage || 0
-
-  // Calculate GST amount
-  const gstAmt = calculateGstAmount(totAmt, gstPercentage, decimals)
+  // Preserve existing gstAmt instead of recalculating from percentage
+  const gstAmt = detail.gstAmt || 0
 
   // Calculate local amounts
   const totLocalAmt = calculateLocalAmount(totAmt, exchangeRate, decimals)
@@ -188,11 +190,15 @@ export const recalculateDetailAmounts = (
   if (hasCountryCurrency) {
     totCtyAmt = calculateCtyAmount(totAmt, countryExchangeRate, decimals)
     gstCtyAmt = calculateCtyAmount(gstAmt, countryExchangeRate, decimals)
+  } else {
+    // If m_CtyCurr is false, city amounts = local amounts
+    totCtyAmt = totLocalAmt
+    gstCtyAmt = gstLocalAmt
   }
 
   return {
     ...detail,
-    gstAmt,
+    gstAmt, // Preserve existing gstAmt
     totLocalAmt,
     gstLocalAmt,
     totCtyAmt,
@@ -200,9 +206,6 @@ export const recalculateDetailAmounts = (
   }
 }
 
-/**
- * Recalculate all amounts for all detail rows based on exchange rates
- */
 export const recalculateAllDetailsLocalAndCtyAmounts = (
   details: IArAdjustmentDt[],
   exchangeRate: number,
@@ -211,7 +214,7 @@ export const recalculateAllDetailsLocalAndCtyAmounts = (
   hasCountryCurrency: boolean
 ) => {
   return details.map((detail) =>
-    recalculateDetailAmounts(
+    recalculateDetailLocalAndCtyAmounts(
       detail,
       exchangeRate,
       countryExchangeRate,
@@ -221,267 +224,185 @@ export const recalculateAllDetailsLocalAndCtyAmounts = (
   )
 }
 
-// type AdjustmentTotalsAccumulator = {
-//   totAmt: number
-//   gstAmt: number
-//   totLocalAmt: number
-//   gstLocalAmt: number
-//   totCtyAmt: number
-//   gstCtyAmt: number
-// }
-
-// const createEmptyAccumulator = (): AdjustmentTotalsAccumulator => ({
-//   totAmt: 0,
-//   gstAmt: 0,
-//   totLocalAmt: 0,
-//   gstLocalAmt: 0,
-//   totCtyAmt: 0,
-//   gstCtyAmt: 0,
-// })
-
-// const accumulateTotals = (
-//   accumulator: AdjustmentTotalsAccumulator,
-//   detail: IArAdjustmentDt
-// ) => {
-//   accumulator.totAmt += Number(detail.totAmt) || 0
-//   accumulator.gstAmt += Number(detail.gstAmt) || 0
-//   accumulator.totLocalAmt += Number(detail.totLocalAmt) || 0
-//   accumulator.gstLocalAmt += Number(detail.gstLocalAmt) || 0
-//   accumulator.totCtyAmt += Number(detail.totCtyAmt) || 0
-//   accumulator.gstCtyAmt += Number(detail.gstCtyAmt) || 0
-// }
-
-// export const calculateAdjustmentHeaderTotals = (
-//   details: IArAdjustmentDt[],
-//   decimals: IDecimal,
-//   hasCountryCurrency: boolean
-// ) => {
-//   if (!details || details.length === 0) {
-//     return {
-//       isDebit: false,
-//       totAmt: 0,
-//       gstAmt: 0,
-//       totAmtAftGst: 0,
-//       totLocalAmt: 0,
-//       gstLocalAmt: 0,
-//       totLocalAmtAftGst: 0,
-//       totCtyAmt: 0,
-//       gstCtyAmt: 0,
-//       totCtyAmtAftGst: 0,
-//     }
-//   }
-
-//   const debitTotals = createEmptyAccumulator()
-//   const creditTotals = createEmptyAccumulator()
-
-//   details.forEach((detail) => {
-//     if (detail.isDebit) {
-//       accumulateTotals(debitTotals, detail)
-//     } else {
-//       accumulateTotals(creditTotals, detail)
-//     }
-//   })
-
-//   const net = {
-//     totAmt: debitTotals.totAmt - creditTotals.totAmt,
-//     gstAmt: debitTotals.gstAmt - creditTotals.gstAmt,
-//     totLocalAmt: debitTotals.totLocalAmt - creditTotals.totLocalAmt,
-//     gstLocalAmt: debitTotals.gstLocalAmt - creditTotals.gstLocalAmt,
-//     totCtyAmt: debitTotals.totCtyAmt - creditTotals.totCtyAmt,
-//     gstCtyAmt: debitTotals.gstCtyAmt - creditTotals.gstCtyAmt,
-//   }
-
-//   const amtDec = decimals.amtDec ?? 2
-//   const locDec = decimals.locAmtDec ?? amtDec
-//   const ctyDec = decimals.ctyAmtDec ?? locDec
-
-//   const isDebit = net.totAmt < 0
-
-//   const normalized = {
-//     totAmt: mathRound(Math.abs(net.totAmt), amtDec),
-//     gstAmt: mathRound(Math.abs(net.gstAmt), amtDec),
-//     totAmtAftGst: mathRound(Math.abs(net.totAmt + net.gstAmt), amtDec),
-//     totLocalAmt: mathRound(Math.abs(net.totLocalAmt), locDec),
-//     gstLocalAmt: mathRound(Math.abs(net.gstLocalAmt), locDec),
-//     totLocalAmtAftGst: mathRound(
-//       Math.abs(net.totLocalAmt + net.gstLocalAmt),
-//       locDec
-//     ),
-//     totCtyAmt: hasCountryCurrency
-//       ? mathRound(Math.abs(net.totCtyAmt), ctyDec)
-//       : 0,
-//     gstCtyAmt: hasCountryCurrency
-//       ? mathRound(Math.abs(net.gstCtyAmt), ctyDec)
-//       : 0,
-//     totCtyAmtAftGst: hasCountryCurrency
-//       ? mathRound(Math.abs(net.totCtyAmt + net.gstCtyAmt), ctyDec)
-//       : 0,
-//   }
-
-//   return {
-//     isDebit,
-//     ...normalized,
-//   }
-// }
-
-type AdjustmentTotalsAccumulator = {
-  totAmt: number
-  gstAmt: number
-  totLocalAmt: number
-  gstLocalAmt: number
-  totCtyAmt: number
-  gstCtyAmt: number
-}
-
-const createEmptyAccumulator = (): AdjustmentTotalsAccumulator => ({
-  totAmt: 0,
-  gstAmt: 0,
-  totLocalAmt: 0,
-  gstLocalAmt: 0,
-  totCtyAmt: 0,
-  gstCtyAmt: 0,
-})
-
-const accumulateTotals = (
-  accumulator: AdjustmentTotalsAccumulator,
-  detail: IArAdjustmentDt,
-  decimals: IDecimal
+export const recalculateDetailFormAmounts = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dtForm: UseFormReturn<any>, // Generic form type for reusability
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  hdForm: UseFormReturn<any>, // Generic form type for reusability
+  decimals: IDecimal,
+  visible: IVisibleFields,
+  exchangeRate?: number,
+  countryExchangeRate?: number
 ) => {
-  accumulator.totAmt = calculateAdditionAmount(
-    accumulator.totAmt,
-    Number(detail.totAmt) || 0,
-    decimals.amtDec
-  )
-  accumulator.gstAmt = calculateAdditionAmount(
-    accumulator.gstAmt,
-    Number(detail.gstAmt) || 0,
-    decimals.amtDec
-  )
-  accumulator.totLocalAmt = calculateAdditionAmount(
-    accumulator.totLocalAmt,
-    Number(detail.totLocalAmt) || 0,
-    decimals.locAmtDec
-  )
-  accumulator.gstLocalAmt = calculateAdditionAmount(
-    accumulator.gstLocalAmt,
-    Number(detail.gstLocalAmt) || 0,
-    decimals.locAmtDec
-  )
-  accumulator.totCtyAmt = calculateAdditionAmount(
-    accumulator.totCtyAmt,
-    Number(detail.totCtyAmt) || 0,
-    decimals.ctyAmtDec
-  )
-  accumulator.gstCtyAmt = calculateAdditionAmount(
-    accumulator.gstCtyAmt,
-    Number(detail.gstCtyAmt) || 0,
-    decimals.ctyAmtDec
-  )
+  // Use provided exchange rates or read from form
+  const currentExchangeRate =
+    exchangeRate !== undefined ? exchangeRate : hdForm.getValues("exhRate") || 0
+
+  // Always recalculate if exchange rate is valid (even if totAmt is 0, we should update local amounts to 0)
+  if (currentExchangeRate > 0) {
+    // Use provided countryExchangeRate if available, otherwise sync with exchange rate
+    let finalCountryExchangeRate: number
+    if (countryExchangeRate !== undefined && visible?.m_CtyCurr) {
+      finalCountryExchangeRate = countryExchangeRate
+    } else {
+      // Sync city exchange rate with exchange rate if needed
+      finalCountryExchangeRate = syncCountryExchangeRate(
+        hdForm,
+        currentExchangeRate,
+        visible
+      )
+    }
+
+    // Get current form values
+    const currentValues = dtForm.getValues()
+    const detail: IArAdjustmentDt = {
+      ...currentValues,
+      totAmt: currentValues.totAmt || 0,
+      gstAmt: currentValues.gstAmt || 0,
+    }
+
+    // Recalculate local and city amounts using the shared function
+    const recalculatedDetail = recalculateDetailLocalAndCtyAmounts(
+      detail,
+      currentExchangeRate,
+      finalCountryExchangeRate,
+      decimals,
+      !!visible?.m_CtyCurr
+    )
+
+    // Update form with recalculated local and city amounts
+    dtForm.setValue("totLocalAmt", recalculatedDetail.totLocalAmt, {
+      shouldValidate: false,
+      shouldDirty: true,
+    })
+    dtForm.setValue("totCtyAmt", recalculatedDetail.totCtyAmt, {
+      shouldValidate: false,
+      shouldDirty: true,
+    })
+    dtForm.setValue("gstLocalAmt", recalculatedDetail.gstLocalAmt, {
+      shouldValidate: false,
+      shouldDirty: true,
+    })
+    dtForm.setValue("gstCtyAmt", recalculatedDetail.gstCtyAmt, {
+      shouldValidate: false,
+      shouldDirty: true,
+    })
+
+    // Trigger form update to ensure UI reflects changes
+    dtForm.trigger(["totLocalAmt", "totCtyAmt", "gstLocalAmt", "gstCtyAmt"])
+
+    return {
+      totLocalAmt: recalculatedDetail.totLocalAmt,
+      totCtyAmt: recalculatedDetail.totCtyAmt,
+      gstLocalAmt: recalculatedDetail.gstLocalAmt,
+      gstCtyAmt: recalculatedDetail.gstCtyAmt,
+    }
+  }
+
+  return null
 }
 
-export const calculateAdjustmentHeaderTotals = (
+//recalculate and set header totals on invoice form
+export const recalculateAndSetHeaderTotals = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>,
   details: IArAdjustmentDt[],
   decimals: IDecimal,
-  hasCountryCurrency: boolean
+  visible: IVisibleFields
 ) => {
-  if (!details || details.length === 0) {
-    return {
-      isDebit: false,
-      totAmt: 0,
-      gstAmt: 0,
-      totAmtAftGst: 0,
-      totLocalAmt: 0,
-      gstLocalAmt: 0,
-      totLocalAmtAftGst: 0,
-      totCtyAmt: 0,
-      gstCtyAmt: 0,
-      totCtyAmtAftGst: 0,
+  if (details.length === 0) {
+    // Reset all amounts to 0 if no details
+    form.setValue("totAmt", 0)
+    form.setValue("gstAmt", 0)
+    form.setValue("totAmtAftGst", 0)
+    form.setValue("totLocalAmt", 0)
+    form.setValue("gstLocalAmt", 0)
+    form.setValue("totLocalAmtAftGst", 0)
+    if (visible?.m_CtyCurr) {
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
     }
+    return
   }
 
-  const debitTotals = createEmptyAccumulator()
-  const creditTotals = createEmptyAccumulator()
+  const amtDec = decimals?.amtDec || 2
+  const locAmtDec = decimals?.locAmtDec || 2
+  const ctyAmtDec = decimals?.ctyAmtDec || 2
 
-  const amtDec = decimals.amtDec ?? 2
-  const locDec = decimals.locAmtDec ?? amtDec
-  const ctyDec = decimals.ctyAmtDec ?? locDec
+  // Calculate base currency totals
+  const totals = calculateTotalAmounts(details, amtDec)
+  form.setValue("totAmt", Math.abs(totals.totAmt))
+  form.setValue("gstAmt", Math.abs(totals.gstAmt))
+  form.setValue("totAmtAftGst", Math.abs(totals.totAmtAftGst))
 
-  details.forEach((detail) => {
-    if (detail.isDebit) {
-      accumulateTotals(debitTotals, detail, decimals)
-    } else {
-      accumulateTotals(creditTotals, detail, decimals)
-    }
-  })
+  // Calculate local currency totals (always calculate)
+  const localAmounts = calculateLocalAmounts(details, locAmtDec)
+  form.setValue("totLocalAmt", Math.abs(localAmounts.totLocalAmt))
+  form.setValue("gstLocalAmt", Math.abs(localAmounts.gstLocalAmt))
+  form.setValue("totLocalAmtAftGst", Math.abs(localAmounts.totLocalAmtAftGst))
 
-  const net = {
-    totAmt: calculateSubtractionAmount(
-      debitTotals.totAmt,
-      creditTotals.totAmt,
-      amtDec
-    ),
-    gstAmt: calculateSubtractionAmount(
-      debitTotals.gstAmt,
-      creditTotals.gstAmt,
-      amtDec
-    ),
-    totLocalAmt: calculateSubtractionAmount(
-      debitTotals.totLocalAmt,
-      creditTotals.totLocalAmt,
-      locDec
-    ),
-    gstLocalAmt: calculateSubtractionAmount(
-      debitTotals.gstLocalAmt,
-      creditTotals.gstLocalAmt,
-      locDec
-    ),
-    totCtyAmt: calculateSubtractionAmount(
-      debitTotals.totCtyAmt,
-      creditTotals.totCtyAmt,
-      ctyDec
-    ),
-    gstCtyAmt: calculateSubtractionAmount(
-      debitTotals.gstCtyAmt,
-      creditTotals.gstCtyAmt,
-      ctyDec
-    ),
+  // Calculate country currency totals (always calculate)
+  // If m_CtyCurr is false, country amounts = local amounts
+  const countryAmounts = calculateCtyAmounts(
+    details,
+    visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+  )
+  form.setValue("totCtyAmt", Math.abs(countryAmounts.totCtyAmt))
+  form.setValue("gstCtyAmt", Math.abs(countryAmounts.gstCtyAmt))
+  form.setValue("totCtyAmtAftGst", Math.abs(countryAmounts.totCtyAmtAftGst))
+
+  // Calculate header isDebit based on net amount
+  // If totals.totAmt > 0 (debit side higher), header should be Credit (false)
+  // If totals.totAmt < 0 (credit side higher), header should be Debit (true)
+  // If totals.totAmt = 0, default to Credit (false)
+  const headerIsDebit = totals.totAmt < 0
+  form.setValue("isDebit", headerIsDebit, { shouldDirty: true })
+}
+
+//sync city exchange rate with exchange rate if needed
+export const syncCountryExchangeRate = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>,
+  exchangeRate: number,
+  visible: IVisibleFields
+): number => {
+  if (!visible?.m_CtyCurr) {
+    form.setValue("ctyExhRate", exchangeRate)
+    return exchangeRate
   }
+  return form.getValues("ctyExhRate") || exchangeRate
+}
 
-  const isDebit = net.totAmt < 0
+//calculate GST local and cty amounts on detail form
+export const calculateGstLocalAndCtyAmounts = (
+  gstAmt: number,
+  exchangeRate: number,
+  countryExchangeRate: number,
+  decimals: IDecimal,
+  visible: IVisibleFields
+) => {
+  // Calculate GST local amount
+  const gstLocalAmt = calculateMultiplierAmount(
+    gstAmt,
+    exchangeRate,
+    decimals?.locAmtDec || 2
+  )
 
-  const normalized = {
-    totAmt: mathRound(Math.abs(net.totAmt), amtDec),
-    gstAmt: mathRound(Math.abs(net.gstAmt), amtDec),
-    totAmtAftGst: mathRound(
-      Math.abs(calculateAdditionAmount(net.totAmt, net.gstAmt, amtDec)),
-      amtDec
-    ),
-    totLocalAmt: mathRound(Math.abs(net.totLocalAmt), locDec),
-    gstLocalAmt: mathRound(Math.abs(net.gstLocalAmt), locDec),
-    totLocalAmtAftGst: mathRound(
-      Math.abs(
-        calculateAdditionAmount(net.totLocalAmt, net.gstLocalAmt, locDec)
-      ),
-      locDec
-    ),
-    totCtyAmt: hasCountryCurrency
-      ? mathRound(Math.abs(net.totCtyAmt), ctyDec)
-      : 0,
-    gstCtyAmt: hasCountryCurrency
-      ? mathRound(Math.abs(net.gstCtyAmt), ctyDec)
-      : 0,
-    totCtyAmtAftGst: hasCountryCurrency
-      ? mathRound(
-          Math.abs(
-            calculateAdditionAmount(net.totCtyAmt, net.gstCtyAmt, ctyDec)
-          ),
-          ctyDec
-        )
-      : 0,
+  // Calculate GST city amount
+  let gstCtyAmt = 0
+  if (visible?.m_CtyCurr) {
+    gstCtyAmt = calculateMultiplierAmount(
+      gstAmt,
+      countryExchangeRate,
+      decimals?.ctyAmtDec || 2
+    )
+  } else {
+    gstCtyAmt = gstLocalAmt
   }
 
   return {
-    isDebit,
-    ...normalized,
+    gstLocalAmt,
+    gstCtyAmt,
   }
 }
