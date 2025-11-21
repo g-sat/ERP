@@ -311,6 +311,9 @@ export default function AdjustmentPage() {
 
   // Watch isDebit value for badge display
   const headerIsDebit = form.watch("isDebit")
+  // Watch data_details to check if details exist
+  const dataDetails = form.watch("data_details") || []
+  const hasDetails = dataDetails.length > 0
 
   useEffect(() => {
     if (previousDateFormatRef.current === dateFormat) return
@@ -1282,12 +1285,15 @@ export default function AdjustmentPage() {
                 </span>
               </span>
             </h1>
-            <Badge
-              variant={headerIsDebit ? "default" : "destructive"}
-              className="px-3 py-1 text-xs font-medium"
-            >
-              {headerIsDebit ? "Debit" : "Credit"}
-            </Badge>
+
+            {hasDetails && (
+              <Badge
+                variant={headerIsDebit ? "default" : "destructive"}
+                className="px-3 py-1 text-xs font-medium"
+              >
+                {headerIsDebit ? "Debit" : "Credit"}
+              </Badge>
+            )}
 
             {isEdit && (
               <Button

@@ -54,6 +54,8 @@ export default function Main({
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousAdjustmentKeyRef = useRef<string>("")
   const detailsFormRef = useRef<AdjustmentDetailsFormRef>(null)
+  const isInitialLoadRef = useRef<boolean>(true)
+  const previousDataDetailsRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const watchedDataDetails = form.watch("data_details")
@@ -71,6 +73,8 @@ export default function Main({
     }
 
     previousAdjustmentKeyRef.current = currentKey
+    isInitialLoadRef.current = true // Mark as initial load when adjustment changes
+    previousDataDetailsRef.current = "" // Reset previous details
     setEditingDetail(null)
     setSelectedItemsToDelete([])
     setItemToDelete(null)
@@ -109,29 +113,46 @@ export default function Main({
     }
   }, [dataDetails, editingDetail])
 
-  // Recalculate header totals when details change
+  // Recalculate header totals when details change (but not on initial load)
   useEffect(() => {
-    recalculateAndSetHeaderTotals(
-      form,
-      dataDetails as unknown as IArAdjustmentDt[],
-      decimals[0],
-      visible
-    )
+    // Skip recalculation on initial load when adjustment is loaded
+    if (isInitialLoadRef.current) {
+      // Mark initial load as complete and store current details snapshot
+      const currentDetailsSnapshot = JSON.stringify(dataDetails)
+      previousDataDetailsRef.current = currentDetailsSnapshot
+      isInitialLoadRef.current = false
+      return
+    }
 
-    // Trigger form validation to update UI
-    form.trigger([
-      "totAmt",
-      "gstAmt",
-      "totAmtAftGst",
-      "totLocalAmt",
-      "gstLocalAmt",
-      "totLocalAmtAftGst",
-      "totCtyAmt",
-      "gstCtyAmt",
-      "totCtyAmtAftGst",
-    ])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, decimals, visible])
+    // Create snapshot of current details to compare
+    const currentDetailsSnapshot = JSON.stringify(dataDetails)
+
+    // Only recalculate if details actually changed (not just a reference change)
+    if (currentDetailsSnapshot !== previousDataDetailsRef.current) {
+      previousDataDetailsRef.current = currentDetailsSnapshot
+
+      recalculateAndSetHeaderTotals(
+        form,
+        dataDetails as unknown as IArAdjustmentDt[],
+        decimals[0],
+        visible
+      )
+
+      // Trigger form validation to update UI
+      form.trigger([
+        "totAmt",
+        "gstAmt",
+        "totAmtAftGst",
+        "totLocalAmt",
+        "gstLocalAmt",
+        "totLocalAmtAftGst",
+        "totCtyAmt",
+        "gstCtyAmt",
+        "totCtyAmtAftGst",
+        "isDebit",
+      ])
+    }
+  }, [dataDetails, decimals, visible, form])
 
   const handleAddRow = (rowData: IArAdjustmentDt) => {
     const currentData = form.getValues("data_details") || []
