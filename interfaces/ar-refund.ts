@@ -64,7 +64,7 @@ export interface IArRefundDt {
   transactionId: number
   documentId: number
   documentNo: string
-  referenceNo: string
+  docRefNo: string
   docCurrencyId: number
   docCurrencyCode: string
   docExhRate: number

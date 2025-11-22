@@ -323,8 +323,7 @@ export default function Main({
 
       if (centDiffUpdated) {
         sumAllocLocalAmt = arr.reduce(
-          (s, r) =>
-            s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
+          (s, r) => s + (Number(r.allocLocalAmt) || 0),
           0
         )
         sumExhGainLoss = arr.reduce(
@@ -343,6 +342,7 @@ export default function Main({
       }
 
       const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+      unAllocLocalAmt = unAllocLocalAmt - sumCentDiff
 
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
@@ -351,7 +351,7 @@ export default function Main({
       setDataDetails(updatedData)
       form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+      form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
         shouldDirty: true,
       })
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
@@ -469,8 +469,7 @@ export default function Main({
 
     if (centDiffUpdated) {
       sumAllocLocalAmt = arr.reduce(
-        (s, r) =>
-          s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
+        (s, r) => s + (Number(r.allocLocalAmt) || 0),
         0
       )
       sumExhGainLoss = arr.reduce((s, r) => s + (Number(r.exhGainLoss) || 0), 0)
@@ -487,6 +486,7 @@ export default function Main({
     }
 
     const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+    unAllocLocalAmt = unAllocLocalAmt - sumCentDiff
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -504,11 +504,13 @@ export default function Main({
 
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-    form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+    form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
       shouldDirty: true,
     })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+      shouldDirty: true,
+    })
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(true)

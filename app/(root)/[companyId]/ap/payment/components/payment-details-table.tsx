@@ -291,7 +291,7 @@ export default function PaymentDetailsTable({
       },
     },
     {
-      accessorKey: "referenceNo",
+      accessorKey: "docRefNo",
       header: "Reference No",
       size: 120,
     },

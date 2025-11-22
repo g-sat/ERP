@@ -86,7 +86,7 @@ export const ApDocSetOffDtSchema = (
     // Document Fields
     documentId: z.string().min(1, "Document is required"),
     documentNo: z.string().min(1, "Document No is required"),
-    referenceNo: z.string().optional(),
+    docRefNo: z.string().optional(),
     docCurrencyId: z.number().min(1, "Document Currency is required"),
     docExhRate: z.number().min(0, "Document Exchange Rate is required"),
     docAccountDate: z.union([z.date(), z.string()]),

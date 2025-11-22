@@ -236,7 +236,7 @@ export default function PaymentPage() {
               paymentNo: detail.paymentNo ?? "",
               documentId: detail.documentId?.toString() ?? "0",
               documentNo: detail.documentNo ?? "",
-              referenceNo: detail.referenceNo ?? "",
+              docRefNo: detail.docRefNo ?? "",
               docCurrencyId: detail.docCurrencyId ?? 0,
               docExhRate: detail.docExhRate ?? 0,
               docAccountDate: detail.docAccountDate ?? "",
@@ -689,7 +689,7 @@ export default function PaymentPage() {
                 transactionId: detail.transactionId ?? 0,
                 documentId: detail.documentId?.toString() ?? "0",
                 documentNo: detail.documentNo ?? "",
-                referenceNo: detail.referenceNo ?? "",
+                docRefNo: detail.docRefNo ?? "",
                 docCurrencyId: detail.docCurrencyId ?? 0,
                 docExhRate: detail.docExhRate ?? 0,
                 docAccountDate: detail.docAccountDate

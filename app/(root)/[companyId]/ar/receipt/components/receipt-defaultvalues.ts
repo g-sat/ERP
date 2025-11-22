@@ -10,7 +10,7 @@ const buildDefaultReceiptDetails = (dateFormat: string) => ({
   transactionId: 0,
   documentId: "0",
   documentNo: "",
-  referenceNo: "",
+  docRefNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
   docAccountDate: format(new Date(), dateFormat),
@@ -81,6 +81,5 @@ export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
 })
 
 export const defaultReceipt = buildDefaultReceipt(clientDateFormat)
-export const defaultReceiptDetails = buildDefaultReceiptDetails(
-  clientDateFormat
-)
+export const defaultReceiptDetails =
+  buildDefaultReceiptDetails(clientDateFormat)

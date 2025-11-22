@@ -10,7 +10,7 @@ const buildDefaultRefundDetails = (dateFormat: string) => ({
   transactionId: 0,
   documentId: "0",
   documentNo: "",
-  referenceNo: "",
+  docRefNo: "",
   docCurrencyId: 0,
   docExhRate: 0,
   docAccountDate: format(new Date(), dateFormat),

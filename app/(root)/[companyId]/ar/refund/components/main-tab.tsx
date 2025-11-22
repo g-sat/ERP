@@ -355,11 +355,7 @@ export default function Main({
       setDataDetails(updatedData)
       form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
-        shouldDirty: true,
-      })
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+      form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
         shouldDirty: true,
       })
       form.trigger("data_details")
@@ -518,8 +514,6 @@ export default function Main({
     form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
       shouldDirty: true,
     })
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(true)

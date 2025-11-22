@@ -378,7 +378,7 @@ export default function Main({
       setDataDetails(updatedData)
       form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+      form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
         shouldDirty: true,
       })
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })

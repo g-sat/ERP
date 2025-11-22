@@ -287,7 +287,7 @@ export default function DocSetOffDetailsTable({
       },
     },
     {
-      accessorKey: "referenceNo",
+      accessorKey: "docRefNo",
       header: "Reference No",
       size: 120,
     },

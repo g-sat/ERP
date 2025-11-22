@@ -185,7 +185,7 @@ export default function DocSetOffTable({
       },
     },
     {
-      accessorKey: "referenceNo",
+      accessorKey: "docRefNo",
       header: "Reference No",
     },
     {
