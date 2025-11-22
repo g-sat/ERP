@@ -5,7 +5,7 @@ import {
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import {
   calauteLocalAmtandGainLoss,
@@ -185,7 +185,7 @@ export default function DocSetOffForm({
         await new Promise((resolve) => setTimeout(resolve, 0))
 
         await setExchangeRate(form, exhRateDec, visible)
-        await setRecExchangeRate(form, exhRateDec)
+        await setPayExchangeRate(form, exhRateDec)
 
         // Calculate and set due date (for detail records)
         await setDueDate(form)
@@ -209,7 +209,7 @@ export default function DocSetOffForm({
         // Only set exchange rates if currency is available
         if (selectedSupplier.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)

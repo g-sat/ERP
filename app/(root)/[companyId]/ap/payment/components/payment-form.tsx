@@ -6,7 +6,7 @@ import {
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import {
   calauteLocalAmtandGainLoss,
@@ -87,7 +87,7 @@ export default function PaymentForm({
 
   // Refs to store original values on focus for comparison on blur
   const originalExhRateRef = React.useRef<number>(0)
-  const originalRecExhRateRef = React.useRef<number>(0)
+  const originalPayExhRateRef = React.useRef<number>(0)
   const originalTotAmtRef = React.useRef<number>(0)
   const originalPayTotAmtRef = React.useRef<number>(0)
   const originalBankChgAmtRef = React.useRef<number>(0)
@@ -363,7 +363,7 @@ export default function PaymentForm({
         await new Promise((resolve) => setTimeout(resolve, 0))
 
         await setExchangeRate(form, exhRateDec, visible)
-        await setRecExchangeRate(form, exhRateDec)
+        await setPayExchangeRate(form, exhRateDec)
 
         // Calculate and set due date (for detail records)
         await setDueDate(form)
@@ -389,7 +389,7 @@ export default function PaymentForm({
         // Only set exchange rates if currency is available
         if (selectedSupplier.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)
@@ -433,8 +433,8 @@ export default function PaymentForm({
       form.setValue("payCurrencyId", payCurrencyId)
 
       if (selectedBank && payCurrencyId > 0) {
-        // Only call setRecExchangeRate if currency is available
-        await setRecExchangeRate(form, exhRateDec)
+        // Only call setPayExchangeRate if currency is available
+        await setPayExchangeRate(form, exhRateDec)
         form.trigger("payExhRate")
       } else {
         // If no bank selected or no currency, set exchange rate to zero
@@ -513,7 +513,7 @@ export default function PaymentForm({
       form.setValue("payCurrencyId", payCurrencyId)
 
       if (payCurrencyId > 0 && payCurrencyId !== currencyId) {
-        await setRecExchangeRate(form, exhRateDec)
+        await setPayExchangeRate(form, exhRateDec)
       } else if (payCurrencyId > 0 && payCurrencyId === currencyId) {
         const exhRateValue = form.getValues("exhRate") || 0
         form.setValue("payExhRate", exhRateValue, { shouldDirty: true })
@@ -607,28 +607,28 @@ export default function PaymentForm({
   )
 
   // Handle payment exchange rate focus - capture original value
-  const handleRecExchangeRateFocus = React.useCallback(() => {
-    originalRecExhRateRef.current = form.getValues("payExhRate") || 0
+  const handlePayExchangeRateFocus = React.useCallback(() => {
+    originalPayExhRateRef.current = form.getValues("payExhRate") || 0
     console.log(
-      "handleRecExchangeRateFocus - original value:",
-      originalRecExhRateRef.current
+      "handlePayExchangeRateFocus - original value:",
+      originalPayExhRateRef.current
     )
   }, [form])
 
   // Handle payment exchange rate change
-  const handleRecExchangeRateChange = React.useCallback(
+  const handlePayExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const payExhRate = parseNumberWithCommas(e.target.value)
-      const originalRecExhRate = originalRecExhRateRef.current
+      const originalPayExhRate = originalPayExhRateRef.current
 
-      console.log("handleRecExchangeRateChange", {
+      console.log("handlePayExchangeRateChange", {
         newValue: payExhRate,
-        originalValue: originalRecExhRate,
-        isDifferent: payExhRate !== originalRecExhRate,
+        originalValue: originalPayExhRate,
+        isDifferent: payExhRate !== originalPayExhRate,
       })
 
       // Only recalculate if value is different from original
-      if (payExhRate !== originalRecExhRate) {
+      if (payExhRate !== originalPayExhRate) {
         console.log("Payment Exchange Rate changed - recalculating amounts")
         form.setValue("payExhRate", payExhRate, { shouldDirty: true })
 
@@ -915,8 +915,8 @@ export default function PaymentForm({
           round={exhRateDec}
           className="text-right"
           isDisabled={isCurrenciesEqual}
-          onFocusEvent={handleRecExchangeRateFocus}
-          onBlurEvent={handleRecExchangeRateChange}
+          onFocusEvent={handlePayExchangeRateFocus}
+          onBlurEvent={handlePayExchangeRateChange}
         />
 
         {/* Pay Total Amount - Read-only when currencies are equal */}

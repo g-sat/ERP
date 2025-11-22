@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import {
   setDueDate,
   setExchangeRate,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import { IApRefundFilter, IApRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -497,7 +497,7 @@ export default function RefundPage() {
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
 
           // Calculate and set due date (for detail records)
           await setDueDate(form)
