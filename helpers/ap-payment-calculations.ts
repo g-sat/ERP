@@ -286,9 +286,6 @@ export const calauteLocalAmtandGainLoss = (
     exhRate,
     decimals.locAmtDec
   )
-  console.log("allocAmt", allocAmt)
-  console.log("exhRate", exhRate)
-  console.log("allocLocalAmt", allocLocalAmt)
 
   const docAllocAmt = allocAmt
 
@@ -312,20 +309,11 @@ export const calauteLocalAmtandGainLoss = (
   const centDiff = 0
 
   details[rowNumber].allocLocalAmt = allocLocalAmt
-  console.log("calauteLocalAmtandGainLoss allocLocalAmt", allocLocalAmt)
   details[rowNumber].docAllocAmt = docAllocAmt
-  console.log("calauteLocalAmtandGainLoss docAllocAmt", docAllocAmt)
   details[rowNumber].docAllocLocalAmt = docAllocLocalAmt
-  console.log("calauteLocalAmtandGainLoss docAllocLocalAmt", docAllocLocalAmt)
   details[rowNumber].centDiff = centDiff
-  console.log("calauteLocalAmtandGainLoss centDiff", centDiff)
   details[rowNumber].exhGainLoss = exhGainLoss
-  console.log("calauteLocalAmtandGainLoss exhGainLoss", exhGainLoss)
 
-  console.log(
-    "calauteLocalAmtandGainLoss details[rowNumber]",
-    details[rowNumber]
-  )
   return details[rowNumber]
 }
 
@@ -336,25 +324,14 @@ export const calculateManualAllocation = (
   totAmt?: number,
   decimals?: IDecimal
 ): { result: IApPaymentDt; wasAutoSetToZero: boolean } => {
-  // console.log(
-  //   "calculateManualAllocation",
-  //   details,
-  //   rowNumber,
-  //   allocAmt,
-  //   totAmt,
-  //   decimals
-  // )
   if (!details || rowNumber < 0 || rowNumber >= details.length) {
-    //console.log("calculateManualAllocation not valid", details, rowNumber)
     return { result: details[rowNumber], wasAutoSetToZero: false }
   }
 
   const currentBalance = Number(details[rowNumber].docBalAmt) || 0
-  //console.log("calculateManualAllocation currentBalance", currentBalance)
   let finalAllocation = Number(allocAmt) || 0
   const originalRequestedAllocation = finalAllocation
   let wasAutoSetToZero = false
-  //console.log("calculateManualAllocation finalAllocation", finalAllocation)
 
   // Helper function to subtract amount from remaining with decimals support
   const subtractFromRemaining = (remaining: number, amount: number) => {
@@ -365,7 +342,6 @@ export const calculateManualAllocation = (
 
   // Helper function to validate and clamp allocation to balance limits
   const clampAllocationToBalance = (allocation: number, balance: number) => {
-    //console.log("clampAllocationToBalance", allocation, balance)
     if (balance === 0) return 0
 
     const maxAbsBalance = Math.abs(balance)
@@ -378,12 +354,7 @@ export const calculateManualAllocation = (
 
   // If totAmt is provided, calculate with negatives-first logic
   if (totAmt !== undefined && totAmt > 0) {
-    //console.log("calculateManualAllocation totAmt", totAmt)
     let remainingAllocationAmt = Number(totAmt) || 0
-    //console.log(
-    //  "calculateManualAllocation remainingAllocationAmt",
-    //  remainingAllocationAmt
-    //)
 
     // Process all other rows to calculate remaining allocation
     details.forEach((row, idx) => {
@@ -391,8 +362,6 @@ export const calculateManualAllocation = (
 
       const rowBalance = Number(row.docBalAmt) || 0
       const rowAllocatedAmt = Number(row.allocAmt) || 0
-      //console.log("calculateManualAllocation rowBalance", rowBalance)
-      //console.log("calculateManualAllocation rowAllocatedAmt", rowAllocatedAmt)
 
       // First, handle unallocated negative balances (adds to remaining)
       if (rowBalance < 0 && rowAllocatedAmt === 0) {
@@ -413,18 +382,8 @@ export const calculateManualAllocation = (
 
     // Handle current row based on its balance type
     if (currentBalance < 0) {
-      console.log(
-        "calculateManualAllocation currentBalance < 0",
-        finalAllocation,
-        currentBalance
-      )
       // For negative balance, take it fully if desired amount allows
       if (finalAllocation < 0) {
-        console.log(
-          "calculateManualAllocation finalAllocation < 0",
-          finalAllocation,
-          currentBalance
-        )
         finalAllocation = currentBalance // Take full negative balance
         remainingAllocationAmt = subtractFromRemaining(
           remainingAllocationAmt,
@@ -432,25 +391,10 @@ export const calculateManualAllocation = (
         )
       } else {
         finalAllocation = 0 // Don't take if trying to allocate positive to negative
-        console.log(
-          "calculateManualAllocation finalAllocation > 0",
-          finalAllocation,
-          currentBalance
-        )
       }
     } else if (currentBalance > 0) {
-      console.log(
-        "calculateManualAllocation currentBalance > 0",
-        finalAllocation,
-        currentBalance
-      )
       // For positive balance, validate against remaining amount
       finalAllocation = clampAllocationToBalance(
-        finalAllocation,
-        currentBalance
-      )
-      console.log(
-        "calculateManualAllocation finalAllocation after clamp",
         finalAllocation,
         currentBalance
       )
@@ -466,21 +410,7 @@ export const calculateManualAllocation = (
         }
         finalAllocation = 0
         wasAutoSetToZero = true
-        console.log(
-          "calculateManualAllocation wasAutoSetToZero",
-          wasAutoSetToZero
-        )
-        console.log(
-          "calculateManualAllocation finalAllocation after remainingAllocationAmt <= 0",
-          finalAllocation,
-          remainingAllocationAmt
-        )
       } else {
-        console.log(
-          "calculateManualAllocation finalAllocation after remainingAllocationAmt > 0",
-          finalAllocation,
-          remainingAllocationAmt
-        )
         // Valid allocation, reduce remaining
         remainingAllocationAmt = subtractFromRemaining(
           remainingAllocationAmt,
@@ -489,26 +419,11 @@ export const calculateManualAllocation = (
       }
     } else {
       // currentBalance === 0, no allocation
-      console.log(
-        "calculateManualAllocation currentBalance === 0",
-        finalAllocation,
-        currentBalance
-      )
       finalAllocation = 0
     }
   } else {
     // No totAmt validation, just enforce basic constraints
-    console.log(
-      "calculateManualAllocation no totAmt",
-      finalAllocation,
-      currentBalance
-    )
     finalAllocation = clampAllocationToBalance(finalAllocation, currentBalance)
-    console.log(
-      "calculateManualAllocation finalAllocation after clamp",
-      finalAllocation,
-      currentBalance
-    )
   }
 
   details[rowNumber].allocAmt = finalAllocation
