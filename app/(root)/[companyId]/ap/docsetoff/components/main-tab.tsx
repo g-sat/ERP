@@ -651,12 +651,7 @@ export default function Main({
           <Button
             size="sm"
             onClick={handleAutoAllocation}
-            // disabled={isAllocated || dataDetails.length === 0}
-            // className={
-            //   isAllocated || dataDetails.length === 0
-            //     ? "cursor-not-allowed opacity-50"
-            //     : ""
-            // }
+            disabled={dataDetails.length === 0}
             className="px-3 py-1 text-xs"
             title="Auto allocate amounts"
           >
