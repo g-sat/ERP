@@ -2,6 +2,7 @@ import {
   calculateDivisionAmount,
   calculateMultiplierAmount,
   calculateSubtractionAmount,
+  mathRound,
 } from "@/helpers/account"
 import { IApRefundDt, IDecimal } from "@/interfaces"
 
@@ -76,6 +77,95 @@ export const calculateDiffCurrency = (
     totAmt,
     totLocalAmt,
   }
+}
+
+/**
+ * Unallocated Amounts
+ * Inputs: totAmt, totLocalAmt, allocTotAmt, allocTotLocalAmt
+ * Outputs: { unAllocAmt, unAllocLocalAmt }
+ */
+export const calculateUnallocated = (
+  totAmt: number,
+  totLocalAmt: number,
+  allocTotAmt: number,
+  allocTotLocalAmt: number,
+  decimals: IDecimal
+) => {
+  const unAllocAmt = calculateSubtractionAmount(
+    totAmt,
+    allocTotAmt,
+    decimals.amtDec
+  )
+  const unAllocLocalAmt = calculateSubtractionAmount(
+    totLocalAmt,
+    allocTotLocalAmt,
+    decimals.locAmtDec
+  )
+
+  return {
+    unAllocAmt,
+    unAllocLocalAmt,
+  }
+}
+
+export const applyCentDiffAdjustment = (
+  details: IApRefundDt[],
+  unAllocAmt: number,
+  unAllocLocalAmt: number,
+  decimals: IDecimal
+): boolean => {
+  if (!Array.isArray(details) || details.length === 0) {
+    return false
+  }
+
+  const normalizedUnAllocAmt = Number(unAllocAmt) || 0
+
+  const precision = decimals?.locAmtDec ?? 2
+  const roundedUnAllocLocal = mathRound(Number(unAllocLocalAmt) || 0, precision)
+  const absRoundedUnAllocLocal = Math.abs(roundedUnAllocLocal)
+
+  if (
+    normalizedUnAllocAmt !== 0 ||
+    absRoundedUnAllocLocal === 0 ||
+    absRoundedUnAllocLocal >= 1
+  ) {
+    let resetPerformed = false
+    details.forEach((row) => {
+      if (Number(row.centDiff) !== 0) {
+        row.centDiff = 0
+        resetPerformed = true
+      }
+    })
+    return resetPerformed
+  }
+
+  const targetIndex = details.findIndex((row) => Number(row.exhGainLoss) !== 0)
+
+  if (targetIndex === -1) {
+    let resetPerformed = false
+    details.forEach((row) => {
+      if (Number(row.centDiff) !== 0) {
+        row.centDiff = 0
+        resetPerformed = true
+      }
+    })
+    return resetPerformed
+  }
+
+  details.forEach((row, idx) => {
+    if (idx !== targetIndex && Number(row.centDiff) !== 0) {
+      row.centDiff = 0
+    }
+  })
+
+  const targetRow = details[targetIndex]
+  const existingCentDiff = Number(targetRow.centDiff) || 0
+  targetRow.centDiff = mathRound(
+    existingCentDiff + roundedUnAllocLocal,
+    precision
+  )
+
+  return true
 }
 
 // ============================================================================

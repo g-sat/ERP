@@ -277,10 +277,6 @@ export default function Main({
 
       // Show toast if allocation was auto-set to zero due to remaining amount <= 0
       if (wasAutoSetToZero) {
-        console.log(
-          "updateAllocationCalculations wasAutoSetToZero",
-          wasAutoSetToZero
-        )
         toast.error("Now it's auto set to zero. Please check the allocation.")
       }
 
@@ -373,6 +369,18 @@ export default function Main({
         unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
       }
 
+      const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(updatedData)
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+        shouldDirty: true,
+      })
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
         shouldDirty: true,
@@ -512,6 +520,8 @@ export default function Main({
       unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
     }
 
+    const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
       shouldTouch: true,
@@ -528,7 +538,9 @@ export default function Main({
 
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-    form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+    form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+      shouldDirty: true,
+    })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
     form.trigger("data_details")

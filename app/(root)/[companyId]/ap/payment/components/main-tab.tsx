@@ -304,15 +304,6 @@ export default function Main({
         0
       )
 
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      setDataDetails(updatedData)
-      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-
       const totLocalAmt = Number(form.getValues("totLocalAmt"))
 
       let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
@@ -351,6 +342,18 @@ export default function Main({
         unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
       }
 
+      const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(updatedData)
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+        shouldDirty: true,
+      })
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
         shouldDirty: true,
@@ -471,6 +474,7 @@ export default function Main({
         0
       )
       sumExhGainLoss = arr.reduce((s, r) => s + (Number(r.exhGainLoss) || 0), 0)
+
       const recalculatedUnallocated = calculateUnallocated(
         finalTotAmt,
         totLocalAmt,
@@ -481,6 +485,8 @@ export default function Main({
       unAllocAmt = recalculatedUnallocated.unAllocAmt
       unAllocLocalAmt = recalculatedUnallocated.unAllocLocalAmt
     }
+
+    const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -498,7 +504,9 @@ export default function Main({
 
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-    form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+    form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+      shouldDirty: true,
+    })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
     form.trigger("data_details")
