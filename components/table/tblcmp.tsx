@@ -1,35 +1,56 @@
+/**
+ * InvoiceTable renders a pageable, filterable list of AP invoices.
+ * The extensive comments walk through each block so that even readers without
+ * a development background can understand how data flows from the API into the UI.
+ */
 "use client";
+
+// React primitives used to manage component state, memoised values, side-effects, and mutable refs.
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+// Reusable table wrapper that handles the heavy lifting of layout, sorting, and selection.
 import { TableContainer, Column } from "./Table";
-import { RefreshCw, Download } from "lucide-react";
+// Icons that represent refresh and download actions for better visual affordances.
+import { RefreshCw, Download, X } from "lucide-react";
+// API route helper that points to the AP invoice endpoint.
 import { ApInvoice } from "@/lib/api-routes";
+// Shared hook that knows how to call list endpoints with date filters and pagination support.
 import { useGetWithDatesAndPagination } from "@/hooks/use-common";
+// Pulls the authenticated user’s formatting preferences (decimals, date formats, etc.).
 import { useAuthStore } from "@/stores/auth-store";
+// Provides a fallback date format if the user has no custom preference.
 import { clientDateFormat } from "@/lib/date-utils";
+// Supplies the table name expected by the backend (important for audit trails and caching).
 import { TableName } from "@/lib/utils";
+// Utility helpers for working with dates (shifting months, formatting boundaries).
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns";
+// Consistent number formatter so monetary values respect locale/precision settings.
 import { formatNumber } from "@/lib/format-utils";
-//import { IApInvoiceHd } from "@/interfaces";
-import { IApInvoiceFilter, IApInvoiceHd } from "@/interfaces"
-import { FormProvider, useForm } from "react-hook-form"
-import { CustomDateNew } from "@/components/custom/custom-date-new"
+// Domain interfaces describing the payloads used throughout the component.
+import { IApInvoiceFilter, IApInvoiceHd } from "@/interfaces";
+// React Hook Form utilities that keep the date filters in sync with the UI.
+import { FormProvider, useForm } from "react-hook-form";
+// Reusable date picker component that respects the project’s styling and validation rules.
+import { CustomDateNew } from "@/components/custom/custom-date-new";
+// Button and spinner components from the design system for consistent look & feel.
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { X } from "lucide-react"
-//import { InvoiceTableProps } from "@/app/(root)/[companyId]/ap/invoice/components/invoice-table";
 
-/* -------------------------------------------------------------------------- */
-/*  TableDemo – Example Component                                             */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * Props accepted by the InvoiceTable. Each callback gives the host screen a way
+ * to react to user input (e.g., when someone selects an invoice or tweaks the filters).
+ */
 interface InvoiceTableProps {
-  onInvoiceSelect: (selectedInvoice: IApInvoiceHd | undefined) => void
-  onFilterChange: (filters: IApInvoiceFilter) => void
-  initialFilters?: IApInvoiceFilter
-  pageSize: number
-  onClose?: () => void
+  onInvoiceSelect: (selectedInvoice: IApInvoiceHd | undefined) => void;
+  onFilterChange: (filters: IApInvoiceFilter) => void;
+  initialFilters?: IApInvoiceFilter;
+  pageSize: number;
+  onClose?: () => void;
 }
 
+/**
+ * We extend the raw invoice data with pre-formatted strings so the table can display
+ * ready-to-use values without repeating formatting logic in every cell renderer.
+ */
 type InvoiceRow = IApInvoiceHd & {
   trnDateDisplay: string;
   dueDateDisplay: string;
@@ -50,6 +71,9 @@ type InvoiceRow = IApInvoiceHd & {
   status?: string;
 };
 
+/**
+ * Main component definition. Receives callbacks from the parent screen along with optional defaults.
+ */
 export default function InvoiceTable({
   onInvoiceSelect,
   onFilterChange,
@@ -57,11 +81,13 @@ export default function InvoiceTable({
   pageSize: _pageSize,
   onClose,
 }: InvoiceTableProps) {
+  // Read decimal and date formatting rules from the authenticated user’s profile.
   const { decimals } = useAuthStore();
   const amtDec = decimals[0]?.amtDec || 2;
   const locAmtDec = decimals[0]?.locAmtDec || 2;
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat;
 
+  // Pre-calculate helpful date boundaries (previous month start, current month end) once.
   const today = useMemo(() => new Date(), []);
   const defaultStartDate = useMemo(
     () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
@@ -72,12 +98,15 @@ export default function InvoiceTable({
     [today]
   );
 
+  // Initialise the filter form so the date fields remain reactive and validation-aware.
   const form = useForm({
     defaultValues: {
       startDate: initialFilters?.startDate || defaultStartDate,
       endDate: initialFilters?.endDate || defaultEndDate,
     },
   });
+
+  // Local state mirrors filter criteria and pagination selection.
   const [searchQuery, setSearchQuery] = useState(initialFilters?.search ?? "");
   const [currentPage, setCurrentPage] = useState(initialFilters?.pageNumber ?? 1);
   const [pageSize, setPageSize] = useState(_pageSize ?? 15);
@@ -88,13 +117,22 @@ export default function InvoiceTable({
   const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
     initialFilters?.endDate?.toString() || defaultEndDate
   );
+  // Remember the last set of filters emitted to the parent so we do not spam duplicate events.
   const lastFiltersRef = useRef<IApInvoiceFilter | null>(null);
+  // Rows currently displayed in the table.
   const [rows, setRows] = useState<InvoiceRow[]>([]);
+  // Tracks which rows are selected to support contextual actions.
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  // Lightweight checksum so we only reset rows when the underlying data truly changes.
   const rowsHashRef = useRef<string>("");
 
+  // Supported page-size choices for the dropdown.
   const pageSizeOptions = useMemo(() => [10, 25, 50, 100], []);
 
+  /**
+   * When the parent provides new defaults (e.g., reopening the dialog), replace
+   * our internal filter state so the form and results reflect the latest context.
+   */
   useEffect(() => {
     form.setValue("startDate", initialFilters?.startDate || defaultStartDate);
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate);
@@ -107,6 +145,10 @@ export default function InvoiceTable({
     }
   }, [initialFilters, form, defaultStartDate, defaultEndDate, _pageSize]);
 
+  /**
+   * Wrap filter-change notifications so they only fire when something actually changed.
+   * This prevents unnecessary re-fetches and keeps parent state in sync.
+   */
   const emitFilterChange = useCallback(
     (filters: IApInvoiceFilter) => {
       if (!onFilterChange) return;
@@ -129,6 +171,10 @@ export default function InvoiceTable({
     [onFilterChange]
   );
 
+  /**
+   * Anytime the search dates, text, or pagination changes, notify the parent component.
+   * The parent typically stores this so the dialog remembers settings between openings.
+   */
   useEffect(() => {
     if (!searchStartDate || !searchEndDate) return;
     emitFilterChange({
@@ -142,6 +188,10 @@ export default function InvoiceTable({
     });
   }, [searchStartDate, searchEndDate, searchQuery, currentPage, pageSize, emitFilterChange]);
 
+  /**
+   * Fetch invoices from the backend using the shared hook. It automatically handles loading states,
+   * caching, and refreshing when query parameters change.
+   */
   const {
     data: invoicesResponse,
     isLoading: isLoadingInvoices,
@@ -158,10 +208,20 @@ export default function InvoiceTable({
     undefined,
     hasSearched || Boolean(searchStartDate && searchEndDate)
   );
-  const data = invoicesResponse?.data || [];
+
+  // Normalise incoming data to an array (the API returns null when empty).
+  const data = useMemo(
+    () => invoicesResponse?.data || [],
+    [invoicesResponse?.data]
+  );
+  // Total number of records reported by the backend (used for pagination math).
   const totalRecords = invoicesResponse?.totalRecords || data.length;
+  // Merge loading states so the UI can display a single indicator.
   const isLoading = isLoadingInvoices || isRefetchingInvoices;
 
+  /**
+   * When “Search” is clicked, capture the form’s current date range and trigger a fresh fetch starting at page 1.
+   */
   const handleSearchInvoice = () => {
     const startValue = form.getValues("startDate");
     const endValue = form.getValues("endDate");
@@ -182,6 +242,10 @@ export default function InvoiceTable({
     });
   };
 
+  /**
+   * Dialog-level quick filters (search text / sort order) call this handler.
+   * We reset to the first page and remember the new search string.
+   */
   const handleDialogFilterChange = (filters: { search?: string; sortOrder?: string }) => {
     const search = filters.search || "";
     setSearchQuery(search);
@@ -198,6 +262,9 @@ export default function InvoiceTable({
     });
   };
 
+  /**
+   * Translate the invoice’s payment fields into a friendly status string displayed as a badge in the table.
+   */
   const getPaymentStatus = useCallback(
     (balAmt?: number, payAmt?: number, isCancel?: boolean) => {
       if (isCancel) return "Cancelled";
@@ -209,6 +276,10 @@ export default function InvoiceTable({
     []
   );
 
+  /**
+   * Convert raw invoices into display-ready rows. All date and numeric formatting happens here
+   * so the table remains unaware of formatting details.
+   */
   const mappedRows = useMemo(
     () =>
       data.map((invoice) => ({
@@ -233,6 +304,9 @@ export default function InvoiceTable({
     [data, dateFormat, amtDec, locAmtDec, decimals, getPaymentStatus]
   );
 
+  /**
+   * When new rows arrive, update our table state and clear any previous selections (which may no longer exist).
+   */
   useEffect(() => {
     const nextHash = JSON.stringify(
       mappedRows.map((row) => [
@@ -258,6 +332,10 @@ export default function InvoiceTable({
     setSelected((prev) => (Object.keys(prev).length ? {} : prev));
   }, [mappedRows]);
 
+  /**
+   * Table behaviour configuration (pagination, selection, column manipulation) lives here.
+   * This keeps the layout flexible while delegating UI chrome to TableContainer.
+   */
   const settings = useMemo(
     () => ({
       pageSize,
@@ -274,6 +352,10 @@ export default function InvoiceTable({
     [pageSize]
   );
 
+  /**
+   * Column definitions include header labels, widths, and custom cell renderers (e.g., the status pill
+   * and number formatting). TableContainer relies on this metadata to build the grid.
+   */
   const columns = useMemo<Column<InvoiceRow>[]>
   (
     () => [
@@ -388,6 +470,10 @@ export default function InvoiceTable({
     []
   );
 
+  /**
+   * Update the listing when the “rows per page” dropdown changes. We jump back to page 1
+   * so users do not land on an out-of-range page index.
+   */
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
     setCurrentPage(1);
@@ -402,6 +488,9 @@ export default function InvoiceTable({
     });
   };
 
+  /**
+   * Convenience wrapper connected directly to the <select> element.
+   */
   const handlePageSizeSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const next = Number(event.target.value);
     if (!Number.isNaN(next)) {
@@ -409,11 +498,17 @@ export default function InvoiceTable({
     }
   };
 
+  /**
+   * Compute how many pages are available. Used to guard the Prev/Next buttons.
+   */
   const totalPages = useMemo(
     () => (pageSize > 0 ? Math.max(1, Math.ceil(totalRecords / pageSize)) : 1),
     [totalRecords, pageSize]
   );
 
+  /**
+   * Change to the requested page (bounded by 1 and totalPages) and notify the parent so data refetches.
+   */
   const handlePageChange = (nextPage: number) => {
     const target = Math.min(Math.max(1, nextPage), totalPages);
     if (target === currentPage) return;
@@ -429,6 +524,10 @@ export default function InvoiceTable({
     });
   };
 
+  /**
+   * Produce a simple CSV file using the current set of rows. Helpful when users need to export
+   * what they are seeing without building a bespoke report.
+   */
   const handleDownloadCsv = () => {
     if (!rows.length) return;
     const headers = [
@@ -502,6 +601,10 @@ export default function InvoiceTable({
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * Render the component: filters at the top, controls for pagination/export, the table itself,
+   * and a footer explaining the current page context.
+   */
   return (
     <div className="w-full overflow-auto">
       <div className="bg-card mb-2 rounded-lg border p-3">
