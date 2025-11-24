@@ -33,12 +33,15 @@ export interface IApPaymentHd {
   moduleFrom: string
   createById: number
   createDate: Date | string
+  createBy: string
   editById: number | null
   editDate: Date | null
+  editBy: string
   editVersion: number
   isCancel: boolean
   cancelById: number | null
   cancelDate: Date | null
+  cancelBy: string
   cancelRemarks: string | null
   isPost: boolean | null
   postById: number | null
@@ -46,6 +49,8 @@ export interface IApPaymentHd {
   appStatusId: number | null
   appById: number | null
   appDate: Date | null
+
+  appBy: string
   data_details: IApPaymentDt[]
 }
 

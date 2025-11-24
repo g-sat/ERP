@@ -616,9 +616,9 @@ export default function DocSetOffPage() {
         unAllocTotAmt: apiDocSetOff.unAllocTotAmt ?? 0,
         moduleFrom: apiDocSetOff.moduleFrom ?? "",
         editVersion: apiDocSetOff.editVersion ?? 0,
-        createBy: apiDocSetOff.createById?.toString() ?? "",
-        editBy: apiDocSetOff.editById?.toString() ?? "",
-        cancelBy: apiDocSetOff.cancelById?.toString() ?? "",
+        createBy: apiDocSetOff.createBy ?? "",
+        editBy: apiDocSetOff.editBy ?? "",
+        cancelBy: apiDocSetOff.cancelBy ?? "",
         isCancel: apiDocSetOff.isCancel ?? false,
         createDate: apiDocSetOff.createDate
           ? format(

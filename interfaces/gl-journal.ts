@@ -49,6 +49,8 @@ export interface IGLJournalHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   data_details: IGLJournalDt[]
 }
 

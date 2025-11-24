@@ -30,6 +30,10 @@ export interface ICbBankReconHd {
   appStatusId: number | null
   appById: number | null
   appDate: Date | null
+  createBy: string
+  editBy: string
+  cancelBy: string
+  appBy: string
   data_details: ICbBankReconDt[]
 }
 

@@ -82,6 +82,8 @@ export interface IApInvoiceHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   serviceTypeId: number
   serviceTypeName: string
 

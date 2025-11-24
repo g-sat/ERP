@@ -658,9 +658,9 @@ export default function ReceiptPage() {
         jobOrderNo: apiReceipt.jobOrderNo ?? "",
         moduleFrom: apiReceipt.moduleFrom ?? "",
         editVersion: apiReceipt.editVersion ?? 0,
-        createBy: apiReceipt.createById?.toString() ?? "",
-        editBy: apiReceipt.editById?.toString() ?? "",
-        cancelBy: apiReceipt.cancelById?.toString() ?? "",
+        createBy: apiReceipt.createBy ?? "",
+        editBy: apiReceipt.editBy ?? "",
+        cancelBy: apiReceipt.cancelBy ?? "",
         isCancel: apiReceipt.isCancel ?? false,
         createDate: apiReceipt.createDate
           ? format(

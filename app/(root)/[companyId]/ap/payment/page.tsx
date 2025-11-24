@@ -654,9 +654,9 @@ export default function PaymentPage() {
         allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
         moduleFrom: apiPayment.moduleFrom ?? "",
         editVersion: apiPayment.editVersion ?? 0,
-        createBy: apiPayment.createById?.toString() ?? "",
-        editBy: apiPayment.editById?.toString() ?? "",
-        cancelBy: apiPayment.cancelById?.toString() ?? "",
+        createBy: apiPayment.createBy ?? "",
+        editBy: apiPayment.editBy ?? "",
+        cancelBy: apiPayment.cancelBy ?? "",
         isCancel: apiPayment.isCancel ?? false,
         createDate: apiPayment.createDate
           ? format(

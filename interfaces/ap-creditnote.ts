@@ -85,6 +85,8 @@ export interface IApCreditNoteHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   serviceTypeId: number
   serviceTypeName: string
   data_details: IApCreditNoteDt[]

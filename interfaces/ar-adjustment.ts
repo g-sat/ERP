@@ -84,6 +84,8 @@ export interface IArAdjustmentHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   jobOrderId: number
   jobOrderNo: string
   vesselId: number

@@ -653,9 +653,9 @@ export default function RefundPage() {
         jobOrderNo: apiRefund.jobOrderNo ?? "",
         moduleFrom: apiRefund.moduleFrom ?? "",
         editVersion: apiRefund.editVersion ?? 0,
-        createBy: apiRefund.createById?.toString() ?? "",
-        editBy: apiRefund.editById?.toString() ?? "",
-        cancelBy: apiRefund.cancelById?.toString() ?? "",
+        createBy: apiRefund.createBy ?? "",
+        editBy: apiRefund.editBy ?? "",
+        cancelBy: apiRefund.cancelBy ?? "",
         isCancel: apiRefund.isCancel ?? false,
         createDate: apiRefund.createDate
           ? format(

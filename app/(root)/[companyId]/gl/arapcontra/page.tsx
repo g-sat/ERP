@@ -560,9 +560,9 @@ export default function ArapcontraPage() {
         remarks: apiContra.remarks ?? "",
         moduleFrom: apiContra.moduleFrom ?? "",
         editVersion: apiContra.editVersion ?? 0,
-        createBy: apiContra.createById?.toString() ?? "",
-        editBy: apiContra.editById?.toString() ?? "",
-        cancelBy: apiContra.cancelById?.toString() ?? "",
+        createBy: apiContra.createBy ?? "",
+        editBy: apiContra.editBy ?? "",
+        cancelBy: apiContra.cancelBy ?? "",
         isCancel: apiContra.isCancel ?? false,
         createDate: apiContra.createDate
           ? format(
@@ -888,7 +888,7 @@ export default function ArapcontraPage() {
               jobOrderNo: detailedPayment.jobOrderNo ?? "",
               moduleFrom: detailedPayment.moduleFrom ?? "",
               editVersion: detailedPayment.editVersion ?? 0,
-              createBy: detailedPayment.createById?.toString() ?? "",
+              createBy: detailedPayment.createBy ?? "",
               createDate: detailedPayment.createDate
                 ? format(
                     parseDate(detailedPayment.createDate as string) ||
@@ -896,7 +896,7 @@ export default function ArapcontraPage() {
                     decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
-              editBy: detailedPayment.editById?.toString() ?? "",
+              editBy: detailedPayment.editBy ?? "",
               editDate: detailedPayment.editDate
                 ? format(
                     parseDate(detailedPayment.editDate as string) || new Date(),
@@ -904,7 +904,7 @@ export default function ArapcontraPage() {
                   )
                 : "",
               isCancel: detailedPayment.isCancel ?? false,
-              cancelBy: detailedPayment.cancelById?.toString() ?? "",
+              cancelBy: detailedPayment.cancelBy ?? "",
               cancelDate: detailedPayment.cancelDate
                 ? format(
                     parseDate(detailedPayment.cancelDate as string) ||

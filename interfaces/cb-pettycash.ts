@@ -56,6 +56,8 @@ export interface ICbPettyCashHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   data_details: ICbPettyCashDt[]
 }
 

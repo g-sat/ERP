@@ -52,6 +52,8 @@ export interface ICbGenReceiptHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   data_details: ICbGenReceiptDt[]
 }
 
