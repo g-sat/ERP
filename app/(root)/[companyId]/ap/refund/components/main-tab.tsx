@@ -58,9 +58,9 @@ export default function Main({
     number[]
   >([])
   const dialogParamsRef = useRef<{
-    supplierId: number
-    currencyId: number
-    accountDate: string
+    supplierId?: number
+    currencyId?: number
+    accountDate?: string
     isRefund?: boolean
     documentId?: string
     transactionId: number
@@ -72,7 +72,7 @@ export default function Main({
     setDataDetails(watchedDataDetails || [])
   }, [watchedDataDetails])
 
-  // Calculate sum of balAmt (balance amounts) from refund details
+  // Calculate sum of balAmt (balance amounts) from payment details
   const totalBalanceAmt = useMemo(() => {
     return dataDetails.reduce((sum, detail) => {
       const balAmt = Number((detail as unknown as IApRefundDt).docBalAmt) || 0
@@ -154,6 +154,7 @@ export default function Main({
         shouldDirty: true,
       })
       form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
+
       setIsAllocated(false)
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -244,15 +245,6 @@ export default function Main({
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
       const totAmt = Number(form.getValues("totAmt")) || 0
 
-      // console.log(
-      //   "updateAllocationCalculations",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
-
       const { result, wasAutoSetToZero } = calculateManualAllocation(
         arr,
         rowIndex,
@@ -287,15 +279,6 @@ export default function Main({
         }
       }
 
-      // console.log(
-      //   "updateAllocationCalculations calculateManualAllocation",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
-
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
       const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
@@ -327,8 +310,7 @@ export default function Main({
 
       if (centDiffUpdated) {
         sumAllocLocalAmt = arr.reduce(
-          (s, r) =>
-            s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
+          (s, r) => s + (Number(r.allocLocalAmt) || 0),
           0
         )
         sumExhGainLoss = arr.reduce(
@@ -347,6 +329,7 @@ export default function Main({
       }
 
       const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+      unAllocLocalAmt = unAllocLocalAmt - sumCentDiff
 
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
@@ -358,6 +341,7 @@ export default function Main({
       form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
         shouldDirty: true,
       })
+
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
 
@@ -370,8 +354,6 @@ export default function Main({
   const handleCellEdit = useCallback(
     (itemNo: number, field: string, value: number) => {
       if (field !== "allocAmt") return
-
-      // console.log("handleCellEdit", itemNo, field, value)
 
       const currentData = form.getValues("data_details") || []
       const currentItem = currentData.find((item) => item.itemNo === itemNo)
@@ -401,18 +383,12 @@ export default function Main({
         )
         return finalValue ?? 0
       } else {
-        // console.log("handleCellEdit else", itemNo, field, value)
         // When totAmt > 0, allow manual entry with validation
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IApRefundDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
 
-        // console.log(
-        //   "handleCellEdit else updateAllocationCalculations",
-        //   rowIndex,
-        //   value
-        // )
         const finalValue = updateAllocationCalculations(
           updatedData,
           rowIndex,
@@ -448,7 +424,7 @@ export default function Main({
     }
     const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
     const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-    let sumAllocLocalAmt = arr.reduce(
+    const sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
       0
     )
@@ -459,10 +435,11 @@ export default function Main({
 
     // If totAmt was 0, update it with the calculated sumAllocAmt
     const finalTotAmt = totAmt === 0 ? sumAllocAmt : totAmt
+    const finalTotLocalAmt = totLocalAmt === 0 ? sumAllocLocalAmt : totLocalAmt
 
     let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
       finalTotAmt,
-      totLocalAmt,
+      finalTotLocalAmt,
       sumAllocAmt,
       sumAllocLocalAmt,
       dec
@@ -476,15 +453,15 @@ export default function Main({
     )
 
     if (centDiffUpdated) {
-      sumAllocLocalAmt = arr.reduce(
-        (s, r) =>
-          s + (Number(r.allocLocalAmt) || 0) + (Number(r.centDiff) || 0),
+      const sumAllocLocalAmt = arr.reduce(
+        (s, r) => s + (Number(r.allocLocalAmt) || 0),
         0
       )
       sumExhGainLoss = arr.reduce((s, r) => s + (Number(r.exhGainLoss) || 0), 0)
+
       const recalculatedUnallocated = calculateUnallocated(
         finalTotAmt,
-        totLocalAmt,
+        finalTotLocalAmt,
         sumAllocAmt,
         sumAllocLocalAmt,
         dec
@@ -494,6 +471,7 @@ export default function Main({
     }
 
     const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
+    unAllocLocalAmt = unAllocLocalAmt - sumCentDiff
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -511,9 +489,10 @@ export default function Main({
 
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-    form.setValue("exhGainLoss", Math.max(0, sumExhGainLoss - sumCentDiff), {
+    form.setValue("exhGainLoss", sumExhGainLoss - sumCentDiff, {
       shouldDirty: true,
     })
+
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(true)
@@ -548,6 +527,7 @@ export default function Main({
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(false)
@@ -568,9 +548,9 @@ export default function Main({
       supplierId,
       currencyId,
       accountDate: accountDate?.toString() || "",
-      isRefund: true,
+      isRefund: false,
       documentId: form.getValues("refundId") || "0",
-      transactionId: APTransactionId.refund,
+      transactionId: APTransactionId.payment,
     }
 
     setShowTransactionDialog(true)
@@ -720,7 +700,7 @@ export default function Main({
         onConfirm={handleBulkDeleteConfirm}
         onCancel={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
-        description="Selected refund details will be removed. This action cannot be undone."
+        description="Selected payment details will be removed. This action cannot be undone."
       />
 
       {/* Transaction Selection Dialog */}
@@ -737,7 +717,7 @@ export default function Main({
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>
-            Number(detail.documentId)
+            String(detail.documentId)
           )}
         />
       )}

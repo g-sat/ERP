@@ -34,7 +34,7 @@ interface ArOutStandingTransactionsDialogProps {
   transactionId?: number
   visible: IVisibleFields
   onAddSelected?: (transactions: IArOutTransaction[]) => void
-  existingDocumentIds?: number[] // Array of already selected document IDs
+  existingDocumentIds?: (string | number)[] // Array of already selected document IDs
 }
 
 export default function ArOutStandingTransactionsDialog({
@@ -145,7 +145,7 @@ export default function ArOutStandingTransactionsDialog({
         }
 
         const response = await getByBody(
-          Account.getArOutstandTransaction,
+          Account.getApOutstandTransaction,
           payload
         )
 
@@ -253,42 +253,59 @@ export default function ArOutStandingTransactionsDialog({
   const handleAddSelected = useCallback(() => {
     if (selectedTransactions.length === 0) return
 
-    // Filter to only include newly selected transactions (not existing ones)
-    const newlySelectedIds = selectedTransactions.filter(
-      (docId) => !existingDocumentIds.includes(Number(docId))
-    )
-
-    if (newlySelectedIds.length === 0) {
-      onOpenChangeAction(false)
-      return
-    }
-
-    const selectedTransactionsData = newlySelectedIds
+    // Get the selected transaction data from the current list
+    const selectedTransactionsData = selectedTransactions
       .map((docId) => {
-        return outTransactions.find((t) => t.documentId.toString() === docId)
+        return outTransactions.find(
+          (t) => t.documentId.toString() === docId.toString()
+        )
       })
       .filter((t): t is IArOutTransaction => t !== undefined)
 
-    if (onAddSelected) {
-      onAddSelected(selectedTransactionsData)
+    if (selectedTransactionsData.length === 0) {
+      // No valid transactions found, reset selection
+      setSelectedTransactions([])
+      return
     }
 
+    // Create a set of existing document IDs for efficient lookup
+    // Convert all to strings for consistent comparison since documentId is stored as string
+    const existingIdsSet = new Set(existingDocumentIds.map((id) => String(id)))
+
+    // Filter out already added transactions
+    const newTransactions = selectedTransactionsData.filter((t) => {
+      const docId = String(t.documentId)
+      return !existingIdsSet.has(docId)
+    })
+
+    if (newTransactions.length === 0) {
+      // All selected transactions already exist
+      setSelectedTransactions([])
+      toast.info("Selected transactions are already added")
+      return
+    }
+
+    // Add the new transactions
+    if (onAddSelected) {
+      onAddSelected(newTransactions)
+    }
+
+    // Remove added transactions from the displayed list
+    const addedIdsSet = new Set(
+      newTransactions.map((t) => t.documentId.toString())
+    )
     const remainingTransactions = outTransactions.filter(
-      (transaction) =>
-        !newlySelectedIds.includes(transaction.documentId.toString())
+      (transaction) => !addedIdsSet.has(transaction.documentId.toString())
     )
     setOutTransactions(remainingTransactions)
 
-    // Reset selection and close dialog
+    // Reset selection but keep dialog open so user can add more transactions
     setSelectedTransactions([])
-    if (remainingTransactions.length === 0) {
-      onOpenChangeAction(false)
-    }
+    // Don't close dialog automatically - let user close it manually
   }, [
     selectedTransactions,
     outTransactions,
     onAddSelected,
-    onOpenChangeAction,
     existingDocumentIds,
   ])
 
@@ -311,7 +328,7 @@ export default function ArOutStandingTransactionsDialog({
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="flex h-[80vh] w-[80vw] !max-w-none flex-col overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle>AR Transaction List</DialogTitle>
+          <DialogTitle>AP Transaction List</DialogTitle>
           <DialogDescription>
             Select outstanding transactions to add to the receipt.
           </DialogDescription>

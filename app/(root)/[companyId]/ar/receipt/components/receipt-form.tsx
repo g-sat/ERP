@@ -19,7 +19,6 @@ import {
   IBankLookup,
   ICurrencyLookup,
   ICustomerLookup,
-  IJobOrderLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -37,7 +36,6 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
-  JobOrderCustomerAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -181,7 +179,7 @@ export default function ReceiptForm({
         })
       }
 
-      // Recalculate all details with new exchange rate if data details exist
+      // Payalculate all details with new exchange rate if data details exist
       if (dataDetails && dataDetails.length > 0) {
         const updatedDetails = [...dataDetails]
         const arr = updatedDetails as unknown as IArReceiptDt[]
@@ -195,12 +193,12 @@ export default function ReceiptForm({
           }
         }
 
-        // Recalculate local amounts and gain/loss for all rows
+        // Payalculate local amounts and gain/loss for all rows
         for (let i = 0; i < arr.length; i++) {
           calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
         }
 
-        // Recalculate header totals from recalculated details
+        // Payalculate header totals from recalculated details
         const sumAllocAmt = arr.reduce(
           (s, r) => s + (Number(r.allocAmt) || 0),
           0
@@ -214,17 +212,7 @@ export default function ReceiptForm({
           0
         )
 
-        form.setValue("data_details", updatedDetails, {
-          shouldDirty: true,
-          shouldTouch: true,
-        })
-        form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-        form.setValue("allocTotLocalAmt", sumAllocLocalAmt, {
-          shouldDirty: true,
-        })
-        form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-
-        // Recalculate unallocated amounts with updated totals
+        // Payalculate unallocated amounts with updated totals
         const currentTotAmt = form.getValues("totAmt") || 0
         const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
         const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
@@ -234,6 +222,16 @@ export default function ReceiptForm({
           sumAllocLocalAmt,
           dec
         )
+
+        form.setValue("data_details", updatedDetails, {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+        form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+        form.setValue("allocTotLocalAmt", sumAllocLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
         form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
         form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
           shouldDirty: true,
@@ -452,14 +450,14 @@ export default function ReceiptForm({
 
   // Handle receipt type change
   const handlePaymentTypeChange = React.useCallback(
-    (selectedReceiptType: IPaymentTypeLookup | null) => {
-      if (selectedReceiptType) {
+    (selectedPaymentType: IPaymentTypeLookup | null) => {
+      if (selectedPaymentType) {
         // Check if receipt type is "Cheque"
         const isCheque =
-          selectedReceiptType?.paymentTypeName
+          selectedPaymentType?.paymentTypeName
             ?.toLowerCase()
             .includes("cheque") ||
-          selectedReceiptType?.paymentTypeCode?.toLowerCase().includes("cheque")
+          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
 
         setIsChequeReceipt(isCheque)
 
@@ -480,14 +478,14 @@ export default function ReceiptForm({
 
   // // Handle receipt type change
   // const handlePaymentTypeChange = React.useCallback(
-  //   (selectedReceiptType: IPaymentTypeLookup | null) => {
-  //     if (selectedReceiptType) {
+  //   (selectedPaymentType: IPaymentTypeLookup | null) => {
+  //     if (selectedPaymentType) {
   //       // Check if receipt type is "Cheque"
   //       const isCheque =
-  //         selectedReceiptType?.paymentTypeName
+  //         selectedPaymentType?.paymentTypeName
   //           ?.toLowerCase()
   //           .includes("cheque") ||
-  //         selectedReceiptType?.paymentTypeCode?.toLowerCase().includes("cheque")
+  //         selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
 
   //       setIsChequeReceipt(isCheque)
 
@@ -506,22 +504,8 @@ export default function ReceiptForm({
   //   [form]
   // )
 
-  // Handle job order change
-  const handleJobOrderChange = React.useCallback(
-    (selectedJobOrder: IJobOrderLookup | null) => {
-      if (selectedJobOrder) {
-        form.setValue("jobOrderId", selectedJobOrder.jobOrderId || 0)
-        form.setValue("jobOrderNo", selectedJobOrder.jobOrderNo || "")
-      } else {
-        form.setValue("jobOrderId", 0)
-        form.setValue("jobOrderNo", "")
-      }
-    },
-    [form]
-  )
-
   // Handle pay currency change
-  const handleRecCurrencyChange = React.useCallback(
+  const handlePayCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       const recCurrencyId = selectedCurrency?.currencyId || 0
       const currencyId = form.getValues("currencyId") || 0
@@ -537,7 +521,7 @@ export default function ReceiptForm({
         form.setValue("recExhRate", 0)
       }
 
-      // Recalculate all amounts based on currency comparison - clear allocations for currency change
+      // Payalculate all amounts based on currency comparison - clear allocations for currency change
       recalculateAmountsBasedOnCurrency(true)
     },
     [form, exhRateDec, recalculateAmountsBasedOnCurrency]
@@ -554,20 +538,20 @@ export default function ReceiptForm({
         await setExchangeRate(form, exhRateDec, visible)
 
         const receiptId = form.getValues("receiptId")
-        let currentRecCurrency = form.getValues("recCurrencyId") || 0
+        let currentPayCurrency = form.getValues("recCurrencyId") || 0
         const isNewReceipt = !isEdit || !receiptId || receiptId === "0"
 
-        if (currencyId > 0 && (isNewReceipt || currentRecCurrency === 0)) {
+        if (currencyId > 0 && (isNewReceipt || currentPayCurrency === 0)) {
           form.setValue("recCurrencyId", currencyId, { shouldDirty: true })
-          currentRecCurrency = currencyId
+          currentPayCurrency = currencyId
         }
 
-        if (currencyId > 0 && currentRecCurrency === currencyId) {
+        if (currencyId > 0 && currentPayCurrency === currencyId) {
           const exhRateValue = form.getValues("exhRate") || 0
           form.setValue("recExhRate", exhRateValue, { shouldDirty: true })
         }
 
-        // Recalculate all amounts based on currency comparison - clear allocations for currency change
+        // Payalculate all amounts based on currency comparison - clear allocations for currency change
         recalculateAmountsBasedOnCurrency(true)
       }
     },
@@ -608,12 +592,12 @@ export default function ReceiptForm({
         form.setValue("exhRate", exhRate, { shouldDirty: true })
 
         const currentCurrency = form.getValues("currencyId") || 0
-        const currentRecCurrency = form.getValues("recCurrencyId") || 0
-        if (currentCurrency > 0 && currentCurrency === currentRecCurrency) {
+        const currentPayCurrency = form.getValues("recCurrencyId") || 0
+        if (currentCurrency > 0 && currentCurrency === currentPayCurrency) {
           form.setValue("recExhRate", exhRate, { shouldDirty: true })
         }
 
-        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        // Payalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
         recalculateAmountsBasedOnCurrency(false)
       } else {
         console.log("Exchange Rate unchanged - skipping recalculation")
@@ -648,7 +632,7 @@ export default function ReceiptForm({
         console.log("Receipt Exchange Rate changed - recalculating amounts")
         form.setValue("recExhRate", recExhRate, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        // Payalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
         recalculateAmountsBasedOnCurrency(false)
       } else {
         console.log("Receipt Exchange Rate unchanged - skipping recalculation")
@@ -685,7 +669,7 @@ export default function ReceiptForm({
         )
         form.setValue("totAmt", totAmt, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - clear allocations for totAmt change
+        // Payalculate all amounts based on currency comparison - clear allocations for totAmt change
         recalculateAmountsBasedOnCurrency(true)
       } else {
         console.log("Total Amount unchanged - skipping recalculation")
@@ -722,7 +706,7 @@ export default function ReceiptForm({
         )
         form.setValue("recTotAmt", recTotAmt, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - clear allocations for recTotAmt change
+        // Payalculate all amounts based on currency comparison - clear allocations for recTotAmt change
         recalculateAmountsBasedOnCurrency(true)
       } else {
         console.log("Receipt Total Amount unchanged - skipping recalculation")
@@ -882,7 +866,7 @@ export default function ReceiptForm({
           onBlurEvent={handleExchangeRateChange}
         />
 
-        {/* Payment Type */}
+        {/* Receipt Type */}
         <PaymentTypeAutocomplete
           form={form}
           name="paymentTypeId"
@@ -918,8 +902,8 @@ export default function ReceiptForm({
         <CurrencyAutocomplete
           form={form}
           name="recCurrencyId"
-          label="Rec Currency"
-          onChangeEvent={handleRecCurrencyChange}
+          label="Pay Currency"
+          onChangeEvent={handlePayCurrencyChange}
         />
 
         {/* Pay Exchange Rate - Enabled when currencies are different */}
@@ -1008,17 +992,6 @@ export default function ReceiptForm({
           name="exhGainLoss"
           label="Exchange Gain/Loss"
         />
-
-        {visible?.m_JobOrderIdHd && (
-          <JobOrderCustomerAutocomplete
-            form={form}
-            name="jobOrderId"
-            label="Job Order"
-            onChangeEvent={handleJobOrderChange}
-            customerId={form.getValues("customerId") || 0}
-            jobOrderId={form.getValues("jobOrderId") || 0}
-          />
-        )}
 
         {/* Remarks */}
         <CustomTextarea

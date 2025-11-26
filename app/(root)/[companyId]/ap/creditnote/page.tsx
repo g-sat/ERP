@@ -51,7 +51,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApCreditNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -81,7 +81,7 @@ export default function CreditNotePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.creditNote
+  const transactionId = APTransactionId.creditNote
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -142,7 +142,7 @@ export default function CreditNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/creditNote`,
+    () => `history-doc:/${companyId}/ap/creditNote`,
     [companyId]
   )
 

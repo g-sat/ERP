@@ -51,7 +51,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApAdjustment, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -69,7 +69,6 @@ import {
   ResetConfirmation,
   SaveConfirmation,
 } from "@/components/confirmation"
-import { TableDemo } from "@/components/table/tblcmp"
 
 import { getDefaultValues } from "./components/adjustment-defaultvalues"
 import AdjustmentTable from "./components/adjustment-table"
@@ -83,7 +82,7 @@ export default function AdjustmentPage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.adjustment
+  const transactionId = APTransactionId.adjustment
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -144,7 +143,7 @@ export default function AdjustmentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/adjustment`,
+    () => `history-doc:/${companyId}/ap/adjustment`,
     [companyId]
   )
 
@@ -1558,7 +1557,6 @@ export default function AdjustmentPage() {
         title="Clone Adjustment"
         description="This will create a copy as a new adjustment."
       />
-      <TableDemo />
     </div>
   )
 }

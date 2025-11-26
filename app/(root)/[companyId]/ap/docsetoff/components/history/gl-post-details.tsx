@@ -6,7 +6,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
-import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,24 +17,24 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
   hidden?: boolean
 }
 interface GLPostDetailsProps {
-  refundId: string
+  setoffId: string
 }
 
-export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
+export default function GLPostDetails({ setoffId }: GLPostDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat
-  const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.refund
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.docsetoff
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")
     useGetGlPostDetails<IGlTransactionDetails>(
       Number(moduleId),
       Number(transactionId),
-      refundId
+      setoffId
     )
 
   const { data: glPostDetailsData } =
@@ -70,8 +70,8 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
       },
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "moduleFrom",
@@ -262,16 +262,16 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
       header: "Product Name",
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
 
     {

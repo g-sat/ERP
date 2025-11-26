@@ -62,21 +62,21 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
                 }}
                 onValueChange={(values) => {
                   const { floatValue } = values
-                  const roundedValue = floatValue
-                    ? Number(floatValue.toFixed(round))
-                    : 0
+                  const roundedValue =
+                    floatValue !== null && floatValue !== undefined
+                      ? Number(floatValue.toFixed(round))
+                      : undefined
                   field.onChange(roundedValue)
-                  if (onChangeEvent) {
+                  if (onChangeEvent && roundedValue !== undefined) {
                     onChangeEvent(roundedValue)
                   }
                 }}
                 onBlur={(e) => {
-                  let roundedValue = 0
                   if (typeof value === "number" && !isNaN(value)) {
-                    roundedValue = Number(value.toFixed(round))
+                    const roundedValue = Number(value.toFixed(round))
                     field.onChange(roundedValue)
                   } else if (value === undefined || value === null) {
-                    field.onChange(0)
+                    field.onChange(undefined)
                   }
                   field.onBlur()
                   if (onBlurEvent) {
@@ -87,7 +87,7 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
                 fixedDecimalScale={true}
                 allowLeadingZeros={true}
                 thousandSeparator={true}
-                allowNegative={false}
+                allowNegative={true}
                 disabled={isDisabled}
                 tabIndex={isDisabled ? -1 : undefined}
                 className={cn(

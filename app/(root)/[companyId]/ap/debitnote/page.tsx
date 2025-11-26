@@ -51,7 +51,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDebitNote, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -81,7 +81,7 @@ export default function DebitNotePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.debitNote
+  const transactionId = APTransactionId.debitNote
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -142,7 +142,7 @@ export default function DebitNotePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/debitNote`,
+    () => `history-doc:/${companyId}/ap/debitNote`,
     [companyId]
   )
 

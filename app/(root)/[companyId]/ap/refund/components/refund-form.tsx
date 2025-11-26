@@ -842,7 +842,7 @@ export default function RefundForm({
         <CustomNumberInput
           form={form}
           name="payExhRate"
-          label="Rec Exchange Rate"
+          label="Pay Exchange Rate"
           isRequired={true}
           round={exhRateDec}
           className="text-right"
@@ -855,7 +855,7 @@ export default function RefundForm({
         <CustomNumberInput
           form={form}
           name="payTotAmt"
-          label="Rec Total Amount"
+          label="Pay Total Amount"
           isDisabled={isCurrenciesEqual}
           onFocusEvent={handlePayTotAmtFocus}
           onBlurEvent={handlePayTotAmtChange}
@@ -865,7 +865,7 @@ export default function RefundForm({
         <CustomNumberInput
           form={form}
           name="payTotLocalAmt"
-          label="Rec Total Local Amount"
+          label="Pay Total Local Amount"
           isDisabled={true}
         />
 

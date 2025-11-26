@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import {
   setDueDate,
   setExchangeRate,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import { IArRefundFilter, IArRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -129,7 +129,7 @@ export default function RefundPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/refund`,
+    () => `history-doc:/${companyId}/ap/refund`,
     [companyId]
   )
 
@@ -222,8 +222,6 @@ export default function RefundPage() {
           remarks: refund.remarks ?? "",
           allocTotAmt: refund.allocTotAmt ?? 0,
           allocTotLocalAmt: refund.allocTotLocalAmt ?? 0,
-          jobOrderId: refund.jobOrderId ?? 0,
-          jobOrderNo: refund.jobOrderNo ?? "",
           moduleFrom: refund.moduleFrom ?? "",
           editVersion: refund.editVersion ?? 0,
           data_details:
@@ -499,7 +497,7 @@ export default function RefundPage() {
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
 
           // Calculate and set due date (for detail records)
           await setDueDate(form)
@@ -649,8 +647,6 @@ export default function RefundPage() {
         remarks: apiRefund.remarks ?? "",
         allocTotAmt: apiRefund.allocTotAmt ?? 0,
         allocTotLocalAmt: apiRefund.allocTotLocalAmt ?? 0,
-        jobOrderId: apiRefund.jobOrderId ?? 0,
-        jobOrderNo: apiRefund.jobOrderNo ?? "",
         moduleFrom: apiRefund.moduleFrom ?? "",
         editVersion: apiRefund.editVersion ?? 0,
         createBy: apiRefund.createBy ?? "",

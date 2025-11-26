@@ -122,12 +122,11 @@ export const applyCentDiffAdjustment = (
 
   const precision = decimals?.locAmtDec ?? 2
   const roundedUnAllocLocal = mathRound(Number(unAllocLocalAmt) || 0, precision)
-  const absRoundedUnAllocLocal = Math.abs(roundedUnAllocLocal)
 
   if (
     normalizedUnAllocAmt !== 0 ||
-    absRoundedUnAllocLocal === 0 ||
-    absRoundedUnAllocLocal >= 1
+    roundedUnAllocLocal === 0 ||
+    roundedUnAllocLocal >= 1
   ) {
     let resetPerformed = false
     details.forEach((row) => {

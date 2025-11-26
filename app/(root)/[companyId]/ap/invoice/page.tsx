@@ -47,7 +47,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -64,14 +64,14 @@ import {
   ResetConfirmation,
   SaveConfirmation,
 } from "@/components/confirmation"
+//import { Table } from "@/components/ui/table"
+import InvoiceTable from "@/components/table/tblcmp"
 
 import History from "./components/history"
 import { getDefaultValues } from "./components/invoice-defaultvalues"
 //import InvoiceTable from "./components/invoice-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-//import { Table } from "@/components/ui/table"
-import InvoiceTable from "@/components/table/tblcmp"
 
 export default function InvoicePage() {
   const params = useParams()
@@ -79,7 +79,7 @@ export default function InvoicePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.invoice
+  const transactionId = APTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -138,7 +138,7 @@ export default function InvoicePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/invoice`,
+    () => `history-doc:/${companyId}/ap/invoice`,
     [companyId]
   )
 

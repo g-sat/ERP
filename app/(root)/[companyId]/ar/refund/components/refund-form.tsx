@@ -6,20 +6,18 @@ import {
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import {
   calauteLocalAmtandGainLoss,
   calculateDiffCurrency,
   calculateSameCurrency,
-  calculateUnallocated,
 } from "@/helpers/ar-refund-calculations"
 import { IArRefundDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
   ICustomerLookup,
-  IJobOrderLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -36,10 +34,9 @@ import {
   BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   CustomerAutocomplete,
-  DynamicCustomerAutocomplete,
-  JobOrderCustomerAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
+import DynamicCustomerAutocomplete from "@/components/autocomplete/autocomplete-dynamic-customer"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -89,9 +86,9 @@ export default function RefundForm({
 
   // Refs to store original values on focus for comparison on blur
   const originalExhRateRef = React.useRef<number>(0)
-  const originalRecExhRateRef = React.useRef<number>(0)
+  const originalPayExhRateRef = React.useRef<number>(0)
   const originalTotAmtRef = React.useRef<number>(0)
-  const originalRecTotAmtRef = React.useRef<number>(0)
+  const originalPayTotAmtRef = React.useRef<number>(0)
   const originalBankChgAmtRef = React.useRef<number>(0)
 
   // Function to update currency comparison state
@@ -112,18 +109,16 @@ export default function RefundForm({
       const recTotAmt = form.getValues("recTotAmt") || 0
       const exhRate = form.getValues("exhRate") || 0
       const recExhRate = form.getValues("recExhRate") || 0
-      const allocTotAmt = form.getValues("allocTotAmt") || 0
-      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
 
       if (currencyId === recCurrencyId) {
         // Same currency scenario - totAmt drives everything
         const {
           totLocalAmt: newTotLocalAmt,
-          recTotAmt: newRecTotAmt,
-          recTotLocalAmt: newRecTotLocalAmt,
+          recTotAmt: newPayTotAmt,
+          recTotLocalAmt: newPayTotLocalAmt,
         } = calculateSameCurrency(totAmt || 0, exhRate || 0, decimals[0])
-        form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
-        form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
+        form.setValue("recTotAmt", newPayTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", newPayTotLocalAmt, {
           shouldDirty: true,
         })
         form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
@@ -136,8 +131,8 @@ export default function RefundForm({
 
         // Different currency scenario - recTotAmt drives everything
         const {
-          recTotAmt: newRecTotAmt,
-          recTotLocalAmt: newRecTotLocalAmt,
+          recTotAmt: newPayTotAmt,
+          recTotLocalAmt: newPayTotLocalAmt,
           totAmt: newTotAmt,
           totLocalAmt: newTotLocalAmt,
         } = calculateDiffCurrency(
@@ -147,8 +142,8 @@ export default function RefundForm({
           decimals[0]
         )
 
-        form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
-        form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
+        form.setValue("recTotAmt", newPayTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", newPayTotLocalAmt, {
           shouldDirty: true,
         })
         form.setValue("totAmt", newTotAmt, { shouldDirty: true })
@@ -324,7 +319,7 @@ export default function RefundForm({
         await new Promise((resolve) => setTimeout(resolve, 0))
 
         await setExchangeRate(form, exhRateDec, visible)
-        await setRecExchangeRate(form, exhRateDec)
+        await setPayExchangeRate(form, exhRateDec)
 
         // Calculate and set due date (for detail records)
         await setDueDate(form)
@@ -350,7 +345,7 @@ export default function RefundForm({
         // Only set exchange rates if currency is available
         if (selectedCustomer.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)
@@ -394,8 +389,8 @@ export default function RefundForm({
       form.setValue("recCurrencyId", recCurrencyId)
 
       if (selectedBank && recCurrencyId > 0) {
-        // Only call setRecExchangeRate if currency is available
-        await setRecExchangeRate(form, exhRateDec)
+        // Only call setPayExchangeRate if currency is available
+        await setPayExchangeRate(form, exhRateDec)
         form.trigger("recExhRate")
       } else {
         // If no bank selected or no currency, set exchange rate to zero
@@ -465,20 +460,6 @@ export default function RefundForm({
   //   [form]
   // )
 
-  // Handle job order change
-  const handleJobOrderChange = React.useCallback(
-    (selectedJobOrder: IJobOrderLookup | null) => {
-      if (selectedJobOrder) {
-        form.setValue("jobOrderId", selectedJobOrder.jobOrderId || 0)
-        form.setValue("jobOrderNo", selectedJobOrder.jobOrderNo || "")
-      } else {
-        form.setValue("jobOrderId", 0)
-        form.setValue("jobOrderNo", "")
-      }
-    },
-    [form]
-  )
-
   // Handle pay currency change
   const handleRecCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
@@ -488,7 +469,7 @@ export default function RefundForm({
       form.setValue("recCurrencyId", recCurrencyId)
 
       if (recCurrencyId > 0 && recCurrencyId !== currencyId) {
-        await setRecExchangeRate(form, exhRateDec)
+        await setPayExchangeRate(form, exhRateDec)
       } else if (recCurrencyId > 0 && recCurrencyId === currencyId) {
         const exhRateValue = form.getValues("exhRate") || 0
         form.setValue("recExhRate", exhRateValue, { shouldDirty: true })
@@ -582,28 +563,28 @@ export default function RefundForm({
   )
 
   // Handle refund exchange rate focus - capture original value
-  const handleRecExchangeRateFocus = React.useCallback(() => {
-    originalRecExhRateRef.current = form.getValues("recExhRate") || 0
+  const handlePayExchangeRateFocus = React.useCallback(() => {
+    originalPayExhRateRef.current = form.getValues("recExhRate") || 0
     console.log(
-      "handleRecExchangeRateFocus - original value:",
-      originalRecExhRateRef.current
+      "handlePayExchangeRateFocus - original value:",
+      originalPayExhRateRef.current
     )
   }, [form])
 
   // Handle refund exchange rate change
-  const handleRecExchangeRateChange = React.useCallback(
+  const handlePayExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recExhRate = parseNumberWithCommas(e.target.value)
-      const originalRecExhRate = originalRecExhRateRef.current
+      const originalPayExhRate = originalPayExhRateRef.current
 
-      console.log("handleRecExchangeRateChange", {
+      console.log("handlePayExchangeRateChange", {
         newValue: recExhRate,
-        originalValue: originalRecExhRate,
-        isDifferent: recExhRate !== originalRecExhRate,
+        originalValue: originalPayExhRate,
+        isDifferent: recExhRate !== originalPayExhRate,
       })
 
       // Only recalculate if value is different from original
-      if (recExhRate !== originalRecExhRate) {
+      if (recExhRate !== originalPayExhRate) {
         console.log("Refund Exchange Rate changed - recalculating amounts")
         form.setValue("recExhRate", recExhRate, { shouldDirty: true })
 
@@ -654,28 +635,28 @@ export default function RefundForm({
   )
 
   // Handle recTotAmt focus - capture original value
-  const handleRecTotAmtFocus = React.useCallback(() => {
-    originalRecTotAmtRef.current = form.getValues("recTotAmt") || 0
+  const handlePayTotAmtFocus = React.useCallback(() => {
+    originalPayTotAmtRef.current = form.getValues("recTotAmt") || 0
     console.log(
-      "handleRecTotAmtFocus - original value:",
-      originalRecTotAmtRef.current
+      "handlePayTotAmtFocus - original value:",
+      originalPayTotAmtRef.current
     )
   }, [form])
 
   // Handle recTotAmt change
-  const handleRecTotAmtChange = React.useCallback(
+  const handlePayTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recTotAmt = parseNumberWithCommas(e.target.value)
-      const originalRecTotAmt = originalRecTotAmtRef.current
+      const originalPayTotAmt = originalPayTotAmtRef.current
 
-      console.log("handleRecTotAmtChange", {
+      console.log("handlePayTotAmtChange", {
         newValue: recTotAmt,
-        originalValue: originalRecTotAmt,
-        isDifferent: recTotAmt !== originalRecTotAmt,
+        originalValue: originalPayTotAmt,
+        isDifferent: recTotAmt !== originalPayTotAmt,
       })
 
       // Only recalculate if value is different from original
-      if (recTotAmt !== originalRecTotAmt) {
+      if (recTotAmt !== originalPayTotAmt) {
         console.log(
           "Refund Total Amount changed - recalculating amounts and clearing allocations"
         )
@@ -766,16 +747,6 @@ export default function RefundForm({
           onChangeEvent={handleAccountDateChange}
           isFutureShow={false}
         />
-
-        {/* Customer by company*/}
-        {/* <CompanyCustomerAutocomplete
-            form={form}
-            name="customerId"
-            label="Customer"
-            isRequired={true}
-            onChangeEvent={handleCustomerChange}
-            companyId={_companyId}
-          /> */}
 
         {/* Customer */}
         {isDynamicCustomer ? (
@@ -869,30 +840,30 @@ export default function RefundForm({
         <CustomNumberInput
           form={form}
           name="recExhRate"
-          label="Rec Exchange Rate"
+          label="Pay Exchange Rate"
           isRequired={true}
           round={exhRateDec}
           className="text-right"
           isDisabled={isCurrenciesEqual}
-          onFocusEvent={handleRecExchangeRateFocus}
-          onBlurEvent={handleRecExchangeRateChange}
+          onFocusEvent={handlePayExchangeRateFocus}
+          onBlurEvent={handlePayExchangeRateChange}
         />
 
         {/* Pay Total Amount - Read-only when currencies are equal */}
         <CustomNumberInput
           form={form}
           name="recTotAmt"
-          label="Rec Total Amount"
+          label="Pay Total Amount"
           isDisabled={isCurrenciesEqual}
-          onFocusEvent={handleRecTotAmtFocus}
-          onBlurEvent={handleRecTotAmtChange}
+          onFocusEvent={handlePayTotAmtFocus}
+          onBlurEvent={handlePayTotAmtChange}
         />
 
         {/* Pay Total Local Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="recTotLocalAmt"
-          label="Rec Total Local Amount"
+          label="Pay Total Local Amount"
           isDisabled={true}
         />
 
@@ -951,17 +922,6 @@ export default function RefundForm({
           name="exhGainLoss"
           label="Exchange Gain/Loss"
         />
-
-        {visible?.m_JobOrderIdHd && (
-          <JobOrderCustomerAutocomplete
-            form={form}
-            name="jobOrderId"
-            label="Job Order"
-            onChangeEvent={handleJobOrderChange}
-            customerId={form.getValues("customerId") || 0}
-            jobOrderId={form.getValues("jobOrderId") || 0}
-          />
-        )}
 
         {/* Remarks */}
         <CustomTextarea

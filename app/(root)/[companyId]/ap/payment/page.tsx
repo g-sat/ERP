@@ -129,7 +129,7 @@ export default function PaymentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/payment`,
+    () => `history-doc:/${companyId}/ap/payment`,
     [companyId]
   )
 

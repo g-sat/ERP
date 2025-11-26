@@ -27,7 +27,7 @@ export const GLContraHdSchema = (
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
 
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     // Order Details
     remarks: required?.m_Remarks_Hd
@@ -102,7 +102,7 @@ export const GLContraDtSchema = (
     centDiff: z.number().min(0, "Cent Difference is required"),
 
     // Exchange Gain/Loss Fields
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     // Audit Fields
     editVersion: z.number().optional(),

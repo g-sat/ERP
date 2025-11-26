@@ -106,7 +106,7 @@ export const ArDocSetOffDtSchema = (
     centDiff: z.number().min(0, "Cent Difference is required"),
 
     // Exchange Gain/Loss Fields
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     // Audit Fields
     editVersion: z.number().optional(),
