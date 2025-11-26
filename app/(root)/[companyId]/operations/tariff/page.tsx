@@ -887,7 +887,7 @@ export default function TariffPage() {
             </DialogDescription>
           </DialogHeader>
           <TariffForm
-            tariff={selectedTariff}
+            initialData={selectedTariff}
             onSaveAction={handleSaveTariff}
             onCloseAction={() => setIsModalOpen(false)}
             mode={modalMode}

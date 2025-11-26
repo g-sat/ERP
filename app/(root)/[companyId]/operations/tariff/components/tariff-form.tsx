@@ -1,17 +1,19 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
 import { ICustomerLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Task } from "@/lib/operations-utils"
 import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
@@ -23,12 +25,17 @@ import {
   UomAutocomplete,
   VisaTypeAutocomplete,
 } from "@/components/autocomplete"
+import CustomAccordion, {
+  CustomAccordionContent,
+  CustomAccordionItem,
+  CustomAccordionTrigger,
+} from "@/components/custom/custom-accordion"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TariffFormProps {
-  tariff?: ITariff
+  initialData?: ITariff
   onSaveAction: (data: ITariff) => void
   onCloseAction: () => void
   mode: "create" | "edit" | "view"
@@ -40,7 +47,7 @@ interface TariffFormProps {
 }
 
 export function TariffForm({
-  tariff,
+  initialData,
   onSaveAction,
   onCloseAction,
   mode,
@@ -52,69 +59,76 @@ export function TariffForm({
 }: TariffFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const { data: customers = [] } = useCompanyCustomerLookup(companyId)
+
+  // Extract currency ID to prevent infinite loop - useMemo ensures stable reference
+  const firstCustomerCurrencyId = customers[0]?.currencyId
+  const defaultCurrencyId = useMemo(() => {
+    return firstCustomerCurrencyId || 0
+  }, [firstCustomerCurrencyId])
 
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
     defaultValues: {
-      tariffId: tariff?.tariffId || 0,
-      taskId: tariff?.taskId || taskId,
-      chargeId: tariff?.chargeId || 0,
-      portId: tariff?.portId || portId,
-      customerId: tariff?.customerId || customerId,
-      currencyId: tariff?.currencyId || customers[0]?.currencyId || 0,
-      uomId: tariff?.uomId || 0,
-      visaTypeId: tariff?.visaTypeId || 0,
-      displayRate: tariff?.displayRate || 0,
-      basicRate: tariff?.basicRate || 0,
-      minUnit: tariff?.minUnit || 0,
-      maxUnit: tariff?.maxUnit || 0,
-      isAdditional: tariff?.isAdditional || false,
-      additionalUnit: tariff?.additionalUnit || 0,
-      additionalRate: tariff?.additionalRate || 0,
-      prepaymentPercentage: tariff?.prepaymentPercentage || 0,
-      isPrepayment: tariff?.isPrepayment || false,
-      seqNo: tariff?.seqNo || 0,
-      isDefault: tariff?.isDefault || true,
-      isActive: tariff?.isActive || true,
-      remarks: tariff?.remarks || "",
+      tariffId: initialData?.tariffId || 0,
+      taskId: initialData?.taskId || taskId,
+      chargeId: initialData?.chargeId || 0,
+      portId: initialData?.portId || portId,
+      customerId: initialData?.customerId || customerId,
+      currencyId: initialData?.currencyId || defaultCurrencyId,
+      uomId: initialData?.uomId || 0,
+      visaTypeId: initialData?.visaTypeId || 0,
+      displayRate: initialData?.displayRate || 0,
+      basicRate: initialData?.basicRate || 0,
+      minUnit: initialData?.minUnit || 0,
+      maxUnit: initialData?.maxUnit || 0,
+      isAdditional: initialData?.isAdditional || false,
+      additionalUnit: initialData?.additionalUnit || 0,
+      additionalRate: initialData?.additionalRate || 0,
+      prepaymentPercentage: initialData?.prepaymentPercentage || 0,
+      isPrepayment: initialData?.isPrepayment || false,
+      seqNo: initialData?.seqNo || 0,
+      isDefault: initialData?.isDefault || true,
+      isActive: initialData?.isActive || true,
+      remarks: initialData?.remarks || "",
     },
   })
 
   useEffect(() => {
     console.log("TariffForm useEffect triggered:", {
       mode,
-      currencyId: customers[0]?.currencyId || 0,
+      currencyId: defaultCurrencyId,
       customerId,
       portId,
       taskId,
-      tariff: !!tariff,
+      tariff: !!initialData,
     })
 
-    if (tariff) {
+    if (initialData) {
       form.reset({
-        tariffId: tariff.tariffId || 0,
-        taskId: tariff.taskId || taskId,
-        chargeId: tariff.chargeId || 0,
-        portId: tariff.portId || portId,
-        customerId: tariff.customerId || customerId,
-        currencyId: tariff.currencyId || customers[0]?.currencyId || 0,
-        uomId: tariff.uomId || 0,
-        visaTypeId: tariff.visaTypeId || 0,
-        displayRate: tariff.displayRate || 0,
-        basicRate: tariff.basicRate || 0,
-        minUnit: tariff.minUnit || 0,
-        maxUnit: tariff.maxUnit || 0,
-        isAdditional: tariff.isAdditional || false,
-        additionalUnit: tariff.additionalUnit || 0,
-        additionalRate: tariff.additionalRate || 0,
-        prepaymentPercentage: tariff.prepaymentPercentage || 0,
-        isPrepayment: tariff.isPrepayment || false,
-        seqNo: tariff.seqNo || 0,
-        isDefault: tariff.isDefault || true,
-        isActive: tariff.isActive || true,
-        remarks: tariff.remarks || "",
+        tariffId: initialData.tariffId || 0,
+        taskId: initialData.taskId || taskId,
+        chargeId: initialData.chargeId || 0,
+        portId: initialData.portId || portId,
+        customerId: initialData.customerId || customerId,
+        currencyId: initialData.currencyId || defaultCurrencyId,
+        uomId: initialData.uomId || 0,
+        visaTypeId: initialData.visaTypeId || 0,
+        displayRate: initialData.displayRate || 0,
+        basicRate: initialData.basicRate || 0,
+        minUnit: initialData.minUnit || 0,
+        maxUnit: initialData.maxUnit || 0,
+        isAdditional: initialData.isAdditional || false,
+        additionalUnit: initialData.additionalUnit || 0,
+        additionalRate: initialData.additionalRate || 0,
+        prepaymentPercentage: initialData.prepaymentPercentage || 0,
+        isPrepayment: initialData.isPrepayment || false,
+        seqNo: initialData.seqNo || 0,
+        isDefault: initialData.isDefault || true,
+        isActive: initialData.isActive || true,
+        remarks: initialData.remarks || "",
       })
     } else if (mode === "create") {
       // For create mode, reset form with props values
@@ -129,7 +143,7 @@ export function TariffForm({
         chargeId: 0,
         portId: portId,
         customerId: customerId,
-        currencyId: customers[0]?.currencyId || 0,
+        currencyId: defaultCurrencyId,
         uomId: 0,
         visaTypeId: 0,
         displayRate: 0,
@@ -147,7 +161,7 @@ export function TariffForm({
         remarks: "",
       })
     }
-  }, [tariff, form, customerId, portId, taskId, mode, customers])
+  }, [initialData, form, customerId, portId, taskId, mode, defaultCurrencyId])
 
   // Watch switch states for conditional field editing
   const isAdditional = form.watch("isAdditional")
@@ -294,14 +308,13 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
-
             <ChargeAutocomplete
               form={form}
               name="chargeId"
               label="Charge"
-              taskId={form.watch("taskId") || taskId}
               isRequired
               isDisabled={mode === "view"}
+              taskId={form.watch("taskId")}
             />
             {isVisaService && (
               <VisaTypeAutocomplete
@@ -414,6 +427,87 @@ export function TariffForm({
               isDisabled={mode === "view"}
             />
           </div>
+          <>
+            {/* Audit Information Section */}
+            {initialData &&
+              (initialData.createBy ||
+                initialData.createDate ||
+                initialData.editBy ||
+                initialData.editDate) && (
+                <div className="space-y-2">
+                  <div className="border-border border-b pb-4"></div>
+
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="border-border bg-muted/50 rounded-lg border"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">View Audit Trail</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {initialData.createDate ? "Created" : ""}
+                            {initialData.editDate ? " • Modified" : ""}
+                          </Badge>
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-6 pb-4">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Created By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.createBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {format(
+                                  new Date(initialData.createDate),
+                                  datetimeFormat
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {initialData.editBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Last Modified By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.editBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {initialData.editDate
+                                  ? format(
+                                      new Date(initialData.editDate),
+                                      datetimeFormat
+                                    )
+                                  : "-"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
+              )}
+          </>
 
           <div className="flex justify-end space-x-2">
             <Button

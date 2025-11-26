@@ -41,6 +41,11 @@ export interface ITariff {
   isDefault: boolean
   remarks?: string
   isActive?: boolean
+  createBy?: string
+  createDate?: Date | string
+  editBy?: string
+  editDate?: Date | string
+  editVersion?: number
 }
 
 export interface ITariffCount {
