@@ -492,12 +492,12 @@ export function LandingItemsTab({
             data={data || []}
             onLandingItemsSelect={handleSelect}
             onDeleteLandingItems={handleDelete}
-            onEditLandingItems={handleEdit}
-            onCreateLandingItems={handleCreateLandingItems}
+            onEditActionLandingItems={handleEdit}
+            onCreateActionLandingItems={handleCreateLandingItems}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshLandingItems}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshLandingItems}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -588,7 +588,7 @@ export function LandingItemsTab({
           taskId={Task.LandingItems}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this landing items."

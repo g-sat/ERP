@@ -339,10 +339,10 @@ export default function VoyagePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -358,10 +358,10 @@ export default function VoyagePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewVoyage : undefined}
-          onDelete={canDelete ? handleDeleteVoyage : undefined}
-          onEdit={canEdit ? handleEditVoyage : undefined}
-          onCreate={canCreate ? handleCreateVoyage : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteVoyage : undefined}
+          onEditAction={canEdit ? handleEditVoyage : undefined}
+          onCreateAction={canCreate ? handleCreateVoyage : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

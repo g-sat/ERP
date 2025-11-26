@@ -6,8 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 interface AccountEditableTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
-  onEdit?: (row: T) => void
-  onDelete?: (id: string) => void
+  onEditAction?: (row: T) => void
+  onDeleteAction?: (id: string) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideView?: boolean
@@ -22,8 +22,8 @@ interface AccountEditableTableActionsProps<T> {
 export function AccountEditableTableActions<T>({
   row,
   onView,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   onSelect,
   idAccessor,
   hideView,
@@ -82,7 +82,7 @@ export function AccountEditableTableActions<T>({
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : ""
           }`}
-          onClick={() => !hasValidAccountId && onEdit?.(row)}
+          onClick={() => !hasValidAccountId && onEditAction?.(row)}
           title={hasValidAccountId ? "Cannot edit - Debit Note exists" : "Edit"}
         >
           <Pencil className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function AccountEditableTableActions<T>({
               : "text-destructive hover:bg-destructive/10"
           }`}
           onClick={() =>
-            !hasValidAccountId && onDelete?.(String(row[idAccessor]))
+            !hasValidAccountId && onDeleteAction?.(String(row[idAccessor]))
           }
           title={
             hasValidAccountId ? "Cannot delete - Debit Note exists" : "Delete"

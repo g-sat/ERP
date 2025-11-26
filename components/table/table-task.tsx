@@ -50,14 +50,14 @@ interface TaskTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
-  onCreate?: () => void
-  onEdit?: (item: T) => void
-  onDelete?: (itemId: string) => void
-  onDebitNote?: (itemId: string, debitNoteNo?: string) => void
-  onPurchase?: (itemId: string) => void
+  onCreateAction?: () => void
+  onEditAction?: (item: T) => void
+  onDeleteAction?: (itemId: string) => void
+  onDebitNoteAction?: (itemId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (itemId: string) => void
   onCombinedService?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
@@ -72,14 +72,14 @@ export function TaskTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onCreate,
-  onEdit,
-  onDelete,
-  onDebitNote,
-  onPurchase,
+  onCreateAction,
+  onEditAction,
+  onDeleteAction,
+  onDebitNoteAction,
+  onPurchaseAction,
   onCombinedService,
   isConfirmed,
   showHeader = true,
@@ -177,11 +177,11 @@ export function TaskTable<T>({
   }, [selectedRowIds, onCombinedService])
   const handleDebitNoteFromActions = useCallback(
     (id: string) => {
-      if (onDebitNote) {
-        onDebitNote(id, "")
+      if (onDebitNoteAction) {
+        onDebitNoteAction(id, "")
       }
     },
-    [onDebitNote]
+    [onDebitNoteAction]
   )
   useEffect(() => {
     if (gridSettingsData) {
@@ -200,7 +200,7 @@ export function TaskTable<T>({
     }
   }, [gridSettingsData])
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onSelect || onEdit || onDelete)
+    ...(showActions && (onSelect || onEditAction || onDeleteAction)
       ? [
           {
             id: "actions",
@@ -240,10 +240,10 @@ export function TaskTable<T>({
                   row={item as T & { debitNoteId?: number }}
                   idAccessor={accessorId}
                   onView={onSelect}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onDebitNote={handleDebitNoteFromActions}
-                  onPurchase={onPurchase}
+                  onEditAction={onEditAction}
+                  onDeleteAction={onDeleteAction}
+                  onDebitNoteAction={handleDebitNoteFromActions}
+                  onPurchaseAction={onPurchaseAction}
                   onSelect={(_, checked) => {
                     row.toggleSelected(checked)
                   }}
@@ -347,8 +347,8 @@ export function TaskTable<T>({
         <TaskTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
-          onCreate={onCreate}
+          onRefreshAction={onRefreshAction}
+          onCreateAction={onCreateAction}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()
@@ -358,9 +358,9 @@ export function TaskTable<T>({
           moduleId={moduleId || 1}
           transactionId={transactionId || 1}
           onCombinedService={handleCombinedService}
-          onDebitNote={(debitNoteNo, selectedIds) => {
-            if (selectedIds && selectedIds.length > 0 && onDebitNote) {
-              onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          onDebitNoteAction={(debitNoteNo, selectedIds) => {
+            if (selectedIds && selectedIds.length > 0 && onDebitNoteAction) {
+              onDebitNoteAction(selectedIds.join(","), debitNoteNo || "")
             }
           }}
           hasSelectedRows={hasSelectedRows}

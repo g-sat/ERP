@@ -18,11 +18,11 @@ interface EquipmentUsedTableProps {
   isLoading?: boolean
   onEquipmentUsedSelect?: (equipmentUsed: IEquipmentUsed | undefined) => void
   onDeleteEquipmentUsed?: (equipmentUsedId: string) => void
-  onEditEquipmentUsed?: (equipmentUsed: IEquipmentUsed) => void
-  onCreateEquipmentUsed?: () => void
-  onDebitNote?: (equipmentUsedId: string, debitNoteNo?: string) => void
-  onPurchase?: (equipmentUsedId: string) => void
-  onRefresh?: () => void
+  onEditActionEquipmentUsed?: (equipmentUsed: IEquipmentUsed) => void
+  onCreateActionEquipmentUsed?: () => void
+  onDebitNoteAction?: (equipmentUsedId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (equipmentUsedId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IEquipmentUsedFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function EquipmentUsedTable({
   isLoading = false,
   onEquipmentUsedSelect,
   onDeleteEquipmentUsed,
-  onEditEquipmentUsed,
-  onCreateEquipmentUsed,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionEquipmentUsed,
+  onCreateActionEquipmentUsed,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -311,7 +311,7 @@ export function EquipmentUsedTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -334,8 +334,8 @@ export function EquipmentUsedTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -350,14 +350,14 @@ export function EquipmentUsedTable({
         tableName={TableName.equipmentUsed}
         emptyMessage="No equipment used found."
         accessorId="equipmentUsedId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateEquipmentUsed}
-        onEdit={onEditEquipmentUsed}
-        onDelete={onDeleteEquipmentUsed}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionEquipmentUsed}
+        onEditAction={onEditActionEquipmentUsed}
+        onDeleteAction={onDeleteEquipmentUsed}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

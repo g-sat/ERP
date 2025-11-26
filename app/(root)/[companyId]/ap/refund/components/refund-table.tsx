@@ -539,7 +539,7 @@ export default function RefundTable({
         transactionId={transactionId}
         tableName={TableName.apRefund}
         emptyMessage="No refunds found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchRefunds()}
+        onRefreshAction={() => refetchRefunds()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onRefundSelect(row || undefined)}
         // Pagination props

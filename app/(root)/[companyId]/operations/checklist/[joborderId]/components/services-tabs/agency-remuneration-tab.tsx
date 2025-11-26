@@ -497,12 +497,12 @@ export function AgencyRemunerationTab({
             data={data || []}
             onAgencyRemunerationSelect={handleSelect}
             onDeleteAgencyRemuneration={handleDelete}
-            onEditAgencyRemuneration={handleEdit}
-            onCreateAgencyRemuneration={handleCreate}
+            onEditActionAgencyRemuneration={handleEdit}
+            onCreateActionAgencyRemuneration={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshAgencyRemuneration}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshAgencyRemuneration}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -593,7 +593,7 @@ export function AgencyRemunerationTab({
           taskId={Task.AgencyRemuneration}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this agency remuneration."

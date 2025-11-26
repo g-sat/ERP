@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
@@ -144,6 +145,9 @@ const CATEGORY_CONFIG: Record<
 export default function TariffPage() {
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.tariff
+
+  const params = useParams()
+  const companyId = Number(params?.companyId) || 0
 
   const { hasPermission } = usePermissionStore()
 
@@ -820,9 +824,9 @@ export default function TariffPage() {
             <TariffTable
               data={(tariffByTaskData as ITariff[]) || []}
               isLoading={isLoading}
-              onDelete={handleDeleteConfirmation}
-              onEdit={handleEditTariff}
-              onRefresh={() => {
+              onDeleteAction={handleDeleteConfirmation}
+              onEditAction={handleEditTariff}
+              onRefreshAction={() => {
                 handleRefresh()
               }}
               canEdit={canEdit}
@@ -830,7 +834,7 @@ export default function TariffPage() {
               canView={canView}
               canCreate={canCreate}
               onSelect={handleViewTariff}
-              onCreate={handleCreateTariff}
+              onCreateAction={handleCreateTariff}
             />
           ) : (
             <div className="text-muted-foreground py-12 text-center">
@@ -887,6 +891,7 @@ export default function TariffPage() {
             onSaveAction={handleSaveTariff}
             onCloseAction={() => setIsModalOpen(false)}
             mode={modalMode}
+            companyId={Number(companyId)}
             customerId={watchedCustomerId || apiParams.customerId}
             portId={apiParams.portId}
             taskId={

@@ -319,10 +319,10 @@ export default function LoanTypePage() {
             isLoading={false}
             totalRecords={totalRecords}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -338,10 +338,10 @@ export default function LoanTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewLoanType : undefined}
-          onDelete={canDelete ? handleDeleteLoanType : undefined}
-          onEdit={canEdit ? handleEditLoanType : undefined}
-          onCreate={canCreate ? handleCreateLoanType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteLoanType : undefined}
+          onEditAction={canEdit ? handleEditLoanType : undefined}
+          onCreateAction={canCreate ? handleCreateLoanType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

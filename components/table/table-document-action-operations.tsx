@@ -7,7 +7,7 @@ interface DocumentOperationsTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
   onDownload?: (row: T) => void
-  onDelete?: (row: T) => void
+  onDeleteAction?: (row: T) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideView?: boolean
@@ -23,7 +23,7 @@ export function DocumentOperationsTableActions<T>({
   row,
   onView,
   onDownload,
-  onDelete,
+  onDeleteAction,
   onSelect,
   idAccessor,
   hideView,
@@ -102,7 +102,7 @@ export function DocumentOperationsTableActions<T>({
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : "text-destructive hover:bg-destructive/10"
           }`}
-          onClick={() => !hasValidAccountId && onDelete?.(row)}
+          onClick={() => !hasValidAccountId && onDeleteAction?.(row)}
           title={
             hasValidAccountId ? "Cannot delete - Debit Note exists" : "Delete"
           }

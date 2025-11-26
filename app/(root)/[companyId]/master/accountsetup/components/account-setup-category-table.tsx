@@ -18,10 +18,10 @@ interface AccountSetupCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (accountSetupCategory: IAccountSetupCategory | null) => void
-  onDelete?: (accountSetupCategoryId: string) => void
-  onEdit?: (accountSetupCategory: IAccountSetupCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (accountSetupCategoryId: string) => void
+  onEditAction?: (accountSetupCategory: IAccountSetupCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function AccountSetupCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -160,7 +160,7 @@ export function AccountSetupCategoryTable({
       emptyMessage="No account setup categories found."
       accessorId="accSetupCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -169,9 +169,9 @@ export function AccountSetupCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

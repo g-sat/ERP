@@ -121,11 +121,11 @@ export default function DesignationPage() {
       ) : (
         <DesignationTable
           data={designationData?.data || []}
-          onEdit={handleEditDesignation}
-          onDelete={handleDeleteDesignation}
-          onCreate={handleCreateDesignation}
+          onEditAction={handleEditDesignation}
+          onDeleteAction={handleDeleteDesignation}
+          onCreateAction={handleCreateDesignation}
           onView={handleViewDesignation}
-          onRefresh={refetchDesignation}
+          onRefreshAction={refetchDesignation}
           canCreate={canCreateDesignation}
           canEdit={canEditDesignation}
           canDelete={canDeleteDesignation}

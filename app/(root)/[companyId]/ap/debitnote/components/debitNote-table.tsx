@@ -531,7 +531,7 @@ export default function DebitNoteTable({
         transactionId={transactionId}
         tableName={TableName.arDebitNote}
         emptyMessage="No debitNotes found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchDebitNotes()}
+        onRefreshAction={() => refetchDebitNotes()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onDebitNoteSelect(row || undefined)}
         // Pagination props

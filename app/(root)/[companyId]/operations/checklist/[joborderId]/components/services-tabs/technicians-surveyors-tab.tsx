@@ -503,12 +503,12 @@ export function TechniciansSurveyorsTab({
             data={data || []}
             onTechnicianSurveyorSelect={handleSelect}
             onDeleteTechnicianSurveyor={handleDelete}
-            onEditTechnicianSurveyor={handleEdit}
-            onCreateTechnicianSurveyor={handleCreate}
+            onEditActionTechnicianSurveyor={handleEdit}
+            onCreateActionTechnicianSurveyor={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshTechnicianSurveyor}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshTechnicianSurveyor}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -599,7 +599,7 @@ export function TechniciansSurveyorsTab({
           taskId={Task.TechniciansSurveyors}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this technicians surveyors."

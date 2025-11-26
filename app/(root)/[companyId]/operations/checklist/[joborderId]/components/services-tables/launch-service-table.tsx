@@ -18,11 +18,11 @@ interface LaunchServiceTableProps {
   isLoading?: boolean
   onLaunchServiceSelect?: (launchService: ILaunchService | undefined) => void
   onDeleteLaunchService?: (launchServiceId: string) => void
-  onEditLaunchService?: (launchService: ILaunchService) => void
-  onCreateLaunchService?: () => void
-  onDebitNote?: (launchServiceId: string, debitNoteNo?: string) => void
-  onPurchase?: (launchServiceId: string) => void
-  onRefresh?: () => void
+  onEditActionLaunchService?: (launchService: ILaunchService) => void
+  onCreateActionLaunchService?: () => void
+  onDebitNoteAction?: (launchServiceId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (launchServiceId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ILaunchServiceFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function LaunchServiceTable({
   isLoading = false,
   onLaunchServiceSelect,
   onDeleteLaunchService,
-  onEditLaunchService,
-  onCreateLaunchService,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionLaunchService,
+  onCreateActionLaunchService,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -466,7 +466,7 @@ export function LaunchServiceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -489,8 +489,8 @@ export function LaunchServiceTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -505,14 +505,14 @@ export function LaunchServiceTable({
         tableName={TableName.launchService}
         emptyMessage="No launch services found."
         accessorId="launchServiceId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateLaunchService}
-        onEdit={onEditLaunchService}
-        onDelete={onDeleteLaunchService}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionLaunchService}
+        onEditAction={onEditActionLaunchService}
+        onDeleteAction={onDeleteLaunchService}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

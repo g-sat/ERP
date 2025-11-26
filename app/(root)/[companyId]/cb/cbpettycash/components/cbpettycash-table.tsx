@@ -495,7 +495,7 @@ export default function CbPettyCashTable({
         transactionId={transactionId}
         tableName={TableName.cbPettyCash}
         emptyMessage="No cbPettyCashs found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbPettyCashs()}
+        onRefreshAction={() => refetchCbPettyCashs()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbPettyCashSelect(row || undefined)}
         // Pagination props

@@ -491,12 +491,12 @@ export function LaunchServicesTab({
             data={data || []}
             onLaunchServiceSelect={handleSelect}
             onDeleteLaunchService={handleDelete}
-            onEditLaunchService={handleEdit}
-            onCreateLaunchService={handleCreate}
+            onEditActionLaunchService={handleEdit}
+            onCreateActionLaunchService={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshLaunchServices}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshLaunchServices}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -587,7 +587,7 @@ export function LaunchServicesTab({
           taskId={Task.LaunchServices}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this launch services."

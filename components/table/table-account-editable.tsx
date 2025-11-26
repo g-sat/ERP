@@ -59,14 +59,14 @@ interface AccountEditableBaseTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
-  onEdit?: (item: T) => void
-  onDelete?: (itemId: string) => void
+  onEditAction?: (item: T) => void
+  onDeleteAction?: (itemId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onPurchase?: (itemId: string) => void
+  onPurchaseAction?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
@@ -88,11 +88,11 @@ export function AccountEditableBaseTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   onBulkDelete,
   onBulkSelectionChange,
   onDataReorder,
@@ -231,7 +231,7 @@ export function AccountEditableBaseTable<T>({
   }, [gridSettingsData])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onSelect || onEdit || onDelete)
+    ...(showActions && (onSelect || onEditAction || onDeleteAction)
       ? [
           {
             id: "drag-actions",
@@ -286,8 +286,8 @@ export function AccountEditableBaseTable<T>({
                   <AccountEditableTableActions
                     row={item as T & { debitNoteId?: number }}
                     onView={onSelect}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
+                    onEditAction={onEditAction}
+                    onDeleteAction={onDeleteAction}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}
@@ -453,7 +453,7 @@ export function AccountEditableBaseTable<T>({
         <AccountEditableTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
+          onRefreshAction={onRefreshAction}
           onBulkDelete={handleBulkDelete}
           //columns={table.getAllLeafColumns()}
           columns={table

@@ -18,10 +18,10 @@ interface TasksTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (task: ITask | null) => void
-  onDelete?: (taskId: string) => void
-  onEdit?: (task: ITask) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (taskId: string) => void
+  onEditAction?: (task: ITask) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function TasksTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -157,7 +157,7 @@ export function TasksTable({
       emptyMessage="No tasks found."
       accessorId="taskId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -166,9 +166,9 @@ export function TasksTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

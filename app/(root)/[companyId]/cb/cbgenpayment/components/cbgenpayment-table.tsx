@@ -497,7 +497,7 @@ export default function CbGenPaymentTable({
         transactionId={transactionId}
         tableName={TableName.cbGenPayment}
         emptyMessage="No cbGenPayments found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbGenPayments()}
+        onRefreshAction={() => refetchCbGenPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbGenPaymentSelect(row || undefined)}
         // Pagination props

@@ -434,10 +434,10 @@ export default function TemplatePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -452,10 +452,10 @@ export default function TemplatePage() {
           data={filters.search ? [] : templatesData || []}
           isLoading={isLoading}
           onSelect={handleViewTemplate}
-          onDelete={handleDeleteTemplate}
-          onEdit={handleEditTemplate}
-          onCreate={handleCreateTemplate}
-          onRefresh={handleRefresh}
+          onDeleteAction={handleDeleteTemplate}
+          onEditAction={handleEditTemplate}
+          onCreateAction={handleCreateTemplate}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
@@ -571,11 +571,11 @@ export default function TemplatePage() {
                   data={templateDetails}
                   isLoading={false}
                   onSelect={handleViewDetail}
-                  onDelete={handleDeleteDetail}
+                  onDeleteAction={handleDeleteDetail}
                   onBulkDelete={() => {}}
-                  onEdit={handleEditDetail}
-                  onCreate={() => setSelectedDetail(undefined)}
-                  onRefresh={() => {}}
+                  onEditAction={handleEditDetail}
+                  onCreateAction={() => setSelectedDetail(undefined)}
+                  onRefreshAction={() => {}}
                   onFilterChange={() => {}}
                   onDataReorder={() => {}}
                 />

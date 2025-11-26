@@ -389,7 +389,7 @@ export default function ApOutStandingTransactionsDialog({
               key={tableKey}
               data={outTransactions}
               visible={visible}
-              onRefresh={handleRefresh}
+              onRefreshAction={handleRefresh}
               onFilterChange={handleFilterChange}
               onSelect={handleSelect}
               onBulkSelectionChange={handleBulkSelectionChange}

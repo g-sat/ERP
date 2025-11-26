@@ -50,9 +50,8 @@ export default function DynamicJobOrderAutocomplete<
   onChangeEvent?: (selectedOption: IJobOrderLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
-  const [selectedJobOrder, setSelectedJobOrder] = useState<IJobOrderLookup | null>(
-    null
-  )
+  const [selectedJobOrder, setSelectedJobOrder] =
+    useState<IJobOrderLookup | null>(null)
   const [justSelected, setJustSelected] = useState(false)
 
   // Determine job order no field from id
@@ -285,7 +284,8 @@ export default function DynamicJobOrderAutocomplete<
       // Persist the selected job order locally so it remains visible
       if (selectedOption) {
         const jo = displayJobOrders.find(
-          (u: IJobOrderLookup) => u.jobOrderId.toString() === selectedOption.value
+          (u: IJobOrderLookup) =>
+            u.jobOrderId.toString() === selectedOption.value
         )
         if (jo) {
           setSelectedJobOrder(jo)
@@ -333,7 +333,7 @@ export default function DynamicJobOrderAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -348,7 +348,7 @@ export default function DynamicJobOrderAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -367,7 +367,7 @@ export default function DynamicJobOrderAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -399,7 +399,7 @@ export default function DynamicJobOrderAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {

@@ -10,12 +10,12 @@ import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
 interface DebitNoteItemsTableProps {
   data: IDebitNoteItem[]
   isLoading?: boolean
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: () => void
   onSelect?: (item: IDebitNoteItem | null) => void
-  onCreate?: () => void
-  onEdit?: (item: IDebitNoteItem) => void
-  onDelete?: (item: IDebitNoteItem) => void
+  onCreateAction?: () => void
+  onEditAction?: (item: IDebitNoteItem) => void
+  onDeleteAction?: (item: IDebitNoteItem) => void
   onBulkDelete?: (items: IDebitNoteItem[]) => void
   onDataReorder?: (newData: IDebitNoteItem[]) => void
   moduleId?: number
@@ -26,12 +26,12 @@ interface DebitNoteItemsTableProps {
 export function DebitNoteItemsTable({
   data,
   isLoading = false,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onCreate,
-  onEdit,
-  onDelete,
+  onCreateAction,
+  onEditAction,
+  onDeleteAction,
   onBulkDelete,
   onDataReorder,
   moduleId,
@@ -100,8 +100,8 @@ export function DebitNoteItemsTable({
 
   // Callback handlers for the table
   const handleRefresh = useCallback(() => {
-    onRefresh?.()
-  }, [onRefresh])
+    onRefreshAction?.()
+  }, [onRefreshAction])
 
   const handleFilterChange = useCallback(() => {
     onFilterChange?.()
@@ -115,24 +115,24 @@ export function DebitNoteItemsTable({
   )
 
   const handleCreate = useCallback(() => {
-    onCreate?.()
-  }, [onCreate])
+    onCreateAction?.()
+  }, [onCreateAction])
 
   const handleEdit = useCallback(
     (item: IDebitNoteItem) => {
-      onEdit?.(item)
+      onEditAction?.(item)
     },
-    [onEdit]
+    [onEditAction]
   )
 
   const handleDelete = useCallback(
     (itemId: string) => {
       const item = data.find((d) => d.debitNoteId.toString() === itemId)
       if (item) {
-        onDelete?.(item)
+        onDeleteAction?.(item)
       }
     },
-    [onDelete, data]
+    [onDeleteAction, data]
   )
 
   const handleBulkDelete = useCallback(
@@ -179,12 +179,12 @@ export function DebitNoteItemsTable({
       tableName={TableName.debitNote}
       emptyMessage="No debit note data available"
       accessorId="debitNoteId"
-      onRefresh={handleRefresh}
+      onRefreshAction={handleRefresh}
       onFilterChange={handleFilterChange}
       onSelect={handleSelect}
-      onCreate={handleCreate}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
+      onCreateAction={handleCreate}
+      onEditAction={handleEdit}
+      onDeleteAction={handleDelete}
       onBulkDelete={handleBulkDelete}
       onDataReorder={handleDataReorder}
       isConfirmed={isConfirmed}

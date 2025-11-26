@@ -341,10 +341,10 @@ export default function SubCategoryPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -360,10 +360,10 @@ export default function SubCategoryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewSubCategory : undefined}
-          onDelete={canDelete ? handleDeleteSubCategory : undefined}
-          onEdit={canEdit ? handleEditSubCategory : undefined}
-          onCreate={canCreate ? handleCreateSubCategory : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteSubCategory : undefined}
+          onEditAction={canEdit ? handleEditSubCategory : undefined}
+          onCreateAction={canCreate ? handleCreateSubCategory : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

@@ -483,12 +483,12 @@ export function ThirdPartyTab({
             data={data || []}
             onThirdPartySelect={handleSelect}
             onDeleteThirdParty={handleDelete}
-            onEditThirdParty={handleEdit}
-            onCreateThirdParty={handleCreate}
+            onEditActionThirdParty={handleEdit}
+            onCreateActionThirdParty={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshThirdParty}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshThirdParty}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -579,7 +579,7 @@ export function ThirdPartyTab({
           taskId={Task.ThirdParty}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this third party."

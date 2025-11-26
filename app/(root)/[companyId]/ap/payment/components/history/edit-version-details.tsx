@@ -440,7 +440,7 @@ export default function EditVersionDetails({
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
-            onRefresh={handleRefresh}
+            onRefreshAction={handleRefresh}
             onRowSelect={(payment) => setSelectedPayment(payment)}
           />
         </CardContent>
@@ -514,7 +514,7 @@ export default function EditVersionDetails({
                   transactionId={transactionId}
                   tableName={TableName.apPaymentHistory}
                   emptyMessage="No payment details available"
-                  onRefresh={handleRefresh}
+                  onRefreshAction={handleRefresh}
                   showHeader={true}
                   showFooter={false}
                   maxHeight="300px"

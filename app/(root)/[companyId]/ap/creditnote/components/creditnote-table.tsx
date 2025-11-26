@@ -531,7 +531,7 @@ export default function CreditNoteTable({
         transactionId={transactionId}
         tableName={TableName.arCreditNote}
         emptyMessage="No creditNotes found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCreditNotes()}
+        onRefreshAction={() => refetchCreditNotes()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
         // Pagination props

@@ -484,10 +484,10 @@ export default function CreditTermPage() {
                 data={[]}
                 isLoading={false}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -503,10 +503,10 @@ export default function CreditTermPage() {
               isLoading={isLoadingCreditTerm}
               totalRecords={creditTermsTotalRecords}
               onSelect={canView ? handleViewCreditTerm : undefined}
-              onDelete={canDelete ? handleDeleteCreditTerm : undefined}
-              onEdit={canEdit ? handleEditCreditTerm : undefined}
-              onCreate={canCreate ? handleCreateCreditTerm : undefined}
-              onRefresh={refetchCreditTerm}
+              onDeleteAction={canDelete ? handleDeleteCreditTerm : undefined}
+              onEditAction={canEdit ? handleEditCreditTerm : undefined}
+              onCreateAction={canCreate ? handleCreateCreditTerm : undefined}
+              onRefreshAction={refetchCreditTerm}
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -553,10 +553,10 @@ export default function CreditTermPage() {
                 data={[]}
                 isLoading={false}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
@@ -572,10 +572,14 @@ export default function CreditTermPage() {
               isLoading={isLoadingCreditTermDt}
               totalRecords={creditTermsDtTotalRecords}
               onSelect={canViewDt ? handleViewCreditTermDt : undefined}
-              onDelete={canDeleteDt ? handleDeleteCreditTermDt : undefined}
-              onEdit={canEditDt ? handleEditCreditTermDt : undefined}
-              onCreate={canCreateDt ? handleCreateCreditTermDt : undefined}
-              onRefresh={refetchCreditTermDt}
+              onDeleteAction={
+                canDeleteDt ? handleDeleteCreditTermDt : undefined
+              }
+              onEditAction={canEditDt ? handleEditCreditTermDt : undefined}
+              onCreateAction={
+                canCreateDt ? handleCreateCreditTermDt : undefined
+              }
+              onRefreshAction={refetchCreditTermDt}
               onFilterChange={handleDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}

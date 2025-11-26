@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 interface MainTableActionsProps<T> {
   row: T
   onView?: (row: T) => void
-  onEdit?: (row: T) => void
-  onDelete?: (id: string) => void
+  onEditAction?: (row: T) => void
+  onDeleteAction?: (id: string) => void
   idAccessor: keyof T
   hideView?: boolean
   hideEdit?: boolean
@@ -18,8 +18,8 @@ interface MainTableActionsProps<T> {
 export function MainTableActions<T>({
   row,
   onView,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   idAccessor,
   hideView,
   hideEdit,
@@ -42,7 +42,7 @@ export function MainTableActions<T>({
         size="icon"
         className="h-6 w-6"
         disabled={hideEdit}
-        onClick={() => onEdit?.(row)}
+        onClick={() => onEditAction?.(row)}
       >
         <Pencil className="h-4 w-4" />
       </Button>
@@ -52,7 +52,7 @@ export function MainTableActions<T>({
         size="icon"
         className="text-destructive hover:bg-destructive/10 h-6 w-6"
         disabled={hideDelete}
-        onClick={() => onDelete?.(String(row[idAccessor]))}
+        onClick={() => onDeleteAction?.(String(row[idAccessor]))}
       >
         <Trash2 className="h-4 w-4" />
       </Button>

@@ -370,8 +370,8 @@ export function DocumentForm({
         </div>
         <DocumentDetailsTable
           details={details}
-          onEdit={(detail) => handleEditDetail(detail)}
-          onDelete={handleDeleteDetail}
+          onEditAction={(detail) => handleEditDetail(detail)}
+          onDeleteAction={handleDeleteDetail}
           isLoading={isLoadingDetails}
         />
       </div>

@@ -3,6 +3,7 @@ import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 // Import jsPDF properly
 import jsPDF from "jspdf"
+
 // Import autoTable plugin
 import "jspdf-autotable"
 import {
@@ -14,6 +15,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 import * as XLSX from "xlsx"
+
 import { useDelete, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
+
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
   interface jsPDF {
@@ -44,7 +47,7 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type DialogDataTableHeaderProps<TData> = {
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterToggle?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -57,7 +60,7 @@ type DialogDataTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function DialogDataTableHeader<TData>({
-  onRefresh,
+  onRefreshAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -226,8 +229,8 @@ export function DialogDataTableHeader<TData>({
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {onRefresh && (
-          <Button variant="outline" size="icon" onClick={onRefresh}>
+        {onRefreshAction && (
+          <Button variant="outline" size="icon" onClick={onRefreshAction}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         )}

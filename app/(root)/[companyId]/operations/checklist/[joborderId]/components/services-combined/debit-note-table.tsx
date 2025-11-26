@@ -15,11 +15,11 @@ interface DebitNoteTableProps {
   data: IDebitNoteDt[]
   isLoading?: boolean
   onSelect?: (debitNote: IDebitNoteDt | null) => void
-  onDelete?: (debitNoteId: string) => void
+  onDeleteAction?: (debitNoteId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
-  onEdit?: (debitNote: IDebitNoteDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onEditAction?: (debitNote: IDebitNoteDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IDebitNoteDt[]) => void
   moduleId?: number
@@ -31,11 +31,11 @@ export function DebitNoteTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   moduleId,
@@ -148,12 +148,12 @@ export function DebitNoteTable({
       tableName={TableName.debitNote}
       emptyMessage="No debit note details found."
       accessorId="itemNo"
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       onBulkDelete={onBulkDelete}
       onDataReorder={onDataReorder}
       isConfirmed={isConfirmed}

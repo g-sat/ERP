@@ -493,12 +493,12 @@ export function CrewMiscellaneousTab({
             data={data || []}
             onCrewMiscellaneousSelect={handleSelect}
             onDeleteCrewMiscellaneous={handleDelete}
-            onEditCrewMiscellaneous={handleEdit}
-            onCreateCrewMiscellaneous={handleCreate}
+            onEditActionCrewMiscellaneous={handleEdit}
+            onCreateActionCrewMiscellaneous={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshCrewMiscellaneous}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshCrewMiscellaneous}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -589,7 +589,7 @@ export function CrewMiscellaneousTab({
           taskId={Task.CrewMiscellaneous}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this crew miscellaneous."

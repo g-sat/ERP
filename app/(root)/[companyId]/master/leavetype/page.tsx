@@ -318,10 +318,10 @@ export default function LeaveTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -337,10 +337,10 @@ export default function LeaveTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewLeaveType : undefined}
-          onDelete={canDelete ? handleDeleteLeaveType : undefined}
-          onEdit={canEdit ? handleEditLeaveType : undefined}
-          onCreate={canCreate ? handleCreateLeaveType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteLeaveType : undefined}
+          onEditAction={canEdit ? handleEditLeaveType : undefined}
+          onCreateAction={canCreate ? handleCreateLeaveType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

@@ -105,11 +105,11 @@ export default function PayrollComponentsPage() {
       ) : (
         <PayrollComponentTable
           data={data?.data as IPayrollComponent[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 

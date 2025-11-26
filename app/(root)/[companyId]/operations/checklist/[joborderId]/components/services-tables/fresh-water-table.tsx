@@ -18,11 +18,11 @@ interface FreshWaterTableProps {
   isLoading?: boolean
   onFreshWaterSelect?: (freshWater: IFreshWater | undefined) => void
   onDeleteFreshWater?: (freshWaterId: string) => void
-  onEditFreshWater?: (freshWater: IFreshWater) => void
-  onCreateFreshWater?: () => void
-  onDebitNote?: (freshWaterId: string, debitNoteNo?: string) => void
-  onPurchase?: (freshWaterId: string) => void
-  onRefresh?: () => void
+  onEditActionFreshWater?: (freshWater: IFreshWater) => void
+  onCreateActionFreshWater?: () => void
+  onDebitNoteAction?: (freshWaterId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (freshWaterId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IFreshWaterFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function FreshWaterTable({
   isLoading = false,
   onFreshWaterSelect,
   onDeleteFreshWater,
-  onEditFreshWater,
-  onCreateFreshWater,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionFreshWater,
+  onCreateActionFreshWater,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -86,7 +86,7 @@ export function FreshWaterTable({
       }
       return "-"
     },
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [dateFormat, datetimeFormat]
   )
 
   // State for history dialog
@@ -296,7 +296,13 @@ export function FreshWaterTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [
+      dateFormat,
+      datetimeFormat,
+      formatDateValue,
+      formatDateTimeValue,
+      handleOpenHistory,
+    ]
   )
 
   // Wrapper functions to handle type differences
@@ -319,8 +325,8 @@ export function FreshWaterTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -335,14 +341,14 @@ export function FreshWaterTable({
         tableName={TableName.freshWater}
         emptyMessage="No fresh water found."
         accessorId="freshWaterId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateFreshWater}
-        onEdit={onEditFreshWater}
-        onDelete={onDeleteFreshWater}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionFreshWater}
+        onEditAction={onEditActionFreshWater}
+        onDeleteAction={onDeleteFreshWater}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

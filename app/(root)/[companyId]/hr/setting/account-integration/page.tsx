@@ -98,11 +98,11 @@ export default function AccountIntegrationPage() {
       ) : (
         <PayrollAccountIntegrationTable
           mappings={data?.data as IPayrollComponentGLMapping[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 

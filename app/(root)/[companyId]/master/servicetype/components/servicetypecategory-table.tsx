@@ -18,10 +18,10 @@ interface ServiceTypeCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (servicetypedtcategory: IServiceTypeCategory | null) => void
-  onDelete?: (servicetypeId: string) => void
-  onEdit?: (servicetypedtcategory: IServiceTypeCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (servicetypeId: string) => void
+  onEditAction?: (servicetypedtcategory: IServiceTypeCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function ServiceTypeCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -162,7 +162,7 @@ export function ServiceTypeCategoryTable({
       emptyMessage="No service type categories found."
       accessorId="serviceTypeCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -171,9 +171,9 @@ export function ServiceTypeCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

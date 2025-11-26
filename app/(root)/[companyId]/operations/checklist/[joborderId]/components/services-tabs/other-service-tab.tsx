@@ -487,12 +487,12 @@ export function OtherServiceTab({
             data={data || []}
             onOtherServiceSelect={handleSelect}
             onDeleteOtherService={handleDelete}
-            onEditOtherService={handleEdit}
-            onCreateOtherService={handleCreateOtherService}
+            onEditActionOtherService={handleEdit}
+            onCreateActionOtherService={handleCreateOtherService}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshOtherService}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshOtherService}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -584,7 +584,7 @@ export function OtherServiceTab({
           taskId={Task.OtherService}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this other service."

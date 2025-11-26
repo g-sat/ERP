@@ -226,7 +226,7 @@ export default function PaymentDetails({ creditNoteId }: PaymentDetailsProps) {
           moduleId={moduleId}
           transactionId={transactionId}
           tableName={TableName.paymentDetails}
-          onRefresh={handleRefresh}
+          onRefreshAction={handleRefresh}
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."

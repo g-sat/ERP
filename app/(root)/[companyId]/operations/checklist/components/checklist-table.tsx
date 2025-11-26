@@ -22,8 +22,8 @@ interface ChecklistTableProps {
   selectedStatus?: string
   moduleId?: number
   transactionId?: number
-  onCreate?: () => void
-  onRefresh?: () => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
 }
 
 export function ChecklistTable({
@@ -32,8 +32,8 @@ export function ChecklistTable({
   selectedStatus = "All",
   moduleId,
   transactionId,
-  onCreate,
-  onRefresh,
+  onCreateAction,
+  onRefreshAction,
 }: ChecklistTableProps) {
   const params = useParams()
   const companyId = params.companyId as string
@@ -363,8 +363,8 @@ export function ChecklistTable({
         transactionId={transactionId}
         tableName={TableName.checklist}
         emptyMessage="No job orders found."
-        onRefresh={onRefresh}
-        onCreate={onCreate}
+        onRefreshAction={onRefreshAction}
+        onCreateAction={onCreateAction}
       />
     </div>
   )

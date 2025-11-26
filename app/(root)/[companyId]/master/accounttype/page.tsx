@@ -323,10 +323,10 @@ export default function AccountTypePage() {
             isLoading={false}
             totalRecords={totalRecords}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -342,10 +342,10 @@ export default function AccountTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewAccountType : undefined}
-          onDelete={canDelete ? handleDeleteAccountType : undefined}
-          onEdit={canEdit ? handleEditAccountType : undefined}
-          onCreate={canCreate ? handleCreateAccountType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteAccountType : undefined}
+          onEditAction={canEdit ? handleEditAccountType : undefined}
+          onCreateAction={canCreate ? handleCreateAccountType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

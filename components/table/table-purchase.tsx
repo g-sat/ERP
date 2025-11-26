@@ -59,7 +59,7 @@ interface PurchaseBaseTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onDataReorder?: (newData: T[]) => void
@@ -80,7 +80,7 @@ export function PurchaseBaseTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onBulkSelectionChange,
   onDataReorder,
@@ -415,7 +415,7 @@ export function PurchaseBaseTable<T>({
         <PurchaseTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
+          onRefreshAction={onRefreshAction}
           columns={table
             .getHeaderGroups()
             .flatMap((group) => group.headers)

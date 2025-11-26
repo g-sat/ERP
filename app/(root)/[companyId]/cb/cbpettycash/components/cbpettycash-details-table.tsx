@@ -11,10 +11,10 @@ import { AccountBaseTable } from "@/components/table/table-account"
 // Use flexible data type that can work with form data
 interface CbPettyCashDetailsTableProps {
   data: ICbPettyCashDt[]
-  onDelete?: (itemNo: number) => void
+  onDeleteAction?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbPettyCashDt) => void
-  onRefresh?: () => void
+  onEditAction?: (template: ICbPettyCashDt) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbPettyCashDt[]) => void
   visible: IVisibleFields
@@ -23,10 +23,10 @@ interface CbPettyCashDetailsTableProps {
 
 export default function CbPettyCashDetailsTable({
   data,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
-  onEdit,
-  onRefresh,
+  onEditAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   visible,
@@ -43,8 +43,8 @@ export default function CbPettyCashDetailsTable({
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
     }
   }
 
@@ -319,13 +319,13 @@ export default function CbPettyCashDetailsTable({
         tableName={TableName.cbPettyCashDt}
         emptyMessage="No cbPettyCash details found."
         accessorId="itemNo"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
         onBulkDelete={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
+        onEditAction={onEditAction}
+        onDeleteAction={handleDelete}
         showHeader={true}
         showActions={true}
         hideEdit={isCancelled}

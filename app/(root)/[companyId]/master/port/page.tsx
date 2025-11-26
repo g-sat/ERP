@@ -297,10 +297,10 @@ export default function PortPage() {
           <PortsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -315,10 +315,10 @@ export default function PortPage() {
         <PortsTable
           data={portsData || []}
           onSelect={canView ? handleViewPort : undefined}
-          onDelete={canDelete ? handleDeletePort : undefined}
-          onEdit={canEdit ? handleEditPort : undefined}
-          onCreate={canCreate ? handleCreatePort : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeletePort : undefined}
+          onEditAction={canEdit ? handleEditPort : undefined}
+          onCreateAction={canCreate ? handleCreatePort : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

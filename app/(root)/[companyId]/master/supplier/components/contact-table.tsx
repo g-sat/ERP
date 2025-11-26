@@ -18,11 +18,11 @@ interface ContactsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (contact: ISupplierContact | null) => void
-  onDelete?: (contactId: string) => Promise<void>
-  onEdit?: (contact: ISupplierContact | null) => void
-  onCreate?: () => void
+  onDeleteAction?: (contactId: string) => Promise<void>
+  onEditAction?: (contact: ISupplierContact | null) => void
+  onCreateAction?: () => void
   onFilterChange?: (filters: ISupplierContactFilter) => void
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   moduleId: number
   transactionId: number
   // Permission props
@@ -37,11 +37,11 @@ export function ContactsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
   onFilterChange,
-  onRefresh,
+  onRefreshAction,
   moduleId,
   transactionId,
   // Permission props
@@ -231,13 +231,13 @@ export function ContactsTable({
       emptyMessage="No contacts found."
       accessorId="contactId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={handleDialogFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={false}

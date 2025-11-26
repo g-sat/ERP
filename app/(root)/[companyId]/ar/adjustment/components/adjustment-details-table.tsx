@@ -12,10 +12,10 @@ import { AccountBaseTable } from "@/components/table/table-account"
 // Use flexible data type that can work with form data
 interface AdjustmentDetailsTableProps {
   data: IArAdjustmentDt[]
-  onDelete?: (itemNo: number) => void
+  onDeleteAction?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IArAdjustmentDt) => void
-  onRefresh?: () => void
+  onEditAction?: (template: IArAdjustmentDt) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IArAdjustmentDt[]) => void
   visible: IVisibleFields
@@ -24,10 +24,10 @@ interface AdjustmentDetailsTableProps {
 
 export default function AdjustmentDetailsTable({
   data,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
-  onEdit,
-  onRefresh,
+  onEditAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   visible,
@@ -44,8 +44,8 @@ export default function AdjustmentDetailsTable({
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
     }
   }
 
@@ -329,13 +329,13 @@ export default function AdjustmentDetailsTable({
         tableName={TableName.arAdjustmentDt}
         emptyMessage="No adjustment details found."
         accessorId="itemNo"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
         onBulkDelete={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
+        onEditAction={onEditAction}
+        onDeleteAction={handleDelete}
         showHeader={true}
         showActions={true}
         hideEdit={isCancelled}

@@ -138,12 +138,12 @@ export function BulkDebitNoteTable({
       tableName={TableName.debitNote}
       emptyMessage="No bulk charge details found."
       accessorId="chargeId"
-      onRefresh={handleRefresh}
+      onRefreshAction={handleRefresh}
       onFilterChange={handleFilterChange}
       onSelect={onSelect || handleSelect}
-      onCreate={handleCreate}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
+      onCreateAction={handleCreate}
+      onEditAction={handleEdit}
+      onDeleteAction={handleDelete}
       onBulkDelete={handleBulkDelete}
       onBulkSelectionChange={handleBulkSelectionChange}
       onDataReorder={onDataReorder || handleDataReorder}

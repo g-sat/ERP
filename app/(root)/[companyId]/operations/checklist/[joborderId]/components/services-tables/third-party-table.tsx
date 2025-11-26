@@ -18,11 +18,11 @@ interface ThirdPartyTableProps {
   isLoading?: boolean
   onThirdPartySelect?: (thirdParty: IThirdParty | undefined) => void
   onDeleteThirdParty?: (thirdPartyId: string) => void
-  onEditThirdParty?: (thirdParty: IThirdParty) => void
-  onCreateThirdParty?: () => void
-  onDebitNote?: (thirdPartyId: string, debitNoteNo?: string) => void
-  onPurchase?: (thirdPartyId: string) => void
-  onRefresh?: () => void
+  onEditActionThirdParty?: (thirdParty: IThirdParty) => void
+  onCreateActionThirdParty?: () => void
+  onDebitNoteAction?: (thirdPartyId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (thirdPartyId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IThirdPartyFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function ThirdPartyTable({
   isLoading = false,
   onThirdPartySelect,
   onDeleteThirdParty,
-  onEditThirdParty,
-  onCreateThirdParty,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionThirdParty,
+  onCreateActionThirdParty,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -258,7 +258,7 @@ export function ThirdPartyTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -281,8 +281,8 @@ export function ThirdPartyTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -297,14 +297,14 @@ export function ThirdPartyTable({
         tableName={TableName.thirdParty}
         emptyMessage="No third party services found."
         accessorId="thirdPartyId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateThirdParty}
-        onEdit={onEditThirdParty}
-        onDelete={onDeleteThirdParty}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionThirdParty}
+        onEditAction={onEditActionThirdParty}
+        onDeleteAction={onDeleteThirdParty}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

@@ -21,7 +21,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 // Use flexible data type that can work with form data
 interface ReceiptDetailsTableProps {
   data: IArReceiptDt[]
-  onDelete?: (itemNo: number) => void
+  onDeleteAction?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IArReceiptDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => number | void
@@ -31,7 +31,7 @@ interface ReceiptDetailsTableProps {
 
 export default function ReceiptDetailsTable({
   data,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
   onDataReorder,
   onCellEdit,
@@ -172,7 +172,7 @@ export default function ReceiptDetailsTable({
 
   const handleDeleteRequest = useCallback(
     (itemId: string) => {
-      if (isCancelled || !onDelete) return
+      if (isCancelled || !onDeleteAction) return
 
       const itemNo = Number(itemId)
       if (!Number.isFinite(itemNo)) return
@@ -189,15 +189,15 @@ export default function ReceiptDetailsTable({
       })
       setDeleteDialogOpen(true)
     },
-    [data, isCancelled, onDelete]
+    [data, isCancelled, onDeleteAction]
   )
 
   const handleDeleteConfirm = useCallback(() => {
-    if (!pendingDeleteTarget || !onDelete) return
+    if (!pendingDeleteTarget || !onDeleteAction) return
 
-    onDelete(pendingDeleteTarget.itemNo)
+    onDeleteAction(pendingDeleteTarget.itemNo)
     setPendingDeleteTarget(null)
-  }, [onDelete, pendingDeleteTarget])
+  }, [onDeleteAction, pendingDeleteTarget])
 
   const handleDeleteCancel = useCallback(() => {
     setPendingDeleteTarget(null)
@@ -504,7 +504,7 @@ export default function ReceiptDetailsTable({
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
-        onDelete={isCancelled ? undefined : handleDeleteRequest}
+        onDeleteAction={isCancelled ? undefined : handleDeleteRequest}
         showHeader={true}
         showActions={true}
         hideEdit={true}

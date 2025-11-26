@@ -59,7 +59,7 @@ export default function DocumentExpiryPage() {
       case "list":
         return (
           <div className="space-y-2">
-            <DocumentTable onEdit={handleEdit} />
+            <DocumentTable onEditAction={handleEdit} />
           </div>
         )
 

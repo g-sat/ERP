@@ -733,7 +733,7 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IApDocSetOffDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
+          onDeleteAction={handleDelete}
           onBulkDelete={handleBulkDelete}
           onDataReorder={handleDataReorder}
           onCellEdit={handleCellEdit}

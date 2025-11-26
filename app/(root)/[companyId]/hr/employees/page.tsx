@@ -78,8 +78,8 @@ export default function EmployeePage() {
       ) : (
         <EmployeeListTable
           data={(data?.data as unknown as IEmployeeBasic[]) || []}
-          onEdit={handleEdit}
-          onRefresh={refetch}
+          onEditAction={handleEdit}
+          onRefreshAction={refetch}
         />
       )}
 

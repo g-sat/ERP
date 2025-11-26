@@ -484,12 +484,12 @@ export function CrewSignOnTab({
             data={data || []}
             onCrewSignOnSelect={handleSelect}
             onDeleteCrewSignOn={handleDelete}
-            onEditCrewSignOn={handleEdit}
-            onCreateCrewSignOn={handleCreate}
+            onEditActionCrewSignOn={handleEdit}
+            onCreateActionCrewSignOn={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshCrewSignOn}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshCrewSignOn}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -581,7 +581,7 @@ export function CrewSignOnTab({
           taskId={Task.CrewSignOn}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this crew sign on."

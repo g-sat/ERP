@@ -19,10 +19,10 @@ import {
 } from "@/components/ui/table"
 
 interface DocumentTableProps {
-  onEdit?: (document: IUniversalDocumentHd) => void
+  onEditAction?: (document: IUniversalDocumentHd) => void
 }
 
-export function DocumentTable({ onEdit }: DocumentTableProps) {
+export function DocumentTable({ onEditAction }: DocumentTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   const { data: documentsResponse, isLoading } =
@@ -141,7 +141,7 @@ export function DocumentTable({ onEdit }: DocumentTableProps) {
                           <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => onEdit?.(doc)}
+                            onClick={() => onEditAction?.(doc)}
                             title="View document"
                           >
                             <Eye className="h-4 w-4" />

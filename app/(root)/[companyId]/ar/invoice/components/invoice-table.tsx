@@ -531,7 +531,7 @@ export default function InvoiceTable({
         transactionId={transactionId}
         tableName={TableName.arInvoice}
         emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchInvoices()}
+        onRefreshAction={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
         // Pagination props

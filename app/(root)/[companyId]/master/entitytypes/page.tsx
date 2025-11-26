@@ -316,10 +316,10 @@ export default function EntityTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -335,10 +335,10 @@ export default function EntityTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewEntityType : undefined}
-          onDelete={canDelete ? handleDeleteEntityType : undefined}
-          onEdit={canEdit ? handleEditEntityType : undefined}
-          onCreate={canCreate ? handleCreateEntityType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteEntityType : undefined}
+          onEditAction={canEdit ? handleEditEntityType : undefined}
+          onCreateAction={canCreate ? handleCreateEntityType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

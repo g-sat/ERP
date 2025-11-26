@@ -321,10 +321,10 @@ export default function DocumentTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -340,10 +340,10 @@ export default function DocumentTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewDocumentType : undefined}
-          onDelete={canDelete ? handleDeleteDocumentType : undefined}
-          onEdit={canEdit ? handleEditDocumentType : undefined}
-          onCreate={canCreate ? handleCreateDocumentType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDocumentType : undefined}
+          onEditAction={canEdit ? handleEditDocumentType : undefined}
+          onCreateAction={canCreate ? handleCreateDocumentType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

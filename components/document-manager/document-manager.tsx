@@ -808,9 +808,9 @@ export default function DocumentManager({
                 isLoading={isLoading}
                 onPreview={handlePreview}
                 onDownload={handleDownload}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onRefresh={() => {
+                onDeleteAction={handleDelete}
+                onEditAction={handleEdit}
+                onRefreshAction={() => {
                   queryClient.invalidateQueries({
                     queryKey: [
                       `documents-${moduleId}-${transactionId}-${recordId}`,

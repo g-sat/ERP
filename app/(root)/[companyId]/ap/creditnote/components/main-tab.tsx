@@ -256,10 +256,10 @@ export default function Main({
         key={tableKey}
         data={(dataDetails as unknown as IApCreditNoteDt[]) || []}
         visible={visible}
-        onDelete={handleDelete}
+        onDeleteAction={handleDelete}
         onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: IApCreditNoteDt) => void}
-        onRefresh={() => {}} // Add refresh logic if needed
+        onEditAction={handleEdit as (template: IApCreditNoteDt) => void}
+        onRefreshAction={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={
           handleDataReorder as (newData: IApCreditNoteDt[]) => void

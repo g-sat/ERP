@@ -505,7 +505,7 @@ export default function EditVersionDetails({
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
-            onRefresh={handleRefresh}
+            onRefreshAction={handleRefresh}
             onRowSelect={(recon) => setSelectedBankRecon(recon)}
           />
         </CardContent>
@@ -579,7 +579,7 @@ export default function EditVersionDetails({
                   transactionId={transactionId}
                   tableName={TableName.cbBankReconHistory}
                   emptyMessage="No Bank Reconciliation details available"
-                  onRefresh={handleRefresh}
+                  onRefreshAction={handleRefresh}
                   showHeader={true}
                   showFooter={false}
                   maxHeight="300px"

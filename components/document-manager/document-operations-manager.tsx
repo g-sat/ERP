@@ -1084,8 +1084,8 @@ export default function DocumentOperationsManager({
                 isLoading={isLoading}
                 onPreview={handlePreview}
                 onDownload={handleDownload}
-                onDelete={handleDelete}
-                onRefresh={useCallback(() => {
+                onDeleteAction={handleDelete}
+                onRefreshAction={useCallback(() => {
                   queryClient.invalidateQueries({
                     queryKey: [
                       `documents-${moduleId}-${transactionId}-${recordId}`,

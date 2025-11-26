@@ -503,12 +503,12 @@ export function FreshWaterTab({
             data={data || []}
             onFreshWaterSelect={handleSelect}
             onDeleteFreshWater={handleDelete}
-            onEditFreshWater={handleEdit}
-            onCreateFreshWater={handleCreateFreshWater}
+            onEditActionFreshWater={handleEdit}
+            onCreateActionFreshWater={handleCreateFreshWater}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshFreshWater}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshFreshWater}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -599,7 +599,7 @@ export function FreshWaterTab({
           taskId={Task.FreshWater}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this fresh water."

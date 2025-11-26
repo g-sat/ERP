@@ -547,10 +547,10 @@ export default function OrderTypePage() {
                 isLoading={false}
                 totalRecords={ordertypesTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -565,10 +565,10 @@ export default function OrderTypePage() {
               data={ordertypesData || []}
               totalRecords={ordertypesTotalRecords}
               onSelect={canView ? handleViewOrderType : undefined}
-              onDelete={canDelete ? handleDeleteOrderType : undefined}
-              onEdit={canEdit ? handleEditOrderType : undefined}
-              onCreate={canCreate ? handleCreateOrderType : undefined}
-              onRefresh={refetchOrderType}
+              onDeleteAction={canDelete ? handleDeleteOrderType : undefined}
+              onEditAction={canEdit ? handleEditOrderType : undefined}
+              onCreateAction={canCreate ? handleCreateOrderType : undefined}
+              onRefreshAction={refetchOrderType}
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -613,10 +613,10 @@ export default function OrderTypePage() {
                 isLoading={false}
                 totalRecords={ordertypesCategoryTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
@@ -633,14 +633,16 @@ export default function OrderTypePage() {
               onSelect={
                 canViewCategory ? handleViewOrderTypeCategory : undefined
               }
-              onDelete={
+              onDeleteAction={
                 canDeleteCategory ? handleDeleteOrderTypeCategory : undefined
               }
-              onEdit={canEditCategory ? handleEditOrderTypeCategory : undefined}
-              onCreate={
+              onEditAction={
+                canEditCategory ? handleEditOrderTypeCategory : undefined
+              }
+              onCreateAction={
                 canCreateCategory ? handleCreateOrderTypeCategory : undefined
               }
-              onRefresh={refetchOrderTypeCategory}
+              onRefreshAction={refetchOrderTypeCategory}
               onFilterChange={handleCategoryFilterChange}
               onPageChange={handleCategoryPageChange}
               onPageSizeChange={handleCategoryPageSizeChange}

@@ -18,19 +18,19 @@ import {
 
 interface Props {
   data: IWorkLocation[]
-  onCreate?(): void
-  onRefresh?(): void
-  onEdit(item: IWorkLocation): void
-  onDelete(item: IWorkLocation): void
+  onCreateAction?(): void
+  onRefreshAction?(): void
+  onEditAction(item: IWorkLocation): void
+  onDeleteAction(item: IWorkLocation): void
   onView(item: IWorkLocation): void
 }
 
 export function WorkLocationTable({
   data,
-  onCreate,
-  onRefresh,
-  onEdit,
-  onDelete,
+  onCreateAction,
+  onRefreshAction,
+  onEditAction,
+  onDeleteAction,
   onView,
 }: Props) {
   const [search, setSearch] = useState("")
@@ -68,13 +68,17 @@ export function WorkLocationTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
+            onClick={onRefreshAction}
             className="h-8 px-2 lg:px-3"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button size="sm" onClick={onCreate} className="h-8 px-2 lg:px-3">
+          <Button
+            size="sm"
+            onClick={onCreateAction}
+            className="h-8 px-2 lg:px-3"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add
           </Button>
@@ -125,7 +129,7 @@ export function WorkLocationTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(loc)}
+                        onClick={() => onEditAction(loc)}
                         className="h-6 w-6 p-0"
                       >
                         <Edit className="h-3 w-3" />
@@ -134,7 +138,7 @@ export function WorkLocationTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(loc)}
+                        onClick={() => onDeleteAction(loc)}
                         className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-3 w-3" />

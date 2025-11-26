@@ -544,7 +544,7 @@ export default function ReceiptTable({
         transactionId={transactionId}
         tableName={TableName.arReceipt}
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchReceipts()}
+        onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
         // Pagination props

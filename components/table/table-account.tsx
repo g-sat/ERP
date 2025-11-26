@@ -57,11 +57,11 @@ interface AccountBaseTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
-  onEdit?: (item: T) => void
-  onDelete?: (itemId: string) => void
+  onEditAction?: (item: T) => void
+  onDeleteAction?: (itemId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onDataReorder?: (newData: T[]) => void
@@ -86,11 +86,11 @@ export function AccountBaseTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   onBulkDelete,
   onBulkSelectionChange,
   onDataReorder,
@@ -230,7 +230,7 @@ export function AccountBaseTable<T>({
   }, [gridSettingsData])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onSelect || onEdit || onDelete)
+    ...(showActions && (onSelect || onEditAction || onDeleteAction)
       ? [
           {
             id: "drag-actions",
@@ -284,8 +284,8 @@ export function AccountBaseTable<T>({
                   {/* Action Buttons */}
                   <AccountTableActions
                     row={item as T & { debitNoteId?: number }}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
+                    onEditAction={onEditAction}
+                    onDeleteAction={onDeleteAction}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}
@@ -453,7 +453,7 @@ export function AccountBaseTable<T>({
         <AccountTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
+          onRefreshAction={onRefreshAction}
           onBulkDelete={handleBulkDelete}
           columns={table
             .getHeaderGroups()

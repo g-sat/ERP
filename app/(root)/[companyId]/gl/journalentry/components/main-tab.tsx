@@ -290,10 +290,10 @@ export default function Main({
         key={tableKey}
         data={(dataDetails as unknown as IGLJournalDt[]) || []}
         visible={visible}
-        onDelete={handleDelete}
+        onDeleteAction={handleDelete}
         onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: IGLJournalDt) => void}
-        onRefresh={() => {}} // Add refresh logic if needed
+        onEditAction={handleEdit as (template: IGLJournalDt) => void}
+        onRefreshAction={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={handleDataReorder as (newData: IGLJournalDt[]) => void}
         isCancelled={isCancelled}

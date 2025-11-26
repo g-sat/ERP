@@ -180,7 +180,7 @@ export default function DocumentUpload() {
             moduleId={moduleId}
             transactionId={transactionId}
             tableName={TableName.document}
-            onRefresh={refetch}
+            onRefreshAction={refetch}
             showHeader={true}
             showFooter={false}
             emptyMessage="No documents found"

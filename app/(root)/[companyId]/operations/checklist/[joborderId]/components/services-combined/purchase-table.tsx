@@ -222,7 +222,7 @@ export function PurchaseTable({
       tableName={TableName.debitNote}
       emptyMessage="No purchase details found."
       accessorId="uniqueId"
-      onRefresh={handleRefresh}
+      onRefreshAction={handleRefresh}
       onFilterChange={handleFilterChange}
       onBulkSelectionChange={handleBulkSelectionChange}
       onDataReorder={onDataReorder || handleDataReorder}

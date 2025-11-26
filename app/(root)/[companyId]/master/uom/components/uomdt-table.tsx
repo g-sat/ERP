@@ -13,10 +13,10 @@ interface UomDtTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (uomdt: IUomDt | null) => void
-  onDelete?: (uomId: string) => void
-  onEdit?: (uomdt: IUomDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (uomId: string) => void
+  onEditAction?: (uomdt: IUomDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -37,10 +37,10 @@ export function UomDtTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -140,7 +140,7 @@ export function UomDtTable({
       emptyMessage="No UOM details found."
       accessorId="uomId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -149,9 +149,9 @@ export function UomDtTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

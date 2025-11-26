@@ -445,7 +445,7 @@ export default function ContraTable({
         transactionId={transactionId}
         tableName={TableName.glContra}
         emptyMessage="No contra found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchContra()}
+        onRefreshAction={() => refetchContra()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onContraSelect(row || undefined)}
         // Pagination props

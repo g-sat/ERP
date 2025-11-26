@@ -18,10 +18,10 @@ interface ChargeTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (charge: ICharge | null) => void
-  onDelete?: (chargeId: string) => void
-  onEdit?: (charge: ICharge) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (chargeId: string) => void
+  onEditAction?: (charge: ICharge) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function ChargeTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -176,7 +176,7 @@ export function ChargeTable({
       emptyMessage="No charges found."
       accessorId="chargeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -185,9 +185,9 @@ export function ChargeTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

@@ -119,10 +119,10 @@ export default function EmployerPage() {
       ) : (
         <EmployerTable
           data={employerData?.data || []}
-          onEdit={handleEditEmployer}
-          onDelete={handleDeleteEmployer}
-          onCreate={handleCreateEmployer}
-          onRefresh={refetchEmployer}
+          onEditAction={handleEditEmployer}
+          onDeleteAction={handleDeleteEmployer}
+          onCreateAction={handleCreateEmployer}
+          onRefreshAction={refetchEmployer}
           canCreate={canCreateEmployer}
           canEdit={canEditEmployer}
           canDelete={canDeleteEmployer}

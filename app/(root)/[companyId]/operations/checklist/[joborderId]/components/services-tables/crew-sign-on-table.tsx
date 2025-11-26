@@ -18,11 +18,11 @@ interface CrewSignOnTableProps {
   isLoading?: boolean
   onCrewSignOnSelect?: (crewSignOn: ICrewSignOn | undefined) => void
   onDeleteCrewSignOn?: (crewSignOnId: string) => void
-  onEditCrewSignOn?: (crewSignOn: ICrewSignOn) => void
-  onCreateCrewSignOn?: () => void
-  onDebitNote?: (crewSignOnId: string, debitNoteNo?: string) => void
-  onPurchase?: (crewSignOnId: string) => void
-  onRefresh?: () => void
+  onEditActionCrewSignOn?: (crewSignOn: ICrewSignOn) => void
+  onCreateActionCrewSignOn?: () => void
+  onDebitNoteAction?: (crewSignOnId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (crewSignOnId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ICrewSignOnFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function CrewSignOnTable({
   isLoading = false,
   onCrewSignOnSelect,
   onDeleteCrewSignOn,
-  onEditCrewSignOn,
-  onCreateCrewSignOn,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionCrewSignOn,
+  onCreateActionCrewSignOn,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -307,7 +307,7 @@ export function CrewSignOnTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateTimeValue, handleOpenHistory]
+    [formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -330,8 +330,8 @@ export function CrewSignOnTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -346,14 +346,14 @@ export function CrewSignOnTable({
         tableName={TableName.crewSignOn}
         emptyMessage="No crew sign ons found."
         accessorId="crewSignOnId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateCrewSignOn}
-        onEdit={onEditCrewSignOn}
-        onDelete={onDeleteCrewSignOn}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionCrewSignOn}
+        onEditAction={onEditActionCrewSignOn}
+        onDeleteAction={onDeleteCrewSignOn}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

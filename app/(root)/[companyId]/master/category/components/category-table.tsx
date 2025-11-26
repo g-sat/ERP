@@ -18,10 +18,10 @@ interface CategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (category: ICategory | null) => void
-  onDelete?: (categoryId: string) => void
-  onEdit?: (category: ICategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (categoryId: string) => void
+  onEditAction?: (category: ICategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function CategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -160,7 +160,7 @@ export function CategoryTable({
       emptyMessage="No category  found."
       accessorId="categoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -169,9 +169,9 @@ export function CategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

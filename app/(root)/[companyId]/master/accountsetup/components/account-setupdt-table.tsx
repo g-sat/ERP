@@ -18,10 +18,10 @@ interface AccountSetupDtTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (accountSetupDt: IAccountSetupDt | null) => void
-  onDelete?: (accountSetupDtId: string) => void
-  onEdit?: (accountSetupDt: IAccountSetupDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (accountSetupDtId: string) => void
+  onEditAction?: (accountSetupDt: IAccountSetupDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function AccountSetupDtTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -168,7 +168,7 @@ export function AccountSetupDtTable({
       emptyMessage="No account setup details found."
       accessorId="accSetupId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -177,9 +177,9 @@ export function AccountSetupDtTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

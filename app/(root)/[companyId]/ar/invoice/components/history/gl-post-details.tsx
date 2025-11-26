@@ -312,7 +312,7 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
           transactionId={transactionId}
           tableName={TableName.glPostDetails}
           emptyMessage="No results."
-          onRefresh={handleRefresh}
+          onRefreshAction={handleRefresh}
           showHeader={true}
           showFooter={false}
           maxHeight="300px"

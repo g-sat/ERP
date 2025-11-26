@@ -687,7 +687,7 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IArRefundDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
+          onDeleteAction={handleDelete}
           onBulkDelete={handleBulkDelete}
           onDataReorder={handleDataReorder as (newData: IArRefundDt[]) => void}
           onCellEdit={handleCellEdit}

@@ -291,10 +291,10 @@ export default function ProductPage() {
           <ProductsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -309,10 +309,10 @@ export default function ProductPage() {
         <ProductsTable
           data={filters.search ? [] : productsData || []}
           onSelect={canView ? handleViewProduct : undefined}
-          onDelete={canDelete ? handleDeleteProduct : undefined}
-          onEdit={canEdit ? handleEditProduct : undefined}
-          onCreate={canCreate ? handleCreateProduct : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteProduct : undefined}
+          onEditAction={canEdit ? handleEditProduct : undefined}
+          onCreateAction={canCreate ? handleCreateProduct : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

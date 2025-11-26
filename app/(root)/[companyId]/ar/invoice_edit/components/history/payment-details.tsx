@@ -111,7 +111,7 @@ export default function PaymentDetails({ invoiceId }: { invoiceId: string }) {
           moduleId={moduleId}
           transactionId={transactionId}
           tableName={TableName.paymentDetails}
-          onRefresh={handleRefresh}
+          onRefreshAction={handleRefresh}
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."

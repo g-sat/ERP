@@ -18,10 +18,10 @@ interface DepartmentsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (department: IDepartment | null) => void
-  onDelete?: (departmentId: string) => void
-  onEdit?: (department: IDepartment) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (departmentId: string) => void
+  onEditAction?: (department: IDepartment) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function DepartmentsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -157,7 +157,7 @@ export function DepartmentsTable({
       emptyMessage="No departments found."
       accessorId="departmentId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -166,9 +166,9 @@ export function DepartmentsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

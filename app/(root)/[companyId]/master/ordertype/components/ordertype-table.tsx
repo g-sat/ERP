@@ -18,10 +18,10 @@ interface OrderTypeTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (ordertype: IOrderType | null) => void
-  onDelete?: (orderTypeId: string) => void
-  onEdit?: (ordertype: IOrderType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (orderTypeId: string) => void
+  onEditAction?: (ordertype: IOrderType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function OrderTypeTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -164,7 +164,7 @@ export function OrderTypeTable({
       emptyMessage="No order types found."
       accessorId="orderTypeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -173,9 +173,9 @@ export function OrderTypeTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

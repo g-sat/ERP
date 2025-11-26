@@ -460,7 +460,7 @@ export default function GLJournalTable({
         transactionId={transactionId}
         tableName={TableName.glJournal}
         emptyMessage="No glJournals found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchGLJournals()}
+        onRefreshAction={() => refetchGLJournals()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onGLJournalSelect(row || undefined)}
         // Pagination props

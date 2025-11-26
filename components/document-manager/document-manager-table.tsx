@@ -15,9 +15,9 @@ interface DocumentManagerTableProps {
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
-  onDelete?: (doc: IDocType) => void
-  onEdit?: (doc: IDocType) => void
-  onRefresh?: () => void
+  onDeleteAction?: (doc: IDocType) => void
+  onEditAction?: (doc: IDocType) => void
+  onRefreshAction?: () => void
   // onSelect?: (documentId: string, checked: boolean) => void
   // onSelectAll?: (checked: boolean) => void
   // selectedDocuments?: string[]
@@ -29,9 +29,9 @@ export default function DocumentManagerTable({
   isLoading = false,
   onPreview,
   onDownload,
-  onDelete,
-  onEdit,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onRefreshAction,
   // onSelect: _onSelect,
   // onSelectAll: _onSelectAll,
   // selectedDocuments: _selectedDocuments = [],
@@ -135,9 +135,9 @@ export default function DocumentManagerTable({
         console.log("Save order:", _newData)
       }}
       onDownload={onDownload}
-      onDelete={onDelete}
-      onEdit={onEdit}
-      onRefresh={onRefresh}
+      onDeleteAction={onDeleteAction}
+      onEditAction={onEditAction}
+      onRefreshAction={onRefreshAction}
       showHeader={true}
       showActions={true}
       hideView={false}

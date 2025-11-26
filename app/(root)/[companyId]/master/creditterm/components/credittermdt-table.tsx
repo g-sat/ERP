@@ -18,10 +18,10 @@ interface CreditTermDtsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (creditTermDt: ICreditTermDt | null) => void
-  onDelete?: (creditTermId: string) => void
-  onEdit?: (creditTermDt: ICreditTermDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (creditTermId: string) => void
+  onEditAction?: (creditTermDt: ICreditTermDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function CreditTermDtsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -187,7 +187,7 @@ export function CreditTermDtsTable({
       emptyMessage="No credit term details found."
       accessorId="creditTermId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -196,9 +196,9 @@ export function CreditTermDtsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

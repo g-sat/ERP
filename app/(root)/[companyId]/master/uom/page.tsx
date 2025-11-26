@@ -456,10 +456,10 @@ export default function UomPage() {
                 isLoading={false}
                 totalRecords={totalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -475,10 +475,10 @@ export default function UomPage() {
               isLoading={isLoadingUom}
               totalRecords={totalRecords}
               onSelect={canView ? handleViewUom : undefined}
-              onDelete={canDelete ? handleDeleteUom : undefined}
-              onEdit={canEdit ? handleEditUom : undefined}
-              onCreate={canCreate ? handleCreateUom : undefined}
-              onRefresh={refetchUom}
+              onDeleteAction={canDelete ? handleDeleteUom : undefined}
+              onEditAction={canEdit ? handleEditUom : undefined}
+              onCreateAction={canCreate ? handleCreateUom : undefined}
+              onRefreshAction={refetchUom}
               onFilterChange={handleUomFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -515,10 +515,10 @@ export default function UomPage() {
                 data={[]}
                 totalRecords={totalRecordsDt}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
@@ -533,10 +533,10 @@ export default function UomPage() {
               data={uomDtData}
               totalRecords={totalRecordsDt}
               onSelect={canViewDt ? handleViewUomDt : undefined}
-              onDelete={canDeleteDt ? handleDeleteUomDt : undefined}
-              onEdit={canEditDt ? handleEditUomDt : undefined}
-              onCreate={canCreateDt ? handleCreateUomDt : undefined}
-              onRefresh={refetchUomDt}
+              onDeleteAction={canDeleteDt ? handleDeleteUomDt : undefined}
+              onEditAction={canEditDt ? handleEditUomDt : undefined}
+              onCreateAction={canCreateDt ? handleCreateUomDt : undefined}
+              onRefreshAction={refetchUomDt}
               onFilterChange={handleUomDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}

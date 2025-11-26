@@ -740,10 +740,12 @@ export default function SupplierPage() {
                       data={addresses}
                       isLoading={isLoadingAddresses}
                       onSelect={canView ? handleAddressSelect : undefined}
-                      onDelete={canDelete ? handleAddressDelete : undefined}
-                      onEdit={canEdit ? handleAddressEdit : undefined}
-                      onCreate={canCreate ? handleAddressAdd : undefined}
-                      onRefresh={() => refetchAddresses()}
+                      onDeleteAction={
+                        canDelete ? handleAddressDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleAddressEdit : undefined}
+                      onCreateAction={canCreate ? handleAddressAdd : undefined}
+                      onRefreshAction={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -756,10 +758,12 @@ export default function SupplierPage() {
                       data={contacts}
                       isLoading={isLoadingContacts}
                       onSelect={canView ? handleContactSelect : undefined}
-                      onDelete={canDelete ? handleContactDelete : undefined}
-                      onEdit={canEdit ? handleContactEdit : undefined}
-                      onCreate={canCreate ? handleContactAdd : undefined}
-                      onRefresh={() => refetchContacts()}
+                      onDeleteAction={
+                        canDelete ? handleContactDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleContactEdit : undefined}
+                      onCreateAction={canCreate ? handleContactAdd : undefined}
+                      onRefreshAction={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -793,7 +797,7 @@ export default function SupplierPage() {
             currentPage={currentPage}
             pageSize={pageSize}
             serverSidePagination={true}
-            onRefresh={() => refetchSuppliers()}
+            onRefreshAction={() => refetchSuppliers()}
             moduleId={moduleId}
             transactionId={transactionId}
           />

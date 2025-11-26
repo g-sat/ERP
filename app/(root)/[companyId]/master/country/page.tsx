@@ -331,10 +331,10 @@ export default function CountryPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onCreate={() => {}}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            onRefresh={() => {}}
+            onCreateAction={() => {}}
+            onEditAction={() => {}}
+            onDeleteAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -350,10 +350,10 @@ export default function CountryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCountry : undefined}
-          onCreate={canCreate ? handleCreateCountry : undefined}
-          onEdit={canEdit ? handleEditCountry : undefined}
-          onDelete={canDelete ? handleDeleteCountry : undefined}
-          onRefresh={handleRefresh}
+          onCreateAction={canCreate ? handleCreateCountry : undefined}
+          onEditAction={canEdit ? handleEditCountry : undefined}
+          onDeleteAction={canDelete ? handleDeleteCountry : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

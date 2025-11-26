@@ -49,8 +49,8 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type AccountReceiptTableHeaderProps<TData> = {
-  onRefresh?: () => void
-  onCreate?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
   onBulkDelete?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -67,7 +67,7 @@ type AccountReceiptTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function AccountReceiptTableHeader<TData>({
-  onRefresh,
+  onRefreshAction,
   onBulkDelete,
   searchQuery,
   onSearchChange,
@@ -275,7 +275,7 @@ export function AccountReceiptTableHeader<TData>({
             <Button
               variant="outline"
               size="icon"
-              onClick={onRefresh}
+              onClick={onRefreshAction}
               disabled={isConfirmed}
               title={
                 isConfirmed ? "Cannot refresh when confirmed" : "Refresh data"

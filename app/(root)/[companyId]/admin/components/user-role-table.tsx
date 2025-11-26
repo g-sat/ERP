@@ -17,10 +17,10 @@ interface UserRoleTableProps {
   data: IUserRole[]
   isLoading?: boolean
   onSelect?: (role: IUserRole | null) => void
-  onDelete?: (roleId: string) => void
-  onEdit?: (role: IUserRole) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (roleId: string) => void
+  onEditAction?: (role: IUserRole) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
@@ -35,10 +35,10 @@ export function UserRoleTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -151,13 +151,13 @@ export function UserRoleTable({
       emptyMessage="No User role found."
       accessorId="userRoleId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

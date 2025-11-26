@@ -93,11 +93,11 @@ export default function WorkLocationPage() {
       ) : (
         <WorkLocationTable
           data={data?.data as IWorkLocation[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 

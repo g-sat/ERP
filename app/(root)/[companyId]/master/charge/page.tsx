@@ -350,10 +350,10 @@ export default function ChargePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -369,10 +369,10 @@ export default function ChargePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCharge : undefined}
-          onDelete={canDelete ? handleDeleteCharge : undefined}
-          onEdit={canEdit ? handleEditCharge : undefined}
-          onCreate={canCreate ? handleCreateCharge : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteCharge : undefined}
+          onEditAction={canEdit ? handleEditCharge : undefined}
+          onCreateAction={canCreate ? handleCreateCharge : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

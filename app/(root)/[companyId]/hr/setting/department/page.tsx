@@ -121,11 +121,11 @@ export default function DepartmentPage() {
       ) : (
         <DepartmentTable
           data={departmentData?.data || []}
-          onEdit={handleEditDepartment}
-          onDelete={handleDeleteDepartment}
-          onCreate={handleCreateDepartment}
+          onEditAction={handleEditDepartment}
+          onDeleteAction={handleDeleteDepartment}
+          onCreateAction={handleCreateDepartment}
           onView={handleViewDepartment}
-          onRefresh={refetchDepartment}
+          onRefreshAction={refetchDepartment}
           canCreate={canCreateDepartment}
           canEdit={canEditDepartment}
           canDelete={canDeleteDepartment}

@@ -340,10 +340,10 @@ export default function CategoryPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -359,10 +359,10 @@ export default function CategoryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCategory : undefined}
-          onDelete={canDelete ? handleDeleteCategory : undefined}
-          onEdit={canEdit ? handleEditCategory : undefined}
-          onCreate={canCreate ? handleCreateCategory : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteCategory : undefined}
+          onEditAction={canEdit ? handleEditCategory : undefined}
+          onCreateAction={canCreate ? handleCreateCategory : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

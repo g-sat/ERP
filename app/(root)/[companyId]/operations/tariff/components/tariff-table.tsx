@@ -16,9 +16,9 @@ import { MainTable } from "@/components/table/table-main"
 interface TariffTableProps {
   data: ITariff[]
   isLoading?: boolean
-  onDelete?: (tariff: ITariff) => void
-  onEdit?: (tariff: ITariff) => void
-  onRefresh?: () => void
+  onDeleteAction?: (tariff: ITariff) => void
+  onEditAction?: (tariff: ITariff) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ITariffFilter) => void
   moduleId?: number
   transactionId?: number
@@ -28,15 +28,15 @@ interface TariffTableProps {
   canView?: boolean
   canCreate?: boolean
   onSelect?: (tariff: ITariff | null) => void
-  onCreate?: () => void
+  onCreateAction?: () => void
 }
 
 export function TariffTable({
   data,
   isLoading = false,
-  onDelete,
-  onEdit,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -45,7 +45,7 @@ export function TariffTable({
   canView = true,
   canCreate = true,
   onSelect,
-  onCreate,
+  onCreateAction,
 }: TariffTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -220,10 +220,10 @@ export function TariffTable({
 
   // Handle delete with tariff object
   const handleDelete = (tariffId: string) => {
-    if (onDelete) {
+    if (onDeleteAction) {
       const tariff = data.find((t) => t.tariffId?.toString() === tariffId)
       if (tariff) {
-        onDelete(tariff)
+        onDeleteAction(tariff)
       }
     }
   }
@@ -239,13 +239,13 @@ export function TariffTable({
       emptyMessage="No tariffs found."
       accessorId="tariffId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={handleDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={handleDelete}
       //show props
       showHeader={true}
       showFooter={true}

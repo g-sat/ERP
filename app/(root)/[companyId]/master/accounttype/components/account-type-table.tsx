@@ -18,10 +18,10 @@ interface AccountTypesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (accountType: IAccountType | null) => void
-  onDelete?: (accountTypeId: string) => void
-  onEdit?: (accountType: IAccountType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (accountTypeId: string) => void
+  onEditAction?: (accountType: IAccountType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function AccountTypesTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -167,7 +167,7 @@ export function AccountTypesTable({
       emptyMessage="No account types found."
       accessorId="accTypeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -176,9 +176,9 @@ export function AccountTypesTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

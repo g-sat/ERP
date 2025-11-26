@@ -502,12 +502,12 @@ export function ConsignmentExportTab({
             data={data || []}
             onConsignmentExportSelect={handleSelect}
             onDeleteConsignmentExport={handleDelete}
-            onEditConsignmentExport={handleEdit}
-            onCreateConsignmentExport={handleCreate}
+            onEditActionConsignmentExport={handleEdit}
+            onCreateActionConsignmentExport={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshConsignmentExport}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshConsignmentExport}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -598,7 +598,7 @@ export function ConsignmentExportTab({
           taskId={Task.ConsignmentExport}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this consignment export."

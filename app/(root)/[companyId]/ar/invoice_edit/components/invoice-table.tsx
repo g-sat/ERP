@@ -15,7 +15,7 @@ export interface InvoiceTableProps {
   data: IArInvoiceHd[]
   isLoading: boolean
   onInvoiceSelect: (selectedInvoice: IArInvoiceHd | undefined) => void
-  onRefresh: () => void
+  onRefreshAction: () => void
   onFilterChange: (filters: IArInvoiceFilter) => void
   initialFilters?: IArInvoiceFilter
 }
@@ -24,7 +24,7 @@ export default function InvoiceTable({
   data,
   isLoading = false,
   onInvoiceSelect,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   initialFilters,
 }: InvoiceTableProps) {
@@ -330,7 +330,7 @@ export default function InvoiceTable({
         transactionId={ARTransactionId.invoice}
         tableName={TableName.arInvoice}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
       />

@@ -501,12 +501,12 @@ export function MedicalAssistanceTab({
             data={data || []}
             onMedicalAssistanceSelect={handleSelect}
             onDeleteMedicalAssistance={handleDelete}
-            onEditMedicalAssistance={handleEdit}
-            onCreateMedicalAssistance={handleCreateMedicalAssistance}
+            onEditActionMedicalAssistance={handleEdit}
+            onCreateActionMedicalAssistance={handleCreateMedicalAssistance}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshMedicalAssistance}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshMedicalAssistance}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -597,7 +597,7 @@ export function MedicalAssistanceTab({
           taskId={Task.MedicalAssistance}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this medical assistance."

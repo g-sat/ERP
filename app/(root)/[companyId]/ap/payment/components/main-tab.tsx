@@ -728,7 +728,7 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IApPaymentDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
+          onDeleteAction={handleDelete}
           onBulkDelete={handleBulkDelete}
           onDataReorder={handleDataReorder as (newData: IApPaymentDt[]) => void}
           onCellEdit={handleCellEdit}

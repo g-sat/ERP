@@ -531,7 +531,7 @@ export default function AdjustmentTable({
         transactionId={transactionId}
         tableName={TableName.arAdjustment}
         emptyMessage="No adjustments found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchAdjustments()}
+        onRefreshAction={() => refetchAdjustments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onAdjustmentSelect(row || undefined)}
         // Pagination props

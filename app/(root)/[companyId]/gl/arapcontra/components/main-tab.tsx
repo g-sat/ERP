@@ -956,7 +956,7 @@ export default function Main({
                 key={`${refreshKey}-ar`}
                 data={(arDataDetails as unknown as IGLContraDt[]) || []}
                 visible={visible}
-                onDelete={handleArDelete}
+                onDeleteAction={handleArDelete}
                 onBulkDelete={handleArBulkDelete}
                 onDataReorder={handleArDataReorder}
                 onCellEdit={handleCellEdit}
@@ -1003,7 +1003,7 @@ export default function Main({
                 key={`${refreshKey}-ap`}
                 data={(apDataDetails as unknown as IGLContraDt[]) || []}
                 visible={visible}
-                onDelete={handleApDelete}
+                onDeleteAction={handleApDelete}
                 onBulkDelete={handleApBulkDelete}
                 onDataReorder={handleApDataReorder}
                 onCellEdit={handleCellEdit}

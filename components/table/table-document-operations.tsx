@@ -59,14 +59,14 @@ interface DocumentOperationsTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
   onDownload?: (item: T) => void
-  onDelete?: (item: T) => void
+  onDeleteAction?: (item: T) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onPurchase?: (itemId: string) => void
+  onPurchaseAction?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
   onSaveOrder?: (newData: T[]) => void
   isConfirmed?: boolean
@@ -89,11 +89,11 @@ export function DocumentOperationsTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
   onDownload,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
   onBulkSelectionChange,
   onDataReorder,
@@ -243,7 +243,7 @@ export function DocumentOperationsTable<T>({
   }, [data])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(_showActions && (onSelect || onDownload || onDelete)
+    ...(_showActions && (onSelect || onDownload || onDeleteAction)
       ? [
           {
             id: "drag-actions",
@@ -294,7 +294,7 @@ export function DocumentOperationsTable<T>({
                     row={item as T & { debitNoteId?: number }}
                     onView={onSelect}
                     onDownload={onDownload}
-                    onDelete={onDelete}
+                    onDeleteAction={onDeleteAction}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}
@@ -460,7 +460,7 @@ export function DocumentOperationsTable<T>({
         <DocumentOperationsTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
+          onRefreshAction={onRefreshAction}
           onBulkDelete={handleBulkDelete}
           onSaveOrder={hasOrderChanged ? () => _onSaveOrder?.(data) : undefined}
           //columns={table.getAllLeafColumns()}

@@ -21,9 +21,9 @@ interface ApprovalLevelTableProps {
   isLoading?: boolean
   onLevelSelect?: (level: IApprovalLevel | undefined) => void
   onDeleteLevel?: (levelId: string) => void
-  onEditLevel?: (level: IApprovalLevel) => void
-  onCreateLevel?: () => void
-  onRefresh?: () => void
+  onEditActionLevel?: (level: IApprovalLevel) => void
+  onCreateActionLevel?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: Record<string, unknown>) => void
 }
 
@@ -32,9 +32,9 @@ export function ApprovalLevelTable({
   isLoading = false,
   onLevelSelect,
   onDeleteLevel,
-  onEditLevel,
-  onCreateLevel,
-  onRefresh,
+  onEditActionLevel,
+  onCreateActionLevel,
+  onRefreshAction,
   onFilterChange,
 }: ApprovalLevelTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -63,14 +63,14 @@ export function ApprovalLevelTable({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh}>
+          {onRefreshAction && (
+            <Button variant="outline" size="sm" onClick={onRefreshAction}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
           )}
-          {onCreateLevel && (
-            <Button size="sm" onClick={onCreateLevel}>
+          {onCreateActionLevel && (
+            <Button size="sm" onClick={onCreateActionLevel}>
               <Plus className="mr-2 h-4 w-4" />
               Create Level
             </Button>
@@ -127,11 +127,11 @@ export function ApprovalLevelTable({
                           View
                         </Button>
                       )}
-                      {onEditLevel && (
+                      {onEditActionLevel && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onEditLevel(level)}
+                          onClick={() => onEditActionLevel(level)}
                         >
                           Edit
                         </Button>

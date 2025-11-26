@@ -18,10 +18,10 @@ interface LeaveTypesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (leaveType: ILeaveType | null) => void
-  onDelete?: (leaveTypeId: string) => void
-  onEdit?: (leaveType: ILeaveType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (leaveTypeId: string) => void
+  onEditAction?: (leaveType: ILeaveType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function LeaveTypesTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -156,7 +156,7 @@ export function LeaveTypesTable({
       emptyMessage="No leave types found."
       accessorId="leaveTypeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -165,9 +165,9 @@ export function LeaveTypesTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

@@ -20,8 +20,8 @@ interface DocumentOperationsManagerTableProps {
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
-  onDelete?: (doc: IDocType) => void
-  onRefresh?: () => void
+  onDeleteAction?: (doc: IDocType) => void
+  onRefreshAction?: () => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onBulkDelete?: (selectedIds: string[]) => void
 }
@@ -31,8 +31,8 @@ export default function DocumentOperationsManagerTable({
   isLoading = false,
   onPreview,
   onDownload,
-  onDelete,
-  onRefresh,
+  onDeleteAction,
+  onRefreshAction,
   onBulkSelectionChange,
   onBulkDelete,
 }: DocumentOperationsManagerTableProps) {
@@ -148,8 +148,8 @@ export default function DocumentOperationsManagerTable({
       onDataReorder={handleDataReorder}
       onSaveOrder={handleSaveOrder}
       onDownload={onDownload}
-      onDelete={onDelete}
-      onRefresh={onRefresh}
+      onDeleteAction={onDeleteAction}
+      onRefreshAction={onRefreshAction}
       onBulkSelectionChange={onBulkSelectionChange}
       onBulkDelete={onBulkDelete}
       showHeader={true}

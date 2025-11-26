@@ -18,10 +18,10 @@ interface GstCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (gstdtcategory: IGstCategory | null) => void
-  onDelete?: (gstId: string) => void
-  onEdit?: (gstdtcategory: IGstCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (gstId: string) => void
+  onEditAction?: (gstdtcategory: IGstCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function GstCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -164,7 +164,7 @@ export function GstCategoryTable({
       emptyMessage="No gst categories found."
       accessorId="gstCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -173,9 +173,9 @@ export function GstCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

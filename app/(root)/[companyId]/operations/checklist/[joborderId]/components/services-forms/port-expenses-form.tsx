@@ -27,7 +27,6 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
-import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
@@ -127,7 +126,8 @@ export function PortExpensesForm({
         glId: initialData?.glId ?? taskDefaults.glId ?? 0,
         deliverDate: initialData?.deliverDate
           ? format(
-              parseWithFallback(initialData.deliverDate as string) || new Date(),
+              parseWithFallback(initialData.deliverDate as string) ||
+                new Date(),
               dateFormat
             )
           : format(new Date(), dateFormat),

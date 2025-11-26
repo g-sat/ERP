@@ -220,7 +220,7 @@ export default function BankChartOfAccountAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
@@ -256,7 +256,7 @@ export default function BankChartOfAccountAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -290,7 +290,7 @@ export default function BankChartOfAccountAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false

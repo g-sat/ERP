@@ -310,10 +310,10 @@ export default function DesignationPage() {
           <DesignationsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -328,10 +328,10 @@ export default function DesignationPage() {
         <DesignationsTable
           data={designationsData || []}
           onSelect={canView ? handleViewDesignation : undefined}
-          onDelete={canDelete ? handleDeleteDesignation : undefined}
-          onEdit={canEdit ? handleEditDesignation : undefined}
-          onCreate={canCreate ? handleCreateDesignation : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDesignation : undefined}
+          onEditAction={canEdit ? handleEditDesignation : undefined}
+          onCreateAction={canCreate ? handleCreateDesignation : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

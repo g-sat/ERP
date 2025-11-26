@@ -18,10 +18,10 @@ interface ChartOfAccountsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (chartOfAccount: IChartOfAccount | null) => void
-  onDelete?: (chartOfAccountId: string) => void
-  onEdit?: (chartOfAccount: IChartOfAccount) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (chartOfAccountId: string) => void
+  onEditAction?: (chartOfAccount: IChartOfAccount) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function ChartOfAccountsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -393,7 +393,7 @@ export function ChartOfAccountsTable({
       emptyMessage="No chart of accounts found."
       accessorId="glId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -402,9 +402,9 @@ export function ChartOfAccountsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

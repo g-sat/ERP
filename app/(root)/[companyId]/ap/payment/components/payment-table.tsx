@@ -544,7 +544,7 @@ export default function PaymentTable({
         transactionId={transactionId}
         tableName={TableName.apPayment}
         emptyMessage="No payments found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchPayments()}
+        onRefreshAction={() => refetchPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
         // Pagination props

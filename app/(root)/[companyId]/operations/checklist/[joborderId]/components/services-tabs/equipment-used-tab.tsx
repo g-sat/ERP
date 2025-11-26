@@ -493,12 +493,12 @@ export function EquipmentUsedTab({
             data={data || []}
             onEquipmentUsedSelect={handleSelect}
             onDeleteEquipmentUsed={handleDelete}
-            onEditEquipmentUsed={handleEdit}
-            onCreateEquipmentUsed={handleCreate}
+            onEditActionEquipmentUsed={handleEdit}
+            onCreateActionEquipmentUsed={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshEquipmentUsed}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshEquipmentUsed}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -591,7 +591,7 @@ export function EquipmentUsedTab({
           taskId={Task.EquipmentUsed}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this equipment used."

@@ -306,10 +306,10 @@ export default function PaymentTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -325,10 +325,10 @@ export default function PaymentTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewPaymentType : undefined}
-          onDelete={canDelete ? handleDeletePaymentType : undefined}
-          onEdit={canEdit ? handleEditPaymentType : undefined}
-          onCreate={canCreate ? handleCreatePaymentType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeletePaymentType : undefined}
+          onEditAction={canEdit ? handleEditPaymentType : undefined}
+          onCreateAction={canCreate ? handleCreatePaymentType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

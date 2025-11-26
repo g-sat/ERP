@@ -309,10 +309,10 @@ export default function DepartmentPage() {
           <DepartmentsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -327,10 +327,10 @@ export default function DepartmentPage() {
         <DepartmentsTable
           data={filters.search ? [] : departmentsData || []}
           onSelect={canView ? handleViewDepartment : undefined}
-          onDelete={canDelete ? handleDeleteDepartment : undefined}
-          onEdit={canEdit ? handleEditDepartment : undefined}
-          onCreate={canCreate ? handleCreateDepartment : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDepartment : undefined}
+          onEditAction={canEdit ? handleEditDepartment : undefined}
+          onCreateAction={canCreate ? handleCreateDepartment : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

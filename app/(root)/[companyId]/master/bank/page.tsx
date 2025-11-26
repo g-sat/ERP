@@ -691,10 +691,12 @@ export default function BankPage() {
                       isLoading={isLoadingAddresses}
                       totalRecords={totalRecords}
                       onSelect={canView ? handleAddressSelect : undefined}
-                      onDelete={canDelete ? handleAddressDelete : undefined}
-                      onEdit={canEdit ? handleAddressEdit : undefined}
-                      onCreate={canCreate ? handleAddressAdd : undefined}
-                      onRefresh={() => refetchAddresses()}
+                      onDeleteAction={
+                        canDelete ? handleAddressDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleAddressEdit : undefined}
+                      onCreateAction={canCreate ? handleAddressAdd : undefined}
+                      onRefreshAction={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -708,10 +710,12 @@ export default function BankPage() {
                       isLoading={isLoadingContacts}
                       totalRecords={totalRecords}
                       onSelect={canView ? handleContactSelect : undefined}
-                      onDelete={canDelete ? handleContactDelete : undefined}
-                      onEdit={canEdit ? handleContactEdit : undefined}
-                      onCreate={canCreate ? handleContactAdd : undefined}
-                      onRefresh={() => refetchContacts()}
+                      onDeleteAction={
+                        canDelete ? handleContactDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleContactEdit : undefined}
+                      onCreateAction={canCreate ? handleContactAdd : undefined}
+                      onRefreshAction={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -739,7 +743,7 @@ export default function BankPage() {
             isLoading={isLoadingBanks}
             onSelect={handleBankSelect}
             onFilterChange={handleFilterChange}
-            onRefresh={() => refetchBanks()}
+            onRefreshAction={() => refetchBanks()}
             moduleId={moduleId}
             transactionId={transactionId}
           />

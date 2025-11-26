@@ -511,12 +511,12 @@ export function PortExpensesTab({
             data={data || []}
             onPortExpensesSelect={handleSelect}
             onDeletePortExpenses={handleDelete}
-            onEditPortExpenses={handleEdit}
-            onCreatePortExpenses={handleCreate}
+            onEditActionPortExpenses={handleEdit}
+            onCreateActionPortExpenses={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshPortExpenses}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshPortExpenses}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -609,7 +609,7 @@ export function PortExpensesTab({
           taskId={Task.PortExpenses}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this port expenses."

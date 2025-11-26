@@ -730,10 +730,12 @@ export default function CustomerPage() {
                       data={addresses}
                       isLoading={isLoadingAddresses}
                       onSelect={canView ? handleAddressSelect : undefined}
-                      onDelete={canDelete ? handleAddressDelete : undefined}
-                      onEdit={canEdit ? handleAddressEdit : undefined}
-                      onCreate={canCreate ? handleAddressAdd : undefined}
-                      onRefresh={() => refetchAddresses()}
+                      onDeleteAction={
+                        canDelete ? handleAddressDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleAddressEdit : undefined}
+                      onCreateAction={canCreate ? handleAddressAdd : undefined}
+                      onRefreshAction={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                       canEdit={canEdit}
@@ -750,10 +752,12 @@ export default function CustomerPage() {
                       data={contacts}
                       isLoading={isLoadingContacts}
                       onSelect={canView ? handleContactSelect : undefined}
-                      onDelete={canDelete ? handleContactDelete : undefined}
-                      onEdit={canEdit ? handleContactEdit : undefined}
-                      onCreate={canCreate ? handleContactAdd : undefined}
-                      onRefresh={() => refetchContacts()}
+                      onDeleteAction={
+                        canDelete ? handleContactDelete : undefined
+                      }
+                      onEditAction={canEdit ? handleContactEdit : undefined}
+                      onCreateAction={canCreate ? handleContactAdd : undefined}
+                      onRefreshAction={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                       canEdit={canEdit}
@@ -791,7 +795,7 @@ export default function CustomerPage() {
             currentPage={currentPage}
             pageSize={pageSize}
             serverSidePagination={true}
-            onRefresh={() => refetchCustomers()}
+            onRefreshAction={() => refetchCustomers()}
             moduleId={moduleId}
             transactionId={transactionId}
           />

@@ -48,7 +48,7 @@ interface DebitNoteDialogProps {
   title?: string
   description?: string
   onOpenChange: (open: boolean) => void
-  onDelete?: (debitNoteId: number) => void
+  onDeleteAction?: (debitNoteId: number) => void
   onUpdateHeader?: (updatedHeader: IDebitNoteHd) => void
   onClearSelection?: () => void
   jobOrder?: IJobOrderHd
@@ -62,7 +62,7 @@ export default function DebitNoteDialog({
   title = "Debit Note",
   description = "Manage debit note details for this service.",
   onOpenChange,
-  onDelete,
+  onDeleteAction,
   onUpdateHeader,
   onClearSelection,
   jobOrder,
@@ -558,15 +558,15 @@ export default function DebitNoteDialog({
 
   // Handler for confirmed main debit note deletion
   const handleConfirmMainDeleteMain = useCallback(() => {
-    if (mainDeleteConfirmation.debitNoteId && onDelete) {
-      onDelete(mainDeleteConfirmation.debitNoteId)
+    if (mainDeleteConfirmation.debitNoteId && onDeleteAction) {
+      onDeleteAction(mainDeleteConfirmation.debitNoteId)
       setMainDeleteConfirmation({
         isOpen: false,
         debitNoteId: null,
         debitNoteNo: null,
       })
     }
-  }, [mainDeleteConfirmation, onDelete])
+  }, [mainDeleteConfirmation, onDeleteAction])
 
   // Handler for bulk delete of debit note details
   const handleBulkDeleteDebitNoteDetails = useCallback(
@@ -872,11 +872,11 @@ export default function DebitNoteDialog({
               <DebitNoteTable
                 data={details}
                 onSelect={handleViewDebitNoteDetail}
-                onEdit={handleEditDebitNoteDetail}
-                onDelete={handleDeleteDebitNoteDetail}
+                onEditAction={handleEditDebitNoteDetail}
+                onDeleteAction={handleDeleteDebitNoteDetail}
                 onBulkDelete={handleBulkDeleteDebitNoteDetails}
-                onCreate={handleCreateDebitNoteDetail}
-                onRefresh={handleRefresh}
+                onCreateAction={handleCreateDebitNoteDetail}
+                onRefreshAction={handleRefresh}
                 onFilterChange={() => {}}
                 onDataReorder={handleDataReorder}
                 moduleId={taskId}

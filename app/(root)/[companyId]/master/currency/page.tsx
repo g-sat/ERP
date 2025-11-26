@@ -658,10 +658,10 @@ export default function CurrencyPage() {
                 isLoading={false}
                 totalRecords={currenciesTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID}
@@ -677,10 +677,10 @@ export default function CurrencyPage() {
               isLoading={isLoadingCurrency}
               totalRecords={currenciesTotalRecords}
               onSelect={canView ? handleViewCurrency : undefined}
-              onDelete={canDelete ? handleDeleteCurrency : undefined}
-              onEdit={canEdit ? handleEditCurrency : undefined}
-              onCreate={canCreate ? handleCreateCurrency : undefined}
-              onRefresh={refetchCurrency}
+              onDeleteAction={canDelete ? handleDeleteCurrency : undefined}
+              onEditAction={canEdit ? handleEditCurrency : undefined}
+              onCreateAction={canCreate ? handleCreateCurrency : undefined}
+              onRefreshAction={refetchCurrency}
               onFilterChange={handleCurrencyFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -729,10 +729,10 @@ export default function CurrencyPage() {
                 isLoading={false}
                 totalRecords={currencyDtTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_DT}
@@ -748,10 +748,10 @@ export default function CurrencyPage() {
               isLoading={isLoadingCurrencyDt}
               totalRecords={currencyDtTotalRecords}
               onSelect={canViewDt ? handleViewCurrencyDt : undefined}
-              onDelete={canDeleteDt ? handleDeleteCurrencyDt : undefined}
-              onEdit={canEditDt ? handleEditCurrencyDt : undefined}
-              onCreate={canCreateDt ? handleCreateCurrencyDt : undefined}
-              onRefresh={refetchCurrencyDt}
+              onDeleteAction={canDeleteDt ? handleDeleteCurrencyDt : undefined}
+              onEditAction={canEditDt ? handleEditCurrencyDt : undefined}
+              onCreateAction={canCreateDt ? handleCreateCurrencyDt : undefined}
+              onRefreshAction={refetchCurrencyDt}
               onFilterChange={handleCurrencyDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}
@@ -803,10 +803,10 @@ export default function CurrencyPage() {
                 isLoading={false}
                 totalRecords={currencyLocalDtTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_LOCAL_DT}
@@ -822,14 +822,16 @@ export default function CurrencyPage() {
               isLoading={isLoadingCurrencyLocalDt}
               totalRecords={currencyLocalDtTotalRecords}
               onSelect={canViewLocalDt ? handleViewCurrencyLocalDt : undefined}
-              onDelete={
+              onDeleteAction={
                 canDeleteLocalDt ? handleDeleteCurrencyLocalDt : undefined
               }
-              onEdit={canEditLocalDt ? handleEditCurrencyLocalDt : undefined}
-              onCreate={
+              onEditAction={
+                canEditLocalDt ? handleEditCurrencyLocalDt : undefined
+              }
+              onCreateAction={
                 canCreateLocalDt ? handleCreateCurrencyLocalDt : undefined
               }
-              onRefresh={refetchCurrencyLocalDt}
+              onRefreshAction={refetchCurrencyLocalDt}
               onFilterChange={handleCurrencyLocalDtFilterChange}
               onPageChange={handleLocalPageChange}
               onPageSizeChange={handleLocalPageSizeChange}

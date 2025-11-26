@@ -740,10 +740,10 @@ export default function AccountSetupPage() {
                 isLoading={false}
                 totalRecords={setupTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -758,10 +758,10 @@ export default function AccountSetupPage() {
               data={setupData || []}
               totalRecords={setupTotalRecords}
               onSelect={canView ? handleSetupSelect : undefined}
-              onDelete={canDelete ? handleDeleteSetup : undefined}
-              onEdit={canEdit ? handleEditSetup : undefined}
-              onCreate={canCreate ? handleCreateSetup : undefined}
-              onRefresh={refetchSetup}
+              onDeleteAction={canDelete ? handleDeleteSetup : undefined}
+              onEditAction={canEdit ? handleEditSetup : undefined}
+              onCreateAction={canCreate ? handleCreateSetup : undefined}
+              onRefreshAction={refetchSetup}
               onFilterChange={handleSetupFilterChange}
               onPageChange={handleSetupPageChange}
               onPageSizeChange={handleSetupPageSizeChange}
@@ -804,10 +804,10 @@ export default function AccountSetupPage() {
                 isLoading={false}
                 totalRecords={dtTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
@@ -823,10 +823,10 @@ export default function AccountSetupPage() {
               isLoading={false}
               totalRecords={dtTotalRecords}
               onSelect={canViewDt ? handleDtSelect : undefined}
-              onDelete={canDeleteDt ? handleDeleteDt : undefined}
-              onEdit={canEditDt ? handleEditDt : undefined}
-              onCreate={canCreateDt ? handleCreateDt : undefined}
-              onRefresh={refetchDt}
+              onDeleteAction={canDeleteDt ? handleDeleteDt : undefined}
+              onEditAction={canEditDt ? handleEditDt : undefined}
+              onCreateAction={canCreateDt ? handleCreateDt : undefined}
+              onRefreshAction={refetchDt}
               onFilterChange={handleDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}
@@ -871,10 +871,10 @@ export default function AccountSetupPage() {
                 isLoading={false}
                 totalRecords={categoryTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
@@ -890,10 +890,14 @@ export default function AccountSetupPage() {
               isLoading={isLoadingCategory}
               totalRecords={categoryTotalRecords}
               onSelect={canViewCategory ? handleCategorySelect : undefined}
-              onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
-              onEdit={canEditCategory ? handleEditCategory : undefined}
-              onCreate={canCreateCategory ? handleCreateCategory : undefined}
-              onRefresh={refetchCategory}
+              onDeleteAction={
+                canDeleteCategory ? handleDeleteCategory : undefined
+              }
+              onEditAction={canEditCategory ? handleEditCategory : undefined}
+              onCreateAction={
+                canCreateCategory ? handleCreateCategory : undefined
+              }
+              onRefreshAction={refetchCategory}
               onFilterChange={handleCategoryFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}

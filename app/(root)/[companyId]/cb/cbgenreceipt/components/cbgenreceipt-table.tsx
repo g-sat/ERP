@@ -497,7 +497,7 @@ export default function CbGenReceiptTable({
         transactionId={transactionId}
         tableName={TableName.cbGenReceipt}
         emptyMessage="No cbGenReceipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbGenReceipts()}
+        onRefreshAction={() => refetchCbGenReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbGenReceiptSelect(row || undefined)}
         // Pagination props

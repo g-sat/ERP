@@ -342,7 +342,7 @@ export default function EditVersionDetails({
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
-            onRefresh={handleRefresh}
+            onRefreshAction={handleRefresh}
             onRowSelect={(invoice) => setSelectedInvoice(invoice)}
           />
         </CardContent>
@@ -416,7 +416,7 @@ export default function EditVersionDetails({
                   transactionId={transactionId}
                   tableName={TableName.arInvoice}
                   emptyMessage="No invoice details available"
-                  onRefresh={handleRefresh}
+                  onRefreshAction={handleRefresh}
                   showHeader={true}
                   showFooter={false}
                 />

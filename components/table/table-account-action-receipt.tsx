@@ -5,8 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 interface AccountReceiptTableActionsProps<T> {
   row: T & { debitNoteId?: number }
-  onEdit?: (row: T) => void
-  onDelete?: (id: string) => void
+  onEditAction?: (row: T) => void
+  onDeleteAction?: (id: string) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideEdit?: boolean
@@ -19,8 +19,8 @@ interface AccountReceiptTableActionsProps<T> {
 
 export function AccountReceiptTableActions<T>({
   row,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   onSelect,
   idAccessor,
   hideEdit,
@@ -67,7 +67,7 @@ export function AccountReceiptTableActions<T>({
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : ""
           }`}
-          onClick={() => !hasValidAccountId && onEdit?.(row)}
+          onClick={() => !hasValidAccountId && onEditAction?.(row)}
           title={hasValidAccountId ? "Cannot edit - Debit Note exists" : "Edit"}
         >
           <Pencil className="h-4 w-4" />
@@ -84,7 +84,7 @@ export function AccountReceiptTableActions<T>({
               : "text-destructive hover:bg-destructive/10"
           }`}
           onClick={() =>
-            !hasValidAccountId && onDelete?.(String(row[idAccessor]))
+            !hasValidAccountId && onDeleteAction?.(String(row[idAccessor]))
           }
           title={
             hasValidAccountId ? "Cannot delete - Debit Note exists" : "Delete"

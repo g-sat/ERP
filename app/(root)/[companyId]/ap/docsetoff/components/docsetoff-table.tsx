@@ -489,7 +489,7 @@ export default function DocSetOffTable({
         transactionId={transactionId}
         tableName={TableName.apDocSetOff}
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchReceipts()}
+        onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onDocSetOffSelect(row || undefined)}
         // Pagination props

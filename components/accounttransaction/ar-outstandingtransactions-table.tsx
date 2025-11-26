@@ -18,7 +18,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 // Use flexible data type that can work with form data
 interface ArOutStandingTransactionsTableProps {
   data: IArOutTransaction[]
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   visible: IVisibleFields
   onSelect?: (transaction: IArOutTransaction | null) => void
@@ -28,7 +28,7 @@ interface ArOutStandingTransactionsTableProps {
 
 export default function ArOutStandingTransactionsTable({
   data,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
   onBulkSelectionChange,
@@ -60,10 +60,10 @@ export default function ArOutStandingTransactionsTable({
   }, [])
 
   const handleRefresh = useCallback(() => {
-    if (onRefresh) {
-      onRefresh()
+    if (onRefreshAction) {
+      onRefreshAction()
     }
-  }, [onRefresh])
+  }, [onRefreshAction])
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
@@ -240,7 +240,7 @@ export default function ArOutStandingTransactionsTable({
         tableName={TableName.arOutTransaction}
         emptyMessage="No outstanding transactions found."
         accessorId="documentId"
-        onRefresh={handleRefresh}
+        onRefreshAction={handleRefresh}
         onFilterChange={handleFilterChange}
         onSelect={handleSelect}
         onBulkSelectionChange={handleBulkSelectionChange}

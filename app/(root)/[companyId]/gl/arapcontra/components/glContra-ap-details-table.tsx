@@ -26,7 +26,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 // Use flexible data type that can work with form data
 interface ApGLContraDetailsTableProps {
   data: IGLContraDt[]
-  onDelete?: (itemNo: number) => void
+  onDeleteAction?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IGLContraDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => number | void
@@ -36,7 +36,7 @@ interface ApGLContraDetailsTableProps {
 
 export default function ApGLContraDetailsTable({
   data,
-  onDelete,
+  onDeleteAction,
   onBulkDelete,
   onDataReorder,
   onCellEdit,
@@ -177,7 +177,7 @@ export default function ApGLContraDetailsTable({
 
   const handleDeleteRequest = useCallback(
     (itemId: string) => {
-      if (isCancelled || !onDelete) return
+      if (isCancelled || !onDeleteAction) return
 
       const itemNo = Number(itemId)
       if (!Number.isFinite(itemNo)) return
@@ -194,15 +194,15 @@ export default function ApGLContraDetailsTable({
       })
       setDeleteDialogOpen(true)
     },
-    [data, isCancelled, onDelete]
+    [data, isCancelled, onDeleteAction]
   )
 
   const handleDeleteConfirm = useCallback(() => {
-    if (!pendingDeleteTarget || !onDelete) return
+    if (!pendingDeleteTarget || !onDeleteAction) return
 
-    onDelete(pendingDeleteTarget.itemNo)
+    onDeleteAction(pendingDeleteTarget.itemNo)
     setPendingDeleteTarget(null)
-  }, [onDelete, pendingDeleteTarget])
+  }, [onDeleteAction, pendingDeleteTarget])
 
   const handleDeleteCancel = useCallback(() => {
     setPendingDeleteTarget(null)
@@ -514,7 +514,7 @@ export default function ApGLContraDetailsTable({
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
-        onDelete={isCancelled ? undefined : handleDeleteRequest}
+        onDeleteAction={isCancelled ? undefined : handleDeleteRequest}
         showHeader={true}
         showActions={true}
         hideEdit={true}

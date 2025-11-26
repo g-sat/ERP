@@ -435,7 +435,7 @@ export default function BankTransferTable({
         transactionId={transactionId}
         tableName={TableName.cbBankTransfer}
         emptyMessage="No data found."
-        onRefresh={() => refetchBankTransfers()}
+        onRefreshAction={() => refetchBankTransfers()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onBankTransferSelect(row || undefined)}
       />

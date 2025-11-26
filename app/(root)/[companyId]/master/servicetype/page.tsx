@@ -536,10 +536,10 @@ export default function ServiceTypePage() {
                 isLoading={false}
                 totalRecords={servicetypesTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -554,10 +554,10 @@ export default function ServiceTypePage() {
               data={servicetypesData || []}
               totalRecords={servicetypesTotalRecords}
               onSelect={canView ? handleViewServiceType : undefined}
-              onDelete={canDelete ? handleDeleteServiceType : undefined}
-              onEdit={canEdit ? handleEditServiceType : undefined}
-              onCreate={canCreate ? handleCreateServiceType : undefined}
-              onRefresh={refetchServiceType}
+              onDeleteAction={canDelete ? handleDeleteServiceType : undefined}
+              onEditAction={canEdit ? handleEditServiceType : undefined}
+              onCreateAction={canCreate ? handleCreateServiceType : undefined}
+              onRefreshAction={refetchServiceType}
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -602,10 +602,10 @@ export default function ServiceTypePage() {
                 isLoading={false}
                 totalRecords={servicetypesCategoryTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={refetchServiceTypeCategory}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={refetchServiceTypeCategory}
                 onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -622,16 +622,16 @@ export default function ServiceTypePage() {
               onSelect={
                 canViewCategory ? handleViewServiceTypeCategory : undefined
               }
-              onDelete={
+              onDeleteAction={
                 canDeleteCategory ? handleDeleteServiceTypeCategory : undefined
               }
-              onEdit={
+              onEditAction={
                 canEditCategory ? handleEditServiceTypeCategory : undefined
               }
-              onCreate={
+              onCreateAction={
                 canCreateCategory ? handleCreateServiceTypeCategory : undefined
               }
-              onRefresh={refetchServiceTypeCategory}
+              onRefreshAction={refetchServiceTypeCategory}
               onFilterChange={handleCategoryFilterChange}
               onPageChange={handleCategoryPageChange}
               onPageSizeChange={handleCategoryPageSizeChange}

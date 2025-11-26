@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Task } from "@/lib/operations-utils"
+import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
@@ -31,6 +32,7 @@ interface TariffFormProps {
   onSaveAction: (data: ITariff) => void
   onCloseAction: () => void
   mode: "create" | "edit" | "view"
+  companyId: number
   customerId: number
   portId: number
   taskId: number
@@ -42,6 +44,7 @@ export function TariffForm({
   onSaveAction,
   onCloseAction,
   mode,
+  companyId,
   customerId,
   portId,
   taskId,
@@ -49,6 +52,8 @@ export function TariffForm({
 }: TariffFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+
+  const { data: customers = [] } = useCompanyCustomerLookup(companyId)
 
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
@@ -58,7 +63,7 @@ export function TariffForm({
       chargeId: tariff?.chargeId || 0,
       portId: tariff?.portId || portId,
       customerId: tariff?.customerId || customerId,
-      currencyId: tariff?.currencyId || 0,
+      currencyId: tariff?.currencyId || customers[0]?.currencyId || 0,
       uomId: tariff?.uomId || 0,
       visaTypeId: tariff?.visaTypeId || 0,
       displayRate: tariff?.displayRate || 0,
@@ -80,6 +85,7 @@ export function TariffForm({
   useEffect(() => {
     console.log("TariffForm useEffect triggered:", {
       mode,
+      currencyId: customers[0]?.currencyId || 0,
       customerId,
       portId,
       taskId,
@@ -93,7 +99,7 @@ export function TariffForm({
         chargeId: tariff.chargeId || 0,
         portId: tariff.portId || portId,
         customerId: tariff.customerId || customerId,
-        currencyId: tariff.currencyId || 0,
+        currencyId: tariff.currencyId || customers[0]?.currencyId || 0,
         uomId: tariff.uomId || 0,
         visaTypeId: tariff.visaTypeId || 0,
         displayRate: tariff.displayRate || 0,
@@ -123,7 +129,7 @@ export function TariffForm({
         chargeId: 0,
         portId: portId,
         customerId: customerId,
-        currencyId: 0,
+        currencyId: customers[0]?.currencyId || 0,
         uomId: 0,
         visaTypeId: 0,
         displayRate: 0,
@@ -141,7 +147,7 @@ export function TariffForm({
         remarks: "",
       })
     }
-  }, [tariff, form, customerId, portId, taskId, mode])
+  }, [tariff, form, customerId, portId, taskId, mode, customers])
 
   // Watch switch states for conditional field editing
   const isAdditional = form.watch("isAdditional")

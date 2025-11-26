@@ -24,7 +24,7 @@ interface SupplierTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   moduleId: number
   transactionId: number
 }
@@ -40,7 +40,7 @@ export function SupplierTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
-  onRefresh,
+  onRefreshAction,
   moduleId,
   transactionId,
 }: SupplierTableProps) {
@@ -273,7 +273,7 @@ export function SupplierTable({
         transactionId={transactionId}
         tableName={TableName.supplier}
         emptyMessage="No suppliers found."
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}

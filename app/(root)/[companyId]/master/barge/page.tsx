@@ -345,10 +345,10 @@ export default function BargePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -364,10 +364,10 @@ export default function BargePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewBarge : undefined}
-          onDelete={canDelete ? handleDeleteBarge : undefined}
-          onEdit={canEdit ? handleEditBarge : undefined}
-          onCreate={canCreate ? handleCreateBarge : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteBarge : undefined}
+          onEditAction={canEdit ? handleEditBarge : undefined}
+          onCreateAction={canCreate ? handleCreateBarge : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

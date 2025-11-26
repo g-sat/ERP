@@ -650,10 +650,10 @@ export default function TaxPage() {
                 isLoading={false}
                 totalRecords={totalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -669,10 +669,10 @@ export default function TaxPage() {
               isLoading={isLoadingTax}
               totalRecords={totalRecords}
               onSelect={canView ? handleViewTax : undefined}
-              onDelete={canDelete ? handleDeleteTax : undefined}
-              onEdit={canEdit ? handleEditTax : undefined}
-              onCreate={canCreate ? handleCreateTax : undefined}
-              onRefresh={refetchTax}
+              onDeleteAction={canDelete ? handleDeleteTax : undefined}
+              onEditAction={canEdit ? handleEditTax : undefined}
+              onCreateAction={canCreate ? handleCreateTax : undefined}
+              onRefreshAction={refetchTax}
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -720,10 +720,10 @@ export default function TaxPage() {
                 isLoading={false}
                 totalRecords={taxsDtTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
@@ -739,10 +739,10 @@ export default function TaxPage() {
               isLoading={isLoadingTaxDt}
               totalRecords={taxsDtTotalRecords}
               onSelect={canViewDt ? handleViewTaxDt : undefined}
-              onDelete={canDeleteDt ? handleDeleteTaxDt : undefined}
-              onEdit={canEditDt ? handleEditTaxDt : undefined}
-              onCreate={canCreateDt ? handleCreateTaxDt : undefined}
-              onRefresh={refetchTaxDt}
+              onDeleteAction={canDeleteDt ? handleDeleteTaxDt : undefined}
+              onEditAction={canEditDt ? handleEditTaxDt : undefined}
+              onCreateAction={canCreateDt ? handleCreateTaxDt : undefined}
+              onRefreshAction={refetchTaxDt}
               onFilterChange={handleDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}
@@ -793,10 +793,10 @@ export default function TaxPage() {
                 isLoading={false}
                 totalRecords={taxsCategoryTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
@@ -812,10 +812,14 @@ export default function TaxPage() {
               isLoading={isLoadingTaxCategory}
               totalRecords={taxsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewTaxCategory : undefined}
-              onDelete={canDeleteCategory ? handleDeleteTaxCategory : undefined}
-              onEdit={canEditCategory ? handleEditTaxCategory : undefined}
-              onCreate={canCreateCategory ? handleCreateTaxCategory : undefined}
-              onRefresh={refetchTaxCategory}
+              onDeleteAction={
+                canDeleteCategory ? handleDeleteTaxCategory : undefined
+              }
+              onEditAction={canEditCategory ? handleEditTaxCategory : undefined}
+              onCreateAction={
+                canCreateCategory ? handleCreateTaxCategory : undefined
+              }
+              onRefreshAction={refetchTaxCategory}
               onFilterChange={handleCategoryFilterChange}
               onPageChange={handleCategoryPageChange}
               onPageSizeChange={handleCategoryPageSizeChange}
