@@ -285,7 +285,10 @@ export function LeaveDashboard({
               </div>
             </CardHeader>
             <CardContent>
-              <LeaveRequestTable leaves={filteredLeaves} onSave={onLeaveSave} />
+              <LeaveRequestTable
+                leaves={filteredLeaves}
+                onSaveAction={onLeaveSave}
+              />
             </CardContent>
           </Card>
         </TabsContent>

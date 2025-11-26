@@ -21,7 +21,7 @@ export interface InvoiceTableProps {
   onFilterChange: (filters: IApInvoiceFilter) => void
   initialFilters?: IApInvoiceFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function InvoiceTable({
@@ -29,7 +29,7 @@ export default function InvoiceTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: InvoiceTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -508,11 +508,11 @@ export default function InvoiceTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />

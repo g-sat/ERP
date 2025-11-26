@@ -857,7 +857,7 @@ export default function TariffPage() {
         }}
       >
         <DialogContent
-          className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             if (hasFormErrors) {
               e.preventDefault()
@@ -884,8 +884,8 @@ export default function TariffPage() {
           </DialogHeader>
           <TariffForm
             tariff={selectedTariff}
-            onSave={handleSaveTariff}
-            onClose={() => setIsModalOpen(false)}
+            onSaveAction={handleSaveTariff}
+            onCloseAction={() => setIsModalOpen(false)}
             mode={modalMode}
             customerId={watchedCustomerId || apiParams.customerId}
             portId={apiParams.portId}

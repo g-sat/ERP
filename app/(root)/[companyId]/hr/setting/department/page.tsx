@@ -156,7 +156,7 @@ export default function DepartmentPage() {
 
           <DepartmentForm
             department={selectedDepartment || undefined}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

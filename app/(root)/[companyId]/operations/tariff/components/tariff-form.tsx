@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import React, { useEffect } from "react"
+import { ICustomerLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { useAuthStore } from "@/stores/auth-store"
@@ -27,8 +28,8 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TariffFormProps {
   tariff?: ITariff
-  onSave: (data: ITariff) => void
-  onClose: () => void
+  onSaveAction: (data: ITariff) => void
+  onCloseAction: () => void
   mode: "create" | "edit" | "view"
   customerId: number
   portId: number
@@ -38,8 +39,8 @@ interface TariffFormProps {
 
 export function TariffForm({
   tariff,
-  onSave,
-  onClose,
+  onSaveAction,
+  onCloseAction,
   mode,
   customerId,
   portId,
@@ -190,9 +191,18 @@ export function TariffForm({
       remarks: data.remarks || "",
     }
 
-    console.log("Calling onSave with tariffData:", tariffData)
-    onSave(tariffData)
+    console.log("Calling onSaveAction with tariffData:", tariffData)
+    onSaveAction(tariffData)
   }
+
+  // Handle customer selection
+  const handleCustomerChange = React.useCallback(
+    async (selectedCustomer: ICustomerLookup | null) => {
+      form.setValue("currencyId", selectedCustomer?.currencyId || 0)
+      form.trigger()
+    },
+    [form]
+  )
 
   return (
     <div className="max-w flex flex-col gap-2">
@@ -243,16 +253,17 @@ export function TariffForm({
               }
             }
           )}
-          className="space-y-6"
+          className="space-y-3"
         >
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <CustomerAutocomplete
-              key={`customer-${mode}-${customerId}`}
+              key={`customer-autocomplete-${mode}-${customerId}`}
               form={form}
               name="customerId"
-              label="Customer"
-              isRequired
+              label="Customer-S"
+              isRequired={true}
               isDisabled={mode === "view"}
+              onChangeEvent={handleCustomerChange}
             />
 
             <CurrencyAutocomplete
@@ -277,6 +288,7 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
+
             <ChargeAutocomplete
               form={form}
               name="chargeId"
@@ -301,7 +313,8 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-4 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomNumberInput
               form={form}
               name="displayRate"
@@ -334,7 +347,8 @@ export function TariffForm({
               isDisabled={mode === "view"}
               round={amtDec}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-3 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomSwitch
               form={form}
               name="isAdditional"
@@ -349,7 +363,6 @@ export function TariffForm({
               isDisabled={mode === "view" || !isAdditional}
               round={amtDec}
             />
-
             <CustomNumberInput
               form={form}
               name="additionalRate"
@@ -358,7 +371,8 @@ export function TariffForm({
               isDisabled={mode === "view" || !isAdditional}
               round={amtDec}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-2 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomSwitch
               form={form}
               name="isPrepayment"
@@ -373,6 +387,8 @@ export function TariffForm({
               isDisabled={mode === "view" || !isPrepayment}
               round={amtDec}
             />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
             <CustomTextarea
               form={form}
               name="remarks"
@@ -397,7 +413,7 @@ export function TariffForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={onCloseAction}
               className="flex items-center gap-2"
             >
               <XIcon className="h-4 w-4" />

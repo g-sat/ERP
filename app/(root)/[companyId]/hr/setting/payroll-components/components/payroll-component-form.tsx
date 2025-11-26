@@ -13,10 +13,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   initialData?: PayrollComponentFormData
-  onSave(data: PayrollComponentFormData): void
+  onSaveAction(data: PayrollComponentFormData): void
 }
 
-export function PayrollComponentForm({ initialData, onSave }: Props) {
+export function PayrollComponentForm({ initialData, onSaveAction }: Props) {
   const form = useForm<PayrollComponentFormData>({
     resolver: zodResolver(componentSchema),
     defaultValues: {
@@ -39,8 +39,8 @@ export function PayrollComponentForm({ initialData, onSave }: Props) {
     console.log("Form validation state:", form.formState)
 
     if (form.formState.isValid) {
-      console.log("Form is valid, calling onSave")
-      onSave(data)
+      console.log("Form is valid, calling onSaveAction")
+      onSaveAction(data)
     } else {
       console.log("Form validation errors:", form.formState.errors)
     }

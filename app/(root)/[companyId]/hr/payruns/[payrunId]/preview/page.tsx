@@ -418,7 +418,7 @@ export default function PayRunPreviewPage() {
 
               <PayRunPreviewForm
                 employee={selectedEmployee}
-                onClose={() => setShowForm(false)}
+                onCloseAction={() => setShowForm(false)}
                 onRefetch={refetch}
                 payrunId={payrunId}
               />

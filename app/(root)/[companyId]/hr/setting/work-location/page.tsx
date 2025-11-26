@@ -127,7 +127,7 @@ export default function WorkLocationPage() {
 
           <WorkLocationForm
             initialData={editingItem as WorkLocationFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

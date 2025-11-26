@@ -11,10 +11,13 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DepartmentFormProps {
   department?: IDepartment
-  onSave: (data: DepartmentSchemaType) => void
+  onSaveAction: (data: DepartmentSchemaType) => void
 }
 
-export function DepartmentForm({ department, onSave }: DepartmentFormProps) {
+export function DepartmentForm({
+  department,
+  onSaveAction,
+}: DepartmentFormProps) {
   const form = useForm<DepartmentSchemaType>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
@@ -26,7 +29,7 @@ export function DepartmentForm({ department, onSave }: DepartmentFormProps) {
   })
 
   const onSubmit = (data: DepartmentSchemaType) => {
-    onSave(data)
+    onSaveAction(data)
   }
 
   return (

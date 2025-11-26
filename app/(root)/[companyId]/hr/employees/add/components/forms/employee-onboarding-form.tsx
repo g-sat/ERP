@@ -104,14 +104,14 @@ type EmployeeOnboardingData = z.infer<typeof employeeOnboardingSchema>
 
 interface Props {
   employeeName?: string
-  onSave?: (data: EmployeeOnboardingData) => void
+  onSaveAction?: (data: EmployeeOnboardingData) => void
   onCancel?: () => void
   currentStep?: number
 }
 
 export function EmployeeOnboardingForm({
   employeeName = "New Employee",
-  onSave,
+  onSaveAction,
   onCancel,
   currentStep: initialStep = 1,
 }: Props) {
@@ -196,7 +196,7 @@ export function EmployeeOnboardingForm({
         setCompletedSteps([...completedSteps, currentStep])
       } else {
         const data = form.getValues()
-        onSave?.(data)
+        onSaveAction?.(data)
       }
     }
   }

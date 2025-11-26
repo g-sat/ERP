@@ -139,7 +139,7 @@ export default function PayrollComponentsPage() {
 
           <PayrollComponentForm
             initialData={editingItem as PayrollComponentFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

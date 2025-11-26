@@ -26,7 +26,7 @@ import {
 
 interface PayScheduleFormProps {
   initialData?: PayScheduleFormData
-  onSave: (data: PayScheduleFormData) => void
+  onSaveAction: (data: PayScheduleFormData) => void
 }
 
 const DAYS_OF_WEEK = [
@@ -54,7 +54,10 @@ const MONTHS = [
   "Dec",
 ]
 
-export function PayScheduleForm({ initialData, onSave }: PayScheduleFormProps) {
+export function PayScheduleForm({
+  initialData,
+  onSaveAction,
+}: PayScheduleFormProps) {
   const form = useForm<PayScheduleFormData>({
     resolver: zodResolver(payScheduleSchema),
     defaultValues: {
@@ -174,7 +177,7 @@ export function PayScheduleForm({ initialData, onSave }: PayScheduleFormProps) {
   }
 
   const onSubmit = (data: PayScheduleFormData) => {
-    onSave(data)
+    onSaveAction(data)
   }
 
   const toggleWorkingDay = (dayCode: string) => {

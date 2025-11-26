@@ -47,7 +47,7 @@ import { Textarea } from "@/components/ui/textarea"
 interface LeaveRequestTableProps {
   leaves: ILeave[]
   onView?: (leave: ILeave) => void
-  onSave?: (
+  onSaveAction?: (
     leaveId: string,
     action: "approve" | "reject" | "cancel",
     notes?: string
@@ -64,7 +64,7 @@ interface ApprovalDialogData {
 export function LeaveRequestTable({
   leaves,
   onView,
-  onSave,
+  onSaveAction,
   showActions = true,
 }: LeaveRequestTableProps) {
   const [selectedLeave, setSelectedLeave] = useState<ILeave | null>(null)
@@ -113,8 +113,8 @@ export function LeaveRequestTable({
 
     const { leave, action, notes } = approvalDialog
 
-    // Call the single onSave function with action and notes
-    onSave?.(leave.leaveId.toString(), action, notes)
+    // Call the single onSaveAction function with action and notes
+    onSaveAction?.(leave.leaveId.toString(), action, notes)
 
     // Close dialog and reset
     setApprovalDialog({

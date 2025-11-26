@@ -473,12 +473,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     items,
     parentTitle,
     isOpen,
-    onClose,
+    onCloseAction,
   }: {
     items: MenuItem[]
     parentTitle: string
     isOpen: boolean
-    onClose: () => void
+    onCloseAction: () => void
   }) => {
     if (!isOpen || !items || items.length === 0) {
       return null
@@ -515,7 +515,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 href={getUrlWithCompanyId(item.url)}
                 onClick={() => {
                   handleSubMenuClick(parentTitle, item.title)
-                  onClose()
+                  onCloseAction()
                 }}
                 className="hover:bg-primary/10 hover:text-primary group flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-200 hover:shadow-sm"
                 onMouseEnter={() => setHoveredSubMenu(item.title)}
@@ -667,7 +667,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                           items={item.items}
                           parentTitle={item.title}
                           isOpen={floatingMenuOpen === item.title}
-                          onClose={() => setFloatingMenuOpen(null)}
+                          onCloseAction={() => setFloatingMenuOpen(null)}
                         />
 
                         <CollapsibleContent>
@@ -842,7 +842,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                           items={group.items}
                           parentTitle={group.title}
                           isOpen={floatingMenuOpen === group.title}
-                          onClose={() => setFloatingMenuOpen(null)}
+                          onCloseAction={() => setFloatingMenuOpen(null)}
                         />
 
                         {group.items && (

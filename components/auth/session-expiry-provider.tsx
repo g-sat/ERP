@@ -17,7 +17,7 @@ export function SessionExpiryProvider({
     isRefreshing,
     onSignOut,
     onStaySignedIn,
-    onClose,
+    onCloseAction,
   } = useSessionExpiry()
 
   return (
@@ -25,7 +25,7 @@ export function SessionExpiryProvider({
       {children}
       <SessionExpiryModal
         isOpen={showModal}
-        onCloseAction={onClose}
+        onCloseAction={onCloseAction}
         onStaySignedInAction={onStaySignedIn}
         onSignOutAction={onSignOut}
         timeRemaining={timeRemaining}

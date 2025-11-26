@@ -455,7 +455,7 @@ export function useSessionExpiry() {
     isRefreshing,
     onSignOut: handleSignOut,
     onStaySignedIn: handleStaySignedIn,
-    onClose: handleClose,
+    onCloseAction: handleClose,
     ...(process.env.NODE_ENV === "development" && { testSessionExpiry }), // Only expose in development
   }
 }

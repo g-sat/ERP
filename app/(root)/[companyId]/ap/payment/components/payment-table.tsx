@@ -21,7 +21,7 @@ export interface PaymentTableProps {
   onFilterChange: (filters: IApPaymentFilter) => void
   initialFilters?: IApPaymentFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function PaymentTable({
@@ -29,7 +29,7 @@ export default function PaymentTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: PaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -521,11 +521,11 @@ export default function PaymentTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />

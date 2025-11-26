@@ -156,7 +156,7 @@ export default function PettyCashPage() {
         <CardContent>
           <PettyCashTable
             pettyCashRequests={pettyCashRequests}
-            onSave={() => {}}
+            onSaveAction={() => {}}
             showActions={false}
           />
         </CardContent>
