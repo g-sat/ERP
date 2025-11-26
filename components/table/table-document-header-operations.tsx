@@ -50,7 +50,7 @@ declare module "jspdf" {
 type DocumentOperationsTableHeaderProps<TData> = {
   onRefreshAction?: () => void
   onCreateAction?: () => void
-  onBulkDelete?: () => void
+  onBulkDeleteAction?: () => void
   onSaveOrder?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -68,7 +68,7 @@ type DocumentOperationsTableHeaderProps<TData> = {
 }
 export function DocumentOperationsTableHeader<TData>({
   onRefreshAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onSaveOrder,
   searchQuery,
   onSearchChange,
@@ -254,7 +254,7 @@ export function DocumentOperationsTableHeader<TData>({
             {hasSelectedRows && selectedRowsCount > 0 && (
               <Button
                 variant="destructive"
-                onClick={onBulkDelete}
+                onClick={onBulkDeleteAction}
                 disabled={isConfirmed}
                 title={
                   isConfirmed

@@ -1062,7 +1062,7 @@ export default function AccountSetupPage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}
-        onCancel={() => setExistingCategory(null)}
+        onCancelAction={() => setExistingCategory(null)}
         code={existingCategory?.accSetupCategoryCode}
         name={existingCategory?.accSetupCategoryName}
         typeLabel="Account Setup Category"
@@ -1076,7 +1076,7 @@ export default function AccountSetupPage() {
         open={showLoadDialogSetup}
         onOpenChange={setShowLoadDialogSetup}
         onLoad={handleLoadExistingSetup}
-        onCancel={() => setExistingSetup(null)}
+        onCancelAction={() => setExistingSetup(null)}
         code={existingSetup?.accSetupCode}
         name={existingSetup?.accSetupName}
         typeLabel="Account Setup"
@@ -1092,7 +1092,7 @@ export default function AccountSetupPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1131,7 +1131,7 @@ export default function AccountSetupPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmationCategory({
             isOpen: false,
             data: null,
@@ -1163,7 +1163,7 @@ export default function AccountSetupPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmationSetup({
             isOpen: false,
             data: null,
@@ -1193,7 +1193,7 @@ export default function AccountSetupPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmationDt({
             isOpen: false,
             data: null,

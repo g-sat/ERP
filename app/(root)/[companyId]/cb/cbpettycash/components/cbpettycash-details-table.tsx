@@ -12,7 +12,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 interface CbPettyCashDetailsTableProps {
   data: ICbPettyCashDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onEditAction?: (template: ICbPettyCashDt) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -24,7 +24,7 @@ interface CbPettyCashDetailsTableProps {
 export default function CbPettyCashDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onRefreshAction,
   onFilterChange,
@@ -49,8 +49,8 @@ export default function CbPettyCashDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -321,7 +321,7 @@ export default function CbPettyCashDetailsTable({
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
         onEditAction={onEditAction}

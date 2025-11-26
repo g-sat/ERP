@@ -440,7 +440,7 @@ export default function ChargePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCharge}
-        onCancel={() => setExistingCharge(null)}
+        onCancelAction={() => setExistingCharge(null)}
         code={existingCharge?.chargeCode}
         name={existingCharge?.chargeName}
         typeLabel="Account Group"
@@ -457,7 +457,7 @@ export default function ChargePage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.chargeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             chargeId: null,
@@ -485,7 +485,7 @@ export default function ChargePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

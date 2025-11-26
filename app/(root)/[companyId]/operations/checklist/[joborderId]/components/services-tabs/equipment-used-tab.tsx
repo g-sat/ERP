@@ -556,7 +556,7 @@ export function EquipmentUsedTab({
                 : undefined
             }
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
             taskDefaults={taskDefaults}
@@ -577,7 +577,7 @@ export function EquipmentUsedTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -627,7 +627,7 @@ export function EquipmentUsedTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -647,7 +647,7 @@ export function EquipmentUsedTab({
         description="This action cannot be undone. This will permanently delete the equipment used from our servers."
         itemName={deleteConfirmation.equipmentUsedName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             equipmentUsedId: null,

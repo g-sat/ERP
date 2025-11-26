@@ -34,7 +34,7 @@ interface CrewSignOnFormProps {
   initialData?: ICrewSignOn
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: CrewSignOnSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -44,7 +44,7 @@ export function CrewSignOnForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: CrewSignOnFormProps) {
@@ -350,7 +350,7 @@ export function CrewSignOnForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

@@ -12,7 +12,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 interface InvoiceDetailsTableProps {
   data: IArInvoiceDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onEditAction?: (template: IArInvoiceDt) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -24,7 +24,7 @@ interface InvoiceDetailsTableProps {
 export default function InvoiceDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onRefreshAction,
   onFilterChange,
@@ -49,8 +49,8 @@ export default function InvoiceDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -317,7 +317,7 @@ export default function InvoiceDetailsTable({
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
         onEditAction={onEditAction}

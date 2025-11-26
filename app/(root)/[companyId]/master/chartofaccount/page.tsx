@@ -1334,7 +1334,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogChart}
         onOpenChange={setShowLoadDialogChart}
         onLoad={handleLoadExistingChartOfAccount}
-        onCancel={() => setExistingChartOfAccount(null)}
+        onCancelAction={() => setExistingChartOfAccount(null)}
         code={existingChartOfAccount?.glCode}
         name={existingChartOfAccount?.glName}
         typeLabel="Chart of Account"
@@ -1345,7 +1345,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory1}
         onOpenChange={setShowLoadDialogCategory1}
         onLoad={handleLoadExistingCoaCategory1}
-        onCancel={() => setExistingCoaCategory1(null)}
+        onCancelAction={() => setExistingCoaCategory1(null)}
         code={existingCoaCategory1?.coaCategoryCode}
         name={existingCoaCategory1?.coaCategoryName}
         typeLabel="COA Category 1"
@@ -1356,7 +1356,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory2}
         onOpenChange={setShowLoadDialogCategory2}
         onLoad={handleLoadExistingCoaCategory2}
-        onCancel={() => setExistingCoaCategory2(null)}
+        onCancelAction={() => setExistingCoaCategory2(null)}
         code={existingCoaCategory2?.coaCategoryCode}
         name={existingCoaCategory2?.coaCategoryName}
         typeLabel="COA Category 2"
@@ -1367,7 +1367,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory3}
         onOpenChange={setShowLoadDialogCategory3}
         onLoad={handleLoadExistingCoaCategory3}
-        onCancel={() => setExistingCoaCategory3(null)}
+        onCancelAction={() => setExistingCoaCategory3(null)}
         code={existingCoaCategory3?.coaCategoryCode}
         name={existingCoaCategory3?.coaCategoryName}
         typeLabel="COA Category 3"
@@ -1384,7 +1384,7 @@ export default function ChartOfAccountPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1438,7 +1438,7 @@ export default function ChartOfAccountPage() {
             type: "chartofaccount",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

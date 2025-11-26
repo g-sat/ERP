@@ -16,7 +16,7 @@ interface DebitNoteItemsTableProps {
   onCreateAction?: () => void
   onEditAction?: (item: IDebitNoteItem) => void
   onDeleteAction?: (item: IDebitNoteItem) => void
-  onBulkDelete?: (items: IDebitNoteItem[]) => void
+  onBulkDeleteAction?: (items: IDebitNoteItem[]) => void
   onDataReorder?: (newData: IDebitNoteItem[]) => void
   moduleId?: number
   transactionId?: number
@@ -32,7 +32,7 @@ export function DebitNoteItemsTable({
   onCreateAction,
   onEditAction,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onDataReorder,
   moduleId,
   transactionId,
@@ -140,9 +140,9 @@ export function DebitNoteItemsTable({
       const items = data.filter((d) =>
         selectedIds.includes(d.debitNoteId.toString())
       )
-      onBulkDelete?.(items)
+      onBulkDeleteAction?.(items)
     },
-    [onBulkDelete, data]
+    [onBulkDeleteAction, data]
   )
 
   const handleDataReorder = useCallback(
@@ -185,7 +185,7 @@ export function DebitNoteItemsTable({
       onCreateAction={handleCreate}
       onEditAction={handleEdit}
       onDeleteAction={handleDelete}
-      onBulkDelete={handleBulkDelete}
+      onBulkDeleteAction={handleBulkDelete}
       onDataReorder={handleDataReorder}
       isConfirmed={isConfirmed}
       showHeader={false}

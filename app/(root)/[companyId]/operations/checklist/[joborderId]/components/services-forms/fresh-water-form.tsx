@@ -37,7 +37,7 @@ interface FreshWaterFormProps {
   initialData?: IFreshWater
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: FreshWaterSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -47,7 +47,7 @@ export function FreshWaterForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: FreshWaterFormProps) {
@@ -357,7 +357,7 @@ export function FreshWaterForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

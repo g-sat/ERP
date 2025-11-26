@@ -837,7 +837,7 @@ export default function BankPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingBank}
-        onCancel={() => {
+        onCancelAction={() => {
           setExistingBank(null)
           setShowLoadDialog(false)
         }}
@@ -852,7 +852,7 @@ export default function BankPage() {
         open={showBankSaveConfirmation}
         onOpenChange={setShowBankSaveConfirmation}
         onConfirm={handleBankSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingBankData(null)
           setShowBankSaveConfirmation(false)
         }}
@@ -866,7 +866,7 @@ export default function BankPage() {
         open={showAddressSaveConfirmation}
         onOpenChange={setShowAddressSaveConfirmation}
         onConfirm={handleAddressSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingAddressData(null)
           setShowAddressSaveConfirmation(false)
         }}
@@ -884,7 +884,7 @@ export default function BankPage() {
         open={showContactSaveConfirmation}
         onOpenChange={setShowContactSaveConfirmation}
         onConfirm={handleContactSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingContactData(null)
           setShowContactSaveConfirmation(false)
         }}
@@ -903,7 +903,7 @@ export default function BankPage() {
         open={showBankDeleteConfirmation}
         onOpenChange={setShowBankDeleteConfirmation}
         onConfirm={handleBankDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteBank(null)
           setShowBankDeleteConfirmation(false)
         }}
@@ -916,7 +916,7 @@ export default function BankPage() {
         open={showAddressDeleteConfirmation}
         onOpenChange={setShowAddressDeleteConfirmation}
         onConfirm={handleAddressDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteAddressId(null)
           setPendingDeleteAddress(null)
           setShowAddressDeleteConfirmation(false)
@@ -930,7 +930,7 @@ export default function BankPage() {
         open={showContactDeleteConfirmation}
         onOpenChange={setShowContactDeleteConfirmation}
         onConfirm={handleContactDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteContactId(null)
           setPendingDeleteContact(null)
           setShowContactDeleteConfirmation(false)

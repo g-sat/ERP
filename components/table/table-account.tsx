@@ -62,7 +62,7 @@ interface AccountBaseTableProps<T> {
   onSelect?: (item: T | null) => void
   onEditAction?: (item: T) => void
   onDeleteAction?: (itemId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
@@ -91,7 +91,7 @@ export function AccountBaseTable<T>({
   onSelect,
   onEditAction,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onBulkSelectionChange,
   onDataReorder,
   isConfirmed,
@@ -376,7 +376,7 @@ export function AccountBaseTable<T>({
 
   // Handle bulk delete
   const handleBulkDelete = () => {
-    if (!onBulkDelete) return
+    if (!onBulkDeleteAction) return
 
     const selectedRowIds = Object.keys(rowSelection)
     const selectedItems = data.filter((_, index) =>
@@ -391,7 +391,7 @@ export function AccountBaseTable<T>({
       })
       .filter((id) => id !== "")
 
-    onBulkDelete(selectedIds)
+    onBulkDeleteAction(selectedIds)
   }
 
   // Handle bulk selection change
@@ -454,7 +454,7 @@ export function AccountBaseTable<T>({
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onRefreshAction={onRefreshAction}
-          onBulkDelete={handleBulkDelete}
+          onBulkDeleteAction={handleBulkDelete}
           columns={table
             .getHeaderGroups()
             .flatMap((group) => group.headers)

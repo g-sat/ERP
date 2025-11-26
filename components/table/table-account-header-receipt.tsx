@@ -51,7 +51,7 @@ declare module "jspdf" {
 type AccountReceiptTableHeaderProps<TData> = {
   onRefreshAction?: () => void
   onCreateAction?: () => void
-  onBulkDelete?: () => void
+  onBulkDeleteAction?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -68,7 +68,7 @@ type AccountReceiptTableHeaderProps<TData> = {
 }
 export function AccountReceiptTableHeader<TData>({
   onRefreshAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -260,7 +260,7 @@ export function AccountReceiptTableHeader<TData>({
               data.length > 0 && (
                 <Button
                   variant="destructive"
-                  onClick={onBulkDelete}
+                  onClick={onBulkDeleteAction}
                   disabled={isConfirmed}
                   title={
                     isConfirmed

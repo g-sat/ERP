@@ -13,7 +13,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 interface GLJournalDetailsTableProps {
   data: IGLJournalDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onEditAction?: (template: IGLJournalDt) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -25,7 +25,7 @@ interface GLJournalDetailsTableProps {
 export default function GLJournalDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onRefreshAction,
   onFilterChange,
@@ -50,8 +50,8 @@ export default function GLJournalDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -296,7 +296,7 @@ export default function GLJournalDetailsTable({
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
         onEditAction={onEditAction}

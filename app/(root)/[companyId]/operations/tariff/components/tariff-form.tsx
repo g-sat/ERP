@@ -93,6 +93,7 @@ export function TariffForm({
       isDefault: initialData?.isDefault || true,
       isActive: initialData?.isActive || true,
       remarks: initialData?.remarks || "",
+      editVersion: initialData?.editVersion || 0,
     },
   })
 
@@ -129,6 +130,7 @@ export function TariffForm({
         isDefault: initialData.isDefault || true,
         isActive: initialData.isActive || true,
         remarks: initialData.remarks || "",
+        editVersion: initialData.editVersion || 0,
       })
     } else if (mode === "create") {
       // For create mode, reset form with props values
@@ -159,6 +161,7 @@ export function TariffForm({
         isDefault: true,
         isActive: true,
         remarks: "",
+        editVersion: 0,
       })
     }
   }, [initialData, form, customerId, portId, taskId, mode, defaultCurrencyId])
@@ -209,6 +212,7 @@ export function TariffForm({
       isDefault: data.isDefault,
       isActive: data.isActive,
       remarks: data.remarks || "",
+      editVersion: data.editVersion || 0,
     }
 
     console.log("Calling onSaveAction with tariffData:", tariffData)
@@ -453,6 +457,14 @@ export function TariffForm({
                             {initialData.createDate ? "Created" : ""}
                             {initialData.editDate ? " • Modified" : ""}
                           </Badge>
+                          {initialData.editVersion && (
+                            <Badge
+                              variant="destructive"
+                              className="bg-primary text-primary-foreground text-xs font-semibold"
+                            >
+                              V {initialData.editVersion}
+                            </Badge>
+                          )}
                         </div>
                       </CustomAccordionTrigger>
                       <CustomAccordionContent className="px-6 pb-4">

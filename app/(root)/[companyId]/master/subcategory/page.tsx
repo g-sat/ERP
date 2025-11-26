@@ -430,7 +430,7 @@ export default function SubCategoryPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingSubCategory}
-        onCancel={() => setExistingSubCategory(null)}
+        onCancelAction={() => setExistingSubCategory(null)}
         code={existingSubCategory?.subCategoryCode}
         name={existingSubCategory?.subCategoryName}
         typeLabel="SubCategory Group"
@@ -447,7 +447,7 @@ export default function SubCategoryPage() {
         description="This action cannot be undone. This will permanently delete the subCategory type from our servers."
         itemName={deleteConfirmation.subCategoryName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             subCategoryId: null,
@@ -479,7 +479,7 @@ export default function SubCategoryPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -433,7 +433,7 @@ export default function AccountGroupPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingAccountGroup}
-        onCancel={() => setExistingAccountGroup(null)}
+        onCancelAction={() => setExistingAccountGroup(null)}
         code={existingAccountGroup?.accGroupCode}
         name={existingAccountGroup?.accGroupName}
         typeLabel="Account Group"
@@ -450,7 +450,7 @@ export default function AccountGroupPage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.accountGroupName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             accountGroupId: null,
@@ -482,7 +482,7 @@ export default function AccountGroupPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

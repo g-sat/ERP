@@ -426,7 +426,7 @@ export default function CountryPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCountry}
-        onCancel={() => setExistingCountry(null)}
+        onCancelAction={() => setExistingCountry(null)}
         code={existingCountry?.countryCode}
         name={existingCountry?.countryName}
         typeLabel="Country"
@@ -451,7 +451,7 @@ export default function CountryPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,
@@ -470,7 +470,7 @@ export default function CountryPage() {
         description="This action cannot be undone. This will permanently delete the country from our servers."
         itemName={deleteConfirmation.countryName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             countryId: null,

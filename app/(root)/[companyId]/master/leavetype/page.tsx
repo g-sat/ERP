@@ -407,7 +407,7 @@ export default function LeaveTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingLeaveType}
-        onCancel={() => setExistingLeaveType(null)}
+        onCancelAction={() => setExistingLeaveType(null)}
         code={existingLeaveType?.leaveTypeCode}
         name={existingLeaveType?.leaveTypeName}
         typeLabel="Leave Type"
@@ -424,7 +424,7 @@ export default function LeaveTypePage() {
         description="This action cannot be undone. This will permanently delete the leave type from our servers."
         itemName={deleteConfirmation.leaveTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             leaveTypeId: null,
@@ -454,7 +454,7 @@ export default function LeaveTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -105,14 +105,14 @@ type EmployeeOnboardingData = z.infer<typeof employeeOnboardingSchema>
 interface Props {
   employeeName?: string
   onSaveAction?: (data: EmployeeOnboardingData) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   currentStep?: number
 }
 
 export function EmployeeOnboardingForm({
   employeeName = "New Employee",
   onSaveAction,
-  onCancel,
+  onCancelAction,
   currentStep: initialStep = 1,
 }: Props) {
   const [currentStep, setCurrentStep] = useState(initialStep)
@@ -893,7 +893,11 @@ export function EmployeeOnboardingForm({
                       <span>Previous</span>
                     </Button>
                   )}
-                  <Button type="button" variant="outline" onClick={onCancel}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancelAction}
+                  >
                     {currentStep === 5 ? "Will do later" : "Cancel"}
                   </Button>
                 </div>

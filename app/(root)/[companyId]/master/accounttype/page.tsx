@@ -412,7 +412,7 @@ export default function AccountTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingAccountType}
-        onCancel={() => setExistingAccountType(null)}
+        onCancelAction={() => setExistingAccountType(null)}
         code={existingAccountType?.accTypeCode}
         name={existingAccountType?.accTypeName}
         typeLabel="Account Type"
@@ -429,7 +429,7 @@ export default function AccountTypePage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.accountTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             accountTypeId: null,
@@ -459,7 +459,7 @@ export default function AccountTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

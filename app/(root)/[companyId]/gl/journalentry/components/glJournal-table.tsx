@@ -275,7 +275,7 @@ export default function GLJournalTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -293,7 +293,7 @@ export default function GLJournalTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {

@@ -12,7 +12,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 interface CbGenReceiptDetailsTableProps {
   data: ICbGenReceiptDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onEditAction?: (template: ICbGenReceiptDt) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -24,7 +24,7 @@ interface CbGenReceiptDetailsTableProps {
 export default function CbGenReceiptDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onRefreshAction,
   onFilterChange,
@@ -49,8 +49,8 @@ export default function CbGenReceiptDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -263,7 +263,7 @@ export default function CbGenReceiptDetailsTable({
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
         onEditAction={onEditAction}

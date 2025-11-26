@@ -458,7 +458,7 @@ export function EmployeeSalaryDetailsTable({
           </DialogHeader>
           <SalaryComponentsForm
             employeeSalaryDetails={employeeSalaryDetails}
-            onCancel={handleCancelEdit}
+            onCancelAction={handleCancelEdit}
             onSaveSuccess={() => setEditSalaryDialogOpen(false)}
           />
         </DialogContent>

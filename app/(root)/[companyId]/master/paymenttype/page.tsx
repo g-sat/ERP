@@ -394,7 +394,7 @@ export default function PaymentTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPaymentType}
-        onCancel={() => setExistingPaymentType(null)}
+        onCancelAction={() => setExistingPaymentType(null)}
         code={existingPaymentType?.paymentTypeCode}
         name={existingPaymentType?.paymentTypeName}
         typeLabel="Payment Type"
@@ -410,7 +410,7 @@ export default function PaymentTypePage() {
         description="This action cannot be undone. This will permanently delete the payment type from our servers."
         itemName={deleteConfirmation.paymentTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             paymentTypeId: null,
@@ -440,7 +440,7 @@ export default function PaymentTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

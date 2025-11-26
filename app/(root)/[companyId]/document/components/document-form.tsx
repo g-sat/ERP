@@ -52,13 +52,13 @@ import { DocumentDetailsTable } from "./document-details-table"
 interface DocumentFormProps {
   document?: IUniversalDocumentHd
   onSuccess?: () => void
-  onCancel?: () => void
+  onCancelAction?: () => void
 }
 
 export function DocumentForm({
   document,
   onSuccess,
-  onCancel,
+  onCancelAction,
 }: DocumentFormProps) {
   const [details, setDetails] = useState<IUniversalDocumentDt[]>([])
   const [selectedEntityType, setSelectedEntityType] = useState<number>(0)
@@ -289,7 +289,7 @@ export function DocumentForm({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={onCancel}
+                  onClick={onCancelAction}
                   className="w-full sm:w-auto"
                 >
                   Cancel

@@ -22,7 +22,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 interface PaymentDetailsTableProps {
   data: IApPaymentDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IApPaymentDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => number | void
   visible: IVisibleFields
@@ -32,7 +32,7 @@ interface PaymentDetailsTableProps {
 export default function PaymentDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onDataReorder,
   onCellEdit,
   visible: _visible,
@@ -500,11 +500,11 @@ export default function PaymentDetailsTable({
         tableName={TableName.apPaymentDt}
         emptyMessage="No payment details found."
         accessorId="itemNo"
-        onBulkDelete={
+        onBulkDeleteAction={
           isCancelled
             ? undefined
             : (selectedIds: string[]) =>
-                onBulkDelete?.(selectedIds.map((id) => Number(id)))
+                onBulkDeleteAction?.(selectedIds.map((id) => Number(id)))
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
@@ -522,7 +522,7 @@ export default function PaymentDetailsTable({
         open={deleteDialogOpen}
         onOpenChange={handleDeleteDialogChange}
         onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
+        onCancelAction={handleDeleteCancel}
         itemName={pendingDeleteTarget?.label}
         description="This detail will be removed from the payment. This action cannot be undone."
       />

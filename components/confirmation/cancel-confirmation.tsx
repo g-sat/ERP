@@ -30,7 +30,7 @@ interface CancelConfirmationProps {
   // Called when the user confirms the cancellation
   onConfirmAction: (cancelRemarks: string) => void
   // Called when the user cancels the cancellation
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the cancel operation is in progress
   isCancelling?: boolean
 }
@@ -42,7 +42,7 @@ export function CancelConfirmation({
   open,
   onOpenChange,
   onConfirmAction,
-  onCancel,
+  onCancelAction,
   isCancelling = false,
 }: CancelConfirmationProps) {
   // Use internal state if open/onOpenChange are not provided
@@ -65,7 +65,7 @@ export function CancelConfirmation({
   // Handle the cancel action
   const handleCancel = () => {
     setCancelRemarks("")
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

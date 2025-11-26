@@ -39,7 +39,7 @@ interface DebitNoteFormProps {
   debitNoteHd?: IDebitNoteHd
   initialData?: IDebitNoteDt
   submitAction: (data: DebitNoteDtSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
   taskId: number
@@ -59,7 +59,7 @@ export default function DebitNoteForm({
   debitNoteHd,
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
   taskId,
@@ -674,8 +674,8 @@ export default function DebitNoteForm({
     setDialogType("replaceUnitPrice")
     // Notify parent that charge is cleared
     onChargeChange?.("")
-    // Call the onCancel callback if provided
-    onCancel?.()
+    // Call the onCancelAction callback if provided
+    onCancelAction?.()
   }
 
   return (

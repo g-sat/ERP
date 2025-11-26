@@ -624,7 +624,7 @@ export default function UomPage() {
         open={showLoadDialogUom}
         onOpenChange={setShowLoadDialogUom}
         onLoad={handleLoadExistingUom}
-        onCancel={() => setExistingUom(null)}
+        onCancelAction={() => setExistingUom(null)}
         code={existingUom?.uomCode}
         name={existingUom?.uomName}
         typeLabel="UOM"
@@ -641,7 +641,7 @@ export default function UomPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -684,7 +684,7 @@ export default function UomPage() {
             type: "uom",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

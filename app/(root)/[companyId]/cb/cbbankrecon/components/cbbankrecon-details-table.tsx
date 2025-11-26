@@ -13,7 +13,7 @@ import { AccountEditableBaseTable } from "@/components/table/table-account-edita
 interface BankReconDetailsTableProps {
   data: ICbBankReconDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankReconDt[]) => void
@@ -28,7 +28,7 @@ interface BankReconDetailsTableProps {
 export default function BankReconDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onRefreshAction,
   onFilterChange,
   onDataReorder,
@@ -55,8 +55,8 @@ export default function BankReconDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -277,7 +277,7 @@ export default function BankReconDetailsTable({
       columns={columns as ColumnDef<unknown>[]}
       accessorId={"itemNo" as keyof unknown}
       onDeleteAction={handleDelete}
-      onBulkDelete={handleBulkDelete}
+      onBulkDeleteAction={handleBulkDelete}
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onDataReorder={(newData) => onDataReorder?.(newData as ICbBankReconDt[])}

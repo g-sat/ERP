@@ -13,7 +13,7 @@ interface TemplateDetailsTableProps {
   isLoading?: boolean
   onSelect?: (template: ITemplateDt | null) => void
   onDeleteAction?: (templateId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onEditAction?: (template: ITemplateDt) => void
   onCreateAction?: () => void
   onRefreshAction?: () => void
@@ -26,7 +26,7 @@ export function TemplateDetailsTable({
   isLoading = false,
   onSelect,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onCreateAction,
   onRefreshAction,
@@ -119,7 +119,7 @@ export function TemplateDetailsTable({
       onCreateAction={onCreateAction}
       onEditAction={onEditAction}
       onDeleteAction={onDeleteAction}
-      onBulkDelete={onBulkDelete}
+      onBulkDeleteAction={onBulkDeleteAction}
       onDataReorder={onDataReorder}
       isConfirmed={false}
       showHeader={true}

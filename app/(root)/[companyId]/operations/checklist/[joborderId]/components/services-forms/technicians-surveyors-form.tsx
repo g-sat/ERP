@@ -41,7 +41,7 @@ interface TechniciansSurveyorsFormProps {
   initialData?: ITechnicianSurveyor
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: TechnicianSurveyorSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -51,7 +51,7 @@ export function TechniciansSurveyorsForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: TechniciansSurveyorsFormProps) {
@@ -110,8 +110,7 @@ export function TechniciansSurveyorsForm({
         : "",
       disembarked: initialData?.disembarked
         ? format(
-            parseWithFallback(initialData.disembarked as string) ||
-              new Date(),
+            parseWithFallback(initialData.disembarked as string) || new Date(),
             dateFormat
           )
         : "",
@@ -148,8 +147,7 @@ export function TechniciansSurveyorsForm({
         : "",
       disembarked: initialData?.disembarked
         ? format(
-            parseWithFallback(initialData.disembarked as string) ||
-              new Date(),
+            parseWithFallback(initialData.disembarked as string) || new Date(),
             dateFormat
           )
         : "",
@@ -400,7 +398,7 @@ export function TechniciansSurveyorsForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

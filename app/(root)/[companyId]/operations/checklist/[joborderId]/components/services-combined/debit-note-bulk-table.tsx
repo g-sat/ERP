@@ -144,7 +144,7 @@ export function BulkDebitNoteTable({
       onCreateAction={handleCreate}
       onEditAction={handleEdit}
       onDeleteAction={handleDelete}
-      onBulkDelete={handleBulkDelete}
+      onBulkDeleteAction={handleBulkDelete}
       onBulkSelectionChange={handleBulkSelectionChange}
       onDataReorder={onDataReorder || handleDataReorder}
       isConfirmed={isConfirmed}

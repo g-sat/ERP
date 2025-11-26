@@ -26,7 +26,7 @@ interface SaveConfirmationProps {
   // Called when the user confirms the save
   onConfirm: () => void
   // Called when the user cancels the save
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the save operation is in progress
   isSaving?: boolean
   // Type of operation (create, update, etc.)
@@ -39,7 +39,7 @@ export function SaveConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   isSaving = false,
   operationType = "save",
 }: SaveConfirmationProps) {
@@ -58,7 +58,7 @@ export function SaveConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

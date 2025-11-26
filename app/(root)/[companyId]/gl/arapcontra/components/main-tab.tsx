@@ -957,7 +957,7 @@ export default function Main({
                 data={(arDataDetails as unknown as IGLContraDt[]) || []}
                 visible={visible}
                 onDeleteAction={handleArDelete}
-                onBulkDelete={handleArBulkDelete}
+                onBulkDeleteAction={handleArBulkDelete}
                 onDataReorder={handleArDataReorder}
                 onCellEdit={handleCellEdit}
               />
@@ -1004,7 +1004,7 @@ export default function Main({
                 data={(apDataDetails as unknown as IGLContraDt[]) || []}
                 visible={visible}
                 onDeleteAction={handleApDelete}
-                onBulkDelete={handleApBulkDelete}
+                onBulkDeleteAction={handleApBulkDelete}
                 onDataReorder={handleApDataReorder}
                 onCellEdit={handleCellEdit}
               />
@@ -1017,7 +1017,7 @@ export default function Main({
         open={isBulkDeleteDialogOpenAr}
         onOpenChange={handleArBulkDeleteDialogChange}
         onConfirm={handleArBulkDeleteConfirm}
-        onCancel={handleArBulkDeleteCancel}
+        onCancelAction={handleArBulkDeleteCancel}
         itemName={bulkDeleteItemNameAr}
         description="Selected AR contra details will be removed. This action cannot be undone."
       />
@@ -1026,7 +1026,7 @@ export default function Main({
         open={isBulkDeleteDialogOpenAp}
         onOpenChange={handleApBulkDeleteDialogChange}
         onConfirm={handleApBulkDeleteConfirm}
-        onCancel={handleApBulkDeleteCancel}
+        onCancelAction={handleApBulkDeleteCancel}
         itemName={bulkDeleteItemNameAp}
         description="Selected AP contra details will be removed. This action cannot be undone."
       />

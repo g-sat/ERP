@@ -728,7 +728,7 @@ export default function Main({
           data={(dataDetails as unknown as IArReceiptDt[]) || []}
           visible={visible}
           onDeleteAction={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onDataReorder={handleDataReorder as (newData: IArReceiptDt[]) => void}
           onCellEdit={handleCellEdit}
         />
@@ -738,7 +738,7 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
         description="Selected receipt details will be removed. This action cannot be undone."
       />

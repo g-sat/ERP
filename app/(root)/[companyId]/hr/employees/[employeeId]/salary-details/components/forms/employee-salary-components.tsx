@@ -27,14 +27,14 @@ import { CurrencyFormatter } from "@/components/currency-icons/currency-formatte
 
 interface Props {
   employee?: ISalaryComponent
-  onCancel?: () => void
+  onCancelAction?: () => void
   onSaveSuccess?: () => void
   employeeSalaryDetails: ISalaryComponent[]
 }
 
 export function SalaryComponentsForm({
   employee,
-  onCancel,
+  onCancelAction,
   onSaveSuccess,
   employeeSalaryDetails,
 }: Props) {
@@ -103,7 +103,7 @@ export function SalaryComponentsForm({
 
   const handleCancel = () => {
     form.reset()
-    onCancel?.()
+    onCancelAction?.()
   }
 
   return (

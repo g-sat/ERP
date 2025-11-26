@@ -23,11 +23,11 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
-  onCancel?: () => void
+  onCancelAction?: () => void
   onSaveAction?: (data: EmployeeBasicValues) => void
 }
 
-export function EmployeeBasicForm({ onCancel, onSaveAction }: Props) {
+export function EmployeeBasicForm({ onCancelAction, onSaveAction }: Props) {
   const form = useForm<EmployeeBasicValues>({
     resolver: zodResolver(employeeBasicSchema),
     defaultValues: {
@@ -58,7 +58,7 @@ export function EmployeeBasicForm({ onCancel, onSaveAction }: Props) {
 
   const handleCancel = () => {
     form.reset()
-    onCancel?.()
+    onCancelAction?.()
   }
 
   return (

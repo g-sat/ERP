@@ -28,7 +28,7 @@ const defaultValues: TemplateDtSchemaType = {
 interface TemplateDetailsFormProps {
   initialData?: ITemplateDt
   submitAction: (data: TemplateDtSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   shouldReset?: boolean
@@ -39,7 +39,7 @@ interface TemplateDetailsFormProps {
 export function TemplateDetailsForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   shouldReset = false,
@@ -200,7 +200,11 @@ export function TemplateDetailsForm({
               </div>
 
               <div className="flex items-center justify-end gap-2">
-                <Button variant="outline" type="button" onClick={onCancel}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={onCancelAction}
+                >
                   {isReadOnly ? "Close" : "Cancel"}
                 </Button>
                 {!isReadOnly && (

@@ -404,7 +404,7 @@ export default function DesignationPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingDesignation}
-        onCancel={() => setExistingDesignation(null)}
+        onCancelAction={() => setExistingDesignation(null)}
         code={existingDesignation?.designationCode}
         name={existingDesignation?.designationName}
         typeLabel="Designation"
@@ -420,7 +420,7 @@ export default function DesignationPage() {
         description="This action cannot be undone. This will permanently delete the designation from our servers."
         itemName={deleteConfirmation.designationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             designationId: null,
@@ -450,7 +450,7 @@ export default function DesignationPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

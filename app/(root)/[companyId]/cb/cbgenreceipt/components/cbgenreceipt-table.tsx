@@ -312,7 +312,7 @@ export default function CbGenReceiptTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -330,7 +330,7 @@ export default function CbGenReceiptTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {

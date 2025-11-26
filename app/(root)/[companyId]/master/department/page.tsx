@@ -404,7 +404,7 @@ export default function DepartmentPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingDepartment}
-        onCancel={() => setExistingDepartment(null)}
+        onCancelAction={() => setExistingDepartment(null)}
         code={existingDepartment?.departmentCode}
         name={existingDepartment?.departmentName}
         typeLabel="Department"
@@ -420,7 +420,7 @@ export default function DepartmentPage() {
         description="This action cannot be undone. This will permanently delete the department from our servers."
         itemName={deleteConfirmation.departmentName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             departmentId: null,
@@ -450,7 +450,7 @@ export default function DepartmentPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import {
+  copyCompanyTariffDirect,
   copyRateDirect,
   deleteTariffDirect,
   saveTariffDirect,
@@ -508,6 +509,7 @@ export default function TariffPage() {
   }
 
   const handleCopyRateConfirmation = (data: Record<string, unknown>) => {
+    console.log("handleCopyRateConfirmation", data)
     setSaveConfirmation({
       isOpen: true,
       type: "copyRate",
@@ -516,6 +518,7 @@ export default function TariffPage() {
   }
 
   const handleCopyCompanyRateConfirmation = (data: Record<string, unknown>) => {
+    console.log("handleCopyCompanyRateConfirmation", data)
     setSaveConfirmation({
       isOpen: true,
       type: "copyCompanyRate",
@@ -554,14 +557,22 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      // This would need to be implemented based on your copy company rate API
-      // For now, we'll show a success message
-      setShowCopyCompanyRateForm(false)
-      toast.success("Company rates copied successfully")
-      refetchTariffByTask()
+      const response = await copyCompanyTariffDirect(
+        saveConfirmation.data as unknown as Parameters<
+          typeof copyCompanyTariffDirect
+        >[0]
+      )
+      if (response?.result === 1) {
+        setShowCopyCompanyRateForm(false)
+        toast.success(response.message || "Rates copied successfully")
+        refetchTariffByTask()
+      } else {
+        const errorMessage = response?.message || "Failed to copy rates"
+        toast.error(errorMessage)
+      }
     } catch (error) {
-      console.error("Error copying company rates:", error)
-      toast.error("Failed to copy company rates")
+      console.error("Error copying rates:", error)
+      toast.error("Failed to copy rates")
     } finally {
       setSaveConfirmation({
         isOpen: false,
@@ -922,7 +933,7 @@ export default function TariffPage() {
               </DialogDescription>
             </DialogHeader>
             <CopyRateForm
-              onCancel={() => setShowCopyRateForm(false)}
+              onCancelAction={() => setShowCopyRateForm(false)}
               onSaveConfirmation={handleCopyRateConfirmation}
             />
           </DialogContent>
@@ -952,7 +963,7 @@ export default function TariffPage() {
               </DialogDescription>
             </DialogHeader>
             <CopyCompanyRateForm
-              onCancel={() => setShowCopyCompanyRateForm(false)}
+              onCancelAction={() => setShowCopyCompanyRateForm(false)}
               onSaveConfirmation={handleCopyCompanyRateConfirmation}
             />
           </DialogContent>

@@ -733,7 +733,7 @@ export default function OrderTypePage() {
         open={showLoadDialogOrderType}
         onOpenChange={setShowLoadDialogOrderType}
         onLoad={handleLoadExistingOrderType}
-        onCancel={() => setExistingOrderType(null)}
+        onCancelAction={() => setExistingOrderType(null)}
         code={existingOrderType?.orderTypeCode}
         name={existingOrderType?.orderTypeName}
         typeLabel="Order Type"
@@ -744,7 +744,7 @@ export default function OrderTypePage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}
-        onCancel={() => setExistingOrderTypeCategory(null)}
+        onCancelAction={() => setExistingOrderTypeCategory(null)}
         code={existingOrderTypeCategory?.orderTypeCategoryCode}
         name={existingOrderTypeCategory?.orderTypeCategoryName}
         typeLabel="Order Type Category"
@@ -763,7 +763,7 @@ export default function OrderTypePage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -807,7 +807,7 @@ export default function OrderTypePage() {
             type: "ordertype",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

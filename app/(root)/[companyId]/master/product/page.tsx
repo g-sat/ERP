@@ -385,7 +385,7 @@ export default function ProductPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingProduct}
-        onCancel={() => setExistingProduct(null)}
+        onCancelAction={() => setExistingProduct(null)}
         code={existingProduct?.productCode}
         name={existingProduct?.productName}
         typeLabel="Product"
@@ -401,7 +401,7 @@ export default function ProductPage() {
         description="This action cannot be undone. This will permanently delete the product from our servers."
         itemName={deleteConfirmation.productName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             productId: null,
@@ -429,7 +429,7 @@ export default function ProductPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

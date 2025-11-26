@@ -34,6 +34,7 @@ export const tariffSchema = z
     isDefault: z.boolean(),
     remarks: z.string().optional(),
     isActive: z.boolean(),
+    editVersion: z.number().optional(),
   })
   .refine(
     (data) => {

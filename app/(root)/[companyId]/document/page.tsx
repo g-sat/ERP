@@ -78,7 +78,10 @@ export default function DocumentExpiryPage() {
                 <span className="sm:hidden">Back</span>
               </Button>
             </div>
-            <DocumentForm onSuccess={handleSuccess} onCancel={handleCancel} />
+            <DocumentForm
+              onSuccess={handleSuccess}
+              onCancelAction={handleCancel}
+            />
           </div>
         )
 
@@ -112,7 +115,7 @@ export default function DocumentExpiryPage() {
               <DocumentForm
                 document={completeDocument}
                 onSuccess={handleSuccess}
-                onCancel={handleCancel}
+                onCancelAction={handleCancel}
               />
             ) : (
               <Card>

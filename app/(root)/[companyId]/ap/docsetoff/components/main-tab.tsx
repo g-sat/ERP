@@ -734,7 +734,7 @@ export default function Main({
           data={(dataDetails as unknown as IApDocSetOffDt[]) || []}
           visible={visible}
           onDeleteAction={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onDataReorder={handleDataReorder}
           onCellEdit={handleCellEdit}
         />
@@ -744,7 +744,7 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
         description="Selected docsetoff details will be removed. This action cannot be undone."
       />

@@ -291,7 +291,7 @@ export default function Main({
         data={(dataDetails as unknown as ICbGenPaymentDt[]) || []}
         visible={visible}
         onDeleteAction={handleDelete}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onEditAction={handleEdit as (template: ICbGenPaymentDt) => void}
         onRefreshAction={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
@@ -308,7 +308,7 @@ export default function Main({
         open={showDeleteConfirmation}
         onOpenChange={setShowDeleteConfirmation}
         onConfirm={confirmBulkDelete}
-        onCancel={() => {
+        onCancelAction={() => {
           setShowDeleteConfirmation(false)
           setSelectedItemsToDelete([])
         }}
@@ -321,7 +321,7 @@ export default function Main({
         open={showSingleDeleteConfirmation}
         onOpenChange={setShowSingleDeleteConfirmation}
         onConfirm={confirmSingleDelete}
-        onCancel={() => {
+        onCancelAction={() => {
           setShowSingleDeleteConfirmation(false)
           setItemToDelete(null)
         }}

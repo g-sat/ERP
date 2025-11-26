@@ -65,7 +65,7 @@ interface DocumentBaseTableProps<T> {
   onDownload?: (item: T) => void
   onDeleteAction?: (item: T) => void
   onEditAction?: (item: T) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onPurchaseAction?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
@@ -96,7 +96,7 @@ export function DocumentBaseTable<T>({
   onDownload,
   onDeleteAction,
   onEditAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onBulkSelectionChange,
   onDataReorder,
   onSaveOrder: _onSaveOrder,
@@ -394,7 +394,7 @@ export function DocumentBaseTable<T>({
 
   // Handle bulk delete
   const handleBulkDelete = () => {
-    if (!onBulkDelete) return
+    if (!onBulkDeleteAction) return
 
     const selectedRowIds = Object.keys(rowSelection)
     const selectedItems = data.filter((_, index) =>
@@ -409,7 +409,7 @@ export function DocumentBaseTable<T>({
       })
       .filter((id) => id !== "")
 
-    onBulkDelete(selectedIds)
+    onBulkDeleteAction(selectedIds)
   }
 
   // Handle bulk selection change
@@ -464,7 +464,7 @@ export function DocumentBaseTable<T>({
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onRefreshAction={onRefreshAction}
-          onBulkDelete={handleBulkDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onSaveOrder={hasOrderChanged ? () => _onSaveOrder?.(data) : undefined}
           //columns={table.getAllLeafColumns()}
           columns={table

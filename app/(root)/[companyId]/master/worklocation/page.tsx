@@ -440,7 +440,7 @@ export default function WorkLocationPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingWorkLocation}
-        onCancel={() => setExistingWorkLocation(null)}
+        onCancelAction={() => setExistingWorkLocation(null)}
         code={existingWorkLocation?.workLocationCode}
         name={existingWorkLocation?.workLocationName}
         typeLabel="WorkLocation"
@@ -457,7 +457,7 @@ export default function WorkLocationPage() {
         description="This action cannot be undone. This will permanently delete the workLocation from our servers."
         itemName={deleteConfirmation.workLocationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             workLocationId: null,
@@ -487,7 +487,7 @@ export default function WorkLocationPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

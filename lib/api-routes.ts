@@ -1059,7 +1059,7 @@ export const Tariff = {
   add: "/operations/savetariff",
   delete: "/operations/DeleteTariff",
   copy: "/operations/copytariff",
-  copyCompanyTariff: "/operations/copycompanytariff",
+  copyCompanyTariff: "/operations/CopyCompanyTariff",
 }
 
 // Template Endpoints

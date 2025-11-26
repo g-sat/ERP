@@ -554,7 +554,7 @@ export function LaunchServicesTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -573,7 +573,7 @@ export function LaunchServicesTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -622,7 +622,7 @@ export function LaunchServicesTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -641,7 +641,7 @@ export function LaunchServicesTab({
         description="This action cannot be undone. This will permanently delete the launch service from our servers."
         itemName={deleteConfirmation.launchServiceName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             launchServiceId: null,

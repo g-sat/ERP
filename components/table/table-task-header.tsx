@@ -452,7 +452,7 @@ export function TaskTableHeader<TData>({
         itemName={`${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`}
         hasExistingDebitNote={hasValidDebitNoteIds}
         onConfirm={handleConfirmDebitNote}
-        onCancel={handleCancelDebitNote}
+        onCancelAction={handleCancelDebitNote}
         isCreating={false} // You can add loading state here if needed
       />
     </>

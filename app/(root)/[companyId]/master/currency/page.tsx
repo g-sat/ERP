@@ -985,7 +985,7 @@ export default function CurrencyPage() {
         open={showLoadDialogCurrency}
         onOpenChange={setShowLoadDialogCurrency}
         onLoad={handleLoadExistingCurrency}
-        onCancel={() => setExistingCurrency(null)}
+        onCancelAction={() => setExistingCurrency(null)}
         code={existingCurrency?.currencyCode}
         name={existingCurrency?.currencyName}
         typeLabel="Currency"
@@ -1002,7 +1002,7 @@ export default function CurrencyPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1052,7 +1052,7 @@ export default function CurrencyPage() {
             type: "currency",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

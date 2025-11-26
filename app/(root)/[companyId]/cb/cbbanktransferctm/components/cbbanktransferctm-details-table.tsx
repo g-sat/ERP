@@ -11,7 +11,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 interface BankTransferCtmDetailsTableProps {
   data: ICbBankTransferCtmDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onEditAction?: (template: ICbBankTransferCtmDt) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -22,7 +22,7 @@ interface BankTransferCtmDetailsTableProps {
 export default function BankTransferCtmDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onRefreshAction,
   onFilterChange,
@@ -47,8 +47,8 @@ export default function BankTransferCtmDetailsTable({
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -201,7 +201,7 @@ export default function BankTransferCtmDetailsTable({
         accessorId={"itemNo" as keyof unknown}
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={(newData) =>
           onDataReorder?.(newData as ICbBankTransferCtmDt[])

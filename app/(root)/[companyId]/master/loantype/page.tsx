@@ -408,7 +408,7 @@ export default function LoanTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingLoanType}
-        onCancel={() => setExistingLoanType(null)}
+        onCancelAction={() => setExistingLoanType(null)}
         code={existingLoanType?.loanTypeCode}
         name={existingLoanType?.loanTypeName}
         typeLabel="Loan Type"
@@ -425,7 +425,7 @@ export default function LoanTypePage() {
         description="This action cannot be undone. This will permanently delete the loan type from our servers."
         itemName={deleteConfirmation.loanTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             loanTypeId: null,
@@ -453,7 +453,7 @@ export default function LoanTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

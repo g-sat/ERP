@@ -952,7 +952,7 @@ export default function GstPage() {
         open={showLoadDialogGst}
         onOpenChange={setShowLoadDialogGst}
         onLoad={handleLoadExistingGst}
-        onCancel={() => setExistingGst(null)}
+        onCancelAction={() => setExistingGst(null)}
         code={existingGst?.gstCode}
         name={existingGst?.gstName}
         typeLabel="VAT | GST"
@@ -963,7 +963,7 @@ export default function GstPage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingGstCategory}
-        onCancel={() => setExistingGstCategory(null)}
+        onCancelAction={() => setExistingGstCategory(null)}
         code={existingGstCategory?.gstCategoryCode}
         name={existingGstCategory?.gstCategoryName}
         typeLabel="VAT | GST Category"
@@ -982,7 +982,7 @@ export default function GstPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1031,7 +1031,7 @@ export default function GstPage() {
             type: "gst",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

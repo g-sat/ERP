@@ -36,7 +36,7 @@ interface AgencyRemunerationFormProps {
   initialData?: IAgencyRemuneration
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: AgencyRemunerationSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -46,7 +46,7 @@ export function AgencyRemunerationForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: AgencyRemunerationFormProps) {
@@ -293,7 +293,7 @@ export function AgencyRemunerationForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

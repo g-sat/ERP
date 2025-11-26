@@ -389,7 +389,7 @@ export default function PortPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPort}
-        onCancel={() => setExistingPort(null)}
+        onCancelAction={() => setExistingPort(null)}
         code={existingPort?.portCode}
         name={existingPort?.portName}
         typeLabel="Port"
@@ -405,7 +405,7 @@ export default function PortPage() {
         description="This action cannot be undone. This will permanently delete the port from our servers."
         itemName={deleteConfirmation.portName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             portId: null,
@@ -433,7 +433,7 @@ export default function PortPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -50,7 +50,7 @@ const defaultValues = {
 interface UserFormProps {
   initialData?: IUser
   submitAction: (data: UserSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserSchemaType) => void
@@ -60,7 +60,7 @@ interface UserFormProps {
 export function UserForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
@@ -323,7 +323,7 @@ export function UserForm({
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={onCancel}
+                  onClick={onCancelAction}
                   className="w-full sm:w-auto"
                 >
                   {isReadOnly ? "Close" : "Cancel"}

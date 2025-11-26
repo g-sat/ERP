@@ -117,7 +117,7 @@ export default function Main({
       <BankReconDetailsTable
         data={dataDetails as unknown as ICbBankReconDt[]}
         onDeleteAction={handleDelete}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onDataReorder={handleDataReorder}
         visible={visible}
       />

@@ -31,7 +31,7 @@ const defaultValues = {
 interface UserRoleFormProps {
   initialData?: IUserRole
   submitAction: (data: UserRoleSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserRoleSchemaType) => void
@@ -41,7 +41,7 @@ interface UserRoleFormProps {
 export function UserRoleForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
@@ -232,7 +232,7 @@ export function UserRoleForm({
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={onCancel}
+                  onClick={onCancelAction}
                   className="w-full sm:w-auto"
                 >
                   {isReadOnly ? "Close" : "Cancel"}

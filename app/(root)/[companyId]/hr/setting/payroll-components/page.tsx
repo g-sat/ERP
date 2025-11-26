@@ -184,7 +184,7 @@ export default function PayrollComponentsPage() {
         description="This action cannot be undone. This will permanently delete the payroll component from our servers."
         itemName={editingItem?.componentName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

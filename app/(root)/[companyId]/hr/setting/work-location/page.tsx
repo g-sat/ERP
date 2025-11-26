@@ -172,7 +172,7 @@ export default function WorkLocationPage() {
         description="This action cannot be undone. This will permanently delete the work location from our servers."
         itemName={editingItem?.workLocationName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

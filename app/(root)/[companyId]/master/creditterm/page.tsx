@@ -677,7 +677,7 @@ export default function CreditTermPage() {
         open={showLoadDialogCreditTerm}
         onOpenChange={setShowLoadDialogCreditTerm}
         onLoad={handleLoadExistingCreditTerm}
-        onCancel={() => setExistingCreditTerm(null)}
+        onCancelAction={() => setExistingCreditTerm(null)}
         code={existingCreditTerm?.creditTermCode}
         name={existingCreditTerm?.creditTermName}
         typeLabel="Credit Term"
@@ -694,7 +694,7 @@ export default function CreditTermPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -743,7 +743,7 @@ export default function CreditTermPage() {
             type: "creditterm",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -398,7 +398,7 @@ export default function PortRegionPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPortRegion}
-        onCancel={() => setExistingPortRegion(null)}
+        onCancelAction={() => setExistingPortRegion(null)}
         code={existingPortRegion?.portRegionCode}
         name={existingPortRegion?.portRegionName}
         typeLabel="Port Region"
@@ -414,7 +414,7 @@ export default function PortRegionPage() {
         description="This action cannot be undone. This will permanently delete the portregion from our servers."
         itemName={deleteConfirmation.portRegionName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             portRegionId: null,
@@ -444,7 +444,7 @@ export default function PortRegionPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

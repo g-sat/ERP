@@ -161,7 +161,7 @@ export default function SalaryDetailsPage() {
                 ? employeeSalaryDetails
                 : getFreshDefaultSalaryComponents()
             }
-            onCancel={handleCancelAdd}
+            onCancelAction={handleCancelAdd}
             onSaveSuccess={handleSaveSuccess}
           />
         </DialogContent>

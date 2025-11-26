@@ -429,7 +429,7 @@ export default function CategoryPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCategory}
-        onCancel={() => setExistingCategory(null)}
+        onCancelAction={() => setExistingCategory(null)}
         code={existingCategory?.categoryCode}
         name={existingCategory?.categoryName}
         typeLabel="Category Group"
@@ -446,7 +446,7 @@ export default function CategoryPage() {
         description="This action cannot be undone. This will permanently delete the category type from our servers."
         itemName={deleteConfirmation.categoryName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             categoryId: null,
@@ -478,7 +478,7 @@ export default function CategoryPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

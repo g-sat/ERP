@@ -949,7 +949,7 @@ export default function TaxPage() {
         open={showLoadDialogTax}
         onOpenChange={setShowLoadDialogTax}
         onLoad={handleLoadExistingTax}
-        onCancel={() => setExistingTax(null)}
+        onCancelAction={() => setExistingTax(null)}
         code={existingTax?.taxCode}
         name={existingTax?.taxName}
         typeLabel="Tax"
@@ -960,7 +960,7 @@ export default function TaxPage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingTaxCategory}
-        onCancel={() => setExistingTaxCategory(null)}
+        onCancelAction={() => setExistingTaxCategory(null)}
         code={existingTaxCategory?.taxCategoryCode}
         name={existingTaxCategory?.taxCategoryName}
         typeLabel="Tax Category"
@@ -979,7 +979,7 @@ export default function TaxPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1028,7 +1028,7 @@ export default function TaxPage() {
             type: "tax",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -560,7 +560,7 @@ export function AgencyRemunerationTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -579,7 +579,7 @@ export function AgencyRemunerationTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -628,7 +628,7 @@ export function AgencyRemunerationTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -647,7 +647,7 @@ export function AgencyRemunerationTab({
         description="This action cannot be undone. This will permanently delete the agency remuneration from our servers."
         itemName={deleteConfirmation.agencyRemunerationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             agencyRemunerationId: null,

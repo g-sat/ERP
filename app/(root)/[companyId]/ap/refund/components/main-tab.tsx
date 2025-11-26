@@ -687,8 +687,8 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IApRefundDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onDeleteAction={handleDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onDataReorder={handleDataReorder as (newData: IApRefundDt[]) => void}
           onCellEdit={handleCellEdit}
         />
@@ -698,7 +698,7 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
         description="Selected payment details will be removed. This action cannot be undone."
       />

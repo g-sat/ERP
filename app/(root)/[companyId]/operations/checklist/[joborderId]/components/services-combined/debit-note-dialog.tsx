@@ -853,7 +853,7 @@ export default function DebitNoteDialog({
                   : undefined
               }
               submitAction={handleFormSubmit}
-              onCancel={() => setSelectedDebitNoteDetail(undefined)}
+              onCancelAction={() => setSelectedDebitNoteDetail(undefined)}
               isSubmitting={false}
               isConfirmed={isConfirmed}
               taskId={taskId}
@@ -874,7 +874,7 @@ export default function DebitNoteDialog({
                 onSelect={handleViewDebitNoteDetail}
                 onEditAction={handleEditDebitNoteDetail}
                 onDeleteAction={handleDeleteDebitNoteDetail}
-                onBulkDelete={handleBulkDeleteDebitNoteDetails}
+                onBulkDeleteAction={handleBulkDeleteDebitNoteDetails}
                 onCreateAction={handleCreateDebitNoteDetail}
                 onRefreshAction={handleRefresh}
                 onFilterChange={() => {}}
@@ -896,7 +896,7 @@ export default function DebitNoteDialog({
             description="This action cannot be undone. This will permanently delete the entire debit note and all its details from our servers."
             itemName={mainDeleteConfirmation.debitNoteNo || ""}
             onConfirm={handleConfirmMainDeleteMain}
-            onCancel={() =>
+            onCancelAction={() =>
               setMainDeleteConfirmation({
                 isOpen: false,
                 debitNoteId: null,
@@ -916,7 +916,7 @@ export default function DebitNoteDialog({
             description="This action cannot be undone. This will permanently delete the debit note detail from our servers."
             itemName={detailsDeleteConfirmation.debitNoteNo || ""}
             onConfirm={handleConfirmDeleteDetails}
-            onCancel={() =>
+            onCancelAction={() =>
               setDetailsDeleteConfirmation({
                 isOpen: false,
                 debitNoteId: null,
@@ -939,7 +939,7 @@ export default function DebitNoteDialog({
               `${bulkDeleteConfirmation.count} selected item${bulkDeleteConfirmation.count !== 1 ? "s" : ""}`
             }
             onConfirm={handleConfirmBulkDeleteBulk}
-            onCancel={() =>
+            onCancelAction={() =>
               setBulkDeleteConfirmation({
                 isOpen: false,
                 selectedIds: [],
@@ -960,7 +960,7 @@ export default function DebitNoteDialog({
             operationType={"update"}
             itemName={`Debit Note ${debitNoteHdState?.debitNoteNo || ""}`}
             onConfirm={handleSaveDebitNote}
-            onCancel={() =>
+            onCancelAction={() =>
               setSaveConfirmation({
                 isOpen: false,
               })

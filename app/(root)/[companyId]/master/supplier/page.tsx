@@ -891,7 +891,7 @@ export default function SupplierPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingSupplier}
-        onCancel={() => {
+        onCancelAction={() => {
           setExistingSupplier(null)
           setShowLoadDialog(false)
         }}
@@ -906,7 +906,7 @@ export default function SupplierPage() {
         open={showSupplierSaveConfirmation}
         onOpenChange={setShowSupplierSaveConfirmation}
         onConfirm={handleSupplierSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingSupplierData(null)
           setShowSupplierSaveConfirmation(false)
         }}
@@ -922,7 +922,7 @@ export default function SupplierPage() {
         open={showAddressSaveConfirmation}
         onOpenChange={setShowAddressSaveConfirmation}
         onConfirm={handleAddressSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingAddressData(null)
           setShowAddressSaveConfirmation(false)
         }}
@@ -940,7 +940,7 @@ export default function SupplierPage() {
         open={showContactSaveConfirmation}
         onOpenChange={setShowContactSaveConfirmation}
         onConfirm={handleContactSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingContactData(null)
           setShowContactSaveConfirmation(false)
         }}
@@ -959,7 +959,7 @@ export default function SupplierPage() {
         open={showSupplierDeleteConfirmation}
         onOpenChange={setShowSupplierDeleteConfirmation}
         onConfirm={handleSupplierDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteSupplier(null)
           setShowSupplierDeleteConfirmation(false)
         }}
@@ -972,7 +972,7 @@ export default function SupplierPage() {
         open={showAddressDeleteConfirmation}
         onOpenChange={setShowAddressDeleteConfirmation}
         onConfirm={handleAddressDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteAddressId(null)
           setPendingDeleteAddress(null)
           setShowAddressDeleteConfirmation(false)
@@ -986,7 +986,7 @@ export default function SupplierPage() {
         open={showContactDeleteConfirmation}
         onOpenChange={setShowContactDeleteConfirmation}
         onConfirm={handleContactDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteContactId(null)
           setPendingDeleteContact(null)
           setShowContactDeleteConfirmation(false)

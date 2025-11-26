@@ -30,7 +30,7 @@ const defaultValues = {
 interface UserGroupFormProps {
   initialData?: IUserGroup
   submitAction: (data: UserGroupSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserGroupSchemaType) => void
@@ -40,7 +40,7 @@ interface UserGroupFormProps {
 export function UserGroupForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
@@ -230,7 +230,7 @@ export function UserGroupForm({
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={onCancel}
+                  onClick={onCancelAction}
                   className="w-full sm:w-auto"
                 >
                   {isReadOnly ? "Close" : "Cancel"}

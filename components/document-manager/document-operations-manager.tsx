@@ -1093,7 +1093,7 @@ export default function DocumentOperationsManager({
                   })
                 }, [queryClient, moduleId, transactionId, recordId])}
                 onBulkSelectionChange={handleBulkSelectionChange}
-                onBulkDelete={handleBulkDelete}
+                onBulkDeleteAction={handleBulkDelete}
               />
             </CardContent>
           </Card>

@@ -39,7 +39,7 @@ interface MedicalAssistanceFormProps {
   initialData?: IMedicalAssistance
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: MedicalAssistanceSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -49,7 +49,7 @@ export function MedicalAssistanceForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: MedicalAssistanceFormProps) {
@@ -360,7 +360,7 @@ export function MedicalAssistanceForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

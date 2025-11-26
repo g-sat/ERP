@@ -19,7 +19,7 @@ interface DuplicateConfirmationProps {
   // Called when the user confirms to keep the duplicate data in form
   onConfirm: () => void
   // Called when the user cancels (resets the form)
-  onCancel?: () => void
+  onCancelAction?: () => void
   // The duplicate field values to display
   duplicateInfo?: {
     invoiceDate?: string
@@ -40,7 +40,7 @@ export function DuplicateConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   duplicateInfo,
 }: DuplicateConfirmationProps) {
   // Handle the confirm action
@@ -51,7 +51,7 @@ export function DuplicateConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     onOpenChange?.(false)
   }
 

@@ -179,7 +179,7 @@ export default function AccountIntegrationPage() {
         description="This action cannot be undone. This will permanently delete the account integration mapping from our servers."
         itemName={editingItem?.componentName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

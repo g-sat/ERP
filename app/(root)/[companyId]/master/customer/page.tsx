@@ -895,7 +895,7 @@ export default function CustomerPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCustomer}
-        onCancel={() => {
+        onCancelAction={() => {
           setExistingCustomer(null)
           setShowLoadDialog(false)
         }}
@@ -910,7 +910,7 @@ export default function CustomerPage() {
         open={showCustomerSaveConfirmation}
         onOpenChange={setShowCustomerSaveConfirmation}
         onConfirm={handleCustomerSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingCustomerData(null)
           setShowCustomerSaveConfirmation(false)
         }}
@@ -926,7 +926,7 @@ export default function CustomerPage() {
         open={showAddressSaveConfirmation}
         onOpenChange={setShowAddressSaveConfirmation}
         onConfirm={handleAddressSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingAddressData(null)
           setShowAddressSaveConfirmation(false)
         }}
@@ -944,7 +944,7 @@ export default function CustomerPage() {
         open={showContactSaveConfirmation}
         onOpenChange={setShowContactSaveConfirmation}
         onConfirm={handleContactSaveConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingContactData(null)
           setShowContactSaveConfirmation(false)
         }}
@@ -963,7 +963,7 @@ export default function CustomerPage() {
         open={showCustomerDeleteConfirmation}
         onOpenChange={setShowCustomerDeleteConfirmation}
         onConfirm={handleCustomerDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteCustomer(null)
           setShowCustomerDeleteConfirmation(false)
         }}
@@ -976,7 +976,7 @@ export default function CustomerPage() {
         open={showAddressDeleteConfirmation}
         onOpenChange={setShowAddressDeleteConfirmation}
         onConfirm={handleAddressDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteAddressId(null)
           setPendingDeleteAddress(null)
           setShowAddressDeleteConfirmation(false)
@@ -990,7 +990,7 @@ export default function CustomerPage() {
         open={showContactDeleteConfirmation}
         onOpenChange={setShowContactDeleteConfirmation}
         onConfirm={handleContactDeleteConfirm}
-        onCancel={() => {
+        onCancelAction={() => {
           setPendingDeleteContactId(null)
           setPendingDeleteContact(null)
           setShowContactDeleteConfirmation(false)

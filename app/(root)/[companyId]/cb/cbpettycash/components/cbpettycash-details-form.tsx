@@ -1456,7 +1456,7 @@ export default function CbPettyCashDetailsForm({
         open={showDuplicateConfirmation}
         onOpenChange={setShowDuplicateConfirmation}
         onConfirm={handleDuplicateConfirm}
-        onCancel={handleDuplicateCancel}
+        onCancelAction={handleDuplicateCancel}
         duplicateInfo={
           pendingSubmitData
             ? {

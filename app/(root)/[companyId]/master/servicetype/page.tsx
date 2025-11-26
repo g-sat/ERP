@@ -724,7 +724,7 @@ export default function ServiceTypePage() {
         open={showLoadDialogServiceType}
         onOpenChange={setShowLoadDialogServiceType}
         onLoad={handleLoadExistingServiceType}
-        onCancel={() => setExistingServiceType(null)}
+        onCancelAction={() => setExistingServiceType(null)}
         code={existingServiceType?.serviceTypeCode}
         name={existingServiceType?.serviceTypeName}
         typeLabel="Service Type"
@@ -735,7 +735,7 @@ export default function ServiceTypePage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}
-        onCancel={() => setExistingServiceTypeCategory(null)}
+        onCancelAction={() => setExistingServiceTypeCategory(null)}
         code={existingServiceTypeCategory?.serviceTypeCategoryCode}
         name={existingServiceTypeCategory?.serviceTypeCategoryName}
         typeLabel="Service Type Category"
@@ -754,7 +754,7 @@ export default function ServiceTypePage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,

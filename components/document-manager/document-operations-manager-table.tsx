@@ -23,7 +23,7 @@ interface DocumentOperationsManagerTableProps {
   onDeleteAction?: (doc: IDocType) => void
   onRefreshAction?: () => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
 }
 
 export default function DocumentOperationsManagerTable({
@@ -34,7 +34,7 @@ export default function DocumentOperationsManagerTable({
   onDeleteAction,
   onRefreshAction,
   onBulkSelectionChange,
-  onBulkDelete,
+  onBulkDeleteAction,
 }: DocumentOperationsManagerTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
@@ -151,7 +151,7 @@ export default function DocumentOperationsManagerTable({
       onDeleteAction={onDeleteAction}
       onRefreshAction={onRefreshAction}
       onBulkSelectionChange={onBulkSelectionChange}
-      onBulkDelete={onBulkDelete}
+      onBulkDeleteAction={onBulkDeleteAction}
       showHeader={true}
       showActions={true}
       hideView={false}

@@ -21,10 +21,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   employee?: IEmployeePersonalDetails
-  onCancel?: () => void
+  onCancelAction?: () => void
 }
 
-export function EmployeePersonalForm({ employee, onCancel }: Props) {
+export function EmployeePersonalForm({ employee, onCancelAction }: Props) {
   const { decimals } = useAuthStore()
   const dateFormat = useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -140,7 +140,7 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
 
   const handleCancel = () => {
     form.reset()
-    onCancel?.()
+    onCancelAction?.()
   }
 
   return (

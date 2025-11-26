@@ -526,7 +526,7 @@ export function ChecklistTabs({
               onCreateAction={handleDebitNoteCreate}
               onEditAction={handleDebitNoteEdit}
               onDeleteAction={handleDebitNoteDelete}
-              onBulkDelete={handleDebitNoteBulkDelete}
+              onBulkDeleteAction={handleDebitNoteBulkDelete}
               onDataReorder={handleDebitNoteDataReorder}
               moduleId={parseInt(jobOrderId) || 0}
               transactionId={parseInt(jobOrderId) || 0}

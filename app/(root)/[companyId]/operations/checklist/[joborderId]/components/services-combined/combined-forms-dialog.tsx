@@ -80,7 +80,7 @@ interface CombinedFormsDialogProps {
   multipleId: string
   onTaskAdded?: () => void
   onClearSelection?: () => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   title?: string
   description?: string
 }
@@ -96,7 +96,7 @@ export function CombinedFormsDialog({
   multipleId,
   onTaskAdded,
   onClearSelection,
-  onCancel,
+  onCancelAction,
   title = "Combined Services",
   description = "Manage bulk updates and task forwarding operations",
 }: CombinedFormsDialogProps) {
@@ -214,8 +214,8 @@ export function CombinedFormsDialog({
           }
 
           // Close the dialog on success
-          if (onCancel) {
-            onCancel()
+          if (onCancelAction) {
+            onCancelAction()
           }
         } else {
           // Operation failed, keep dialog open
@@ -278,7 +278,7 @@ export function CombinedFormsDialog({
               // This ensures tables refresh on both the source (where items were removed)
               // and target (where items were added) job orders
               safeInvalidateQueries()
-              
+
               // Also explicitly invalidate queries for the target job order
               // in case the user has it open in another tab/window
               if (targetJobOrderId) {
@@ -305,8 +305,8 @@ export function CombinedFormsDialog({
           }
 
           // Close the dialog on success
-          if (onCancel) {
-            onCancel()
+          if (onCancelAction) {
+            onCancelAction()
           }
         } else {
           // Operation failed, keep dialog open
@@ -499,7 +499,7 @@ export function CombinedFormsDialog({
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={onCancel}
+                      onClick={onCancelAction}
                       className="h-10"
                     >
                       Cancel
@@ -604,7 +604,7 @@ export function CombinedFormsDialog({
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={onCancel}
+                      onClick={onCancelAction}
                       className="h-10"
                     >
                       Cancel

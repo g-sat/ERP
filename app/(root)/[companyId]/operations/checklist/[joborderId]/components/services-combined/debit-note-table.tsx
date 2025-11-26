@@ -16,7 +16,7 @@ interface DebitNoteTableProps {
   isLoading?: boolean
   onSelect?: (debitNote: IDebitNoteDt | null) => void
   onDeleteAction?: (debitNoteId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onEditAction?: (debitNote: IDebitNoteDt) => void
   onCreateAction?: () => void
   onRefreshAction?: () => void
@@ -32,7 +32,7 @@ export function DebitNoteTable({
   isLoading = false,
   onSelect,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onEditAction,
   onCreateAction,
   onRefreshAction,
@@ -154,7 +154,7 @@ export function DebitNoteTable({
       onCreateAction={onCreateAction}
       onEditAction={onEditAction}
       onDeleteAction={onDeleteAction}
-      onBulkDelete={onBulkDelete}
+      onBulkDeleteAction={onBulkDeleteAction}
       onDataReorder={onDataReorder}
       isConfirmed={isConfirmed}
       showHeader={true}

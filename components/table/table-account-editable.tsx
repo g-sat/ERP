@@ -64,7 +64,7 @@ interface AccountEditableBaseTableProps<T> {
   onSelect?: (item: T | null) => void
   onEditAction?: (item: T) => void
   onDeleteAction?: (itemId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onPurchaseAction?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
@@ -93,7 +93,7 @@ export function AccountEditableBaseTable<T>({
   onSelect,
   onEditAction,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onBulkSelectionChange,
   onDataReorder,
   isConfirmed,
@@ -384,7 +384,7 @@ export function AccountEditableBaseTable<T>({
 
   // Handle bulk delete
   const handleBulkDelete = () => {
-    if (!onBulkDelete) return
+    if (!onBulkDeleteAction) return
 
     const selectedRowIds = Object.keys(rowSelection)
     const selectedItems = data.filter((_, index) =>
@@ -399,7 +399,7 @@ export function AccountEditableBaseTable<T>({
       })
       .filter((id) => id !== "")
 
-    onBulkDelete(selectedIds)
+    onBulkDeleteAction(selectedIds)
   }
 
   // Handle bulk selection change
@@ -454,7 +454,7 @@ export function AccountEditableBaseTable<T>({
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onRefreshAction={onRefreshAction}
-          onBulkDelete={handleBulkDelete}
+          onBulkDeleteAction={handleBulkDelete}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

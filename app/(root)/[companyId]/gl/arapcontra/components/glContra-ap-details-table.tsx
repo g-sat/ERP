@@ -27,7 +27,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 interface ApGLContraDetailsTableProps {
   data: IGLContraDt[]
   onDeleteAction?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IGLContraDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => number | void
   visible: IVisibleFields
@@ -37,7 +37,7 @@ interface ApGLContraDetailsTableProps {
 export default function ApGLContraDetailsTable({
   data,
   onDeleteAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   onDataReorder,
   onCellEdit,
   visible: _visible,
@@ -506,11 +506,11 @@ export default function ApGLContraDetailsTable({
         tableName={TableName.glContraDt}
         emptyMessage="No GL Contra details found."
         accessorId="itemNo"
-        onBulkDelete={
+        onBulkDeleteAction={
           isCancelled
             ? undefined
             : (selectedIds: string[]) =>
-                onBulkDelete?.(selectedIds.map((id) => Number(id)))
+                onBulkDeleteAction?.(selectedIds.map((id) => Number(id)))
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
@@ -528,7 +528,7 @@ export default function ApGLContraDetailsTable({
         open={deleteDialogOpen}
         onOpenChange={handleDeleteDialogChange}
         onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
+        onCancelAction={handleDeleteCancel}
         itemName={pendingDeleteTarget?.label}
         description="This detail will be removed from the GL Contra. This action cannot be undone."
       />

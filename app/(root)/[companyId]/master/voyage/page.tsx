@@ -432,7 +432,7 @@ export default function VoyagePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingVoyage}
-        onCancel={() => setExistingVoyage(null)}
+        onCancelAction={() => setExistingVoyage(null)}
         code={existingVoyage?.voyageNo}
         name={existingVoyage?.voyageNo}
         typeLabel="Voyage"
@@ -449,7 +449,7 @@ export default function VoyagePage() {
         description="This action cannot be undone. This will permanently delete the voyage from our servers."
         itemName={deleteConfirmation.voyageName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             voyageId: null,
@@ -477,7 +477,7 @@ export default function VoyagePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -7,10 +7,12 @@ import {
   IconSquareRoundedXFilled,
 } from "@tabler/icons-react"
 import { ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
 
 import { formatNumber } from "@/lib/format-utils"
 import { Task } from "@/lib/operations-utils"
 import { TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
 interface TariffTableProps {
@@ -49,7 +51,7 @@ export function TariffTable({
 }: TariffTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
-
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   // Define columns for the table
   const columns: ColumnDef<ITariff>[] = [
     {
@@ -215,6 +217,51 @@ export function TariffTable({
         </div>
       ),
       size: 80,
+    },
+    {
+      accessorKey: "createBy",
+      header: "Created By Name",
+    },
+    {
+      accessorKey: "createDate",
+      header: "Created Date",
+      cell: ({ row }) => {
+        const date = row.original.createDate
+          ? new Date(row.original.createDate)
+          : null
+        return date ? format(date, datetimeFormat) : "-"
+      },
+    },
+
+    {
+      accessorKey: "editBy",
+      header: "Edited By Name",
+    },
+    {
+      accessorKey: "editDate",
+      header: "Edited Date",
+      cell: ({ row }) => {
+        const date = row.original.editDate
+          ? new Date(row.original.editDate)
+          : null
+        return date ? format(date, datetimeFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "editVersion",
+      header: "Edit Version",
+      cell: ({ row }) => {
+        const version = row.getValue("editVersion") as number | null | undefined
+        return version ? (
+          <Badge variant="destructive" className="font-semibold">
+            {version}
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="font-semibold">
+            0
+          </Badge>
+        )
+      },
     },
   ]
 

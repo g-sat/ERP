@@ -2,8 +2,10 @@ import { ITaskDetails } from "@/interfaces/checklist"
 import { CopyRate, ITariff } from "@/interfaces/tariff"
 import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
+
 import { getById, getData, postData, saveData } from "@/lib/api-client"
 import { Tariff } from "@/lib/api-routes"
+
 /**
  * Query Configuration
  */
@@ -84,6 +86,48 @@ export function useGetTariffByTask(
       }
     },
     enabled: customerId > 0 && portId > 0 && hasSearched,
+  })
+}
+/**
+ * 1.3 Get Tariff By Company Task
+ * @param {number} companyId - Company ID
+ * @param {number} customerId - Customer ID
+ * @param {number} portId - Port ID
+ * @param {number} taskId - Task ID
+ * @param {boolean} hasSearched - Whether search has been performed
+ * @returns {object} Query object containing tariff data by company task
+ */
+export function useGetTariffByCompanyTask(
+  companyId: number,
+  customerId: number,
+  portId: number,
+  taskId: number,
+  hasSearched: boolean
+) {
+  return useQuery<{
+    result: number
+    message: string
+    data: ITariff[]
+    totalRecords: number
+  }>({
+    queryKey: ["tariffByCompanyTask", companyId, customerId, portId, taskId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getById(
+          `${Tariff.getTariffByTask}/${companyId}/${customerId}/${portId}/${taskId}`
+        )
+        return data
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled:
+      companyId > 0 &&
+      customerId > 0 &&
+      portId > 0 &&
+      taskId > 0 &&
+      hasSearched,
   })
 }
 /**

@@ -349,7 +349,7 @@ export default function AdminUserRolesPage() {
                 : undefined
             }
             submitAction={handleUserRoleFormSubmit}
-            onCancel={() => setIsRoleModalOpen(false)}
+            onCancelAction={() => setIsRoleModalOpen(false)}
             isSubmitting={
               saveRoleMutation.isPending || updateRoleMutation.isPending
             }
@@ -365,7 +365,7 @@ export default function AdminUserRolesPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExisting}
-        onCancel={() => setExistingUserRole(null)}
+        onCancelAction={() => setExistingUserRole(null)}
         code={existingUserRole?.userRoleCode}
         name={existingUserRole?.userRoleName}
         typeLabel="User Role"
@@ -382,7 +382,7 @@ export default function AdminUserRolesPage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.roleName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             userRoleId: null,
@@ -414,7 +414,7 @@ export default function AdminUserRolesPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -16,7 +16,7 @@ type LoadConfirmationProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onLoad: () => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   code?: string
   name?: string
   typeLabel: string
@@ -30,7 +30,7 @@ export const LoadConfirmation = ({
   open,
   onOpenChange,
   onLoad,
-  onCancel,
+  onCancelAction,
   code,
   name,
   typeLabel,
@@ -40,7 +40,7 @@ export const LoadConfirmation = ({
   showDetails = true,
 }: LoadConfirmationProps) => {
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     onOpenChange(false)
   }
 

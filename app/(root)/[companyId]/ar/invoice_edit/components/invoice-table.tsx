@@ -221,7 +221,7 @@ export default function InvoiceTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -239,7 +239,7 @@ export default function InvoiceTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {

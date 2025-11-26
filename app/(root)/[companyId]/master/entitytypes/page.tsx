@@ -405,7 +405,7 @@ export default function EntityTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingEntityType}
-        onCancel={() => setExistingEntityType(null)}
+        onCancelAction={() => setExistingEntityType(null)}
         code={existingEntityType?.entityTypeCode}
         name={existingEntityType?.entityTypeName}
         typeLabel="Entity Type"
@@ -422,7 +422,7 @@ export default function EntityTypePage() {
         description="This action cannot be undone. This will permanently delete the entity type from our servers."
         itemName={deleteConfirmation.entityTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             entityTypeId: null,
@@ -452,7 +452,7 @@ export default function EntityTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

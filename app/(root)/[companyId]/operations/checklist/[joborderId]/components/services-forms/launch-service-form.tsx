@@ -47,7 +47,7 @@ interface LaunchServiceFormProps {
   initialData?: ILaunchService
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: LaunchServiceSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -57,7 +57,7 @@ export function LaunchServiceForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: LaunchServiceFormProps) {
@@ -172,7 +172,8 @@ export function LaunchServiceForm({
           ? parseWithFallback(initialData.leftJetty as string) || undefined
           : undefined,
         alongsideVessel: initialData?.alongsideVessel
-          ? parseWithFallback(initialData.alongsideVessel as string) || undefined
+          ? parseWithFallback(initialData.alongsideVessel as string) ||
+            undefined
           : undefined,
         departedFromVessel: initialData?.departedFromVessel
           ? parseWithFallback(initialData.departedFromVessel as string) ||
@@ -660,7 +661,7 @@ export function LaunchServiceForm({
               )}
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

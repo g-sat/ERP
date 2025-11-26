@@ -50,7 +50,7 @@ declare module "jspdf" {
 type DebitNoteTableHeaderProps<TData> = {
   onRefreshAction?: () => void
   onCreateAction?: () => void
-  onBulkDelete?: () => void
+  onBulkDeleteAction?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -68,7 +68,7 @@ type DebitNoteTableHeaderProps<TData> = {
 export function DebitNoteTableHeader<TData>({
   onRefreshAction,
   onCreateAction,
-  onBulkDelete,
+  onBulkDeleteAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -268,7 +268,7 @@ export function DebitNoteTableHeader<TData>({
             {hasSelectedRows && selectedRowsCount > 0 && (
               <Button
                 variant="destructive"
-                onClick={onBulkDelete}
+                onClick={onBulkDeleteAction}
                 disabled={isConfirmed}
                 title={
                   isConfirmed

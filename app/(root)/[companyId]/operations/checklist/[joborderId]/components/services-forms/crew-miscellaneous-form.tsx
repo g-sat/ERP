@@ -35,7 +35,7 @@ interface CrewMiscellaneousFormProps {
   initialData?: ICrewMiscellaneous
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: CrewMiscellaneousSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -45,7 +45,7 @@ export function CrewMiscellaneousForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: CrewMiscellaneousFormProps) {
@@ -265,7 +265,7 @@ export function CrewMiscellaneousForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
