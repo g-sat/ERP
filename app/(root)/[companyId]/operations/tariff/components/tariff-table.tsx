@@ -76,17 +76,9 @@ export function TariffTable({
       accessorKey: "visaTypeName",
       header: "Visa Type",
       cell: ({ row }) => {
-        const taskId = row.original.taskId
-        const taskName = row.original.taskName
-        const visaTypeName = row.getValue("visaTypeName") as string
-
-        // Only show visa type name if it's VisaService task
-        if (taskId === Task.VisaService || taskName === "Visa Service") {
-          return <div>{visaTypeName || "-"}</div>
-        }
-        return <div>-</div>
+        return row.getValue("visaTypeName") || ""
       },
-      size: 80,
+      size: 120,
     },
     {
       accessorKey: "uomName",

@@ -139,11 +139,6 @@ const CATEGORY_CONFIG: Record<
     label: "Agency Remuneration",
     taskId: Task.AgencyRemuneration,
   },
-  visaService: {
-    id: "visaService",
-    label: "Visa Service",
-    taskId: Task.VisaService,
-  },
 }
 
 export default function TariffPage() {
@@ -725,7 +720,6 @@ export default function TariffPage() {
         [Task.LandingItems]: "landingItems",
         [Task.OtherService]: "otherService",
         [Task.AgencyRemuneration]: "agencyRemuneration",
-        [Task.VisaService]: "visaService",
       }
 
       const propertyName = taskCountMap[config.taskId as number]

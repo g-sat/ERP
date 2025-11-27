@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useMemo } from "react"
-import { ICustomerLookup } from "@/interfaces/lookup"
+import React, { useEffect, useMemo, useState } from "react"
+import { IChargeLookup, ICustomerLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { useAuthStore } from "@/stores/auth-store"
@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Task } from "@/lib/operations-utils"
-import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
+import { useChargeLookup, useCompanyCustomerLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -68,6 +68,9 @@ export function TariffForm({
   const defaultCurrencyId = useMemo(() => {
     return firstCustomerCurrencyId || 0
   }, [firstCustomerCurrencyId])
+
+  // State to track if selected charge has isVisaService = true
+  const [isVisaService, setIsVisaService] = useState(false)
 
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
@@ -166,17 +169,31 @@ export function TariffForm({
     }
   }, [initialData, form, customerId, portId, taskId, mode, defaultCurrencyId])
 
-  // Watch switch states for conditional field editing
-  const isAdditional = form.watch("isAdditional")
-  const isPrepayment = form.watch("isPrepayment")
-
   // Watch form values for debugging
   const watchedCustomerId = form.watch("customerId")
   const watchedPortId = form.watch("portId")
   const watchedTaskId = form.watch("taskId")
 
-  // Check if current task is VisaService (taskId = 16)
-  const isVisaService = watchedTaskId === Task.VisaService
+  // Get charges for the current task to check isVisaService
+  const { data: charges = [] } = useChargeLookup(watchedTaskId || taskId)
+
+  // Check initial charge's isVisaService when form loads with initialData
+  useEffect(() => {
+    if (initialData?.chargeId) {
+      const charge = charges.find(
+        (c: IChargeLookup) => c.chargeId === initialData.chargeId
+      )
+      if (charge) {
+        setIsVisaService(charge.isVisaService || false)
+      }
+    } else {
+      setIsVisaService(false)
+    }
+  }, [initialData?.chargeId, charges])
+
+  // Watch switch states for conditional field editing
+  const isAdditional = form.watch("isAdditional")
+  const isPrepayment = form.watch("isPrepayment")
 
   console.log("Form watched values:", {
     customerId: watchedCustomerId,
@@ -224,6 +241,19 @@ export function TariffForm({
     async (selectedCustomer: ICustomerLookup | null) => {
       form.setValue("currencyId", selectedCustomer?.currencyId || 0)
       form.trigger()
+    },
+    [form]
+  )
+
+  // Handle charge selection - check if isVisaService is true
+  const handleChargeChange = React.useCallback(
+    (selectedCharge: IChargeLookup | null) => {
+      const hasVisaService = selectedCharge?.isVisaService || false
+      setIsVisaService(hasVisaService)
+      // Clear visaTypeId if charge doesn't have visa service
+      if (!hasVisaService) {
+        form.setValue("visaTypeId", 0)
+      }
     },
     [form]
   )
@@ -279,7 +309,7 @@ export function TariffForm({
           )}
           className="space-y-3"
         >
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <CustomerAutocomplete
               key={`customer-autocomplete-${mode}-${customerId}`}
               form={form}
@@ -312,6 +342,8 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
             <ChargeAutocomplete
               form={form}
               name="chargeId"
@@ -319,16 +351,17 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
               taskId={form.watch("taskId")}
+              onChangeEvent={handleChargeChange}
             />
-            {isVisaService && (
-              <VisaTypeAutocomplete
-                form={form}
-                name="visaTypeId"
-                label="Visa Type"
-                isRequired={isVisaService}
-                isDisabled={mode === "view"}
-              />
-            )}
+
+            <VisaTypeAutocomplete
+              form={form}
+              name="visaTypeId"
+              label="Visa Type"
+              isRequired
+              isDisabled={mode === "view" || !isVisaService}
+            />
+
             <UomAutocomplete
               form={form}
               name="uomId"

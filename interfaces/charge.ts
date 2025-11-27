@@ -16,6 +16,7 @@ export interface ICharge {
   createDate: Date | string
   editDate: Date | string
   isActive: boolean
+  isVisaService: boolean
   remarks: string
 }
 

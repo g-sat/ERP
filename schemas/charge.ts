@@ -20,6 +20,7 @@ export const chargeSchema = z.object({
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional(),
   isActive: z.boolean(),
+  isVisaService: z.boolean().optional(),
 })
 
 export type ChargeSchemaType = z.infer<typeof chargeSchema>
