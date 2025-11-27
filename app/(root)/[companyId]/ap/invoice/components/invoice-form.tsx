@@ -222,7 +222,7 @@ export default function InvoiceForm({
     [exhRateDec, form, visible, calculateAndSetDueDate, dateFormat]
   )
 
-  // Handle customer selection
+  // Handle supplier selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
       if (selectedSupplier) {
@@ -318,7 +318,7 @@ export default function InvoiceForm({
       const currentCurrencyId = form.getValues("currencyId")
       const currentSupplierId = form.getValues("supplierId")
 
-      // Only set default if no currency is set and no customer is selected
+      // Only set default if no currency is set and no supplier is selected
       if (
         (!currentCurrencyId || currentCurrencyId === 0) &&
         (!currentSupplierId || currentSupplierId === 0)
@@ -536,7 +536,7 @@ export default function InvoiceForm({
             isFutureShow={false}
           />
 
-          {/* Customer */}
+          {/* Supplier */}
           {isDynamicSupplier ? (
             <DynamicSupplierAutocomplete
               form={form}
@@ -559,7 +559,7 @@ export default function InvoiceForm({
           <CustomInput
             form={form}
             name="suppInvoiceNo"
-            label="Customer Invoice No."
+            label="Supplier Invoice No."
             isRequired={required?.m_SuppInvoiceNo}
           />
 
