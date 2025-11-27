@@ -1,5 +1,10 @@
 import { ITaskDetails } from "@/interfaces/checklist"
-import { CopyRate, ITariff } from "@/interfaces/tariff"
+import {
+  CopyRate,
+  ITariff,
+  ITariffRPT,
+  ITariffRPTRequest,
+} from "@/interfaces/tariff"
 import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 
@@ -211,6 +216,28 @@ export const copyCompanyTariffDirect = async (copyData: CopyRate) => {
     return response
   } catch (error) {
     console.error("Error copying company tariff:", error)
+    throw error
+  }
+}
+/**
+ * 4. Report/Download Management
+ * ---------------------------
+ * 4.1 Get RPT Tariff Direct
+ * @param {ITariffRPTRequest} rptTariffData - RPT Tariff request data
+ * @returns {Promise} Promise containing API response with ITariffRPT[] data
+ */
+
+export const getRPTTariffDirect = async (rptTariffData: ITariffRPTRequest) => {
+  try {
+    const response = await postData(Tariff.getRPTTariff, rptTariffData)
+    return response as {
+      result: number
+      message: string
+      data: ITariffRPT[]
+      totalRecords: number
+    }
+  } catch (error) {
+    console.error("Error getting RPT tariff:", error)
     throw error
   }
 }

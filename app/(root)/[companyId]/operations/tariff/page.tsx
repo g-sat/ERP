@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import { ITariff, ITariffRPT, ITariffRPTRequest } from "@/interfaces"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
-import { ITariff } from "@/interfaces/tariff"
 import { usePermissionStore } from "@/stores/permission-store"
 import {
   BuildingIcon,
   CopyIcon,
+  DownloadIcon,
   PlusIcon,
   RefreshCcwIcon,
   SearchIcon,
@@ -23,6 +24,7 @@ import {
   copyCompanyTariffDirect,
   copyRateDirect,
   deleteTariffDirect,
+  getRPTTariffDirect,
   saveTariffDirect,
   updateTariffDirect,
   useGetTariffByTask,
@@ -48,6 +50,7 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
 import { CopyRateForm } from "./components/copy-rate-form"
+import { DownloadTariffForm } from "./components/download-tariff-form"
 import { TariffForm } from "./components/tariff-form"
 import { TariffTable } from "./components/tariff-table"
 
@@ -227,6 +230,8 @@ export default function TariffPage() {
   // Copy forms state
   const [showCopyRateForm, setShowCopyRateForm] = useState(false)
   const [showCopyCompanyRateForm, setShowCopyCompanyRateForm] = useState(false)
+  const [showDownloadForm, setShowDownloadForm] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // Delete confirmation state
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -526,6 +531,94 @@ export default function TariffPage() {
     })
   }
 
+  const handleDownloadTariff = async (data: ITariffRPTRequest) => {
+    try {
+      setIsDownloading(true)
+      const response = await getRPTTariffDirect(data)
+
+      if (response?.result === 1 && response.data) {
+        // Convert data to CSV format
+        const csvData = convertToCSV(response.data)
+        downloadCSV(csvData, `tariff_rates_${new Date().getTime()}.csv`)
+        toast.success(
+          response.message || "Tariff rates downloaded successfully"
+        )
+        setShowDownloadForm(false)
+      } else {
+        const errorMessage =
+          response?.message || "Failed to download tariff rates"
+        toast.error(errorMessage)
+      }
+    } catch (error) {
+      console.error("Error downloading tariff rates:", error)
+      toast.error("Failed to download tariff rates")
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  // Helper function to convert camelCase to Title Case
+  const camelCaseToTitleCase = (str: string): string => {
+    return str
+      .replace(/([A-Z])/g, " $1") // Add space before capital letters
+      .replace(/^./, (char) => char.toUpperCase()) // Capitalize first letter
+      .trim()
+  }
+
+  // Helper function to convert ITariffRPT[] to CSV
+  const convertToCSV = (data: ITariffRPT[]): string => {
+    if (!data || data.length === 0) {
+      return ""
+    }
+
+    // Get headers from the first object
+    const headers = Object.keys(data[0])
+
+    // Convert headers to Title Case (e.g., "companyName" -> "Company Name")
+    const formattedHeaders = headers.map((header) =>
+      camelCaseToTitleCase(header)
+    )
+
+    // Create CSV header row with formatted headers
+    const csvHeaders = formattedHeaders.join(",")
+
+    // Create CSV data rows
+    const csvRows = data.map((row) => {
+      return headers
+        .map((header) => {
+          const value = row[header as keyof ITariffRPT]
+          // Handle null/undefined values
+          if (value === null || value === undefined) {
+            return ""
+          }
+          // Escape commas and quotes in values
+          const stringValue = String(value)
+          if (stringValue.includes(",") || stringValue.includes('"')) {
+            return `"${stringValue.replace(/"/g, '""')}"`
+          }
+          return stringValue
+        })
+        .join(",")
+    })
+
+    // Combine headers and rows
+    return [csvHeaders, ...csvRows].join("\n")
+  }
+
+  // Helper function to download CSV file
+  const downloadCSV = (csvContent: string, filename: string) => {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute("href", url)
+    link.setAttribute("download", filename)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const handleConfirmCopyRate = async () => {
     if (!saveConfirmation.data) return
 
@@ -666,6 +759,15 @@ export default function TariffPage() {
 
         {/* Top right action buttons */}
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowDownloadForm(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            title="Download Rates"
+          >
+            <DownloadIcon className="h-4 w-4" />
+          </Button>
           <Button
             onClick={() => setShowCopyRateForm(true)}
             variant="outline"
@@ -966,6 +1068,29 @@ export default function TariffPage() {
               onCancelAction={() => setShowCopyCompanyRateForm(false)}
               onSaveConfirmation={handleCopyCompanyRateConfirmation}
             />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Download Form Dialog */}
+      {showDownloadForm && (
+        <Dialog open={showDownloadForm} onOpenChange={setShowDownloadForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Download Tariff Rates</DialogTitle>
+              <DialogDescription>
+                Select filters to download tariff rates
+              </DialogDescription>
+            </DialogHeader>
+            <DownloadTariffForm
+              onCancelAction={() => setShowDownloadForm(false)}
+              onDownloadAction={handleDownloadTariff}
+            />
+            {isDownloading && (
+              <div className="text-muted-foreground py-2 text-center text-sm">
+                Downloading tariff rates...
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       )}

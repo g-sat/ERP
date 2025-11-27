@@ -68,6 +68,9 @@ export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
 
+// Tariff interfaces
+export * from "./tariff"
+
 //account-ar
 export * from "./ar-customer-invoice"
 export * from "./ap-supplier-invoice"

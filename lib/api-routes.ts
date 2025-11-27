@@ -1060,6 +1060,7 @@ export const Tariff = {
   delete: "/operations/DeleteTariff",
   copy: "/operations/copytariff",
   copyCompanyTariff: "/operations/CopyCompanyTariff",
+  getRPTTariff: "/operations/GetRPTTariff",
 }
 
 // Template Endpoints

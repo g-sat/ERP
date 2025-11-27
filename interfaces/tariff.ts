@@ -81,3 +81,42 @@ export interface CopyRate {
   isOverwrite: boolean
   isDelete: boolean
 }
+
+/**
+ * TypeScript interface matching C# class TariffRPT
+ * Used for tariff report/download functionality
+ */
+export interface ITariffRPTRequest {
+  companyId: number
+  customerId: number
+  portId: number
+  isAllPorts: boolean
+}
+export interface ITariffRPT {
+  companyName: string
+  customerName: string
+  currencyCode: string
+  portName: string
+  taskName: string
+  chargeName: string
+  uomName: string
+  visaTypeName: string
+  displayRate: number // decimal in C#
+  basicRate: number // decimal in C#
+  minUnit: number
+  maxUnit: number
+  isAdditional: boolean
+  additionalRate: number // decimal in C#
+  additionalUnit: number
+  isPrepayment: boolean
+  prepaymentPercentage: number // decimal in C#
+  seqNo: string
+  remarks: string
+  isDefault: boolean
+  isActive: boolean
+  createBy: string
+  createDate: string | null // DateTime? in C#
+  editBy: string
+  editDate: string | null // DateTime? in C#
+  editVersion: number
+}
