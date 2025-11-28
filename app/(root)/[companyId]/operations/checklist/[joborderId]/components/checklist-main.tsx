@@ -172,6 +172,14 @@ export function ChecklistMain({
   const etaDate = form.watch("etaDate")
   const etdDate = form.watch("etdDate")
 
+  // Set gstId to 1 when isTaxable is false
+  useEffect(() => {
+    if (!isTaxable) {
+      form.setValue("gstId", 1, { shouldValidate: false })
+      form.setValue("gstPercentage", 0, { shouldValidate: false })
+    }
+  }, [isTaxable, form])
+
   // Validate etaDate and etdDate rules
   useEffect(() => {
     // Rule 1: If etaDate is empty, then etdDate should be empty
@@ -333,8 +341,7 @@ export function ChecklistMain({
       jobOrderNo: apiJobOrder.jobOrderNo ?? "",
       jobOrderDate: apiJobOrder.jobOrderDate
         ? format(
-            parseWithFallback(apiJobOrder.jobOrderDate as string) ||
-              new Date(),
+            parseWithFallback(apiJobOrder.jobOrderDate as string) || new Date(),
             dateFormat
           )
         : format(new Date(), dateFormat),
@@ -359,15 +366,13 @@ export function ChecklistMain({
       chartersAgent: apiJobOrder.chartersAgent ?? "",
       accountDate: apiJobOrder.accountDate
         ? format(
-            parseWithFallback(apiJobOrder.accountDate as string) ||
-              new Date(),
+            parseWithFallback(apiJobOrder.accountDate as string) || new Date(),
             dateFormat
           )
         : format(new Date(), dateFormat),
       seriesDate: apiJobOrder.seriesDate
         ? format(
-            parseWithFallback(apiJobOrder.seriesDate as string) ||
-              new Date(),
+            parseWithFallback(apiJobOrder.seriesDate as string) || new Date(),
             dateFormat
           )
         : format(new Date(), dateFormat),
