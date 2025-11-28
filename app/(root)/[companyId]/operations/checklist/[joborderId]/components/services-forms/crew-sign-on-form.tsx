@@ -75,7 +75,7 @@ export function CrewSignOnForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -101,7 +101,7 @@ export function CrewSignOnForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -159,13 +159,6 @@ export function CrewSignOnForm({
                 isDisabled={isConfirmed}
                 isRequired
               />
-              <VisaTypeAutocomplete
-                form={form}
-                name="visaTypeId"
-                label="Visa Type"
-                isRequired
-                isDisabled={isConfirmed}
-              />
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
@@ -175,6 +168,14 @@ export function CrewSignOnForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
+              <VisaTypeAutocomplete
+                form={form}
+                name="visaTypeId"
+                label="Visa Type"
+                isRequired
+                isDisabled={isConfirmed}
+              />
+
               <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"

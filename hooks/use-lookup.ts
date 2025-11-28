@@ -1518,6 +1518,22 @@ export const useLandingTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+export const usePurposeOfLandingTypeLookup = () => {
+  return useQuery<ILandingTypeLookup[]>({
+    queryKey: ["purposeoflandingtype-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getPurposeOfLandingType)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
 export const useModeTypeLookup = () => {
   return useQuery<IModeTypeLookup[]>({
     queryKey: ["modetype-lookUp"],

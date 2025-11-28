@@ -468,7 +468,6 @@ export interface ILaunchService {
   landedWeight: number
   annexure?: string
   invoiceNo?: string
-  portId?: number
   statusId: number
   debitNoteId?: number
   debitNoteNo?: string
@@ -744,7 +743,6 @@ export interface IThirdParty {
   statusId: number
   statusName?: string
   supplierId: number
-  supplierMobileNumber?: string
   uomId: number
   uomName?: string
   deliverDate?: Date | string
@@ -788,8 +786,6 @@ export interface IDebitNoteDt {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
   qty: number
   unitPrice: number
   totLocalAmt: number

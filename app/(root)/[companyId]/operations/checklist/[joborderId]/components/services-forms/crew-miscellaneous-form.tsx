@@ -49,6 +49,7 @@ export function CrewMiscellaneousForm({
   isSubmitting = false,
   isConfirmed,
 }: CrewMiscellaneousFormProps) {
+  console.log("taskDefaults", taskDefaults)
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -67,7 +68,7 @@ export function CrewMiscellaneousForm({
       taskId: Task.CrewMiscellaneous, // Crew Miscellaneous task ID
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -83,7 +84,7 @@ export function CrewMiscellaneousForm({
       taskId: Task.CrewMiscellaneous, // Crew Miscellaneous task ID
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",

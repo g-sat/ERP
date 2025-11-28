@@ -143,6 +143,16 @@ export function ThirdPartyTable({
         enableColumnFilter: true,
       },
       {
+        accessorKey: "name",
+        header: "Name 1",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("name") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
+      },
+      {
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
@@ -170,17 +180,7 @@ export function ThirdPartyTable({
         size: 100,
         minSize: 80,
       },
-      {
-        accessorKey: "supplierMobileNumber",
-        header: "Supplier Mobile",
-        cell: ({ row }) => (
-          <div className="text-wrap">
-            {row.getValue("supplierMobileNumber") || "-"}
-          </div>
-        ),
-        size: 150,
-        minSize: 120,
-      },
+
       {
         accessorKey: "remarks",
         header: "Remarks",

@@ -115,7 +115,7 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
@@ -157,7 +157,7 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",

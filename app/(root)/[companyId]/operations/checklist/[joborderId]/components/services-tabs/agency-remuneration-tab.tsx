@@ -306,6 +306,13 @@ export function AgencyRemunerationTab({
     setShowCombinedServiceModal(true)
   }, [])
 
+  // Function to clear selection after operations
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems([])
+    // Reset table selection by changing key
+    setTableResetKey((prev) => prev + 1)
+  }, [])
+
   const handleDebitNote = useCallback(
     async (agencyRemunerationId: string, debitNoteNo?: string) => {
       try {
@@ -480,13 +487,6 @@ export function AgencyRemunerationTab({
       handleClearSelection,
     ]
   )
-
-  // Function to clear selection after operations
-  const handleClearSelection = useCallback(() => {
-    setSelectedItems([])
-    // Reset table selection by changing key
-    setTableResetKey((prev) => prev + 1)
-  }, [])
 
   return (
     <>

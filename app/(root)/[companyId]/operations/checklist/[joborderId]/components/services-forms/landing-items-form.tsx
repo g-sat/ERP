@@ -17,7 +17,7 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  LandingTypeAutocomplete,
+  PurposeOfLandingTypeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -106,7 +106,7 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -140,7 +140,7 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -201,7 +201,7 @@ export function LandingItemsForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <LandingTypeAutocomplete
+              <PurposeOfLandingTypeAutocomplete
                 form={form}
                 name="landingTypeId"
                 label="Landing Type"

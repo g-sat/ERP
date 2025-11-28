@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IJobOrderHd, ILaunchService } from "@/interfaces/checklist"
 import {
   LaunchServiceSchema,
@@ -26,7 +26,6 @@ import {
   BargeAutocomplete,
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  PortAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -135,7 +134,6 @@ export function LaunchServiceForm({
       boatOperator: initialData?.boatOperator ?? "",
       annexure: initialData?.annexure ?? "",
       invoiceNo: initialData?.invoiceNo ?? "",
-      portId: initialData?.portId ?? 0,
       bargeId: initialData?.bargeId ?? 0,
       statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -189,7 +187,6 @@ export function LaunchServiceForm({
         boatOperator: initialData?.boatOperator ?? "",
         annexure: initialData?.annexure ?? "",
         invoiceNo: initialData?.invoiceNo ?? "",
-        portId: initialData?.portId ?? 0,
         bargeId: initialData?.bargeId ?? 0,
         remarks: initialData?.remarks ?? "",
         statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
@@ -297,25 +294,27 @@ export function LaunchServiceForm({
       ...data,
       loadingTime:
         data.loadingTime instanceof Date
-          ? format(data.loadingTime, dateFormat)
+          ? format(data.loadingTime, datetimeFormat)
           : data.loadingTime,
       leftJetty:
         data.leftJetty instanceof Date
-          ? format(data.leftJetty, dateFormat)
+          ? format(data.leftJetty, datetimeFormat)
           : data.leftJetty,
       alongsideVessel:
         data.alongsideVessel instanceof Date
-          ? format(data.alongsideVessel, dateFormat)
+          ? format(data.alongsideVessel, datetimeFormat)
           : data.alongsideVessel,
       departedFromVessel:
         data.departedFromVessel instanceof Date
-          ? format(data.departedFromVessel, dateFormat)
+          ? format(data.departedFromVessel, datetimeFormat)
           : data.departedFromVessel,
       arrivedAtJetty:
         data.arrivedAtJetty instanceof Date
-          ? format(data.arrivedAtJetty, dateFormat)
+          ? format(data.arrivedAtJetty, datetimeFormat)
           : data.arrivedAtJetty,
     }
+
+    console.log(formData)
 
     submitAction(formData)
   }
@@ -380,13 +379,7 @@ export function LaunchServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <PortAutocomplete
-                form={form}
-                name="portId"
-                label="Port"
-                isRequired={true}
-                isDisabled={isConfirmed}
-              />
+
               <CustomInput
                 form={form}
                 name="ameTally"

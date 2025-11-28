@@ -115,7 +115,7 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -152,7 +152,7 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",

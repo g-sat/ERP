@@ -53,6 +53,7 @@ export { default as JobOrderCustomerAutocomplete } from "./autocomplete-joborder
 export { default as JobOrderServiceAutocomplete } from "./autocomplete-joborder-service"
 export { default as JobOrderTaskAutocomplete } from "./autocomplete-joborder-task"
 export { default as LandingTypeAutocomplete } from "./autocomplete-landingtype"
+export { default as PurposeOfLandingTypeAutocomplete } from "./autocomplete-purposeoflandingtype"
 export { default as LeaveTypeAutocomplete } from "./autocomplete-leavetype"
 export { default as LoanRequestStatusAutocomplete } from "./autocomplete-loanrequest-status"
 export { default as LoanTypeAutocomplete } from "./autocomplete-loantype"

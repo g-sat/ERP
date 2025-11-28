@@ -225,7 +225,6 @@ export default function DebitNoteDialog({
     (
       currentItemNo: number,
       chargeId: number,
-      glId: number,
       totAftGstAmt: number,
       serviceCharge: number,
       taskId: number
@@ -249,7 +248,6 @@ export default function DebitNoteDialog({
         itemNo: currentItemNo + 1, // Insert after current item
         taskId: taskId,
         chargeId: chargeId,
-        glId: glId,
         qty: qty,
         unitPrice: unitPrice,
         totLocalAmt: 0,
@@ -309,7 +307,6 @@ export default function DebitNoteDialog({
               ? {
                   ...item,
                   chargeId: data.chargeId ?? 0,
-                  glId: data.glId ?? 0,
                   qty: data.qty ?? 0,
                   unitPrice: data.unitPrice ?? 0,
                   totLocalAmt: data.totLocalAmt ?? 0,
@@ -336,7 +333,6 @@ export default function DebitNoteDialog({
           createServiceChargeEntry(
             updatedItemNo,
             data.chargeId ?? 0,
-            data.glId ?? 0,
             data.totAftGstAmt,
             data.serviceCharge,
             data.taskId ?? 0
@@ -358,7 +354,6 @@ export default function DebitNoteDialog({
           itemNo: newItemNo,
           taskId: data.taskId ?? 0,
           chargeId: data.chargeId ?? 0,
-          glId: data.glId ?? 0,
           qty: data.qty ?? 0,
           unitPrice: data.unitPrice ?? 0,
           totLocalAmt: data.totLocalAmt ?? 0,
@@ -384,7 +379,6 @@ export default function DebitNoteDialog({
           createServiceChargeEntry(
             newItemNo,
             data.chargeId ?? 0,
-            data.glId ?? 0,
             data.totAftGstAmt,
             data.serviceCharge,
             data.taskId ?? 0
@@ -805,6 +799,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                 onClick={() => setSaveConfirmation({ isOpen: true })}
                 className="h-8 px-2"
+                tabIndex={100}
               >
                 <Save className="mr-2 h-4 w-4" />
                 Save
@@ -815,6 +810,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                 onClick={handleDeleteDebitNote}
                 className="h-8 px-2"
+                tabIndex={101}
               >
                 <Trash className="mr-2 h-4 w-4" />
                 Delete
@@ -824,6 +820,7 @@ export default function DebitNoteDialog({
                 variant="outline"
                 disabled={false}
                 className="h-8 px-2"
+                tabIndex={102}
               >
                 <Printer className="mr-2 h-4 w-4" />
                 Print
@@ -834,6 +831,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed}
                 onClick={() => setBulkChargesDialog({ isOpen: true })}
                 className="h-8 px-2"
+                tabIndex={103}
               >
                 <ListChecks className="mr-2 h-4 w-4" />
                 Bulk Charges

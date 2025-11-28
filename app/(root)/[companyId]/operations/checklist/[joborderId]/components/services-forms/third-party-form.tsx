@@ -97,9 +97,9 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
-      supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
+      name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
@@ -124,9 +124,9 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
-      supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
+      name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
