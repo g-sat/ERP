@@ -69,12 +69,12 @@ export function DebitNoteTable({
             {row.original.itemNo || "-"}
           </div>
         ),
-        size: 40,
+        size: 30,
       },
       {
         accessorKey: "remarks",
         header: "Remarks",
-        size: 200,
+        size: 500,
       },
       {
         accessorKey: "qty",
@@ -125,12 +125,12 @@ export function DebitNoteTable({
         ),
       },
       {
-        accessorKey: "totAftGstAmt",
+        accessorKey: "totAmtAftGst",
         header: "Total",
         size: 100,
         cell: ({ row }) => (
           <div className="text-right">
-            {formatNumber(row.getValue("totAftGstAmt"), amtDec)}
+            {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
           </div>
         ),
       },

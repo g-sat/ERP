@@ -101,7 +101,7 @@ export default function DebitNoteForm({
       gstId: 0,
       gstPercentage: 0,
       gstAmt: 0,
-      totAftGstAmt: 0,
+      totAmtAftGst: 0,
       remarks: "",
       editVersion: 0,
       totLocalAmt: 0,
@@ -135,7 +135,7 @@ export default function DebitNoteForm({
           gstId: initialData?.gstId ?? 0,
           gstPercentage: initialData?.gstPercentage ?? 0,
           gstAmt: initialData?.gstAmt ?? 0,
-          totAftGstAmt: initialData?.totAftGstAmt ?? 0,
+          totAmtAftGst: initialData?.totAmtAftGst ?? 0,
           remarks: initialData?.remarks ?? "",
           editVersion: initialData?.editVersion ?? 0,
           totLocalAmt: initialData?.totLocalAmt ?? 0,
@@ -179,12 +179,12 @@ export default function DebitNoteForm({
       const gstAmount = calculateGSTAmount(totalAmount, gstPercentage)
       form.setValue("gstAmt", gstAmount)
       form.setValue(
-        "totAftGstAmt",
+        "totAmtAftGst",
         calculateTotalAfterGST(totalAmount, gstAmount)
       )
     } else {
       form.setValue("gstAmt", 0)
-      form.setValue("totAftGstAmt", totalAmount)
+      form.setValue("totAmtAftGst", totalAmount)
     }
   }
 
@@ -601,7 +601,7 @@ export default function DebitNoteForm({
             gstId: initialData?.gstId ?? 0,
             gstPercentage: initialData?.gstPercentage ?? 0,
             gstAmt: initialData?.gstAmt ?? 0,
-            totAftGstAmt: initialData?.totAftGstAmt ?? 0,
+            totAmtAftGst: initialData?.totAmtAftGst ?? 0,
             remarks: initialData?.remarks ?? "",
             editVersion: initialData?.editVersion ?? 0,
             totLocalAmt: initialData?.totLocalAmt ?? 0,
@@ -770,7 +770,7 @@ export default function DebitNoteForm({
           <div className="col-span-1">
             <CustomNumberInput
               form={form}
-              name="totAftGstAmt"
+              name="totAmtAftGst"
               label="Tot Aft Vat"
               round={amtDec}
               isDisabled={true}

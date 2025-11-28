@@ -225,15 +225,15 @@ export default function DebitNoteDialog({
     (
       currentItemNo: number,
       chargeId: number,
-      totAftGstAmt: number,
+      totAmtAftGst: number,
       serviceCharge: number,
       taskId: number
     ) => {
-      if (serviceCharge <= 0 || totAftGstAmt <= 0) return
+      if (serviceCharge <= 0 || totAmtAftGst <= 0) return
 
-      // Calculate unitPrice = totAftGstAmt / serviceCharge using account helper
+      // Calculate unitPrice = totAmtAftGst / serviceCharge using account helper
       const unitPrice = calculateDivisionAmount(
-        totAftGstAmt,
+        totAmtAftGst,
         serviceCharge,
         amtDec
       )
@@ -255,7 +255,7 @@ export default function DebitNoteDialog({
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: totAmt, // Since gstAmt = 0
+        totAmtAftGst: totAmt, // Since gstAmt = 0
         remarks: `${serviceCharge} % Service Charges`,
         editVersion: 0,
         isServiceCharge: false,
@@ -314,7 +314,7 @@ export default function DebitNoteDialog({
                   gstId: data.gstId ?? 0,
                   gstPercentage: data.gstPercentage ?? 0,
                   gstAmt: data.gstAmt ?? 0,
-                  totAftGstAmt: data.totAftGstAmt ?? 0,
+                  totAmtAftGst: data.totAmtAftGst ?? 0,
                   remarks: data.remarks ?? "",
                   editVersion: data.editVersion ?? 0,
                   isServiceCharge: data.isServiceCharge ?? false,
@@ -328,12 +328,12 @@ export default function DebitNoteDialog({
         if (
           data.isServiceCharge &&
           data.serviceCharge > 0 &&
-          data.totAftGstAmt > 0
+          data.totAmtAftGst > 0
         ) {
           createServiceChargeEntry(
             updatedItemNo,
             data.chargeId ?? 0,
-            data.totAftGstAmt,
+            data.totAmtAftGst,
             data.serviceCharge,
             data.taskId ?? 0
           )
@@ -361,7 +361,7 @@ export default function DebitNoteDialog({
           gstId: data.gstId ?? 0,
           gstPercentage: data.gstPercentage ?? 0,
           gstAmt: data.gstAmt ?? 0,
-          totAftGstAmt: data.totAftGstAmt ?? 0,
+          totAmtAftGst: data.totAmtAftGst ?? 0,
           remarks: data.remarks ?? "",
           editVersion: data.editVersion ?? 0,
           isServiceCharge: data.isServiceCharge ?? false,
@@ -374,12 +374,12 @@ export default function DebitNoteDialog({
         if (
           data.isServiceCharge &&
           data.serviceCharge > 0 &&
-          data.totAftGstAmt > 0
+          data.totAmtAftGst > 0
         ) {
           createServiceChargeEntry(
             newItemNo,
             data.chargeId ?? 0,
-            data.totAftGstAmt,
+            data.totAmtAftGst,
             data.serviceCharge,
             data.taskId ?? 0
           )
@@ -451,7 +451,7 @@ export default function DebitNoteDialog({
         0
       )
       const totalAfterGst = details.reduce(
-        (sum, detail) => sum + (detail?.totAftGstAmt ?? 0),
+        (sum, detail) => sum + (detail?.totAmtAftGst ?? 0),
         0
       )
 
@@ -473,7 +473,7 @@ export default function DebitNoteDialog({
         editVersion: debitNoteHdState?.editVersion ?? 0,
         totAmt: totalAmount,
         gstAmt: totalGstAmount,
-        totAftGstAmt: totalAfterGst,
+        totAmtAftGst: totalAfterGst,
         isLocked: debitNoteHdState?.isLocked ?? false,
         data_details: details ?? [], // Include all details with null safety
       }
@@ -658,7 +658,7 @@ export default function DebitNoteDialog({
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: item?.basicRate ?? 0,
+        totAmtAftGst: item?.basicRate ?? 0,
         remarks: item?.remarks ?? item?.chargeName ?? "",
         editVersion: 0,
         isServiceCharge: false,

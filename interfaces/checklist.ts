@@ -768,7 +768,7 @@ export interface IDebitNoteHd {
   exhRate: number
   totAmt: number
   gstAmt: number
-  totAftGstAmt: number
+  totAmtAftGst: number
   glId: number
   glName?: string
   taxableAmt: number
@@ -794,7 +794,7 @@ export interface IDebitNoteDt {
   gstName?: string
   gstPercentage: number
   gstAmt: number
-  totAftGstAmt: number
+  totAmtAftGst: number
   remarks: string
   editVersion: number
   isServiceCharge: boolean

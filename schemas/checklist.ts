@@ -613,7 +613,7 @@ export const debitNoteDtSchema = z
     gstId: z.number().min(1, "GST ID is required"),
     gstPercentage: z.number().min(0, "GST percentage must be 0 or greater"),
     gstAmt: z.number().min(0, "GST amount must be 0 or greater"),
-    totAftGstAmt: z.number().min(0, "Total after GST must be 0 or greater"),
+    totAmtAftGst: z.number().min(0, "Total after GST must be 0 or greater"),
     remarks: z
       .string()
       .max(500, "Remarks must be less than 500 characters")
@@ -654,7 +654,7 @@ export const debitNoteHdSchema = z.object({
   exhRate: z.number().min(0, "Exchange rate must be 0 or greater"),
   totAmt: z.number().min(0, "Total amount must be 0 or greater"),
   gstAmt: z.number().min(0, "GST amount must be 0 or greater"),
-  totAftGstAmt: z.number().min(0, "Total after GST must be 0 or greater"),
+  totAmtAftGst: z.number().min(0, "Total after GST must be 0 or greater"),
   glId: z.number().min(1, "GL Account is required"),
   taxableAmt: z.number().min(0, "Taxable amount must be 0 or greater"),
   nonTaxableAmt: z.number().min(0, "Non-taxable amount must be 0 or greater"),
