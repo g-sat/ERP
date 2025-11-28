@@ -15,7 +15,7 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { useForm as useBulkUpdateForm, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { usePersist } from "@/hooks/use-common"
@@ -46,7 +46,12 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { JobOrderCustomerAutocomplete } from "@/components/autocomplete"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  JobOrderCustomerAutocomplete,
+  StatusTaskAutocomplete,
+  VisaTypeAutocomplete,
+} from "@/components/autocomplete"
 
 interface TaskForwardSchemaType extends Record<string, unknown> {
   customerId: number
@@ -55,10 +60,126 @@ interface TaskForwardSchemaType extends Record<string, unknown> {
 
 interface BulkUpdateData {
   jobOrderId: number
-  moduleId: number
-  transactionId: number
+  taskId: number
+  multipleId: string
+  fieldName: string
+  fieldValue: string
+}
+
+// Configuration for bulk update fields based on task type
+interface BulkUpdateFieldConfig {
   field: string
-  date: string
+  label: string
+  type: "date" | "text" | "number" | "select"
+  options?: { value: string; label: string }[]
+}
+
+const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
+  // Type 1: Port Expenses (1), Third Party (10)
+  // Fields: deliverDate, remarks, statusId
+  1: [
+    // PortExpenses
+    { field: "deliverDate", label: "Delivery Date", type: "date" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  10: [
+    // ThirdParty
+    { field: "deliverDate", label: "Delivery Date", type: "date" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+
+  // Type 2: Consignment Export (9), Consignment Import (8), Landing Items (13)
+  // Fields: location, deliverDate, remarks, statusId
+  8: [
+    // ConsignmentImport - using deliveryLocation
+    { field: "deliveryLocation", label: "Location", type: "text" },
+    { field: "deliverDate", label: "Delivery Date", type: "date" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  9: [
+    // ConsignmentExport - using deliveryLocation
+    { field: "deliveryLocation", label: "Location", type: "text" },
+    { field: "deliverDate", label: "Delivery Date", type: "date" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  13: [
+    // LandingItems - using locationName
+    { field: "locationName", label: "Location", type: "text" },
+    { field: "deliverDate", label: "Delivery Date", type: "date" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+
+  // Type 3: Crew Sign On (4), Crew Sign Off (5)
+  // Fields: visaTypeId, flightDetails, hotelName, transportName, remarks, statusId
+  4: [
+    // CrewSignOn
+    { field: "visaTypeId", label: "Visa Type", type: "select" },
+    { field: "flightDetails", label: "Flight Details", type: "text" },
+    { field: "hotelName", label: "Hotel", type: "text" },
+    { field: "transportName", label: "Transportation", type: "text" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  5: [
+    // CrewSignOff
+    { field: "visaTypeId", label: "Visa Type", type: "select" },
+    { field: "flightDetails", label: "Flight Details", type: "text" },
+    { field: "hotelName", label: "Hotel", type: "text" },
+    { field: "transportName", label: "Transportation", type: "text" },
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+
+  // Type 4: All other tasks (default)
+  // Fields: remarks, statusId
+  // Tasks: LaunchServices (2), EquipmentUsed (3), CrewMiscellaneous (6),
+  //        MedicalAssistance (7), FreshWater (11), TechniciansSurveyors (12),
+  //        OtherService (14), AgencyRemuneration (15)
+  2: [
+    // LaunchServices
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  3: [
+    // EquipmentUsed
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  6: [
+    // CrewMiscellaneous
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  7: [
+    // MedicalAssistance
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  11: [
+    // FreshWater
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  12: [
+    // TechniciansSurveyors
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  14: [
+    // OtherService
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
+  15: [
+    // AgencyRemuneration
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ],
 }
 
 interface TaskForwardData {
@@ -109,7 +230,44 @@ export function CombinedFormsDialog({
 
   // Bulk Update Form State
   const [selectedField, setSelectedField] = useState<string>("")
-  const [selectedDate, setSelectedDate] = useState<string>("")
+
+  // Get available fields for current task
+  // Default fallback: remarks and statusId for any unmapped tasks
+  const availableFields = BULK_UPDATE_CONFIG[taskId] || [
+    { field: "remarks", label: "Remarks", type: "text" },
+    { field: "statusId", label: "Status", type: "select" },
+  ]
+
+  // Get selected field config
+  const selectedFieldConfig = availableFields.find(
+    (f) => f.field === selectedField
+  )
+
+  // Bulk update form for different field types
+  const bulkUpdateForm = useBulkUpdateForm<{
+    date?: string
+    textValue?: string
+    statusId?: number
+    visaTypeId?: number
+  }>({
+    defaultValues: {
+      date: "",
+      textValue: "",
+      statusId: 0,
+      visaTypeId: 0,
+    },
+  })
+
+  // Reset form when field changes
+  const handleFieldChange = (field: string) => {
+    setSelectedField(field)
+    bulkUpdateForm.reset({
+      date: "",
+      textValue: "",
+      statusId: 0,
+      visaTypeId: 0,
+    })
+  }
 
   // Task Forward Form State
   const [selectedJobOrder, setSelectedJobOrder] =
@@ -163,7 +321,7 @@ export function CombinedFormsDialog({
 
   // Bulk Update Hook
   const bulkUpdateMutation = usePersist<BulkUpdateData>(
-    "/operations/bulkupdate"
+    "/operations/savebulkupdate"
   )
 
   // Task Forward Hook
@@ -173,60 +331,111 @@ export function CombinedFormsDialog({
 
   // Bulk Update Handlers
   const handleBulkUpdate = async () => {
-    if (selectedField && selectedDate && jobData) {
-      try {
-        const bulkUpdateData: BulkUpdateData = {
-          jobOrderId: jobData.jobOrderId,
-          moduleId,
-          transactionId,
-          field: selectedField,
-          date: selectedDate,
+    if (!selectedField || !selectedFieldConfig || !jobData) {
+      toast.error("Please select a field to update")
+      return
+    }
+
+    // Validate multipleId is provided
+    if (!multipleId || multipleId.trim() === "") {
+      toast.error("No records selected for bulk update")
+      return
+    }
+
+    try {
+      const formValues = bulkUpdateForm.getValues()
+      let fieldValue: string = ""
+
+      // Get value based on field type and convert to string
+      if (selectedFieldConfig.type === "date") {
+        const dateValue = formValues.date || ""
+        if (!dateValue) {
+          toast.error("Please select a date")
+          return
         }
-
-        const response = (await bulkUpdateMutation.mutateAsync(
-          bulkUpdateData
-        )) as ApiResponse<BulkUpdateData>
-
-        // Check if the operation was successful (result=1)
-        if (response && response.result === 1) {
-          // Clear selections FIRST to prevent errors when accessing item.id on undefined items
-          if (onClearSelection) {
-            onClearSelection()
-          }
-
-          // Reset form
-          setSelectedField("")
-          setSelectedDate("")
-
-          // Use requestAnimationFrame to ensure clear selection completes before invalidating
-          // This prevents the table from trying to access item.id on undefined items
-          requestAnimationFrame(() => {
-            // Use setTimeout to allow React to process the state update from clear selection
-            setTimeout(() => {
-              safeInvalidateQueries()
-            }, 50) // Small delay to allow clear selection state update to complete
-          })
-
-          toast.success("Bulk update completed successfully!")
-
-          if (onTaskAdded) {
-            onTaskAdded()
-          }
-
-          // Close the dialog on success
-          if (onCancelAction) {
-            onCancelAction()
-          }
-        } else {
-          // Operation failed, keep dialog open
-          const errorMessage = response?.message || "Bulk update failed"
-          toast.error(errorMessage)
+        fieldValue = dateValue // Date is already a string
+      } else if (selectedFieldConfig.type === "text") {
+        const textValue = formValues.textValue || ""
+        if (!textValue || textValue.trim() === "") {
+          toast.error("Please enter a value")
+          return
         }
-      } catch (error) {
-        console.error("Error in bulk update:", error)
-        toast.error("Failed to perform bulk update")
-        // Keep dialog open on error
+        fieldValue = textValue // Text is already a string
+      } else if (selectedFieldConfig.type === "select") {
+        if (selectedField === "statusId") {
+          const statusValue = formValues.statusId || 0
+          if (!statusValue || statusValue === 0) {
+            toast.error("Please select a status")
+            return
+          }
+          fieldValue = String(statusValue) // Convert number to string
+        } else if (selectedField === "visaTypeId") {
+          const visaValue = formValues.visaTypeId || 0
+          if (!visaValue || visaValue === 0) {
+            toast.error("Please select a visa type")
+            return
+          }
+          fieldValue = String(visaValue) // Convert number to string
+        }
       }
+
+      // Ensure multipleId is a comma-separated string
+      // multipleId should already be a string (comma-separated IDs like "102,103,104")
+      const multipleIdString = String(multipleId || "")
+
+      const bulkUpdateData: BulkUpdateData = {
+        jobOrderId: jobData.jobOrderId,
+        taskId: taskId,
+        multipleId: multipleIdString,
+        fieldName: selectedField,
+        fieldValue: fieldValue,
+      }
+
+      console.log("Bulk Update Data:", bulkUpdateData)
+
+      const response = (await bulkUpdateMutation.mutateAsync(
+        bulkUpdateData
+      )) as ApiResponse<BulkUpdateData>
+
+      // Check if the operation was successful (result=1)
+      if (response && response.result === 1) {
+        // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+        if (onClearSelection) {
+          onClearSelection()
+        }
+
+        // Reset form
+        setSelectedField("")
+        bulkUpdateForm.reset()
+
+        // Use requestAnimationFrame to ensure clear selection completes before invalidating
+        // This prevents the table from trying to access item.id on undefined items
+        requestAnimationFrame(() => {
+          // Use setTimeout to allow React to process the state update from clear selection
+          setTimeout(() => {
+            safeInvalidateQueries()
+          }, 50) // Small delay to allow clear selection state update to complete
+        })
+
+        toast.success("Bulk update completed successfully!")
+
+        if (onTaskAdded) {
+          onTaskAdded()
+        }
+
+        // Close the dialog on success
+        if (onCancelAction) {
+          onCancelAction()
+        }
+      } else {
+        // Operation failed, keep dialog open
+        const errorMessage = response?.message || "Bulk update failed"
+        toast.error(errorMessage)
+      }
+    } catch (error) {
+      console.error("Error in bulk update:", error)
+      toast.error("Failed to perform bulk update")
+      // Keep dialog open on error
     }
   }
 
@@ -320,15 +529,6 @@ export function CombinedFormsDialog({
     }
   }
 
-  const getFieldDisplayName = (field: string) => {
-    const fieldMap: Record<string, string> = {
-      deliveredDate: "Delivered Date",
-      receivedDate: "Received Date",
-      completionDate: "Completion Date",
-    }
-    return fieldMap[field] || field
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -400,59 +600,97 @@ export function CombinedFormsDialog({
                       </Label>
                       <Select
                         value={selectedField}
-                        onValueChange={setSelectedField}
+                        onValueChange={handleFieldChange}
                         disabled={isConfirmed}
                       >
                         <SelectTrigger className="h-11 w-full">
                           <SelectValue placeholder="Choose a field to update" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="deliveredDate">
-                            <div className="flex items-center gap-2">
-                              <CalendarIcon className="h-4 w-4" />
-                              Delivered Date
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="receivedDate">
-                            <div className="flex items-center gap-2">
-                              <CalendarIcon className="h-4 w-4" />
-                              Received Date
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="completionDate">
-                            <div className="flex items-center gap-2">
-                              <CalendarIcon className="h-4 w-4" />
-                              Completion Date
-                            </div>
-                          </SelectItem>
+                          {availableFields.map((field) => (
+                            <SelectItem key={field.field} value={field.field}>
+                              <div className="flex items-center gap-2">
+                                {field.type === "date" && (
+                                  <CalendarIcon className="h-4 w-4" />
+                                )}
+                                {field.type === "text" && (
+                                  <FileText className="h-4 w-4" />
+                                )}
+                                {field.type === "select" && (
+                                  <Database className="h-4 w-4" />
+                                )}
+                                {field.label}
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="bulkDate"
-                        className="flex items-center gap-2 text-sm font-medium"
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                        Update Date
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="bulkDate"
-                          type="date"
-                          value={selectedDate}
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          className="h-11 w-full pr-10"
-                          disabled={isConfirmed}
-                        />
-                        <CalendarIcon className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform" />
+                    {selectedFieldConfig && (
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="bulkValue"
+                          className="flex items-center gap-2 text-sm font-medium"
+                        >
+                          {selectedFieldConfig.type === "date" && (
+                            <CalendarIcon className="h-4 w-4" />
+                          )}
+                          {selectedFieldConfig.type === "text" && (
+                            <FileText className="h-4 w-4" />
+                          )}
+                          {selectedFieldConfig.type === "select" && (
+                            <Database className="h-4 w-4" />
+                          )}
+                          Update {selectedFieldConfig.label}
+                        </Label>
+                        {selectedFieldConfig.type === "date" && (
+                          <div className="relative">
+                            <Input
+                              id="bulkDate"
+                              type="date"
+                              {...bulkUpdateForm.register("date")}
+                              className="h-11 w-full pr-10"
+                              disabled={isConfirmed}
+                            />
+                            <CalendarIcon className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform" />
+                          </div>
+                        )}
+                        {selectedFieldConfig.type === "text" && (
+                          <Textarea
+                            id="bulkText"
+                            {...bulkUpdateForm.register("textValue")}
+                            placeholder={`Enter ${selectedFieldConfig.label.toLowerCase()}`}
+                            className="h-20 w-full"
+                            disabled={isConfirmed}
+                          />
+                        )}
+                        {selectedFieldConfig.type === "select" &&
+                          selectedField === "statusId" && (
+                            <StatusTaskAutocomplete
+                              form={bulkUpdateForm}
+                              name="statusId"
+                              label=""
+                              isDisabled={isConfirmed}
+                              isRequired={true}
+                            />
+                          )}
+                        {selectedFieldConfig.type === "select" &&
+                          selectedField === "visaTypeId" && (
+                            <VisaTypeAutocomplete
+                              form={bulkUpdateForm}
+                              name="visaTypeId"
+                              label=""
+                              isDisabled={isConfirmed}
+                              isRequired={true}
+                            />
+                          )}
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Summary */}
-                  {selectedField && selectedDate && (
+                  {selectedField && selectedFieldConfig && (
                     <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
                       <div className="mb-2 flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-blue-600" />
@@ -461,11 +699,34 @@ export function CombinedFormsDialog({
                         </span>
                       </div>
                       <p className="text-sm text-blue-700">
-                        Will update{" "}
-                        <strong>{getFieldDisplayName(selectedField)}</strong> to{" "}
-                        <strong>
-                          {new Date(selectedDate).toLocaleDateString()}
-                        </strong>{" "}
+                        Will update <strong>{selectedFieldConfig.label}</strong>
+                        {selectedFieldConfig.type === "date" &&
+                          bulkUpdateForm.watch("date") && (
+                            <>
+                              {" "}
+                              to{" "}
+                              <strong>
+                                {new Date(
+                                  bulkUpdateForm.watch("date") || ""
+                                ).toLocaleDateString()}
+                              </strong>
+                            </>
+                          )}
+                        {selectedFieldConfig.type === "text" &&
+                          bulkUpdateForm.watch("textValue") && (
+                            <>
+                              {" "}
+                              to{" "}
+                              <strong>
+                                {bulkUpdateForm.watch("textValue")}
+                              </strong>
+                            </>
+                          )}
+                        {selectedFieldConfig.type === "select" &&
+                          (bulkUpdateForm.watch("statusId") ||
+                            bulkUpdateForm.watch("visaTypeId")) && (
+                            <> to the selected value</>
+                          )}{" "}
                         for all selected records.
                       </p>
                     </div>
@@ -479,8 +740,18 @@ export function CombinedFormsDialog({
                       disabled={
                         isConfirmed ||
                         !selectedField ||
-                        !selectedDate ||
-                        bulkUpdateMutation.isPending
+                        !selectedFieldConfig ||
+                        bulkUpdateMutation.isPending ||
+                        (selectedFieldConfig?.type === "date" &&
+                          !bulkUpdateForm.watch("date")) ||
+                        (selectedFieldConfig?.type === "text" &&
+                          !bulkUpdateForm.watch("textValue")) ||
+                        (selectedFieldConfig?.type === "select" &&
+                          selectedField === "statusId" &&
+                          !bulkUpdateForm.watch("statusId")) ||
+                        (selectedFieldConfig?.type === "select" &&
+                          selectedField === "visaTypeId" &&
+                          !bulkUpdateForm.watch("visaTypeId"))
                       }
                       className="h-10 min-w-[140px]"
                       size="default"
