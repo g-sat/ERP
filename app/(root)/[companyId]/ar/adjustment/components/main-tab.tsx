@@ -54,8 +54,6 @@ export default function Main({
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousAdjustmentKeyRef = useRef<string>("")
   const detailsFormRef = useRef<AdjustmentDetailsFormRef>(null)
-  const isInitialLoadRef = useRef<boolean>(true)
-  const previousDataDetailsRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const watchedDataDetails = form.watch("data_details")
@@ -73,8 +71,6 @@ export default function Main({
     }
 
     previousAdjustmentKeyRef.current = currentKey
-    isInitialLoadRef.current = true // Mark as initial load when adjustment changes
-    previousDataDetailsRef.current = "" // Reset previous details
     setEditingDetail(null)
     setSelectedItemsToDelete([])
     setItemToDelete(null)
@@ -113,46 +109,30 @@ export default function Main({
     }
   }, [dataDetails, editingDetail])
 
-  // Recalculate header totals when details change (but not on initial load)
-  useEffect(() => {
-    // Skip recalculation on initial load when adjustment is loaded
-    if (isInitialLoadRef.current) {
-      // Mark initial load as complete and store current details snapshot
-      const currentDetailsSnapshot = JSON.stringify(dataDetails)
-      previousDataDetailsRef.current = currentDetailsSnapshot
-      isInitialLoadRef.current = false
-      return
-    }
+  // Helper function to recalculate header totals
+  const recalculateHeaderTotals = () => {
+    const currentDetails = form.getValues("data_details") || []
+    recalculateAndSetHeaderTotals(
+      form,
+      currentDetails as unknown as IArAdjustmentDt[],
+      decimals[0],
+      visible
+    )
 
-    // Create snapshot of current details to compare
-    const currentDetailsSnapshot = JSON.stringify(dataDetails)
-
-    // Only recalculate if details actually changed (not just a reference change)
-    if (currentDetailsSnapshot !== previousDataDetailsRef.current) {
-      previousDataDetailsRef.current = currentDetailsSnapshot
-
-      recalculateAndSetHeaderTotals(
-        form,
-        dataDetails as unknown as IArAdjustmentDt[],
-        decimals[0],
-        visible
-      )
-
-      // Trigger form validation to update UI
-      form.trigger([
-        "totAmt",
-        "gstAmt",
-        "totAmtAftGst",
-        "totLocalAmt",
-        "gstLocalAmt",
-        "totLocalAmtAftGst",
-        "totCtyAmt",
-        "gstCtyAmt",
-        "totCtyAmtAftGst",
-        "isDebit",
-      ])
-    }
-  }, [dataDetails, decimals, visible, form])
+    // Trigger form validation to update UI
+    form.trigger([
+      "totAmt",
+      "gstAmt",
+      "totAmtAftGst",
+      "totLocalAmt",
+      "gstLocalAmt",
+      "totLocalAmtAftGst",
+      "totCtyAmt",
+      "gstCtyAmt",
+      "totCtyAmtAftGst",
+      "isDebit",
+    ])
+  }
 
   const handleAddRow = (rowData: IArAdjustmentDt) => {
     const currentData = form.getValues("data_details") || []
@@ -181,6 +161,9 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
+
+    // Recalculate header totals after adding/updating row
+    recalculateHeaderTotals()
   }
 
   const handleDelete = (itemNo: number) => {
@@ -200,6 +183,9 @@ export default function Main({
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
 
+    // Recalculate header totals after deleting row
+    recalculateHeaderTotals()
+
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
@@ -218,6 +204,9 @@ export default function Main({
     form.trigger("data_details")
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
+
+    // Recalculate header totals after bulk deleting rows
+    recalculateHeaderTotals()
 
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
@@ -242,6 +231,9 @@ export default function Main({
       "data_details",
       reorderedData as unknown as ArAdjustmentDtSchemaType[]
     )
+
+    // Recalculate header totals after reordering (in case amounts were affected)
+    recalculateHeaderTotals()
   }
 
   return (

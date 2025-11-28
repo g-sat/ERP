@@ -109,11 +109,12 @@ export default function Main({
     }
   }, [dataDetails, editingDetail])
 
-  // Recalculate header totals when details change
-  useEffect(() => {
+  // Helper function to recalculate header totals
+  const recalculateHeaderTotals = () => {
+    const currentDetails = form.getValues("data_details") || []
     recalculateAndSetHeaderTotals(
       form,
-      dataDetails as unknown as IArDebitNoteDt[],
+      currentDetails as unknown as IArDebitNoteDt[],
       decimals[0],
       visible
     )
@@ -130,8 +131,7 @@ export default function Main({
       "gstCtyAmt",
       "totCtyAmtAftGst",
     ])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, decimals, visible])
+  }
 
   const handleAddRow = (rowData: IArDebitNoteDt) => {
     const currentData = form.getValues("data_details") || []
@@ -160,6 +160,9 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
+    
+    // Recalculate header totals after adding/updating row
+    recalculateHeaderTotals()
   }
 
   const handleDelete = (itemNo: number) => {
@@ -179,6 +182,9 @@ export default function Main({
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
 
+    // Recalculate header totals after deleting row
+    recalculateHeaderTotals()
+
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
@@ -197,6 +203,9 @@ export default function Main({
     form.trigger("data_details")
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
+
+    // Recalculate header totals after bulk deleting rows
+    recalculateHeaderTotals()
 
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
@@ -221,6 +230,9 @@ export default function Main({
       "data_details",
       reorderedData as unknown as ArDebitNoteDtSchemaType[]
     )
+    
+    // Recalculate header totals after reordering (in case amounts were affected)
+    recalculateHeaderTotals()
   }
 
   return (
