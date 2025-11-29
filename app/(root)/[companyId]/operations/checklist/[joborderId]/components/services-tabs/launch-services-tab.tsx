@@ -435,6 +435,7 @@ export function LaunchServicesTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (launchServiceId: string) => {
       const item = data?.find(

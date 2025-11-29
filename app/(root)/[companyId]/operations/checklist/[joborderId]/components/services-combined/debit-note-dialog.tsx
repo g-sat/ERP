@@ -493,16 +493,20 @@ export default function DebitNoteDialog({
           onClearSelection()
         }
 
+        console.log("debit note response", response)
+
         // Update local state with response data if available
         if (response.data && "data_details" in response.data) {
           const responseData = response.data as unknown as {
             data_details: IDebitNoteDt[]
           } & IDebitNoteHd
 
-          setDebitNoteHdState(responseData)
+          console.log("debit note response data", responseData)
+
+          setDebitNoteHdState(responseData as unknown as IDebitNoteHd)
 
           // Update details
-          setDetails(responseData.data_details)
+          setDetails(responseData.data_details as unknown as IDebitNoteDt[])
 
           // Update header if callback is provided
           if (onUpdateHeader) {

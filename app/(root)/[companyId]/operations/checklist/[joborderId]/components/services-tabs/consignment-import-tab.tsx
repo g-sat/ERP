@@ -336,7 +336,7 @@ export function ConsignmentImportTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          console.error("Consignment import(s) not found")
+          console.error("Consignment Import(s) not found")
           return
         }
 
@@ -352,8 +352,6 @@ export function ConsignmentImportTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -361,13 +359,19 @@ export function ConsignmentImportTab({
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
-            console.log("Existing debit note data:", debitNoteResponse.data)
+            console.log("New debit note data:", debitNoteResponse.data)
             const debitNoteData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("Existing debitNoteData", debitNoteData)
+            console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["consignmentImport"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -396,22 +400,21 @@ export function ConsignmentImportTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.ConsignmentImport}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
-
+          console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -436,6 +439,7 @@ export function ConsignmentImportTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (consignmentImportId: string) => {
       const item = data?.find(
