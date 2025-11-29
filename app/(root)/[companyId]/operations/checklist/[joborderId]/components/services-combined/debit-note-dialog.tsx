@@ -18,10 +18,12 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { format } from "date-fns"
 import { ListChecks, Printer, Save, Trash } from "lucide-react"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
+import { parseDate } from "@/lib/date-utils"
 import { TaskIdToName } from "@/lib/operations-utils"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -69,6 +71,7 @@ export default function DebitNoteDialog({
 }: DebitNoteDialogProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
     debitNoteHd ?? ({} as IDebitNoteHd)
@@ -771,9 +774,20 @@ export default function DebitNoteDialog({
                     className="bg-blue-100 px-2 py-0.5 text-xs whitespace-nowrap text-blue-800 hover:bg-blue-200"
                   >
                     {debitNoteHdState?.debitNoteDate
-                      ? new Date(
-                          debitNoteHdState.debitNoteDate
-                        ).toLocaleDateString()
+                      ? (() => {
+                          const dateValue = debitNoteHdState.debitNoteDate
+                          const date =
+                            dateValue instanceof Date
+                              ? dateValue
+                              : parseDate(
+                                  typeof dateValue === "string"
+                                    ? dateValue
+                                    : String(dateValue)
+                                ) || new Date(dateValue)
+                          return date && !isNaN(date.getTime())
+                            ? format(date, dateFormat)
+                            : "N/A"
+                        })()
                       : "N/A"}
                   </Badge>
                   <Badge

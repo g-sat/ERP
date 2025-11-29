@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
-import { IChargeLookup, ICustomerLookup } from "@/interfaces/lookup"
+import React, { useEffect, useMemo } from "react"
+import { ICustomerLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { useAuthStore } from "@/stores/auth-store"
@@ -11,8 +11,7 @@ import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { Task } from "@/lib/operations-utils"
-import { useChargeLookup, useCompanyCustomerLookup } from "@/hooks/use-lookup"
+import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -68,9 +67,6 @@ export function TariffForm({
   const defaultCurrencyId = useMemo(() => {
     return firstCustomerCurrencyId || 0
   }, [firstCustomerCurrencyId])
-
-  // State to track if selected charge has isVisaService = true
-  const [isVisaService, setIsVisaService] = useState(false)
 
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
@@ -174,23 +170,6 @@ export function TariffForm({
   const watchedPortId = form.watch("portId")
   const watchedTaskId = form.watch("taskId")
 
-  // Get charges for the current task to check isVisaService
-  const { data: charges = [] } = useChargeLookup(watchedTaskId || taskId)
-
-  // Check initial charge's isVisaService when form loads with initialData
-  useEffect(() => {
-    if (initialData?.chargeId) {
-      const charge = charges.find(
-        (c: IChargeLookup) => c.chargeId === initialData.chargeId
-      )
-      if (charge) {
-        setIsVisaService(charge.isVisaService || false)
-      }
-    } else {
-      setIsVisaService(false)
-    }
-  }, [initialData?.chargeId, charges])
-
   // Watch switch states for conditional field editing
   const isAdditional = form.watch("isAdditional")
   const isPrepayment = form.watch("isPrepayment")
@@ -241,19 +220,6 @@ export function TariffForm({
     async (selectedCustomer: ICustomerLookup | null) => {
       form.setValue("currencyId", selectedCustomer?.currencyId || 0)
       form.trigger()
-    },
-    [form]
-  )
-
-  // Handle charge selection - check if isVisaService is true
-  const handleChargeChange = React.useCallback(
-    (selectedCharge: IChargeLookup | null) => {
-      const hasVisaService = selectedCharge?.isVisaService || false
-      setIsVisaService(hasVisaService)
-      // Clear visaTypeId if charge doesn't have visa service
-      if (!hasVisaService) {
-        form.setValue("visaTypeId", 0)
-      }
     },
     [form]
   )
@@ -351,7 +317,6 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
               taskId={form.watch("taskId")}
-              onChangeEvent={handleChargeChange}
             />
 
             <VisaTypeAutocomplete
@@ -359,7 +324,7 @@ export function TariffForm({
               name="visaTypeId"
               label="Visa Type"
               isRequired
-              isDisabled={mode === "view" || !isVisaService}
+              isDisabled={mode === "view"}
             />
 
             <UomAutocomplete

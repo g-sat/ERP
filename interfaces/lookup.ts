@@ -35,7 +35,6 @@ export interface IChargeLookup {
   chargeName: string
   chargeCode: string
   glId: number
-  isVisaService: boolean
 }
 
 export interface IServiceLookup {

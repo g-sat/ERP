@@ -74,7 +74,6 @@ export function ChargeForm({
           glId: initialData.glId ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
-          isVisaService: initialData.isVisaService ?? false,
         }
       : {
           ...defaultValues,
@@ -95,7 +94,6 @@ export function ChargeForm({
             glId: initialData.glId ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
-            isVisaService: initialData.isVisaService ?? false,
           }
         : {
             ...defaultValues,
@@ -183,28 +181,14 @@ export function ChargeForm({
               label="Remarks"
               isDisabled={isReadOnly}
             />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <CustomSwitch
-                  form={form}
-                  name="isVisaService"
-                  label="Visa Service"
-                  activeColor="success"
-                  isDisabled={isReadOnly}
-                />
-                <p className="text-muted-foreground text-xs">
-                  When you checkbox check then on tariff will be shows the
-                  VisaType dropdown
-                </p>
-              </div>
-              <CustomSwitch
-                form={form}
-                name="isActive"
-                label="Active Status"
-                activeColor="success"
-                isDisabled={isReadOnly}
-              />
-            </div>
+
+            <CustomSwitch
+              form={form}
+              name="isActive"
+              label="Active Status"
+              activeColor="success"
+              isDisabled={isReadOnly}
+            />
 
             {/* Audit Information Section */}
             {initialData &&

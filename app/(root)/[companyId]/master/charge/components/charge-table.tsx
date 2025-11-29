@@ -126,24 +126,6 @@ export function ChargeTable({
     },
 
     {
-      accessorKey: "isVisaService",
-      header: "Visa Service",
-      cell: ({ row }) => (
-        <Badge
-          variant={row.getValue("isVisaService") ? "default" : "destructive"}
-        >
-          {row.getValue("isVisaService") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isVisaService") ? "Visa Service" : "Not Visa Service"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 50,
-    },
-    {
       accessorKey: "createBy",
       header: "Create By",
       size: 120,

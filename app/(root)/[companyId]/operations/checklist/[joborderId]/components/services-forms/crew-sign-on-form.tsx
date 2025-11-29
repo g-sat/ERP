@@ -175,7 +175,6 @@ export function CrewSignOnForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-
               <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"
