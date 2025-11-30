@@ -71,11 +71,6 @@ const REPORT_CATEGORIES = [
     name: "AR",
     reports: [
       {
-        id: "ar-customer-ledger",
-        name: "AR Customer Ledger",
-        reportFile: "ArCustomerLedger.trdp",
-      },
-      {
         id: "ar-outstanding-details",
         name: "AR Outstanding Details",
         reportFile: "AROutstandingDetails.trdp",
@@ -226,35 +221,18 @@ export default function ReportsPage() {
     const parameters = buildReportParameters(data)
     const report = selectedReportObjects[0] // Only one report can be selected
 
-    // Ensure we use the correct report file based on the report ID
-    const reportFile =
-      report.id === "ar-customer-ledger"
-        ? "ArCustomerLedger.trdp"
-        : report.reportFile
-
-    const reportParams =
-      report.id === "ar-customer-ledger"
-        ? {
-            companyId: parameters.companyId,
-            fromDate: parameters.fromDate || "2023-11-01",
-            toDate: parameters.toDate || "2023-12-31",
-            asOfDate: parameters.asOfDate || getCurrentDate(),
-            customerId: parameters.customerId || 1107,
-            currencyId: parameters.currencyId || 0,
-            reportType: 0,
-          }
-        : {
-            companyId: parameters.companyId,
-            fromDate: parameters.fromDate,
-            toDate: parameters.toDate,
-            asOfDate: parameters.asOfDate || getCurrentDate(),
-            customerId: parameters.customerId,
-            currencyId: parameters.currencyId,
-            reportType: 0,
-          }
+    const reportParams = {
+      companyId: parameters.companyId,
+      fromDate: parameters.fromDate,
+      toDate: parameters.toDate,
+      asOfDate: parameters.asOfDate || getCurrentDate(),
+      customerId: parameters.customerId,
+      currencyId: parameters.currencyId,
+      reportType: 0,
+    }
 
     setCurrentReport({
-      reportFile,
+      reportFile: report.reportFile,
       parameters: reportParams,
     })
     setShowReportViewer(true)
