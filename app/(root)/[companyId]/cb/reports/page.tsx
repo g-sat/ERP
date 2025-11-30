@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 import { addMonths, format } from "date-fns"
@@ -12,16 +12,15 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import {
-  CompanyCustomerAutocomplete,
+  BankAutocomplete,
   CurrencyAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 
 interface IReportFormData extends Record<string, unknown> {
-  customerId: string
+  bankId: string
   fromDate: string
   toDate: string
-  asOfDate: string
   currencyId: string
   useTrsDate: boolean
   reportType: number
@@ -31,8 +30,7 @@ interface IReportParameters {
   companyId: number
   fromDate: string | null
   toDate: string | null
-  asOfDate: string | null
-  customerId: number | null
+  bankId: number | null
   currencyId: number
   reportType: number
 }
@@ -46,95 +44,23 @@ interface IReport {
 
 const REPORT_CATEGORIES = [
   {
-    name: "Aging",
+    name: "Register",
     reports: [
       {
-        id: "ar-aging",
-        name: "AR Aging",
-        reportFile: "ArAging.trdp",
+        id: "payment-register",
+        name: "Payment Register",
+        reportFile: "PaymentRegister.trdp",
       },
       {
-        id: "ar-aging-details",
-        name: "AR Aging Details",
-        reportFile: "ARAgingDetails.trdp",
+        id: "receipt-register",
+        name: "Receipt Register",
+        reportFile: "ReceiptRegister.trdp",
       },
       {
-        id: "ar-aging-summary",
-        name: "AR Aging Summary",
-        reportFile: "ARAgingSummary.trdp",
+        id: "bank-register",
+        name: "Bank Register",
+        reportFile: "BankRegister.trdp",
       },
-    ],
-  },
-  {
-    name: "AR",
-    reports: [
-      {
-        id: "ar-customer-ledger",
-        name: "AR Customer Ledger",
-        reportFile: "ArCustomerLedger.trdp",
-      },
-      {
-        id: "ar-outstanding-details",
-        name: "AR Outstanding Details",
-        reportFile: "AROutstandingDetails.trdp",
-      },
-      {
-        id: "ar-outstanding-summary",
-        name: "AR Outstanding Summary",
-        reportFile: "AROutstandingSummary.trdp",
-      },
-      { id: "ar-balances", name: "AR Balances", reportFile: "ARBalances.trdp" },
-      {
-        id: "ar-subsequent-receipt",
-        name: "AR Subsequent Receipt",
-        reportFile: "ARSubsequentReceipt.trdp",
-      },
-      {
-        id: "statement-of-account",
-        name: "Statement Of Account",
-        reportFile: "StatementOfAccount.trdp",
-      },
-      {
-        id: "monthly-receivable",
-        name: "Monthly Receivable",
-        reportFile: "MonthlyReceivable.trdp",
-      },
-      {
-        id: "customer-ledger",
-        name: "Customer Ledger",
-        reportFile: "ArCustomerLedger.trdp",
-      },
-      {
-        id: "customer-invoice-receipt",
-        name: "Customer Invoice/Receipt",
-        reportFile: "CustomerInvoiceReceipt.trdp",
-      },
-    ],
-  },
-  {
-    name: "Other",
-    reports: [
-      {
-        id: "sales-transaction",
-        name: "Sales Transaction",
-        reportFile: "SalesTransaction.trdp",
-      },
-      {
-        id: "invoice-register",
-        name: "Invoice Register",
-        reportFile: "InvoiceRegister.trdp",
-      },
-      {
-        id: "pending-for-invoicing",
-        name: "Pending For Invoicing",
-        reportFile: "PendingForInvoicing.trdp",
-      },
-      {
-        id: "launch-invoice",
-        name: "Launch Invoice",
-        reportFile: "LaunchInvoice.trdp",
-      },
-      { id: "gross-sales", name: "Gross Sales", reportFile: "GrossSales.trdp" },
     ],
   },
 ]
@@ -147,17 +73,11 @@ export default function ReportsPage() {
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const [selectedReports, setSelectedReports] = useState<string[]>([])
 
-  // Get current date formatted
-  const getCurrentDate = () => {
-    return format(new Date(), dateFormat)
-  }
-
   const form = useForm<IReportFormData>({
     defaultValues: {
-      customerId: "",
+      bankId: "",
       fromDate: "",
       toDate: "",
-      asOfDate: "",
       currencyId: "0",
       useTrsDate: true,
       reportType: 0,
@@ -172,12 +92,6 @@ export default function ReportsPage() {
       form.setValue("toDate", formattedToDate)
     }
   }
-
-  // Initialize asOfDate to current date on mount
-  useEffect(() => {
-    const currentDate = format(new Date(), dateFormat)
-    form.setValue("asOfDate", currentDate)
-  }, [form, dateFormat])
 
   const handleReportToggle = (reportId: string) => {
     setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
@@ -202,8 +116,7 @@ export default function ReportsPage() {
       companyId,
       fromDate: data.fromDate || null,
       toDate: data.toDate || null,
-      asOfDate: data.asOfDate || getCurrentDate(),
-      customerId: data.customerId ? Number(data.customerId) : null,
+      bankId: data.bankId ? Number(data.bankId) : null,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
       reportType: 0, // Always 0
     }
@@ -218,36 +131,18 @@ export default function ReportsPage() {
     const parameters = buildReportParameters(data)
 
     selectedReportObjects.forEach((report) => {
-      // Ensure we use the correct report file based on the report ID
-      const reportFile =
-        report.id === "ar-customer-ledger"
-          ? "ArCustomerLedger.trdp"
-          : report.reportFile
-
-      const reportParams =
-        report.id === "ar-customer-ledger"
-          ? {
-              companyId: parameters.companyId,
-              fromDate: parameters.fromDate || "2023-11-01",
-              toDate: parameters.toDate || "2023-12-31",
-              asOfDate: parameters.asOfDate || getCurrentDate(),
-              customerId: parameters.customerId || 1107,
-              currencyId: parameters.currencyId || 0,
-              reportType: 0,
-            }
-          : {
-              companyId: parameters.companyId,
-              fromDate: parameters.fromDate,
-              toDate: parameters.toDate,
-              asOfDate: parameters.asOfDate || getCurrentDate(),
-              customerId: parameters.customerId,
-              currencyId: parameters.currencyId,
-              reportType: 0,
-            }
+      const reportParams = {
+        companyId: parameters.companyId,
+        fromDate: parameters.fromDate,
+        toDate: parameters.toDate,
+        bankId: parameters.bankId,
+        currencyId: parameters.currencyId,
+        reportType: 0,
+      }
 
       window.open(
         `/${companyId}/reports/viewer?report=${encodeURIComponent(
-          reportFile
+          report.reportFile
         )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
         "_blank",
         "width=1200,height=800"
@@ -256,12 +151,10 @@ export default function ReportsPage() {
   }
 
   const handleClear = () => {
-    const currentDate = format(new Date(), dateFormat)
     form.reset({
-      customerId: "",
+      bankId: "",
       fromDate: "",
       toDate: "",
-      asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
       reportType: 0,
@@ -275,10 +168,10 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-0.5">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            AR Reports
+            CB Reports
           </h1>
           <p className="text-muted-foreground text-xs">
-            Select reports and configure parameters to generate AR reports
+            Select reports and configure parameters to generate CB reports
           </p>
         </div>
       </div>
@@ -289,16 +182,13 @@ export default function ReportsPage() {
         {/* Report Selection Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Select Reports</CardTitle>
+            <CardTitle className="text-primary">Register</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[600px]">
               <div className="space-y-6 pr-4">
                 {REPORT_CATEGORIES.map((category) => (
                   <div key={category.name} className="space-y-3">
-                    <h3 className="text-foreground text-sm font-medium">
-                      {category.name}
-                    </h3>
                     <div className="space-y-2">
                       {category.reports.map((report) => (
                         <div
@@ -315,7 +205,7 @@ export default function ReportsPage() {
                             }}
                           />
                           <label
-                            className="flex-1 cursor-pointer text-sm font-normal"
+                            className="text-primary flex-1 cursor-pointer text-sm font-normal"
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -327,7 +217,6 @@ export default function ReportsPage() {
                         </div>
                       ))}
                     </div>
-                    <Separator />
                   </div>
                 ))}
               </div>
@@ -338,11 +227,11 @@ export default function ReportsPage() {
         {/* Report Parameters Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Report Parameters
+            <CardTitle>
+              Report Criteria
               {selectedReports.length > 0 && (
-                <span className="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-medium">
-                  {getSelectedReportObjects()[0]?.name}
+                <span className="text-muted-foreground ml-2">
+                  ({getSelectedReportObjects()[0]?.name})
                 </span>
               )}
             </CardTitle>
@@ -353,12 +242,11 @@ export default function ReportsPage() {
                 onSubmit={form.handleSubmit(handleViewReport)}
                 className="space-y-4"
               >
-                {/* Customer */}
-                <CompanyCustomerAutocomplete
+                {/* Bank */}
+                <BankAutocomplete
                   form={form}
-                  name="customerId"
-                  label="Customer"
-                  companyId={companyId}
+                  name="bankId"
+                  label="Bank"
                   isRequired={false}
                 />
 
@@ -393,12 +281,6 @@ export default function ReportsPage() {
                       form={form}
                       name="toDate"
                       label="To Date"
-                      isRequired={false}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="asOfDate"
-                      label="As Of Date"
                       isRequired={false}
                     />
                   </div>
