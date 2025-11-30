@@ -83,10 +83,7 @@ export default function ReportView({
     <ReactReportViewer
       key={reportKey}
       ref={handleRef}
-      serviceUrl={
-        process.env.NEXT_PUBLIC_TELERIK_REPORT_API ||
-        "http://localhost:59655/api/reports/"
-      }
+      serviceUrl={process.env.NEXT_PUBLIC_TELERIK_REPORT_API}
       reportSource={{
         report: reportSource.report,
         parameters: reportSource.parameters,
