@@ -86,6 +86,10 @@ declare module "@progress/telerik-react-report-viewer" {
       report: string
       parameters?: Record<string, unknown>
     }): TelerikReportViewer
+    dispose?(): void
+    viewerObject?: {
+      dispose?: () => void
+    }
     commands: ITelerikReportViewerCommands
   }
 }

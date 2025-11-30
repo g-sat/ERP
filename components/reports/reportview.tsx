@@ -1,6 +1,6 @@
 "use client"
 
-import { type RefObject } from "react"
+import { useMemo, type RefObject } from "react"
 import dynamic from "next/dynamic"
 import type { TelerikReportViewer } from "@progress/telerik-react-report-viewer"
 
@@ -21,10 +21,72 @@ export default function ReportView({
   viewerRef,
   reportSource,
 }: IReportViewProps) {
+  // Create a unique key based on report and parameters to force remount on change
+  const reportKey = useMemo(
+    () => `${reportSource.report}-${JSON.stringify(reportSource.parameters)}`,
+    [reportSource.report, reportSource.parameters]
+  )
+
+  // Handle ref assignment and patch dispose method immediately
+  const handleRef = (instance: TelerikReportViewer | null) => {
+    if (instance) {
+      const viewer = instance as unknown as {
+        dispose?: () => void
+        viewerObject?: { dispose?: () => void }
+      }
+
+      // Patch dispose method to safely check if viewerObject.dispose exists
+      if (viewer.dispose) {
+        const originalDispose = viewer.dispose.bind(viewer)
+        viewer.dispose = () => {
+          try {
+            if (
+              viewer.viewerObject &&
+              typeof viewer.viewerObject.dispose === "function"
+            ) {
+              viewer.viewerObject.dispose()
+            } else {
+              // If viewerObject doesn't have dispose, try original dispose
+              // but catch any errors
+              try {
+                originalDispose()
+              } catch (error) {
+                // Silently handle - viewerObject.dispose doesn't exist
+                console.warn(
+                  "Error in dispose (viewerObject.dispose not available):",
+                  error
+                )
+              }
+            }
+          } catch (error) {
+            console.warn("Error disposing viewer:", error)
+          }
+        }
+      }
+
+      // Ensure viewerObject has a dispose method if it doesn't exist
+      // This prevents the "dispose is not a function" error
+      if (viewer.viewerObject && !viewer.viewerObject.dispose) {
+        viewer.viewerObject.dispose = () => {
+          // No-op if dispose doesn't exist - prevents errors
+        }
+      }
+    }
+
+    // Assign to the ref
+    if (viewerRef && "current" in viewerRef) {
+      viewerRef.current = instance
+    }
+  }
+
   return (
     <ReactReportViewer
-      ref={viewerRef}
-      serviceUrl={process.env.NEXT_PUBLIC_TELERIK_REPORT_API}
+      key={reportKey}
+      ref={handleRef}
+      serviceUrl={
+        process.env.NEXT_PUBLIC_TELERIK_REPORT_API ||
+        "http://localhost:59655/api/reports/"
+      }
       reportSource={{
         report: reportSource.report,
         parameters: reportSource.parameters,
