@@ -19,22 +19,26 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 
 interface IReportFormData extends Record<string, unknown> {
   customerId: string
+  currencyId: string
   fromDate: string
   toDate: string
   asOfDate: string
-  currencyId: string
   useTrsDate: boolean
+  useAsDate: boolean
   reportType: number
 }
 
 interface IReportParameters {
   companyId: number
+  companyName: string | null
   fromDate: string | null
   toDate: string | null
   asOfDate: string | null
   customerId: number | null
   currencyId: number
   reportType: number
+  amtDec: number
+  locAmtDec: number
 }
 
 interface IReport {
@@ -44,24 +48,28 @@ interface IReport {
   reportFile: string
 }
 
+// Reports that use TrsDate (From/To Date)
+const TRS_DATE_REPORTS = [
+  "customer-ledger",
+  "sales-transaction",
+  "pending-for-invoicing",
+  "launch-invoice",
+  "gross-sales",
+]
+
 const REPORT_CATEGORIES = [
   {
     name: "Aging",
     reports: [
       {
-        id: "ar-aging",
-        name: "AR Aging",
-        reportFile: "ArAging.trdp",
-      },
-      {
         id: "ar-aging-details",
         name: "AR Aging Details",
-        reportFile: "ARAgingDetails.trdp",
+        reportFile: "ArAgingDetails.trdp",
       },
       {
         id: "ar-aging-summary",
         name: "AR Aging Summary",
-        reportFile: "ARAgingSummary.trdp",
+        reportFile: "ArAgingSummary.trdp",
       },
     ],
   },
@@ -71,28 +79,28 @@ const REPORT_CATEGORIES = [
       {
         id: "ar-outstanding-details",
         name: "AR Outstanding Details",
-        reportFile: "AROutstandingDetails.trdp",
+        reportFile: "ArOutstandingDetails.trdp",
       },
       {
         id: "ar-outstanding-summary",
         name: "AR Outstanding Summary",
-        reportFile: "AROutstandingSummary.trdp",
+        reportFile: "ArOutstandingSummary.trdp",
       },
-      { id: "ar-balances", name: "AR Balances", reportFile: "ARBalances.trdp" },
+      { id: "ar-balances", name: "AR Balances", reportFile: "ArBalances.trdp" },
       {
         id: "ar-subsequent-receipt",
         name: "AR Subsequent Receipt",
-        reportFile: "ARSubsequentReceipt.trdp",
+        reportFile: "ArSubsequentReceipt.trdp",
       },
       {
         id: "statement-of-account",
         name: "Statement Of Account",
-        reportFile: "StatementOfAccount.trdp",
+        reportFile: "ArStatementOfAccount.trdp",
       },
       {
         id: "monthly-receivable",
         name: "Monthly Receivable",
-        reportFile: "MonthlyReceivable.trdp",
+        reportFile: "ArMonthlyReceivable.trdp",
       },
       {
         id: "customer-ledger",
@@ -102,7 +110,7 @@ const REPORT_CATEGORIES = [
       {
         id: "customer-invoice-receipt",
         name: "Customer Invoice/Receipt",
-        reportFile: "CustomerInvoiceReceipt.trdp",
+        reportFile: "ArCustomerInvoiceReceipt.trdp",
       },
     ],
   },
@@ -112,24 +120,28 @@ const REPORT_CATEGORIES = [
       {
         id: "sales-transaction",
         name: "Sales Transaction",
-        reportFile: "SalesTransaction.trdp",
+        reportFile: "ArSalesTransaction.trdp",
       },
       {
         id: "invoice-register",
         name: "Invoice Register",
-        reportFile: "InvoiceRegister.trdp",
+        reportFile: "ArInvoiceRegister.trdp",
       },
       {
         id: "pending-for-invoicing",
         name: "Pending For Invoicing",
-        reportFile: "PendingForInvoicing.trdp",
+        reportFile: "ArPendingForInvoicing.trdp",
       },
       {
         id: "launch-invoice",
         name: "Launch Invoice",
-        reportFile: "LaunchInvoice.trdp",
+        reportFile: "ArLaunchInvoice.trdp",
       },
-      { id: "gross-sales", name: "Gross Sales", reportFile: "GrossSales.trdp" },
+      {
+        id: "gross-sales",
+        name: "Gross Sales",
+        reportFile: "ArGrossSales.trdp",
+      },
     ],
   },
 ]
@@ -137,7 +149,12 @@ const REPORT_CATEGORIES = [
 export default function ReportsPage() {
   const params = useParams()
   const companyId = Number(params.companyId)
-  const { decimals } = useAuthStore()
+  const { decimals, companies, user } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const companyName: string | null =
+    companies.find((company) => company.companyId === companyId.toString())
+      ?.companyName || null
   // Use the same date format logic as CustomDateNew
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const [selectedReports, setSelectedReports] = useState<string[]>([])
@@ -150,11 +167,12 @@ export default function ReportsPage() {
   const form = useForm<IReportFormData>({
     defaultValues: {
       customerId: "",
+      currencyId: "0",
       fromDate: "",
       toDate: "",
       asOfDate: "",
-      currencyId: "0",
       useTrsDate: true,
+      useAsDate: false,
       reportType: 0,
     },
   })
@@ -173,6 +191,24 @@ export default function ReportsPage() {
     const currentDate = format(new Date(), dateFormat)
     form.setValue("asOfDate", currentDate)
   }, [form, dateFormat])
+
+  // Update date selection based on selected report
+  useEffect(() => {
+    if (selectedReports.length > 0) {
+      const selectedReportId = selectedReports[0]
+      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
+
+      if (usesTrsDate) {
+        // Set TrsDate to true and disable AsDate
+        form.setValue("useTrsDate", true)
+        form.setValue("useAsDate", false)
+      } else {
+        // Set AsDate to true and disable TrsDate
+        form.setValue("useTrsDate", false)
+        form.setValue("useAsDate", true)
+      }
+    }
+  }, [selectedReports, form])
 
   const handleReportToggle = (reportId: string) => {
     setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
@@ -195,12 +231,15 @@ export default function ReportsPage() {
   const buildReportParameters = (data: IReportFormData): IReportParameters => {
     return {
       companyId,
+      companyName: companyName || "",
+      customerId: data.customerId ? Number(data.customerId) : null,
+      currencyId: data.currencyId ? Number(data.currencyId) : 0,
       fromDate: data.fromDate || null,
       toDate: data.toDate || null,
       asOfDate: data.asOfDate || getCurrentDate(),
-      customerId: data.customerId ? Number(data.customerId) : null,
-      currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      reportType: 0, // Always 0
+      reportType: data.reportType || 0, // Always 0
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
     }
   }
 
@@ -215,13 +254,19 @@ export default function ReportsPage() {
 
     const reportParams = {
       companyId: parameters.companyId,
+      companyName: parameters.companyName,
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
       asOfDate: parameters.asOfDate || getCurrentDate(),
       customerId: parameters.customerId,
       currencyId: parameters.currencyId,
-      reportType: 0,
+      reportType: parameters.reportType,
+      amtDec: parameters.amtDec,
+      locAmtDec: parameters.locAmtDec,
+      userName: user?.userName || "",
     }
+
+    console.log(reportParams)
 
     // Store report data in sessionStorage with a fixed key to avoid URL parameters
     const reportData = {
@@ -257,6 +302,7 @@ export default function ReportsPage() {
       asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
+      useAsDate: false,
       reportType: 0,
     })
     setSelectedReports([])
@@ -355,48 +401,6 @@ export default function ReportsPage() {
                   isRequired={false}
                 />
 
-                {/* Transaction Date Checkbox */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="useTrsDate"
-                    checked={form.watch("useTrsDate")}
-                    onCheckedChange={(checked) =>
-                      form.setValue("useTrsDate", checked as boolean)
-                    }
-                  />
-                  <label
-                    htmlFor="useTrsDate"
-                    className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Trs Date
-                  </label>
-                </div>
-
-                {/* Date Range - Only show if checkbox is checked */}
-                {form.watch("useTrsDate") && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <CustomDateNew
-                      form={form}
-                      name="fromDate"
-                      label="From Date"
-                      isRequired={false}
-                      onChangeEvent={handleFromDateChange}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="toDate"
-                      label="To Date"
-                      isRequired={false}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="asOfDate"
-                      label="As Of Date"
-                      isRequired={false}
-                    />
-                  </div>
-                )}
-
                 {/* Currency */}
                 <CurrencyAutocomplete
                   form={form}
@@ -404,6 +408,36 @@ export default function ReportsPage() {
                   label="Currency"
                   isRequired={true}
                 />
+
+                {/* Date Range - Show From/To Date for TrsDate reports */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <CustomDateNew
+                    form={form}
+                    name="fromDate"
+                    label="From Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
+                    onChangeEvent={handleFromDateChange}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="toDate"
+                    label="To Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
+                  />
+                </div>
+
+                {/* As Date - Show only for non-TrsDate reports */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <CustomDateNew
+                    form={form}
+                    name="asOfDate"
+                    label="As Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useTrsDate")}
+                  />
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4">

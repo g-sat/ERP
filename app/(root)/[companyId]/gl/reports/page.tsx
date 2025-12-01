@@ -195,6 +195,7 @@ export default function ReportsPage() {
 
   // Handle sameToGl checkbox change
   const handleSameToGlChange = (checked: boolean) => {
+    form.setValue("sameToGl", checked)
     if (checked) {
       const fromGlId = form.watch("fromGlId")
       if (fromGlId) {
@@ -250,30 +251,45 @@ export default function ReportsPage() {
     }
 
     const parameters = buildReportParameters(data)
+    const report = selectedReportObjects[0] // Only one report can be selected
 
-    selectedReportObjects.forEach((report) => {
-      const reportParams = {
-        companyId: parameters.companyId,
-        fromGlId: parameters.fromGlId,
-        toGlId: parameters.toGlId,
-        departmentId: parameters.departmentId,
-        fromDate: parameters.fromDate,
-        toDate: parameters.toDate,
-        asOfDate: parameters.asOfDate || getCurrentDate(),
-        currencyId: parameters.currencyId,
-        reportType: parameters.reportType,
-        vatType: parameters.vatType,
-        vatId: parameters.vatId,
-      }
+    const reportParams = {
+      companyId: parameters.companyId,
+      fromGlId: parameters.fromGlId,
+      toGlId: parameters.toGlId,
+      departmentId: parameters.departmentId,
+      fromDate: parameters.fromDate,
+      toDate: parameters.toDate,
+      asOfDate: parameters.asOfDate || getCurrentDate(),
+      currencyId: parameters.currencyId,
+      reportType: parameters.reportType,
+      vatType: parameters.vatType,
+      vatId: parameters.vatId,
+    }
 
+    // Store report data in sessionStorage with a fixed key to avoid URL parameters
+    const reportData = {
+      reportFile: report.reportFile,
+      parameters: reportParams,
+    }
+
+    try {
+      // Use a fixed key - will be overwritten each time a new report is opened
+      sessionStorage.setItem(`report_${companyId}`, JSON.stringify(reportData))
+    } catch (error) {
+      console.error("Error storing report data:", error)
+      // Fallback to URL parameters if sessionStorage fails
       window.open(
         `/${companyId}/reports/viewer?report=${encodeURIComponent(
           report.reportFile
         )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
-        "_blank",
-        "width=1200,height=800"
+        "_blank"
       )
-    })
+      return
+    }
+
+    // Clean URL without any query parameters
+    window.open(`/${companyId}/reports/viewer`, "_blank")
   }
 
   const handleClear = () => {
@@ -392,7 +408,7 @@ export default function ReportsPage() {
                     <ChartOfAccountAutocomplete
                       form={form}
                       name="fromGlId"
-                      label="From GL Name: ()"
+                      label="From GL Name"
                       companyId={companyId}
                       isRequired={false}
                       onChangeEvent={handleFromGlChange}
@@ -419,7 +435,7 @@ export default function ReportsPage() {
                     <ChartOfAccountAutocomplete
                       form={form}
                       name="toGlId"
-                      label="To GL Name: ()"
+                      label="To GL Name"
                       companyId={companyId}
                       isRequired={false}
                       isDisabled={form.watch("sameToGl")}
@@ -442,8 +458,9 @@ export default function ReportsPage() {
                       id="useTrsDate"
                       checked={form.watch("useTrsDate")}
                       onCheckedChange={(checked) => {
-                        form.setValue("useTrsDate", checked as boolean)
-                        if (checked) {
+                        const isChecked = checked as boolean
+                        form.setValue("useTrsDate", isChecked)
+                        if (isChecked) {
                           form.setValue("useAsDate", false)
                         }
                       }}
@@ -461,8 +478,9 @@ export default function ReportsPage() {
                       id="useAsDate"
                       checked={form.watch("useAsDate")}
                       onCheckedChange={(checked) => {
-                        form.setValue("useAsDate", checked as boolean)
-                        if (checked) {
+                        const isChecked = checked as boolean
+                        form.setValue("useAsDate", isChecked)
+                        if (isChecked) {
                           form.setValue("useTrsDate", false)
                         }
                       }}
@@ -476,8 +494,8 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* Date Range */}
-                {(form.watch("useTrsDate") || form.watch("useAsDate")) && (
+                {/* Date Range - Show From/To Date only when Trs Date is selected */}
+                {form.watch("useTrsDate") && (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <CustomDateNew
                       form={form}
@@ -490,6 +508,18 @@ export default function ReportsPage() {
                       form={form}
                       name="toDate"
                       label="To Date:"
+                      isRequired={false}
+                    />
+                  </div>
+                )}
+
+                {/* As Date - Show only when As Date is selected */}
+                {form.watch("useAsDate") && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <CustomDateNew
+                      form={form}
+                      name="asOfDate"
+                      label="As Date:"
                       isRequired={false}
                     />
                   </div>
