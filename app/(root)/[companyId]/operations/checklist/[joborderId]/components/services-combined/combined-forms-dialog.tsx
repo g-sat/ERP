@@ -50,7 +50,7 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   JobOrderCustomerAutocomplete,
   StatusTaskAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 
 interface TaskForwardSchemaType extends Record<string, unknown> {
@@ -115,10 +115,10 @@ const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
   ],
 
   // Type 3: Crew Sign On (4), Crew Sign Off (5)
-  // Fields: visaTypeId, flightDetails, hotelName, transportName, remarks, statusId
+  // Fields: visaId, flightDetails, hotelName, transportName, remarks, statusId
   4: [
     // CrewSignOn
-    { field: "visaTypeId", label: "Visa Type", type: "select" },
+    { field: "visaId", label: "Visa Type", type: "select" },
     { field: "flightDetails", label: "Flight Details", type: "text" },
     { field: "hotelName", label: "Hotel", type: "text" },
     { field: "transportName", label: "Transportation", type: "text" },
@@ -127,7 +127,7 @@ const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
   ],
   5: [
     // CrewSignOff
-    { field: "visaTypeId", label: "Visa Type", type: "select" },
+    { field: "visaId", label: "Visa Type", type: "select" },
     { field: "flightDetails", label: "Flight Details", type: "text" },
     { field: "hotelName", label: "Hotel", type: "text" },
     { field: "transportName", label: "Transportation", type: "text" },
@@ -248,13 +248,13 @@ export function CombinedFormsDialog({
     date?: string
     textValue?: string
     statusId?: number
-    visaTypeId?: number
+    visaId?: number
   }>({
     defaultValues: {
       date: "",
       textValue: "",
       statusId: 0,
-      visaTypeId: 0,
+      visaId: 0,
     },
   })
 
@@ -265,7 +265,7 @@ export function CombinedFormsDialog({
       date: "",
       textValue: "",
       statusId: 0,
-      visaTypeId: 0,
+      visaId: 0,
     })
   }
 
@@ -369,8 +369,8 @@ export function CombinedFormsDialog({
             return
           }
           fieldValue = String(statusValue) // Convert number to string
-        } else if (selectedField === "visaTypeId") {
-          const visaValue = formValues.visaTypeId || 0
+        } else if (selectedField === "visaId") {
+          const visaValue = formValues.visaId || 0
           if (!visaValue || visaValue === 0) {
             toast.error("Please select a visa type")
             return
@@ -676,10 +676,10 @@ export function CombinedFormsDialog({
                             />
                           )}
                         {selectedFieldConfig.type === "select" &&
-                          selectedField === "visaTypeId" && (
-                            <VisaTypeAutocomplete
+                          selectedField === "visaId" && (
+                            <VisaAutocomplete
                               form={bulkUpdateForm}
-                              name="visaTypeId"
+                              name="visaId"
                               label=""
                               isDisabled={isConfirmed}
                               isRequired={true}
@@ -724,7 +724,7 @@ export function CombinedFormsDialog({
                           )}
                         {selectedFieldConfig.type === "select" &&
                           (bulkUpdateForm.watch("statusId") ||
-                            bulkUpdateForm.watch("visaTypeId")) && (
+                            bulkUpdateForm.watch("visaId")) && (
                             <> to the selected value</>
                           )}{" "}
                         for all selected records.
@@ -750,8 +750,8 @@ export function CombinedFormsDialog({
                           selectedField === "statusId" &&
                           !bulkUpdateForm.watch("statusId")) ||
                         (selectedFieldConfig?.type === "select" &&
-                          selectedField === "visaTypeId" &&
-                          !bulkUpdateForm.watch("visaTypeId"))
+                          selectedField === "visaId" &&
+                          !bulkUpdateForm.watch("visaId"))
                       }
                       className="h-10 min-w-[140px]"
                       size="default"

@@ -416,10 +416,10 @@ export interface IGenderLookup {
   genderCode: string
   genderName: string
 }
-export interface IVisaTypeLookup {
-  visaTypeId: number
-  visaTypeCode: string
-  visaTypeName: string
+export interface IVisaLookup {
+  visaId: number
+  visaCode: string
+  visaName: string
 }
 
 export interface IPassTypeLookup {

@@ -277,7 +277,7 @@ export const Lookup = {
   getStatusTask: "/master/getstatustasklookup",
   getRank: "/master/getranklookup",
   getGender: "/master/getgenderlookup",
-  getVisaType: "/master/getvisatypelookup",
+  getVisa: "/master/getvisatypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
   getPurposeOfLandingType: "/master/getpurposeoflandingtypelookup",

@@ -20,7 +20,7 @@ export const tariffSchema = z
     customerId: z.number().min(1, "Customer is required"),
     currencyId: z.number().optional(),
     uomId: z.number().min(1, "Unit of Measure is required"),
-    visaTypeId: z.number().optional(),
+    visaId: z.number().optional(),
     displayRate: z.number().min(0, "Display Rate is required"),
     basicRate: z.number().min(0, "Basic Rate is required"),
     minUnit: z.number().min(0, "Min Unit is required"),

@@ -27,7 +27,7 @@ import {
   ModeTypeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -84,7 +84,7 @@ export function TaskServiceForm() {
             carrierTypeId: 0,
             modeTypeId: 0,
             consignmentTypeId: 0,
-            visaTypeId: 0,
+            visaId: 0,
             landingTypeId: 0,
             statusTypeId: 0,
           }
@@ -100,7 +100,7 @@ export function TaskServiceForm() {
             carrierTypeId: number
             modeTypeId: number
             consignmentTypeId: number
-            visaTypeId: number
+            visaId: number
             landingTypeId: number
             statusTypeId: number
           }
@@ -139,7 +139,7 @@ export function TaskServiceForm() {
             carrierTypeId: number
             modeTypeId: number
             consignmentTypeId: number
-            visaTypeId: number
+            visaId: number
             landingTypeId: number
             statusTypeId: number
           }
@@ -157,7 +157,7 @@ export function TaskServiceForm() {
             carrierTypeId: service.carrierTypeId || 0,
             modeTypeId: service.modeTypeId || 0,
             consignmentTypeId: service.consignmentTypeId || 0,
-            visaTypeId: service.visaTypeId || 0,
+            visaId: service.visaId || 0,
             landingTypeId: service.landingTypeId || 0,
             statusTypeId: service.statusTypeId || 0,
           }
@@ -208,7 +208,7 @@ export function TaskServiceForm() {
       carrierTypeId: serviceData.carrierTypeId,
       modeTypeId: serviceData.modeTypeId,
       consignmentTypeId: serviceData.consignmentTypeId,
-      visaTypeId: serviceData.visaTypeId,
+      visaId: serviceData.visaId,
       landingTypeId: serviceData.landingTypeId,
       statusTypeId: serviceData.statusTypeId,
     }
@@ -308,7 +308,7 @@ export function TaskServiceForm() {
       carrierTypeId: number
       modeTypeId: number
       consignmentTypeId: number
-      visaTypeId: number
+      visaId: number
       landingTypeId: number
       statusTypeId: number
     }
@@ -394,9 +394,9 @@ export function TaskServiceForm() {
 
           {/* Visa Type - Show for taskId 4,5 */}
           {[4, 5].includes(serviceData.taskId) && (
-            <VisaTypeAutocomplete
+            <VisaAutocomplete
               form={form}
-              name={`services.${serviceKey}.visaTypeId`}
+              name={`services.${serviceKey}.visaId`}
               label="Visa Type"
               isRequired={false}
             />
@@ -471,7 +471,7 @@ export function TaskServiceForm() {
                 modeTypeId: 0,
                 consignmentTypeId: 0,
                 landingTypeId: 0,
-                visaTypeId: 0,
+                visaId: 0,
                 statusTypeId: 0,
               }
               return (

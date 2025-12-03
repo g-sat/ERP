@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IVisaTypeLookup } from "@/interfaces/lookup"
+import { IVisaLookup } from "@/interfaces/lookup"
 import {
   IconCheck,
   IconChevronDown,
@@ -20,7 +20,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useVisaTypeLookup } from "@/hooks/use-lookup"
+import { useVisaLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,9 +30,7 @@ interface FieldOption {
   label: string
 }
 
-export default function VisaTypeAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function VisaAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -47,9 +45,9 @@ export default function VisaTypeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IVisaTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: IVisaLookup | null) => void
 }) {
-  const { data: visaTypes = [], isLoading, refetch } = useVisaTypeLookup()
+  const { data: visas = [], isLoading, refetch } = useVisaLookup()
 
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
@@ -63,11 +61,11 @@ export default function VisaTypeAutocomplete<
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      visaTypes.map((visaType: IVisaTypeLookup) => ({
-        value: visaType.visaTypeId.toString(),
-        label: visaType.visaTypeName,
+      visas.map((visa: IVisaLookup) => ({
+        value: visa.visaId.toString(),
+        label: visa.visaName,
       })),
-    [visaTypes]
+    [visas]
   )
 
   // Custom components with display names
@@ -204,16 +202,15 @@ export default function VisaTypeAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedVisaType = selectedOption
-          ? visaTypes.find(
-              (u: IVisaTypeLookup) =>
-                u.visaTypeId.toString() === selectedOption.value
+        const selectedVisa = selectedOption
+          ? visas.find(
+              (u: IVisaLookup) => u.visaId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedVisaType)
+        onChangeEvent(selectedVisa)
       }
     },
-    [form, name, onChangeEvent, visaTypes]
+    [form, name, onChangeEvent, visas]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -388,7 +385,7 @@ export default function VisaTypeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select VisaType..."
+                    placeholder="Select Visa..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -463,7 +460,7 @@ export default function VisaTypeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select VisaType..."
+          placeholder="Select Visa..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}

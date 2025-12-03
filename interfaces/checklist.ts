@@ -243,7 +243,7 @@ export interface ICrewSignOff {
   chargeName?: string
   glId: number
   glName?: string
-  visaTypeId: number
+  visaId: number
   crewName: string
   nationality: string
   rankId: number
@@ -283,7 +283,7 @@ export interface ICrewSignOn {
   chargeName?: string
   glId: number
   glName?: string
-  visaTypeId: number
+  visaId: number
   crewName: string
   nationality: string
   rankId: number
@@ -581,8 +581,8 @@ export interface IMedicalAssistance {
   nationality: string
   rankId: number
   rankName?: string
-  visaTypeId: number
-  visaTypeName?: string
+  visaId: number
+  visaName?: string
   reason?: string
   admittedDate?: Date | string
   dischargedDate?: Date | string

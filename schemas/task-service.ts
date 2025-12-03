@@ -8,7 +8,7 @@ const serviceFieldSchema = z.object({
   carrierTypeId: z.number().optional(),
   modeTypeId: z.number().optional(),
   consignmentTypeId: z.number().optional(),
-  visaTypeId: z.number().optional(),
+  visaId: z.number().optional(),
   landingTypeId: z.number().optional(),
   statusTypeId: z.number().optional(),
 })

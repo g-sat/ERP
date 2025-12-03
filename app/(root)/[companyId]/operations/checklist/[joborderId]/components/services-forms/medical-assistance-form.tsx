@@ -22,7 +22,7 @@ import {
   ChartOfAccountAutocomplete,
   RankAutocomplete,
   StatusTaskAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -115,7 +115,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
-      visaTypeId: initialData?.visaTypeId ?? 106,
+      visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -149,7 +149,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
-      visaTypeId: initialData?.visaTypeId ?? 106,
+      visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -202,9 +202,9 @@ export function MedicalAssistanceForm({
                 label="Rank"
                 isDisabled={isConfirmed}
               />
-              <VisaTypeAutocomplete
+              <VisaAutocomplete
                 form={form}
-                name="visaTypeId"
+                name="visaId"
                 label="Visa Type"
                 isDisabled={isConfirmed}
               />

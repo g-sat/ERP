@@ -61,7 +61,7 @@ import {
   IUserLookup,
   IUserRoleLookup,
   IVesselLookup,
-  IVisaTypeLookup,
+  IVisaLookup,
   IVoyageLookup,
   IWorkLocationLookup,
   IYearLookup,
@@ -1473,13 +1473,13 @@ export const useGenderLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useVisaTypeLookup = () => {
-  return useQuery<IVisaTypeLookup[]>({
+export const useVisaLookup = () => {
+  return useQuery<IVisaLookup[]>({
     queryKey: ["visatype-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getVisaType)
+        const data = await getData(Lookup.getVisa)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

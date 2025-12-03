@@ -18,7 +18,7 @@ import {
   ChartOfAccountAutocomplete,
   RankAutocomplete,
   StatusTaskAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -66,7 +66,7 @@ export function CrewSignOnForm({
       taskId: Task.CrewSignOn,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
+      visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       rankId: initialData?.rankId ?? 0,
@@ -92,7 +92,7 @@ export function CrewSignOnForm({
       taskId: Task.CrewSignOn,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
+      visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       rankId: initialData?.rankId ?? 0,
@@ -168,9 +168,9 @@ export function CrewSignOnForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <VisaTypeAutocomplete
+              <VisaAutocomplete
                 form={form}
-                name="visaTypeId"
+                name="visaId"
                 label="Visa Type"
                 isRequired
                 isDisabled={isConfirmed}

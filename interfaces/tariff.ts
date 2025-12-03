@@ -25,9 +25,9 @@ export interface ITariff {
   uomId?: number
   uomCode?: string
   uomName?: string
-  visaTypeId?: number
-  visaTypeCode?: string
-  visaTypeName?: string
+  visaId?: number
+  visaCode?: string
+  visaName?: string
   displayRate?: number
   basicRate?: number
   minUnit?: number
@@ -100,7 +100,7 @@ export interface ITariffRPT {
   taskName: string
   chargeName: string
   uomName: string
-  visaTypeName: string
+  visaName: string
   displayRate: number // decimal in C#
   basicRate: number // decimal in C#
   minUnit: number

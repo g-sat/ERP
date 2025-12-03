@@ -73,10 +73,10 @@ export function TariffTable({
       size: 250,
     },
     {
-      accessorKey: "visaTypeName",
+      accessorKey: "visaName",
       header: "Visa Type",
       cell: ({ row }) => {
-        return row.getValue("visaTypeName") || ""
+        return row.getValue("visaName") || ""
       },
       size: 120,
     },

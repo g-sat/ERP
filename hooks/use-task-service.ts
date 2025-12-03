@@ -42,7 +42,7 @@ export const useTaskServiceDefaults = (taskId: number) => {
       carrierTypeId: taskSettings.carrierTypeId || 0,
       modeTypeId: taskSettings.modeTypeId || 0,
       consignmentTypeId: taskSettings.consignmentTypeId || 0,
-      visaTypeId: taskSettings.visaTypeId || 0,
+      visaId: taskSettings.visaId || 0,
       landingTypeId: taskSettings.landingTypeId || 0,
     }
   }, [data?.data, taskId])

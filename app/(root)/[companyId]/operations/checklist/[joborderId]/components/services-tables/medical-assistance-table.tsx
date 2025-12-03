@@ -188,10 +188,10 @@ export function MedicalAssistanceTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "visaTypeName",
+        accessorKey: "visaName",
         header: "Visa Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("visaTypeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("visaName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,

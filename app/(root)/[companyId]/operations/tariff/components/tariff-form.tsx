@@ -22,7 +22,7 @@ import {
   PortAutocomplete,
   TaskAutocomplete,
   UomAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -78,7 +78,7 @@ export function TariffForm({
       customerId: initialData?.customerId || customerId,
       currencyId: initialData?.currencyId || defaultCurrencyId,
       uomId: initialData?.uomId || 0,
-      visaTypeId: initialData?.visaTypeId || 0,
+      visaId: initialData?.visaId || 0,
       displayRate: initialData?.displayRate || 0,
       basicRate: initialData?.basicRate || 0,
       minUnit: initialData?.minUnit || 0,
@@ -115,7 +115,7 @@ export function TariffForm({
         customerId: initialData.customerId || customerId,
         currencyId: initialData.currencyId || defaultCurrencyId,
         uomId: initialData.uomId || 0,
-        visaTypeId: initialData.visaTypeId || 0,
+        visaId: initialData.visaId || 0,
         displayRate: initialData.displayRate || 0,
         basicRate: initialData.basicRate || 0,
         minUnit: initialData.minUnit || 0,
@@ -146,7 +146,7 @@ export function TariffForm({
         customerId: customerId,
         currencyId: defaultCurrencyId,
         uomId: 0,
-        visaTypeId: 0,
+        visaId: 0,
         displayRate: 0,
         basicRate: 0,
         minUnit: 0,
@@ -194,7 +194,7 @@ export function TariffForm({
       customerId: data.customerId,
       currencyId: data.currencyId || 0,
       uomId: data.uomId,
-      visaTypeId: data.visaTypeId,
+      visaId: data.visaId,
       displayRate: data.displayRate,
       basicRate: data.basicRate,
       minUnit: data.minUnit,
@@ -319,9 +319,9 @@ export function TariffForm({
               taskId={form.watch("taskId")}
             />
 
-            <VisaTypeAutocomplete
+            <VisaAutocomplete
               form={form}
-              name="visaTypeId"
+              name="visaId"
               label="Visa Type"
               isRequired
               isDisabled={mode === "view"}

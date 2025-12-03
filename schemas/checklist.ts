@@ -243,7 +243,7 @@ export const CrewSignOffSchema = z.object({
   taskId: z.number().optional(),
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
-  visaTypeId: z.number().min(1, "Visa Type is required"),
+  visaId: z.number().min(1, "Visa Type is required"),
   crewName: z.string().min(1, "Crew Name is required"),
   nationality: z.string().min(1, "Nationality is required"),
   rankId: z.number().optional(),
@@ -275,7 +275,7 @@ export const CrewSignOnSchema = z.object({
   taskId: z.number().optional(),
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
-  visaTypeId: z.number().min(1, "Visa Type is required"),
+  visaId: z.number().min(1, "Visa Type is required"),
   crewName: z
     .string()
     .min(1, "Crew Name is required")
@@ -403,7 +403,7 @@ export const MedicalAssistanceSchema = z.object({
   reason: z.string().optional(),
   admittedDate: z.union([z.string(), z.date()]).optional(),
   dischargedDate: z.union([z.string(), z.date()]).optional(),
-  visaTypeId: z.number(),
+  visaId: z.number(),
   statusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()

@@ -8,7 +8,7 @@ export interface ITaskService {
   modeTypeId?: number | null
   consignmentTypeId?: number | null
   landingTypeId?: number | null
-  visaTypeId?: number | null
+  visaId?: number | null
   statusTypeId?: number | null
   createById: number
   createDate: string
