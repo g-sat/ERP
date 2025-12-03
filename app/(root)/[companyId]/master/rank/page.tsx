@@ -233,7 +233,7 @@ export default function RankPage() {
               rankId: rankData.rankId,
               rankCode: rankData.rankCode,
               rankName: rankData.rankName,
-              rankOrder: rankData.rankOrder || 0,
+              seqNo: rankData.seqNo || 0,
               companyId: rankData.companyId,
               remarks: rankData.remarks || "",
               isActive: rankData.isActive ?? true,
@@ -447,4 +447,3 @@ export default function RankPage() {
     </div>
   )
 }
-

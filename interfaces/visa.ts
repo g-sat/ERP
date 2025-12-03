@@ -3,7 +3,7 @@ export interface IVisa {
   companyId: number
   visaCode: string
   visaName: string
-  visaOrder: number
+  seqNo: number
   createById: number
   editById: number
   createBy: string
@@ -19,4 +19,3 @@ export interface IVisaFilter {
   search?: string
   sortOrder?: "asc" | "desc"
 }
-

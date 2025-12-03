@@ -233,7 +233,7 @@ export default function VisaPage() {
               visaId: visaData.visaId,
               visaCode: visaData.visaCode,
               visaName: visaData.visaName,
-              visaOrder: visaData.visaOrder || 0,
+              seqNo: visaData.seqNo || 0,
               companyId: visaData.companyId,
               remarks: visaData.remarks || "",
               isActive: visaData.isActive ?? true,
@@ -447,4 +447,3 @@ export default function VisaPage() {
     </div>
   )
 }
-

@@ -24,7 +24,7 @@ const defaultValues = {
   rankId: 0,
   rankName: "",
   rankCode: "",
-  rankOrder: 0,
+  seqNo: 0,
   remarks: "",
   isActive: true,
 }
@@ -55,7 +55,7 @@ export function RankForm({
           rankId: initialData.rankId ?? 0,
           rankName: initialData.rankName ?? "",
           rankCode: initialData.rankCode ?? "",
-          rankOrder: initialData.rankOrder ?? 0,
+          seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -72,7 +72,7 @@ export function RankForm({
             rankId: initialData.rankId ?? 0,
             rankName: initialData.rankName ?? "",
             rankCode: initialData.rankCode ?? "",
-            rankOrder: initialData.rankOrder ?? 0,
+            seqNo: initialData.seqNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -118,7 +118,7 @@ export function RankForm({
 
             <CustomInput
               form={form}
-              name="rankOrder"
+              name="seqNo"
               label="Rank Order"
               type="number"
               isDisabled={isReadOnly}
@@ -239,4 +239,3 @@ export function RankForm({
     </div>
   )
 }
-

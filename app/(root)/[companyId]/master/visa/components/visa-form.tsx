@@ -24,7 +24,7 @@ const defaultValues = {
   visaId: 0,
   visaName: "",
   visaCode: "",
-  visaOrder: 0,
+  seqNo: 0,
   remarks: "",
   isActive: true,
 }
@@ -55,7 +55,7 @@ export function VisaForm({
           visaId: initialData.visaId ?? 0,
           visaName: initialData.visaName ?? "",
           visaCode: initialData.visaCode ?? "",
-          visaOrder: initialData.visaOrder ?? 0,
+          seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -72,7 +72,7 @@ export function VisaForm({
             visaId: initialData.visaId ?? 0,
             visaName: initialData.visaName ?? "",
             visaCode: initialData.visaCode ?? "",
-            visaOrder: initialData.visaOrder ?? 0,
+            seqNo: initialData.seqNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -118,7 +118,7 @@ export function VisaForm({
 
             <CustomInput
               form={form}
-              name="visaOrder"
+              name="seqNo"
               label="Visa Order"
               type="number"
               isDisabled={isReadOnly}
@@ -239,4 +239,3 @@ export function VisaForm({
     </div>
   )
 }
-

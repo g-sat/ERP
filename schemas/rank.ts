@@ -11,7 +11,7 @@ export const rankSchema = z.object({
     .min(2, { message: "rank name must be at least 2 characters" })
     .max(150, { message: "rank name cannot exceed 150 characters" }),
 
-  rankOrder: z.number().min(0, { message: "rank order is required" }),
+  seqNo: z.number().min(0, { message: "rank order is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
@@ -28,4 +28,3 @@ export const rankFiltersSchema = z.object({
 })
 
 export type RankFiltersValues = z.infer<typeof rankFiltersSchema>
-

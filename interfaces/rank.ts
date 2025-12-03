@@ -3,7 +3,7 @@ export interface IRank {
   companyId: number
   rankCode: string
   rankName: string
-  rankOrder: number
+  seqNo: number
   createById: number
   editById: number
   createBy: string
@@ -19,4 +19,3 @@ export interface IRankFilter {
   search?: string
   sortOrder?: "asc" | "desc"
 }
-

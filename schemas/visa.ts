@@ -11,7 +11,7 @@ export const visaSchema = z.object({
     .min(2, { message: "visa name must be at least 2 characters" })
     .max(150, { message: "visa name cannot exceed 150 characters" }),
 
-  visaOrder: z.number().min(0, { message: "visa order is required" }),
+  seqNo: z.number().min(0, { message: "visa order is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
@@ -28,4 +28,3 @@ export const visaFiltersSchema = z.object({
 })
 
 export type VisaFiltersValues = z.infer<typeof visaFiltersSchema>
-
