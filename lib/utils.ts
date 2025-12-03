@@ -143,6 +143,8 @@ export enum MasterTransactionId {
   vessel = 50,
   voyage = 51,
   workLocation = 52,
+  visa = 53,
+  rank = 54,
 }
 
 export enum AdminTransactionId {
@@ -415,6 +417,8 @@ export enum TableName {
   uom = "M_Uom",
   uomDt = "M_UomDt",
   vessel = "M_Vessel",
+  visa = "M_Visa",
+  rank = "M_Rank",
   voyage = "M_Voyage",
   workLocation = "M_WorkLocation",
 

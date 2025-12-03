@@ -447,6 +447,22 @@ export const Task = {
   delete: "/master/deletetask",
 }
 
+// Visa Endpoints
+export const Visa = {
+  get: "/master/getvisa",
+  getByCode: "/master/getvisabycode",
+  add: "/master/savevisa",
+  delete: "/master/deletevisa",
+}
+
+// Rank Endpoints
+export const Rank = {
+  get: "/master/getrank",
+  getByCode: "/master/getrankbycode",
+  add: "/master/saverank",
+  delete: "/master/deleterank",
+}
+
 // Charge Endpoints
 export const Charge = {
   get: "/master/getcharge",
