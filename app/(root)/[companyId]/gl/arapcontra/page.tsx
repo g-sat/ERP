@@ -531,6 +531,56 @@ export default function ArapcontraPage() {
     toast.success("Contra reset successfully")
   }
 
+  // Handle Print Contra Report
+  const handlePrintContra = () => {
+    if (!contra || contra.contraId === "0") {
+      toast.error("Please select a contra to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const contraId = formValues.contraId || contra.contraId?.toString() || "0"
+    const contraNo = formValues.contraNo || contra.contraNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: contraId,
+      invoiceNo: contraNo,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "GLContra.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IGLContraHd to GLContraHdSchemaType
   const transformToSchemaType = useCallback(
     (apiContra: IGLContraHd): GLContraHdSchemaType => {
@@ -1161,6 +1211,7 @@ export default function ArapcontraPage() {
               variant="outline"
               size="sm"
               disabled={!contra || contra.contraId === "0"}
+              onClick={handlePrintContra}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print

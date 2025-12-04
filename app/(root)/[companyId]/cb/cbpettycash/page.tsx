@@ -717,6 +717,57 @@ export default function CbPettyCashPage() {
     toast.success("CbPettyCash reset successfully")
   }
 
+  // Handle Print Cb Petty Cash Report
+  const handlePrintCbPettyCash = () => {
+    if (!cbPettyCash || cbPettyCash.paymentId === "0") {
+      toast.error("Please select a CB petty cash to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const paymentId =
+      formValues.paymentId || cbPettyCash.paymentId?.toString() || "0"
+    const paymentNo = formValues.paymentNo || cbPettyCash.paymentNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: paymentId,
+      invoiceNo: paymentNo,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "CbPettyCash.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform ICbPettyCashHd to CbPettyCashHdSchemaType
   const transformToSchemaType = (
     apiCbPettyCash: ICbPettyCashHd
@@ -1460,6 +1511,7 @@ export default function CbPettyCashPage() {
               variant="outline"
               size="sm"
               disabled={!cbPettyCash || cbPettyCash.paymentId === "0"}
+              onClick={handlePrintCbPettyCash}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print

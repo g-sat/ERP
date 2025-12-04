@@ -53,6 +53,12 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -754,7 +760,7 @@ export default function InvoicePage() {
   }
 
   // Handle Print Invoice Report
-  const handlePrintInvoice = () => {
+  const handlePrintInvoice = (reportType: "direct" | "invoice" = "invoice") => {
     if (!invoice || invoice.invoiceId === "0") {
       toast.error("Please select an invoice to print")
       return
@@ -783,9 +789,15 @@ export default function InvoicePage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file based on type
+    const reportFile =
+      reportType === "direct"
+        ? "RPT_ArInvoiceDirect.trdp"
+        : "RPT_ArInvoice.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ARInvoice.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -1376,15 +1388,26 @@ export default function InvoicePage() {
                   : "Save"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!invoice || invoice.invoiceId === "0"}
-              onClick={handlePrintInvoice}
-            >
-              <Printer className="mr-1 h-4 w-4" />
-              Print
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!invoice || invoice.invoiceId === "0"}
+                >
+                  <Printer className="mr-1 h-4 w-4" />
+                  Print
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handlePrintInvoice("direct")}>
+                  1. Direct
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePrintInvoice("invoice")}>
+                  2. Invoice
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
