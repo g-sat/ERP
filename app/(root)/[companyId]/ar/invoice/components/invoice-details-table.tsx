@@ -299,6 +299,15 @@ export default function InvoiceDetailsTable({
         <div className="text-right">{row.original.docItemNo}</div>
       ),
     },
+    ...(visible?.m_DebitNoteNo
+      ? [
+          {
+            accessorKey: "debitNoteNo",
+            header: "Debit Note No",
+            size: 100,
+          },
+        ]
+      : []),
   ]
 
   if (!mounted) {

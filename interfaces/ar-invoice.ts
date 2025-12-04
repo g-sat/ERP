@@ -131,6 +131,7 @@ export interface IArInvoiceDt {
   totLocalAmt: number
   totCtyAmt: number
   remarks: string
+  debitNoteNo: string
   gstId: number
   gstName: string
   gstPercentage: number
