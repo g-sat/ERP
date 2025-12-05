@@ -149,7 +149,12 @@ const REPORT_CATEGORIES = [
 export default function ReportsPage() {
   const params = useParams()
   const companyId = Number(params.companyId)
-  const { decimals } = useAuthStore()
+  const { decimals, companies, user } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const companyName: string | null =
+    companies.find((company) => company.companyId === companyId.toString())
+      ?.companyName || null
   // Use the same date format logic as CustomDateNew
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const [selectedReports, setSelectedReports] = useState<string[]>([])
@@ -253,18 +258,35 @@ export default function ReportsPage() {
     const parameters = buildReportParameters(data)
     const report = selectedReportObjects[0] // Only one report can be selected
 
+    // Build glId as comma-separated string from fromGlId and toGlId
+    const glIdArray: string[] = []
+    if (parameters.fromGlId) {
+      glIdArray.push(parameters.fromGlId.toString())
+    }
+    if (parameters.toGlId && parameters.toGlId !== parameters.fromGlId) {
+      glIdArray.push(parameters.toGlId.toString())
+    }
+    const glId = glIdArray.length > 0 ? glIdArray.join(",") : ""
+
     const reportParams = {
       companyId: parameters.companyId,
-      fromGlId: parameters.fromGlId,
-      toGlId: parameters.toGlId,
+      companyName: companyName || "",
+      fromGlId: parameters.fromGlId?.toString() || "",
+      toGlId: parameters.toGlId?.toString() || "",
+      glId: glId,
       departmentId: parameters.departmentId,
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
-      asOfDate: parameters.asOfDate || getCurrentDate(),
+      asDate: parameters.asOfDate || getCurrentDate(),
       currencyId: parameters.currencyId,
       reportType: parameters.reportType,
       vatType: parameters.vatType,
       vatId: parameters.vatId,
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+      url: "",
+      userName: user?.userName || "",
+      isMonthly: false,
     }
 
     // Store report data in sessionStorage with a fixed key to avoid URL parameters
