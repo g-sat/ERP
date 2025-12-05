@@ -9,6 +9,7 @@ import {
   CbBankReconHdSchema,
   CbBankReconHdSchemaType,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -54,7 +55,7 @@ import Main from "./components/main-tab"
 export default function BankReconPage() {
   const params = useParams()
   const companyId = params.companyId as string
-
+  const { decimals, user } = useAuthStore()
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbankrecon
 
@@ -321,6 +322,7 @@ export default function BankReconPage() {
       companyId: companyId,
       invoiceId: reconId,
       invoiceNo: reconNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -330,7 +332,7 @@ export default function BankReconPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbBankRecon.trdp",
+      reportFile: "RPT_CbBankRecon.trdp",
       parameters: reportParams,
     }
 

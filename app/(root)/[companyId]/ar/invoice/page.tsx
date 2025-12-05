@@ -770,7 +770,6 @@ export default function InvoicePage() {
     const invoiceId =
       formValues.invoiceId || invoice.invoiceId?.toString() || "0"
     const invoiceNo = formValues.invoiceNo || invoice.invoiceNo || ""
-    const jobOrderId = formValues.jobOrderId || invoice.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -781,7 +780,7 @@ export default function InvoicePage() {
       companyId: companyId,
       invoiceId: invoiceId,
       invoiceNo: invoiceNo,
-      jobOrderId: jobOrderId,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,

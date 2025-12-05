@@ -767,7 +767,6 @@ export default function InvoicePage() {
     const invoiceId =
       formValues.invoiceId || invoice.invoiceId?.toString() || "0"
     const invoiceNo = formValues.invoiceNo || invoice.invoiceNo || ""
-    const jobOrderId = formValues.jobOrderId || invoice.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -778,7 +777,7 @@ export default function InvoicePage() {
       companyId: companyId,
       invoiceId: invoiceId,
       invoiceNo: invoiceNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -788,7 +787,7 @@ export default function InvoicePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ApInvoice.trdp",
+      reportFile: "RPT_ApInvoice.trdp",
       parameters: reportParams,
     }
 

@@ -614,7 +614,6 @@ export default function PaymentPage() {
     const paymentId =
       formValues.paymentId || payment.paymentId?.toString() || "0"
     const paymentNo = formValues.paymentNo || payment.paymentNo || ""
-    const jobOrderId = formValues.jobOrderId || payment.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -625,7 +624,7 @@ export default function PaymentPage() {
       companyId: companyId,
       invoiceId: paymentId,
       invoiceNo: paymentNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -635,7 +634,7 @@ export default function PaymentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ApPayment.trdp",
+      reportFile: "RPT_ApPayment.trdp",
       parameters: reportParams,
     }
 

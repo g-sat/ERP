@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { ICbBankTransfer, ICbBankTransferFilter } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbBankTransferSchema, CbBankTransferSchemaType } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -51,6 +52,7 @@ import Other from "./components/other"
 export default function BankTransferPage() {
   const params = useParams()
   const companyId = params.companyId as string
+  const { decimals, user } = useAuthStore()
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransfer
@@ -330,6 +332,7 @@ export default function BankTransferPage() {
       companyId: companyId,
       invoiceId: transferId,
       invoiceNo: transferNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -339,7 +342,7 @@ export default function BankTransferPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbBankTransfer.trdp",
+      reportFile: "RPT_CbBankTransfer.trdp",
       parameters: reportParams,
     }
 

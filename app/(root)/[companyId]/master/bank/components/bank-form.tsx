@@ -52,13 +52,13 @@ export default function BankForm({
         currencyId: 0,
         accountNo: "",
         swiftCode: "",
+        iban: "",
         remarks1: "",
         remarks2: "",
         remarks3: "",
         glId: 0,
         isOwnBank: false,
         isPettyCashBank: false,
-        remarks: "",
         isActive: true,
       } as z.infer<typeof bankSchema>),
   })
@@ -73,13 +73,13 @@ export default function BankForm({
         currencyId: 0,
         accountNo: "",
         swiftCode: "",
+        iban: "",
         remarks1: "",
         remarks2: "",
         remarks3: "",
         glId: 0,
         isOwnBank: false,
         isPettyCashBank: false,
-        remarks: "",
         isActive: true,
       }
     )
@@ -149,6 +149,7 @@ export default function BankForm({
 
               <CustomInput form={form} name="accountNo" label="Account No" />
               <CustomInput form={form} name="swiftCode" label="Swift Code" />
+              <CustomInput form={form} name="iban" label="IBAN" />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -613,7 +613,6 @@ export default function RefundPage() {
     const formValues = form.getValues()
     const refundId = formValues.refundId || refund.refundId?.toString() || "0"
     const refundNo = formValues.refundNo || refund.refundNo || ""
-    const jobOrderId = formValues.jobOrderId || refund.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -624,7 +623,7 @@ export default function RefundPage() {
       companyId: companyId,
       invoiceId: refundId,
       invoiceNo: refundNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -634,7 +633,7 @@ export default function RefundPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ApRefund.trdp",
+      reportFile: "RPT_ApRefund.trdp",
       parameters: reportParams,
     }
 

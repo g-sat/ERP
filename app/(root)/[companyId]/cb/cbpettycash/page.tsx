@@ -738,6 +738,7 @@ export default function CbPettyCashPage() {
       companyId: companyId,
       invoiceId: paymentId,
       invoiceNo: paymentNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -747,7 +748,7 @@ export default function CbPettyCashPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbPettyCash.trdp",
+      reportFile: "RPT_CbPettyCash.trdp",
       parameters: reportParams,
     }
 

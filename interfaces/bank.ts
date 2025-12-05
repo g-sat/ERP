@@ -8,13 +8,13 @@ export interface IBank {
   currencyName: string
   accountNo: string
   swiftCode: string
+  iban: string
   remarks1: string
   remarks2: string
   remarks3: string
   glId: number
   isOwnBank: boolean
   isPettyCashBank: boolean
-  remarks: string
   isActive: boolean
   createById: number
   editById: number

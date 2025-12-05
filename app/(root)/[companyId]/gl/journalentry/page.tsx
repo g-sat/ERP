@@ -754,6 +754,7 @@ export default function GLJournalPage() {
       companyId: companyId,
       invoiceId: journalId,
       invoiceNo: journalNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -763,7 +764,7 @@ export default function GLJournalPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "GLJournal.trdp",
+      reportFile: "RPT_GLJournal.trdp",
       parameters: reportParams,
     }
 

@@ -741,6 +741,7 @@ export default function CbGenPaymentPage() {
       companyId: companyId,
       invoiceId: paymentId,
       invoiceNo: paymentNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -750,7 +751,7 @@ export default function CbGenPaymentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbGenPayment.trdp",
+      reportFile: "RPT_CbGenPayment.trdp",
       parameters: reportParams,
     }
 

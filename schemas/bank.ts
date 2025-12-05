@@ -22,6 +22,7 @@ export const bankSchema = z.object({
     .string()
     .max(50, "SWIFT code cannot exceed 50 characters")
     .optional(),
+  iban: z.string().max(50, "IBAN cannot exceed 50 characters").optional(),
   remarks1: z
     .string()
     .max(255, "Remarks1 cannot exceed 255 characters")
@@ -38,10 +39,6 @@ export const bankSchema = z.object({
 
   isPettyCashBank: z.boolean().optional(),
   isOwnBank: z.boolean().optional(),
-  remarks: z
-    .string()
-    .max(255, "Remarks cannot exceed 255 characters")
-    .optional(),
   isActive: z.boolean(),
 })
 export type BankSchemaType = z.infer<typeof bankSchema>

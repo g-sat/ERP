@@ -799,7 +799,6 @@ export default function AdjustmentPage() {
       formValues.adjustmentId || adjustment.adjustmentId?.toString() || "0"
     const adjustmentNo =
       formValues.adjustmentNo || adjustment.adjustmentNo || ""
-    const jobOrderId = formValues.jobOrderId || adjustment.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -810,7 +809,7 @@ export default function AdjustmentPage() {
       companyId: companyId,
       invoiceId: adjustmentId,
       invoiceNo: adjustmentNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -820,7 +819,7 @@ export default function AdjustmentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ApAdjustment.trdp",
+      reportFile: "RPT_ApAdjustment.trdp",
       parameters: reportParams,
     }
 

@@ -781,7 +781,6 @@ export default function DebitNotePage() {
     const debitNoteId =
       formValues.debitNoteId || debitNote.debitNoteId?.toString() || "0"
     const debitNoteNo = formValues.debitNoteNo || debitNote.debitNoteNo || ""
-    const jobOrderId = formValues.jobOrderId || debitNote.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -792,7 +791,7 @@ export default function DebitNotePage() {
       companyId: companyId,
       invoiceId: debitNoteId,
       invoiceNo: debitNoteNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -802,7 +801,7 @@ export default function DebitNotePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ArDebitNote.trdp",
+      reportFile: "RPT_ArDebitNote.trdp",
       parameters: reportParams,
     }
 

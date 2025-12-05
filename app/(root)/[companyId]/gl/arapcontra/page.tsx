@@ -551,6 +551,7 @@ export default function ArapcontraPage() {
       companyId: companyId,
       invoiceId: contraId,
       invoiceNo: contraNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -560,7 +561,7 @@ export default function ArapcontraPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "GLContra.trdp",
+      reportFile: "RPT_GLContra.trdp",
       parameters: reportParams,
     }
 

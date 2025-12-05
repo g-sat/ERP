@@ -60,7 +60,7 @@ export default function BankTransferCtmPage() {
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransferctm
 
-  const { decimals } = useAuthStore()
+  const { decimals, user } = useAuthStore()
   const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showListDialog, setShowListDialog] = useState(false)
@@ -366,6 +366,7 @@ export default function BankTransferCtmPage() {
       companyId: companyId,
       invoiceId: transferId,
       invoiceNo: transferNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -375,7 +376,7 @@ export default function BankTransferCtmPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbBankTransferCtm.trdp",
+      reportFile: "RPT_CbBankTransferCtm.trdp",
       parameters: reportParams,
     }
 

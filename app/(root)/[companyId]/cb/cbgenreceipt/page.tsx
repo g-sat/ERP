@@ -741,6 +741,7 @@ export default function CbGenReceiptPage() {
       companyId: companyId,
       invoiceId: receiptId,
       invoiceNo: receiptNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -750,7 +751,7 @@ export default function CbGenReceiptPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "CbGenReceipt.trdp",
+      reportFile: "RPT_CbGenReceipt.trdp",
       parameters: reportParams,
     }
 

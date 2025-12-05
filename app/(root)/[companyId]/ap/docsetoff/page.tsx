@@ -636,6 +636,7 @@ export default function DocSetOffPage() {
       companyId: companyId,
       invoiceId: setoffId,
       invoiceNo: setoffNo,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -645,7 +646,7 @@ export default function DocSetOffPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ApDocSetOff.trdp",
+      reportFile: "RPT_ApDocSetOff.trdp",
       parameters: reportParams,
     }
 

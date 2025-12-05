@@ -789,7 +789,6 @@ export default function CreditNotePage() {
       formValues.creditNoteId || creditNote.creditNoteId?.toString() || "0"
     const creditNoteNo =
       formValues.creditNoteNo || creditNote.creditNoteNo || ""
-    const jobOrderId = formValues.jobOrderId || creditNote.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -800,7 +799,7 @@ export default function CreditNotePage() {
       companyId: companyId,
       invoiceId: creditNoteId,
       invoiceNo: creditNoteNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -810,7 +809,7 @@ export default function CreditNotePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ArCreditNote.trdp",
+      reportFile: "RPT_ArCreditNote.trdp",
       parameters: reportParams,
     }
 

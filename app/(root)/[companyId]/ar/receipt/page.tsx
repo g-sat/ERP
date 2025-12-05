@@ -616,7 +616,6 @@ export default function ReceiptPage() {
     const receiptId =
       formValues.receiptId || receipt.receiptId?.toString() || "0"
     const receiptNo = formValues.receiptNo || receipt.receiptNo || ""
-    const jobOrderId = formValues.jobOrderId || receipt.jobOrderId || 0
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -627,7 +626,7 @@ export default function ReceiptPage() {
       companyId: companyId,
       invoiceId: receiptId,
       invoiceNo: receiptNo,
-      jobOrderId: jobOrderId,
+      reportType: 1,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -637,7 +636,7 @@ export default function ReceiptPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "ArReceipt.trdp",
+      reportFile: "RPT_ArReceipt.trdp",
       parameters: reportParams,
     }
 
