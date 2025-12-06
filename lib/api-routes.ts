@@ -226,7 +226,7 @@ export const Lookup = {
   getPortRegion: "/master/getportregionlookup",
   getOrderType: "/master/getordertypelookup",
   getOrderTypeCategory: "/master/getordertypecategorylookup",
-  getServiceCategory: "/master/getservicecategorylookup",
+  getServiceCategory: "/master/GetServiceCategoryLookup",
   getServiceTypeCategory: "/master/getservicetypecategorylookup",
   getDepartment: "/master/getdepartmentlookup",
   getWorkLocation: "/master/getworklocationlookup",

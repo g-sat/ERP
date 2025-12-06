@@ -55,7 +55,7 @@ export function middleware(request: NextRequest) {
   // Get auth token from cookies
   const token = request.cookies.get("auth-token")?.value
 
-  console.log("Middleware - Current path:", pathname, "Token present:", !!token)
+  //console.log("Middleware - Current path:", pathname, "Token present:", !!token)
 
   // If no token is present and not on a public route, redirect to login
   if (!token && !publicRoutes.includes(pathname)) {
@@ -82,7 +82,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/login", request.url))
       }
 
-      console.log("Middleware - Token valid, allowing access")
+      //console.log("Middleware - Token valid, allowing access")
     } catch (error) {
       console.log(
         "Middleware - Token validation error, redirecting to login:",
