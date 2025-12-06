@@ -226,7 +226,7 @@ export const Lookup = {
   getPortRegion: "/master/getportregionlookup",
   getOrderType: "/master/getordertypelookup",
   getOrderTypeCategory: "/master/getordertypecategorylookup",
-  getServiceType: "/master/getservicetypelookup",
+  getServiceCategory: "/master/getservicecategorylookup",
   getServiceTypeCategory: "/master/getservicetypecategorylookup",
   getDepartment: "/master/getdepartmentlookup",
   getWorkLocation: "/master/getworklocationlookup",
@@ -273,15 +273,15 @@ export const Lookup = {
 
   getNumberYear: "/master/getnumberformatnextyear",
 
-  getStatus: "/master/getstatuslookup",
-  getStatusTask: "/master/getstatustasklookup",
+  getJobStatus: "/master/getjobstatuslookup",
+  getTaskStatus: "/master/gettaskstatuslookup",
   getRank: "/master/getranklookup",
   getGender: "/master/getgenderlookup",
   getVisa: "/master/getvisatypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
   getPurposeOfLandingType: "/master/getpurposeoflandingtypelookup",
-  getModeType: "/master/getmodetypelookup",
+  getServiceMode: "/master/getservicemodelookup",
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrierType: "/master/getcarriertypelookup",
   getCompany: "/master/getcompanylookup",
@@ -463,12 +463,91 @@ export const Rank = {
   delete: "/master/deleterank",
 }
 
+// ServiceMode Endpoints
+export const ServiceMode = {
+  get: "/master/getservicemode",
+  getByCode: "/master/getservicemodebycode",
+  add: "/master/saveservicemode",
+  delete: "/master/deleteservicemode",
+}
+
+// Carrier Endpoints
+export const Carrier = {
+  get: "/master/getcarrier",
+  getByCode: "/master/getcarrierbycode",
+  add: "/master/savecarrier",
+  delete: "/master/deletecarrier",
+}
+
+// LandingType Endpoints
+export const LandingType = {
+  get: "/master/getlandingtype",
+  getByCode: "/master/getlandingtypebycode",
+  add: "/master/savelandingtype",
+  delete: "/master/deletelandingtype",
+}
+
+// LandingPurpose Endpoints
+export const LandingPurpose = {
+  get: "/master/getlandingpurpose",
+  getByCode: "/master/getlandingpurposebycode",
+  add: "/master/savelandingpurpose",
+  delete: "/master/deletelandingpurpose",
+}
+
+// TaskStatus Endpoints
+export const TaskStatus = {
+  get: "/master/gettaskstatus",
+  getByCode: "/master/gettaskstatusbycode",
+  add: "/master/savetaskstatus",
+  delete: "/master/deletetaskstatus",
+}
+
+// PassType Endpoints
+export const PassType = {
+  get: "/master/getpasstype",
+  getByCode: "/master/getpasstypebycode",
+  add: "/master/savepasstype",
+  delete: "/master/deletepasstype",
+}
+
+// ConsignmentType Endpoints
+export const ConsignmentType = {
+  get: "/master/getconsignmenttype",
+  getByCode: "/master/getconsignmenttypebycode",
+  add: "/master/saveconsignmenttype",
+  delete: "/master/deleteconsignmenttype",
+}
+
+// JobStatus Endpoints
+export const JobStatus = {
+  get: "/master/getjobstatus",
+  getByCode: "/master/getjobstatusbycode",
+  add: "/master/savejobstatus",
+  delete: "/master/deletejobstatus",
+}
+
+// VATServiceCategory Endpoints
+export const VATServiceCategory = {
+  get: "/master/getvatservicecategory",
+  getByCode: "/master/getvatservicecategorybycode",
+  add: "/master/savevatservicecategory",
+  delete: "/master/deletevatservicecategory",
+}
+
 // Charge Endpoints
 export const Charge = {
   get: "/master/getcharge",
   getByCode: "/master/getchargebycode",
   add: "/master/savecharge",
   delete: "/master/deletecharge",
+}
+
+// ChargeGLMapping Endpoints
+export const ChargeGLMapping = {
+  get: "/master/getchargeglmapping",
+  add: "/master/savechargeglmapping",
+  delete: "/master/deletechargeglmapping",
 }
 
 // COA Category 1 Endpoints

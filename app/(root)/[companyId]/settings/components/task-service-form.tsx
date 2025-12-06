@@ -24,7 +24,7 @@ import {
   ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
-  ModeTypeAutocomplete,
+  ServiceModeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
   VisaAutocomplete,
@@ -82,7 +82,7 @@ export function TaskServiceForm() {
             glId: 0,
             uomId: 0,
             carrierTypeId: 0,
-            modeTypeId: 0,
+            serviceModeId: 0,
             consignmentTypeId: 0,
             visaId: 0,
             landingTypeId: 0,
@@ -98,7 +98,7 @@ export function TaskServiceForm() {
             glId: number
             uomId: number
             carrierTypeId: number
-            modeTypeId: number
+            serviceModeId: number
             consignmentTypeId: number
             visaId: number
             landingTypeId: number
@@ -137,7 +137,7 @@ export function TaskServiceForm() {
             glId: number
             uomId: number
             carrierTypeId: number
-            modeTypeId: number
+            serviceModeId: number
             consignmentTypeId: number
             visaId: number
             landingTypeId: number
@@ -155,7 +155,7 @@ export function TaskServiceForm() {
             glId: service.glId || 0,
             uomId: service.uomId || 0,
             carrierTypeId: service.carrierTypeId || 0,
-            modeTypeId: service.modeTypeId || 0,
+            serviceModeId: service.serviceModeId || 0,
             consignmentTypeId: service.consignmentTypeId || 0,
             visaId: service.visaId || 0,
             landingTypeId: service.landingTypeId || 0,
@@ -206,7 +206,7 @@ export function TaskServiceForm() {
       glId: serviceData.glId,
       uomId: serviceData.uomId,
       carrierTypeId: serviceData.carrierTypeId,
-      modeTypeId: serviceData.modeTypeId,
+      serviceModeId: serviceData.serviceModeId,
       consignmentTypeId: serviceData.consignmentTypeId,
       visaId: serviceData.visaId,
       landingTypeId: serviceData.landingTypeId,
@@ -306,7 +306,7 @@ export function TaskServiceForm() {
       glId: number
       uomId: number
       carrierTypeId: number
-      modeTypeId: number
+      serviceModeId: number
       consignmentTypeId: number
       visaId: number
       landingTypeId: number
@@ -412,9 +412,9 @@ export function TaskServiceForm() {
                 isRequired={false}
               />
 
-              <ModeTypeAutocomplete
+              <ServiceModeAutocomplete
                 form={form}
-                name={`services.${serviceKey}.modeTypeId`}
+                name={`services.${serviceKey}.serviceModeId`}
                 label="Mode Type"
                 isRequired={false}
               />
@@ -468,7 +468,7 @@ export function TaskServiceForm() {
                 glId: 0,
                 uomId: 0,
                 carrierTypeId: 0,
-                modeTypeId: 0,
+                serviceModeId: 0,
                 consignmentTypeId: 0,
                 landingTypeId: 0,
                 visaId: 0,

@@ -23,7 +23,7 @@ import {
   ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
-  ModeTypeAutocomplete,
+  ServiceModeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -102,7 +102,8 @@ export function ConsignmentExportForm({
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      serviceModeId:
+        initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
       consignmentTypeId:
         initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
       landingTypeId:
@@ -155,7 +156,8 @@ export function ConsignmentExportForm({
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      serviceModeId:
+        initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
       consignmentTypeId:
         initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
       landingTypeId:
@@ -283,9 +285,9 @@ export function ConsignmentExportForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <ModeTypeAutocomplete
+              <ServiceModeAutocomplete
                 form={form}
-                name="modeTypeId"
+                name="serviceModeId"
                 label="Mode Type"
                 isDisabled={isConfirmed}
               />

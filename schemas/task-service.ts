@@ -6,7 +6,7 @@ const serviceFieldSchema = z.object({
   glId: z.number().min(1, "GL Account is required"),
   uomId: z.number().min(1, "UOM is required"),
   carrierTypeId: z.number().optional(),
-  modeTypeId: z.number().optional(),
+  serviceModeId: z.number().optional(),
   consignmentTypeId: z.number().optional(),
   visaId: z.number().optional(),
   landingTypeId: z.number().optional(),

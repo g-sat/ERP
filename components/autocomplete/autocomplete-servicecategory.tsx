@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IModeTypeLookup } from "@/interfaces/lookup"
+import { IServiceCategoryLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useModeTypeLookup } from "@/hooks/use-lookup"
+import { useServiceCategoryLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function ModeTypeAutocomplete<
+export default function ServiceCategoryAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -42,17 +42,17 @@ export default function ModeTypeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IModeTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: IServiceCategoryLookup | null) => void
 }) {
-  const { data: modeTypes = [], isLoading } = useModeTypeLookup()
+  const { data: serviceTypes = [], isLoading } = useServiceCategoryLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      modeTypes.map((modeType: IModeTypeLookup) => ({
-        value: modeType.modeTypeId.toString(),
-        label: modeType.modeTypeName,
+      serviceTypes.map((serviceType: IServiceCategoryLookup) => ({
+        value: serviceType.serviceCategoryId.toString(),
+        label: serviceType.serviceCategoryName,
       })),
-    [modeTypes]
+    [serviceTypes]
   )
 
   // Custom components with display names
@@ -182,23 +182,23 @@ export default function ModeTypeAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedModeType = selectedOption
-          ? modeTypes.find(
-              (u: IModeTypeLookup) =>
-                u.modeTypeId.toString() === selectedOption.value
+        const selectedServiceType = selectedOption
+          ? serviceTypes.find(
+              (u: IServiceCategoryLookup) =>
+                u.serviceCategoryId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedModeType)
+        onChangeEvent(selectedServiceType)
       }
     },
-    [form, name, onChangeEvent, modeTypes]
+    [form, name, onChangeEvent, serviceTypes]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -217,7 +217,7 @@ export default function ModeTypeAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -232,7 +232,7 @@ export default function ModeTypeAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -251,7 +251,7 @@ export default function ModeTypeAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -283,7 +283,7 @@ export default function ModeTypeAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {
@@ -356,7 +356,7 @@ export default function ModeTypeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Mode Type..."
+                    placeholder="Select ServiceType..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -374,7 +374,7 @@ export default function ModeTypeAutocomplete<
                     }
                     menuPosition="fixed"
                     isLoading={isLoading}
-                    loadingMessage={() => "Loading orderTypes..."}
+                    loadingMessage={() => "Loading serviceTypes..."}
                     blurInputOnSelect={true}
                   />
                 </div>
@@ -414,7 +414,7 @@ export default function ModeTypeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select Mode Type..."
+          placeholder="Select ServiceType..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}
@@ -432,7 +432,7 @@ export default function ModeTypeAutocomplete<
           }
           menuPosition="fixed"
           isLoading={isLoading}
-          loadingMessage={() => "Loading orderTypes..."}
+          loadingMessage={() => "Loading serviceTypes..."}
           blurInputOnSelect={true}
         />
       </div>

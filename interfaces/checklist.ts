@@ -116,7 +116,7 @@ export interface IConsignmentExport {
   carrierTypeName?: string
   uomId: number
   uomName?: string
-  modeTypeId?: number
+  serviceModeId?: number
   modeTypeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string
@@ -168,7 +168,7 @@ export interface IConsignmentImport {
   carrierTypeName?: string
   uomId: number
   uomName?: string
-  modeTypeId?: number
+  serviceModeId?: number
   modeTypeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string

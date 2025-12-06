@@ -36,7 +36,7 @@ import {
   DynamicSupplierAutocomplete,
   SupplierAutocomplete,
 } from "@/components/autocomplete"
-import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
+import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -704,7 +704,7 @@ export default function InvoiceForm({
 
           {/* Service Type */}
           {visible?.m_ServiceTypeId && (
-            <ServiceTypeAutocomplete
+            <ServiceCategoryAutocomplete
               form={form}
               name="serviceTypeId"
               label="Service Type"

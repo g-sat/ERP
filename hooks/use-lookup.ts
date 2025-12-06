@@ -34,7 +34,6 @@ import {
   ILandingTypeLookup,
   ILeaveTypeLookup,
   ILoanTypeLookup,
-  IModeTypeLookup,
   IModuleLookup,
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
@@ -45,9 +44,10 @@ import {
   IPortRegionLookup,
   IProductLookup,
   IRankLookup,
+  IServiceCategoryLookup,
   IServiceLookup,
+  IServiceModeLookup,
   IServiceTypeCategoryLookup,
-  IServiceTypeLookup,
   IStatusLookup,
   IStatusTypeLookup,
   ISubCategoryLookup,
@@ -942,13 +942,13 @@ export const useOrderTypeCategoryLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useServiceTypeLookup = () => {
-  return useQuery<IServiceTypeLookup[]>({
-    queryKey: ["servicetype-lookUp"],
+export const useServiceCategoryLookup = () => {
+  return useQuery<IServiceCategoryLookup[]>({
+    queryKey: ["servicecategory-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getServiceType)
+        const data = await getData(Lookup.getServiceCategory)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1419,7 +1419,7 @@ export const useStatusLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getStatus)
+        const data = await getData(Lookup.getJobStatus)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1434,7 +1434,7 @@ export const useStatusTaskLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getStatusTask)
+        const data = await getData(Lookup.getTaskStatus)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1534,13 +1534,13 @@ export const usePurposeOfLandingTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useModeTypeLookup = () => {
-  return useQuery<IModeTypeLookup[]>({
-    queryKey: ["modetype-lookUp"],
+export const useServiceModeLookup = () => {
+  return useQuery<IServiceModeLookup[]>({
+    queryKey: ["servicemode-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getModeType)
+        const data = await getData(Lookup.getServiceMode)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

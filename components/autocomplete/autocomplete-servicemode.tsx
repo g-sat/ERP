@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IServiceTypeLookup } from "@/interfaces/lookup"
+import { IServiceModeLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useServiceTypeLookup } from "@/hooks/use-lookup"
+import { useServiceModeLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function ServiceTypeAutocomplete<
+export default function ServiceModeAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -42,17 +42,17 @@ export default function ServiceTypeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IServiceTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: IServiceModeLookup | null) => void
 }) {
-  const { data: serviceTypes = [], isLoading } = useServiceTypeLookup()
+  const { data: serviceModes = [], isLoading } = useServiceModeLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      serviceTypes.map((serviceType: IServiceTypeLookup) => ({
-        value: serviceType.serviceTypeId.toString(),
-        label: serviceType.serviceTypeName,
+      serviceModes.map((modeType: IServiceModeLookup) => ({
+        value: modeType.serviceModeId.toString(),
+        label: modeType.serviceModeName,
       })),
-    [serviceTypes]
+    [serviceModes]
   )
 
   // Custom components with display names
@@ -182,23 +182,23 @@ export default function ServiceTypeAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedServiceType = selectedOption
-          ? serviceTypes.find(
-              (u: IServiceTypeLookup) =>
-                u.serviceTypeId.toString() === selectedOption.value
+        const selectedServiceMode = selectedOption
+          ? serviceModes.find(
+              (u: IServiceModeLookup) =>
+                u.serviceModeId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedServiceType)
+        onChangeEvent(selectedServiceMode)
       }
     },
-    [form, name, onChangeEvent, serviceTypes]
+    [form, name, onChangeEvent, serviceModes]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -217,7 +217,7 @@ export default function ServiceTypeAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -251,7 +251,7 @@ export default function ServiceTypeAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -356,7 +356,7 @@ export default function ServiceTypeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select ServiceType..."
+                    placeholder="Select Mode Type..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -374,7 +374,7 @@ export default function ServiceTypeAutocomplete<
                     }
                     menuPosition="fixed"
                     isLoading={isLoading}
-                    loadingMessage={() => "Loading serviceTypes..."}
+                    loadingMessage={() => "Loading orderTypes..."}
                     blurInputOnSelect={true}
                   />
                 </div>
@@ -414,7 +414,7 @@ export default function ServiceTypeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select ServiceType..."
+          placeholder="Select Mode Type..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}
@@ -432,7 +432,7 @@ export default function ServiceTypeAutocomplete<
           }
           menuPosition="fixed"
           isLoading={isLoading}
-          loadingMessage={() => "Loading serviceTypes..."}
+          loadingMessage={() => "Loading orderTypes..."}
           blurInputOnSelect={true}
         />
       </div>
