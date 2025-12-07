@@ -331,10 +331,10 @@ export default function CountryPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onCreate={() => {}}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            onRefresh={() => {}}
+            onCreateAction={() => {}}
+            onEditAction={() => {}}
+            onDeleteAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -350,10 +350,10 @@ export default function CountryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCountry : undefined}
-          onCreate={canCreate ? handleCreateCountry : undefined}
-          onEdit={canEdit ? handleEditCountry : undefined}
-          onDelete={canDelete ? handleDeleteCountry : undefined}
-          onRefresh={handleRefresh}
+          onCreateAction={canCreate ? handleCreateCountry : undefined}
+          onEditAction={canEdit ? handleEditCountry : undefined}
+          onDeleteAction={canDelete ? handleDeleteCountry : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -426,7 +426,7 @@ export default function CountryPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCountry}
-        onCancel={() => setExistingCountry(null)}
+        onCancelAction={() => setExistingCountry(null)}
         code={existingCountry?.countryCode}
         name={existingCountry?.countryName}
         typeLabel="Country"
@@ -451,7 +451,7 @@ export default function CountryPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,
@@ -470,7 +470,7 @@ export default function CountryPage() {
         description="This action cannot be undone. This will permanently delete the country from our servers."
         itemName={deleteConfirmation.countryName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             countryId: null,

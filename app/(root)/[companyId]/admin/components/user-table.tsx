@@ -17,10 +17,10 @@ interface UsersTableProps {
   data: IUser[]
   isLoading?: boolean
   onSelect?: (user: IUser | null) => void
-  onDelete?: (userId: string) => void
-  onEdit?: (user: IUser) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (userId: string) => void
+  onEditAction?: (user: IUser) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
@@ -35,10 +35,10 @@ export function UserTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -204,13 +204,13 @@ export function UserTable({
       emptyMessage="No users found."
       accessorId="userId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

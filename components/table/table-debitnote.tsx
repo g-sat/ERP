@@ -59,15 +59,15 @@ interface DebitNoteBaseTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
-  onCreate?: () => void
-  onEdit?: (item: T) => void
-  onDelete?: (itemId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onCreateAction?: () => void
+  onEditAction?: (item: T) => void
+  onDeleteAction?: (itemId: string) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onPurchase?: (itemId: string) => void
+  onPurchaseAction?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
@@ -90,13 +90,13 @@ export function DebitNoteBaseTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onCreate,
-  onEdit,
-  onDelete,
-  onBulkDelete,
+  onCreateAction,
+  onEditAction,
+  onDeleteAction,
+  onBulkDeleteAction,
   onBulkSelectionChange,
   onDataReorder,
   isConfirmed,
@@ -235,7 +235,7 @@ export function DebitNoteBaseTable<T>({
   }, [gridSettingsData])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onSelect || onEdit || onDelete)
+    ...(showActions && (onSelect || onEditAction || onDeleteAction)
       ? [
           {
             id: "drag-actions",
@@ -290,8 +290,8 @@ export function DebitNoteBaseTable<T>({
                   <DebitNoteTableActions
                     row={item as T & { debitNoteId?: number }}
                     onView={onSelect}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
+                    onEditAction={onEditAction}
+                    onDeleteAction={onDeleteAction}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}
@@ -388,7 +388,7 @@ export function DebitNoteBaseTable<T>({
 
   // Handle bulk delete
   const handleBulkDelete = () => {
-    if (!onBulkDelete) return
+    if (!onBulkDeleteAction) return
 
     const selectedRowIds = Object.keys(rowSelection)
     const selectedItems = data.filter((_, index) =>
@@ -403,7 +403,7 @@ export function DebitNoteBaseTable<T>({
       })
       .filter((id) => id !== "")
 
-    onBulkDelete(selectedIds)
+    onBulkDeleteAction(selectedIds)
   }
 
   // Handle bulk selection change
@@ -457,9 +457,9 @@ export function DebitNoteBaseTable<T>({
         <DebitNoteTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
-          onCreate={onCreate}
-          onBulkDelete={handleBulkDelete}
+          onRefreshAction={onRefreshAction}
+          onCreateAction={onCreateAction}
+          onBulkDeleteAction={handleBulkDelete}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

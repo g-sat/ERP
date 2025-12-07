@@ -8,15 +8,11 @@ import {
   calculateUnallocated,
   validateAllocation as validateAllocationHelper,
 } from "@/helpers/ap-docSetOff-calculations"
-import { IApOutTransaction } from "@/interfaces"
-import { IApDocSetOffDt } from "@/interfaces/ap-docsetoff"
+import { IApDocSetOffDt, IApOutTransaction } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  ApDocSetOffDtSchemaType,
-  ApDocSetOffHdSchemaType,
-} from "@/schemas/ap-docsetoff"
+import { ApDocSetOffDtSchemaType, ApDocSetOffHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { Plus, RotateCcw, Zap } from "lucide-react"
+import { Check, Plus, RotateCcw, X, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -74,39 +70,87 @@ export default function Main({
     setDataDetails(watchedDataDetails || [])
   }, [watchedDataDetails])
 
-  // Calculate sum of balTotAmt (balance amounts) from docSetOff details
+  // Helper function to calculate total balance amount from details
+  const calculateTotalBalanceAmt = useCallback(
+    (details: ApDocSetOffDtSchemaType[]) => {
+      // Calculate sum of negative amounts and sum of positive amounts
+      let sumOfNegative = 0
+      let sumOfPositive = 0
+
+      details.forEach((detail) => {
+        const balAmt =
+          Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
+        if (balAmt < 0) {
+          sumOfNegative += balAmt
+        } else if (balAmt > 0) {
+          sumOfPositive += balAmt
+        }
+      })
+
+      // Return the absolute value of whichever sum has the lower absolute value
+      const absNegative = Math.abs(sumOfNegative)
+      const absPositive = Math.abs(sumOfPositive)
+      const lowestAmount = absNegative < absPositive ? absNegative : absPositive
+
+      return lowestAmount
+    },
+    []
+  )
+
+  // Calculate sum of balAmt (balance amounts) from docSetOff details
   const totalBalanceAmt = useMemo(() => {
+    return calculateTotalBalanceAmt(dataDetails)
+  }, [dataDetails, calculateTotalBalanceAmt])
+
+  // Calculate running sum of all allocAmt values (including negatives)
+  const totalSetOffAmt = useMemo(() => {
     return dataDetails.reduce((sum, detail) => {
-      const balTotAmt =
-        Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
-      return sum + balTotAmt
+      const allocAmt =
+        Number((detail as unknown as IApDocSetOffDt).allocAmt) || 0
+      return sum + allocAmt
     }, 0)
   }, [dataDetails])
 
-  const allocationTotals = useMemo(() => {
-    const arr = (dataDetails as unknown as IApDocSetOffDt[]) || []
-    let positive = 0
-    let negativeAbs = 0
+  // Helper function to update balTotAmt and unAllocTotAmt based on current details
+  const updateBalanceAndUnallocatedTotals = useCallback(
+    (details: ApDocSetOffDtSchemaType[], allocTotAmt?: number) => {
+      // Calculate new total balance amount from all details
+      const newBalTotAmt = calculateTotalBalanceAmt(details)
 
-    arr.forEach((detail) => {
-      const value = Number((detail as unknown as IApDocSetOffDt).allocAmt) || 0
-      if (value > 0) {
-        positive += value
-      } else if (value < 0) {
-        negativeAbs += Math.abs(value)
-      }
-    })
+      // Debug: Log the calculation
+      console.log(
+        "updateBalanceAndUnallocatedTotals - details:",
+        details.map((d) => ({
+          itemNo: d.itemNo,
+          docNo: d.documentNo,
+          docBalAmt: (d as unknown as IApDocSetOffDt).docBalAmt,
+        }))
+      )
+      console.log(
+        "updateBalanceAndUnallocatedTotals - newBalTotAmt:",
+        newBalTotAmt
+      )
 
-    return {
-      positive,
-      negativeAbs,
-      matched:
-        positive - negativeAbs === 0
-          ? Math.min(positive, negativeAbs)
-          : positive - negativeAbs,
-      totalSetOff: positive - negativeAbs,
-    }
-  }, [dataDetails])
+      // Use provided allocTotAmt or get from form
+      const currentAllocTotAmt =
+        allocTotAmt !== undefined
+          ? allocTotAmt
+          : Number(form.getValues("allocTotAmt")) || 0
+
+      // Calculate unallocated amount
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      const { unAllocAmt } = calculateUnallocated(
+        newBalTotAmt,
+        currentAllocTotAmt,
+        dec
+      )
+
+      // Update form values
+      form.setValue("balTotAmt", newBalTotAmt, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    },
+    [form, calculateTotalBalanceAmt, decimals]
+  )
 
   // Clear dialog params when dialog closes
   useEffect(() => {
@@ -129,7 +173,7 @@ export default function Main({
     setIsAllocated(hasAllocations)
   }, [dataDetails])
 
-  const removeReceiptDetails = useCallback(
+  const removeDocSetOffDetails = useCallback(
     (itemNos: number[]) => {
       if (!itemNos || itemNos.length === 0) return
 
@@ -168,24 +212,41 @@ export default function Main({
         })
       )
 
+      //const resetSumAllocAmt = 0
+      //const resetSumExhGainLoss = 0
+      // Recalculate allocTotAmt and exhGainLoss from remaining data
+      // Sum only positive allocAmt values
+      const resetSumAllocAmt = resetArr.reduce((s, r) => {
+        const amt = Number(r.allocAmt) || 0
+        return amt > 0 ? s + amt : s
+      }, 0)
+      const resetSumExhGainLoss = resetArr.reduce(
+        (s, r) => s + (Number(r.exhGainLoss) || 0),
+        0
+      )
+
       form.setValue("data_details", finalResetData, {
         shouldDirty: true,
         shouldTouch: true,
       })
       setDataDetails(finalResetData)
-      form.setValue("allocTotAmt", 0, { shouldDirty: true })
-      form.setValue("exhGainLoss", 0, { shouldDirty: true })
-      form.setValue("balTotAmt", 0, { shouldDirty: true })
-      form.setValue("unAllocTotAmt", 0, { shouldDirty: true })
+      form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
+
+      // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
+      form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
+
+      // Update balTotAmt and unAllocTotAmt based on remaining details
+      // Pass the recalculated allocTotAmt directly to avoid timing issues
+      updateBalanceAndUnallocatedTotals(finalResetData, resetSumAllocAmt)
       setIsAllocated(false)
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
     },
-    [decimals, form]
+    [decimals, form, updateBalanceAndUnallocatedTotals]
   )
 
   const handleDelete = (itemNo: number) => {
-    removeReceiptDetails([itemNo])
+    removeDocSetOffDetails([itemNo])
   }
 
   const handleBulkDelete = (selectedItemNos: number[]) => {
@@ -201,9 +262,9 @@ export default function Main({
 
   const handleBulkDeleteConfirm = useCallback(() => {
     if (pendingBulkDeleteItemNos.length === 0) return
-    removeReceiptDetails(pendingBulkDeleteItemNos)
+    removeDocSetOffDetails(pendingBulkDeleteItemNos)
     setPendingBulkDeleteItemNos([])
-  }, [pendingBulkDeleteItemNos, removeReceiptDetails])
+  }, [pendingBulkDeleteItemNos, removeDocSetOffDetails])
 
   const handleBulkDeleteCancel = useCallback(() => {
     setPendingBulkDeleteItemNos([])
@@ -270,28 +331,18 @@ export default function Main({
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
       const balTotAmt = Number(form.getValues("balTotAmt")) || 0
 
-      // console.log(
-      //   "updateAllocationCalculations",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
+      console.log("balTotAmt", balTotAmt)
 
       const { result, wasAutoSetToZero } = calculateManualAllocation(
         arr,
         rowIndex,
         allocValue,
+        balTotAmt,
         dec
       )
 
       // Show toast if allocation was auto-set to zero due to remaining amount <= 0
       if (wasAutoSetToZero) {
-        console.log(
-          "updateAllocationCalculations wasAutoSetToZero",
-          wasAutoSetToZero
-        )
         toast.error("Now it's auto set to zero. Please check the allocation.")
       }
 
@@ -316,38 +367,18 @@ export default function Main({
         }
       }
 
-      // console.log(
-      //   "updateAllocationCalculations calculateManualAllocation",
-      //   arr,
-      //   rowIndex,
-      //   allocValue,
-      //   totAmt,
-      //   dec
-      // )
-
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
-      const totalPositiveAlloc = arr.reduce(
-        (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
-        0
-      )
-      const totalNegativeAllocAbs = arr.reduce(
-        (sum, r) =>
-          sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
-        0
-      )
-      const matchedAllocation = Math.min(
-        totalPositiveAlloc,
-        totalNegativeAllocAbs
-      )
-      const sumAllocAmt = arr.reduce(
-        (sum, r) => sum + (Number(r.allocAmt) || 0),
-        0
-      )
+      const sumAllocAmt = arr.reduce((s, r) => {
+        const amt = Number(r.allocAmt) || 0
+        return amt > 0 ? s + amt : s
+      }, 0)
       const sumExhGainLoss = arr.reduce(
         (s, r) => s + (Number(r.exhGainLoss) || 0),
         0
       )
+
+      const { unAllocAmt } = calculateUnallocated(balTotAmt, sumAllocAmt, dec)
 
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
@@ -355,14 +386,8 @@ export default function Main({
       })
       setDataDetails(updatedData)
       form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-      form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
+      // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-
-      const { unAllocAmt } = calculateUnallocated(
-        balTotAmt,
-        matchedAllocation,
-        dec
-      )
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
@@ -377,8 +402,6 @@ export default function Main({
     (itemNo: number, field: string, value: number) => {
       if (field !== "allocAmt") return
 
-      // console.log("handleCellEdit", itemNo, field, value)
-
       const currentData = form.getValues("data_details") || []
       const currentItem = currentData.find((item) => item.itemNo === itemNo)
       const currentValue = currentItem?.allocAmt || 0
@@ -387,11 +410,11 @@ export default function Main({
         return currentValue
       }
 
-      // Don't allow manual entry when totAmt = 0
-      const headerBalAmt = Number(form.getValues("balTotAmt")) || 0
-      if (headerBalAmt === 0) {
+      // Don't allow manual entry when balTotAmt = 0
+      const headerTotAmt = Number(form.getValues("balTotAmt")) || 0
+      if (headerTotAmt === 0) {
         toast.error(
-          "Balance Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Balance Amount."
+          "Total Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Total Amount."
         )
         // Set amount to 0
         const updatedData = [...currentData]
@@ -407,18 +430,14 @@ export default function Main({
         )
         return finalValue ?? 0
       } else {
-        // console.log("handleCellEdit else", itemNo, field, value)
-        // When balTotAmt > 0, allow manual entry with validation
+        // When totAmt > 0, allow manual entry with validation
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IApDocSetOffDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
 
-        // console.log(
-        //   "handleCellEdit else updateAllocationCalculations",
-        //   rowIndex,
-        //   value
-        // )
+        console.log("value", value)
+
         const finalValue = updateAllocationCalculations(
           updatedData,
           rowIndex,
@@ -439,43 +458,36 @@ export default function Main({
 
     const balTotAmt = Number(form.getValues("balTotAmt")) || 0
     const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
-    const { updatedDetails: details, appliedTotal } = autoAllocateAmounts(
+    const result = autoAllocateAmounts(
       currentData as unknown as IApDocSetOffDt[],
       dec
     )
-    const updatedData = details as unknown as ApDocSetOffDtSchemaType[]
+    const updatedData =
+      result.updatedDetails as unknown as ApDocSetOffDtSchemaType[]
 
     const arr = updatedData as unknown as IApDocSetOffDt[]
     const exhRate = Number(form.getValues("exhRate")) || 1
     for (let i = 0; i < arr.length; i++) {
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-    const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-    const totalPositiveAlloc = arr.reduce(
-      (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
-      0
-    )
-    const totalNegativeAllocAbs = arr.reduce(
-      (sum, r) =>
-        sum + (Number(r.allocAmt) < 0 ? Math.abs(Number(r.allocAmt)) : 0),
-      0
-    )
+    const sumAllocAmt = arr.reduce((s, r) => {
+      console.log("r.allocAmt", r.allocAmt)
+      const amt = Number(r.allocAmt) || 0
+      return amt > 0 ? s + amt : s
+    }, 0)
     const sumExhGainLoss = arr.reduce(
       (s, r) => s + (Number(r.exhGainLoss) || 0),
       0
     )
 
-    const matchedAllocation =
-      appliedTotal ?? Math.min(totalPositiveAlloc, totalNegativeAllocAbs)
+    console.log("sumAllocAmt", sumAllocAmt)
+    console.log("sumExhGainLoss", sumExhGainLoss)
+    console.log("balTotAmt", balTotAmt)
 
-    // If balTotAmt was 0, update it with the calculated allocation total
-    const finalBalAmt = balTotAmt === 0 ? matchedAllocation : balTotAmt
+    // If balTotAmt was 0, update it with the calculated sumAllocAmt
+    const finalTotAmt = balTotAmt === 0 ? sumAllocAmt : balTotAmt
 
-    const { unAllocAmt } = calculateUnallocated(
-      finalBalAmt,
-      matchedAllocation,
-      dec
-    )
+    const { unAllocAmt } = calculateUnallocated(finalTotAmt, sumAllocAmt, dec)
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -483,7 +495,8 @@ export default function Main({
     })
     setDataDetails(updatedData)
 
-    form.setValue("allocTotAmt", matchedAllocation, { shouldDirty: true })
+    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+    // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -518,9 +531,8 @@ export default function Main({
       shouldTouch: true,
     })
     setDataDetails(updatedData)
-    form.setValue("allocTotAmt", allocationTotals.matched, {
-      shouldDirty: true,
-    })
+    form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+    // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
     form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
     form.trigger("data_details")
@@ -560,62 +572,73 @@ export default function Main({
           : 1
 
       const newDetails: ApDocSetOffDtSchemaType[] = transactions.map(
-        (transaction, index) => ({
-          companyId: companyId,
-          setoffId: form.getValues("setoffId") || "0",
-          setoffNo: form.getValues("setoffNo") || "",
-          itemNo: nextItemNo + index,
-          transactionId: transaction.transactionId,
-          documentId: String(transaction.documentId),
-          documentNo: transaction.documentNo,
-          referenceNo: transaction.referenceNo,
-          docCurrencyId: transaction.currencyId,
-          docCurrencyCode: transaction.currencyCode || "",
-          docExhRate: transaction.exhRate,
-          docAccountDate: transaction.accountDate,
-          docDueDate: transaction.dueDate,
-          docTotAmt: transaction.totAmt,
-          docTotLocalAmt: transaction.totLocalAmt,
-          docBalAmt: transaction.balAmt,
-          docBalLocalAmt: transaction.balLocalAmt,
-          allocAmt: 0,
-          allocLocalAmt: 0,
-          docAllocAmt: 0,
-          docAllocLocalAmt: 0,
-          centDiff: 0,
-          exhGainLoss: 0,
-          editVersion: 0,
-        })
+        (transaction, index) => {
+          const totAmt = Number(transaction.totAmt) || 0
+          const balAmt = Number(transaction.balAmt) || 0
+
+          // Determine lowest amount for this transaction
+          // If both are same sign, use the one with smaller absolute value
+          // If different signs, use the negative one (lower)
+          let lowestAmt = 0
+          if (totAmt < 0 && balAmt < 0) {
+            // Both negative: use the one with smaller absolute value (less negative)
+            lowestAmt = Math.max(totAmt, balAmt)
+          } else if (totAmt > 0 && balAmt > 0) {
+            // Both positive: use the smaller one
+            lowestAmt = Math.min(totAmt, balAmt)
+          } else if (totAmt < 0 || balAmt < 0) {
+            // One is negative: use the negative one (lower)
+            lowestAmt = totAmt < 0 ? totAmt : balAmt
+          } else {
+            // One or both are zero: use the non-zero one, or 0 if both are zero
+            lowestAmt = totAmt !== 0 ? totAmt : balAmt
+          }
+
+          return {
+            companyId: companyId,
+            setoffId: form.getValues("setoffId") || "0",
+            setoffNo: form.getValues("setoffNo") || "",
+            itemNo: nextItemNo + index,
+            transactionId: transaction.transactionId,
+            documentId: String(transaction.documentId),
+            documentNo: transaction.documentNo,
+            referenceNo: transaction.referenceNo,
+            docCurrencyId: transaction.currencyId,
+            docCurrencyCode: transaction.currencyCode || "",
+            docExhRate: transaction.exhRate,
+            docAccountDate: transaction.accountDate,
+            docDueDate: transaction.dueDate,
+            docTotAmt: transaction.totAmt,
+            docTotLocalAmt: transaction.totLocalAmt,
+            docBalAmt: lowestAmt, // Use the minimum amount
+            docBalLocalAmt: transaction.balLocalAmt,
+            allocAmt: 0,
+            allocLocalAmt: 0,
+            docAllocAmt: 0,
+            docAllocLocalAmt: 0,
+            centDiff: 0,
+            exhGainLoss: 0,
+            editVersion: 0,
+          }
+        }
       )
 
       const updatedData = [...currentData, ...newDetails]
-
-      const positiveTotal = updatedData.reduce((sum, detail) => {
-        const bal = Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
-        return bal > 0 ? sum + bal : sum
-      }, 0)
-
-      const negativeTotalAbs = updatedData.reduce((sum, detail) => {
-        const bal = Number((detail as unknown as IApDocSetOffDt).docBalAmt) || 0
-        return bal < 0 ? sum + Math.abs(bal) : sum
-      }, 0)
-
-      const limitingTotal = Math.min(positiveTotal, negativeTotalAbs)
 
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
         shouldTouch: true,
       })
-      form.setValue("balTotAmt", limitingTotal, { shouldDirty: true })
-      form.setValue("unAllocTotAmt", limitingTotal, { shouldDirty: true })
-      form.setValue("allocTotAmt", 0, { shouldDirty: true })
-      form.setValue("exhGainLoss", 0, { shouldDirty: true })
+
+      // Update balTotAmt and unAllocTotAmt based on all details (including new ones)
+      // This will calculate from the actual docBalAmt values in all details
+      updateBalanceAndUnallocatedTotals(updatedData)
 
       setDataDetails(updatedData)
       form.trigger("data_details")
       setShowTransactionDialog(false)
     },
-    [form, companyId]
+    [form, companyId, updateBalanceAndUnallocatedTotals]
   )
 
   return (
@@ -677,19 +700,32 @@ export default function Main({
             variant="secondary"
             className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
           >
-            Tot Alloc: {allocationTotals.matched.toFixed(amtDec)}
+            Total Alloc: {(form.getValues("allocTotAmt") || 0).toFixed(amtDec)}
           </Badge>
-          <Badge
-            variant="secondary"
-            className="border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
-          >
-            Tot SetOff: {allocationTotals.totalSetOff.toFixed(amtDec)}
-          </Badge>
+
           <Badge
             variant="outline"
             className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
           >
             Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
+          </Badge>
+
+          <Badge
+            variant="outline"
+            className={
+              totalSetOffAmt !== 0
+                ? "border-red-300 bg-red-200 px-3 py-1 text-sm font-medium text-black"
+                : "border-green-300 bg-green-200 px-3 py-1 text-sm font-medium text-black"
+            }
+          >
+            <span className="flex items-center gap-1.5">
+              {totalSetOffAmt !== 0 ? (
+                <X className="h-3.5 w-3.5" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
+              SetOff Amt: {totalSetOffAmt.toFixed(amtDec)}
+            </span>
           </Badge>
         </div>
 
@@ -697,11 +733,9 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IApDocSetOffDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onDataReorder={
-            handleDataReorder as (newData: IApDocSetOffDt[]) => void
-          }
+          onDeleteAction={handleDelete}
+          onBulkDeleteAction={handleBulkDelete}
+          onDataReorder={handleDataReorder}
           onCellEdit={handleCellEdit}
         />
       </div>
@@ -710,9 +744,9 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
-        description="Selected docSetOff details will be removed. This action cannot be undone."
+        description="Selected docsetoff details will be removed. This action cannot be undone."
       />
 
       {/* Transaction Selection Dialog */}
@@ -729,7 +763,7 @@ export default function Main({
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>
-            Number(detail.documentId)
+            String(detail.documentId)
           )}
         />
       )}

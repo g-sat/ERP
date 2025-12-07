@@ -48,8 +48,8 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type MainTableHeaderProps<TData> = {
-  onRefresh?: () => void
-  onCreate?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
   onFilterToggle?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -63,8 +63,8 @@ type MainTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function MainTableHeader<TData>({
-  onRefresh,
-  onCreate,
+  onRefreshAction,
+  onCreateAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -234,14 +234,14 @@ export function MainTableHeader<TData>({
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {onCreate && !hideCreateButton && (
-          <Button onClick={onCreate}>
+        {onCreateAction && !hideCreateButton && (
+          <Button onClick={onCreateAction}>
             <Plus className="mr-2 h-4 w-4" />
             Create
           </Button>
         )}
-        {onRefresh && (
-          <Button variant="outline" size="icon" onClick={onRefresh}>
+        {onRefreshAction && (
+          <Button variant="outline" size="icon" onClick={onRefreshAction}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         )}

@@ -1,5 +1,5 @@
 import {
-  calculateAdditionAmount,
+  calculateDivisionAmount,
   calculateMultiplierAmount,
   calculateSubtractionAmount,
 } from "@/helpers/account"
@@ -18,9 +18,70 @@ export const validateAllocation = (details: IApDocSetOffDt[]): boolean => {
 // ============================================================================
 
 /**
+ * Same Currency scenario
+ * Inputs: totAmt, exhRate
+ * Outputs: { totAmt, totLocalAmt, payTotAmt, payTotLocalAmt }
+ */
+export const calculateSameCurrency = (
+  totAmt: number,
+  exhRate: number,
+  decimals: IDecimal
+) => {
+  const totLocalAmt = calculateMultiplierAmount(
+    totAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+  const payTotAmt = totAmt
+  const payTotLocalAmt = totLocalAmt
+
+  return {
+    totAmt,
+    totLocalAmt,
+    payTotAmt,
+    payTotLocalAmt,
+  }
+}
+
+/**
+ * Different Currency scenario
+ * Inputs: payTotAmt, recExhRate, exhRate
+ * Outputs: { payTotAmt, payTotLocalAmt, totAmt, totLocalAmt }
+ */
+export const calculateDiffCurrency = (
+  payTotAmt: number,
+  recExhRate: number,
+  exhRate: number,
+  decimals: IDecimal
+) => {
+  const payTotLocalAmt = calculateMultiplierAmount(
+    payTotAmt,
+    recExhRate,
+    decimals.locAmtDec
+  )
+  const totAmt = calculateDivisionAmount(
+    payTotLocalAmt,
+    exhRate,
+    decimals.amtDec
+  )
+  const totLocalAmt = calculateMultiplierAmount(
+    totAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+
+  return {
+    payTotAmt,
+    payTotLocalAmt,
+    totAmt,
+    totLocalAmt,
+  }
+}
+
+/**
  * Unallocated Amounts
  * Inputs: totAmt, totLocalAmt, allocTotAmt, allocTotLocalAmt
- * Outputs: { unAllocAmt, unAllocLocalAmt }
+ * Outputs: { unAllocAmt }
  */
 export const calculateUnallocated = (
   totAmt: number,
@@ -45,7 +106,10 @@ export const calculateUnallocated = (
 /**
  * Auto allocation over details.
  * Conditions:
- * 1) If totAmt == 0: set allocAmt = docBalAmt for all rows
+ * 1) If totAmt == 0: Calculate sum of negative amounts and sum of positive amounts.
+ *    Use the one with lower absolute value (lowest amount), then allocate:
+ *    - If negative sum is lower: allocate all negatives fully, allocate positives up to that amount
+ *    - If positive sum is lower: allocate all positives fully, allocate negatives up to that amount
  * 2) If totAmt > 0: sort rows placing negative docBalAmt first, then allocate
  *    by consuming remaining amount across positives; negatives are fully taken first
  * After allocation, computes local amounts, doc allocations, gain/loss, sums, and unallocated.
@@ -56,117 +120,84 @@ export const autoAllocateAmounts = (
 ) => {
   const updatedDetails = (details || []).map((d) => ({ ...d }))
 
-  const toNumber = (value: unknown): number => {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : 0
-  }
-
-  const addAmount = (base: number, addition: number): number => {
-    return decimals
-      ? calculateAdditionAmount(base, addition, decimals.amtDec)
-      : base + addition
-  }
-
-  const subtractAmount = (base: number, subtract: number): number => {
-    return decimals
-      ? calculateSubtractionAmount(base, subtract, decimals.amtDec)
-      : base - subtract
-  }
-
-  let totalPositive = 0
-  let totalNegativeAbs = 0
+  // Calculate sum of negative amounts and sum of positive amounts
+  let sumOfNegativeAmounts = 0
+  let sumOfPositiveAmounts = 0
 
   updatedDetails.forEach((row) => {
-    const balance = toNumber(row.docBalAmt)
-    if (balance > 0) {
-      totalPositive = addAmount(totalPositive, balance)
-    } else if (balance < 0) {
-      totalNegativeAbs = addAmount(totalNegativeAbs, Math.abs(balance))
+    const balanceAmount = Number(row.docBalAmt) || 0
+    if (balanceAmount < 0) {
+      sumOfNegativeAmounts += balanceAmount
+    } else if (balanceAmount > 0) {
+      sumOfPositiveAmounts += balanceAmount
     }
   })
 
-  const hasBothSides = totalPositive > 0 && totalNegativeAbs > 0
-  let appliedTotal = Math.min(totalPositive, totalNegativeAbs)
+  // Determine which sum has the lower absolute value (lowest amount)
+  const absNegativeSum = Math.abs(sumOfNegativeAmounts)
+  const absPositiveSum = Math.abs(sumOfPositiveAmounts)
+  const lowestAmount =
+    absNegativeSum < absPositiveSum ? absNegativeSum : absPositiveSum
 
-  if (!hasBothSides) {
-    updatedDetails.forEach((row) => {
-      const balanceAmount = toNumber(row.docBalAmt)
-      row.allocAmt = balanceAmount
-    })
-    return {
-      updatedDetails,
-      appliedTotal,
+  // Separate rows into negatives and positives
+  const negativeRows: IApDocSetOffDt[] = []
+  const positiveRows: IApDocSetOffDt[] = []
+
+  updatedDetails.forEach((row) => {
+    const balanceAmount = Number(row.docBalAmt) || 0
+    if (balanceAmount < 0) {
+      negativeRows.push(row)
+    } else if (balanceAmount > 0) {
+      positiveRows.push(row)
+    } else {
+      // Zero balance, no allocation
+      row.allocAmt = 0
     }
-  }
+  })
 
-  const positivesAreLimiting = totalPositive <= totalNegativeAbs
-  const limitingTotal = positivesAreLimiting ? totalPositive : totalNegativeAbs
-  appliedTotal = limitingTotal
+  // Allocate based on which sum is lower (unified logic)
+  // If negative sum is lower: allocate all negatives fully, then allocate positives up to that amount
+  // If positive sum is lower: allocate all positives fully, then allocate negatives up to that amount
+  const isNegativeSumLower = absNegativeSum < absPositiveSum
 
-  if (positivesAreLimiting) {
-    // Allocate all positives fully, distribute across negatives
-    updatedDetails.forEach((row) => {
-      const balance = toNumber(row.docBalAmt)
-      if (balance > 0) {
-        row.allocAmt = balance
-      } else if (balance === 0) {
-        row.allocAmt = 0
-      }
-    })
-
-    let remainingAbs = limitingTotal
-
-    updatedDetails.forEach((row) => {
-      const balance = toNumber(row.docBalAmt)
-      if (balance >= 0) return
-
-      if (remainingAbs <= 0) {
-        row.allocAmt = 0
-        return
-      }
-
-      const absoluteBalance = Math.abs(balance)
-      const takeAmount = Math.min(absoluteBalance, remainingAbs)
-      row.allocAmt = -takeAmount
-      remainingAbs = subtractAmount(remainingAbs, takeAmount)
-      if (Math.abs(remainingAbs) < 1e-9) {
-        remainingAbs = 0
-      }
+  // Allocate the side with lower sum fully
+  if (isNegativeSumLower) {
+    negativeRows.forEach((row) => {
+      row.allocAmt = Number(row.docBalAmt) || 0
     })
   } else {
-    // Allocate all negatives fully, distribute across positives
-    updatedDetails.forEach((row) => {
-      const balance = toNumber(row.docBalAmt)
-      if (balance < 0) {
-        row.allocAmt = balance
-      } else if (balance === 0) {
-        row.allocAmt = 0
-      }
-    })
-
-    let remaining = limitingTotal
-
-    updatedDetails.forEach((row) => {
-      const balance = toNumber(row.docBalAmt)
-      if (balance <= 0) return
-
-      if (remaining <= 0) {
-        row.allocAmt = 0
-        return
-      }
-
-      const takeAmount = Math.min(balance, remaining)
-      row.allocAmt = takeAmount
-      remaining = subtractAmount(remaining, takeAmount)
-      if (Math.abs(remaining) < 1e-9) {
-        remaining = 0
-      }
+    positiveRows.forEach((row) => {
+      row.allocAmt = Number(row.docBalAmt) || 0
     })
   }
+
+  // Allocate the other side up to the lowest amount
+  let remaining = lowestAmount
+  const rowsToAllocate = isNegativeSumLower ? positiveRows : negativeRows
+
+  rowsToAllocate.forEach((row) => {
+    const balanceAmount = Number(row.docBalAmt) || 0
+    const absBalance = Math.abs(balanceAmount)
+
+    if (remaining <= 0) {
+      row.allocAmt = 0
+      return
+    }
+
+    if (remaining >= absBalance) {
+      row.allocAmt = balanceAmount // Full amount
+      remaining = decimals
+        ? calculateSubtractionAmount(remaining, absBalance, decimals.amtDec)
+        : remaining - absBalance
+    } else {
+      // Partial allocation
+      row.allocAmt = isNegativeSumLower ? remaining : -remaining
+      remaining = 0
+    }
+  })
 
   return {
     updatedDetails,
-    appliedTotal,
   }
 }
 
@@ -193,19 +224,28 @@ export const calauteLocalAmtandGainLoss = (
     return details[rowNumber]
   }
 
+  const allocLocalAmt = calculateMultiplierAmount(
+    allocAmt,
+    exhRate,
+    decimals.locAmtDec
+  )
+
+  const docAllocAmt = allocAmt
+
   const isFullBalanceAllocation =
     calculateSubtractionAmount(docBalAmt, allocAmt, decimals.amtDec) === 0
 
-  const allocLocalAmt = isFullBalanceAllocation
+  const docAllocLocalAmt = isFullBalanceAllocation
     ? docBalLocalAmt
-    : calculateMultiplierAmount(allocAmt, exhRate, decimals.locAmtDec)
+    : calculateMultiplierAmount(
+        allocAmt,
+        details[rowNumber].docExhRate,
+        decimals.locAmtDec
+      )
 
-  const docAllocAmt = allocAmt
-  const docAllocLocalAmt = calculateMultiplierAmount(
-    allocAmt,
-    details[rowNumber].docExhRate,
-    decimals.locAmtDec
-  )
+  // Calculate exchange gain/loss: docAllocLocalAmt - allocLocalAmt
+  // Note: Preserve the sign (positive or negative) - do not use Math.abs()
+  // Positive = gain, Negative = loss
   const exhGainLoss = calculateSubtractionAmount(
     docAllocLocalAmt,
     allocLocalAmt,
@@ -218,7 +258,9 @@ export const calauteLocalAmtandGainLoss = (
   details[rowNumber].docAllocAmt = docAllocAmt
   details[rowNumber].docAllocLocalAmt = docAllocLocalAmt
   details[rowNumber].centDiff = centDiff
+  // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
   details[rowNumber].exhGainLoss = exhGainLoss
+
   return details[rowNumber]
 }
 
@@ -226,36 +268,21 @@ export const calculateManualAllocation = (
   details: IApDocSetOffDt[],
   rowNumber: number,
   allocAmt: number,
+  totAmt?: number,
   decimals?: IDecimal
 ): { result: IApDocSetOffDt; wasAutoSetToZero: boolean } => {
-  // console.log(
-  //   "calculateManualAllocation",
-  //   details,
-  //   rowNumber,
-  //   allocAmt,
-  //   totAmt,
-  //   decimals
-  // )
   if (!details || rowNumber < 0 || rowNumber >= details.length) {
-    //console.log("calculateManualAllocation not valid", details, rowNumber)
+    console.log("calculateManualAllocation not valid", details, rowNumber)
     return { result: details[rowNumber], wasAutoSetToZero: false }
   }
 
   const currentBalance = Number(details[rowNumber].docBalAmt) || 0
-  //console.log("calculateManualAllocation currentBalance", currentBalance)
   let finalAllocation = Number(allocAmt) || 0
   const originalRequestedAllocation = finalAllocation
   let wasAutoSetToZero = false
-  //console.log("calculateManualAllocation finalAllocation", finalAllocation)
 
   // Helper function to subtract amount from remaining with decimals support
-  const addAmount = (base: number, addition: number) => {
-    return decimals
-      ? calculateAdditionAmount(base, addition, decimals.amtDec)
-      : base + addition
-  }
-
-  const subtractAmount = (remaining: number, amount: number) => {
+  const subtractFromRemaining = (remaining: number, amount: number) => {
     return decimals
       ? calculateSubtractionAmount(remaining, amount, decimals.amtDec)
       : remaining - amount
@@ -263,7 +290,6 @@ export const calculateManualAllocation = (
 
   // Helper function to validate and clamp allocation to balance limits
   const clampAllocationToBalance = (allocation: number, balance: number) => {
-    //console.log("clampAllocationToBalance", allocation, balance)
     if (balance === 0) return 0
 
     const maxAbsBalance = Math.abs(balance)
@@ -274,99 +300,67 @@ export const calculateManualAllocation = (
     return allocation
   }
 
-  const totalPositiveBalance = details.reduce((sum, row) => {
-    const bal = Number(row.docBalAmt) || 0
-    return bal > 0 ? addAmount(sum, bal) : sum
-  }, 0)
-
-  const totalNegativeAbsBalance = details.reduce((sum, row) => {
-    const bal = Number(row.docBalAmt) || 0
-    return bal < 0 ? addAmount(sum, Math.abs(bal)) : sum
-  }, 0)
-
-  const limitingTotal = Math.min(totalPositiveBalance, totalNegativeAbsBalance)
-  const hasBothSides = totalPositiveBalance > 0 && totalNegativeAbsBalance > 0
-
-  const allocationsExcludingRow = details.reduce(
-    (acc, row, idx) => {
-      if (idx === rowNumber) return acc
-      const allocation = Number(row.allocAmt) || 0
-      if (allocation > 0) {
-        acc.positive = addAmount(acc.positive, allocation)
-      } else if (allocation < 0) {
-        acc.negativeAbs = addAmount(acc.negativeAbs, Math.abs(allocation))
-      }
-      return acc
-    },
-    { positive: 0, negativeAbs: 0 }
-  )
-
-  finalAllocation = clampAllocationToBalance(finalAllocation, currentBalance)
-
-  if (!hasBothSides) {
-    if (currentBalance > 0 && finalAllocation < 0) {
-      finalAllocation = 0
-      if (originalRequestedAllocation < 0) {
-        wasAutoSetToZero = true
-      }
-    }
-    if (currentBalance < 0 && finalAllocation > 0) {
-      finalAllocation = 0
-      if (originalRequestedAllocation > 0) {
-        wasAutoSetToZero = true
-      }
-    }
-    details[rowNumber].allocAmt = finalAllocation
-    return { result: details[rowNumber], wasAutoSetToZero }
-  }
-
-  if (currentBalance > 0) {
-    const available = Math.max(
-      0,
-      subtractAmount(limitingTotal, allocationsExcludingRow.positive)
-    )
-    if (available <= 0 && originalRequestedAllocation > 0) {
-      wasAutoSetToZero = true
-    }
-
-    if (available <= 0) {
-      finalAllocation = 0
-    } else if (finalAllocation > available) {
-      finalAllocation = available
-      if (originalRequestedAllocation > available) {
-        wasAutoSetToZero = true
-      }
-    }
-
-    if (finalAllocation < 0) {
-      finalAllocation = 0
-    }
-  } else if (currentBalance < 0) {
-    const availableAbs = Math.max(
-      0,
-      subtractAmount(limitingTotal, allocationsExcludingRow.negativeAbs)
+  // If totAmt is provided, calculate with negatives-first logic
+  if (totAmt !== undefined && totAmt > 0) {
+    console.log("calculateManualAllocation totAmt", totAmt)
+    let remainingAllocationAmt = Number(totAmt) || 0
+    console.log(
+      "calculateManualAllocation remainingAllocationAmt",
+      remainingAllocationAmt
     )
 
-    const desiredAbs = Math.min(
-      Math.abs(finalAllocation),
-      Math.abs(currentBalance)
-    )
-    const cappedAbs = Math.min(desiredAbs, availableAbs)
+    // Process all other rows to calculate remaining allocation
+    details.forEach((row, idx) => {
+      if (idx === rowNumber) return // Skip current row
 
-    if (availableAbs <= 0 && originalRequestedAllocation < 0) {
+      const rowBalance = Number(row.docBalAmt) || 0
+      const rowAllocatedAmt = Number(row.allocAmt) || 0
+
+      // First, handle unallocated negative balances (adds to remaining)
+      if (rowBalance < 0 && rowAllocatedAmt === 0) {
+        console.log("rowBalance", rowBalance)
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          rowBalance
+        )
+      }
+
+      // Then, subtract already allocated amounts
+      if (rowAllocatedAmt !== 0) {
+        console.log("rowAllocatedAmt", rowAllocatedAmt)
+        remainingAllocationAmt = subtractFromRemaining(
+          remainingAllocationAmt,
+          rowAllocatedAmt
+        )
+      }
+    })
+
+    // Handle current row based on its balance type
+
+    // For positive balance, validate against remaining amount
+    finalAllocation = clampAllocationToBalance(finalAllocation, currentBalance)
+
+    // Check if allocation is valid against remaining amount
+    if (
+      remainingAllocationAmt <= 0 ||
+      finalAllocation > remainingAllocationAmt
+    ) {
+      // Only mark as auto-set if user actually requested an allocation
+      if (originalRequestedAllocation > 0 && remainingAllocationAmt <= 0) {
+        wasAutoSetToZero = true
+      }
+      finalAllocation = 0
       wasAutoSetToZero = true
-    }
-
-    finalAllocation = cappedAbs === 0 ? 0 : -cappedAbs
-
-    if (desiredAbs > availableAbs && originalRequestedAllocation < 0) {
-      wasAutoSetToZero = true
+    } else {
+      // Valid allocation, reduce remaining
+      remainingAllocationAmt = subtractFromRemaining(
+        remainingAllocationAmt,
+        finalAllocation
+      )
     }
   } else {
-    if (originalRequestedAllocation !== 0) {
-      wasAutoSetToZero = true
-    }
-    finalAllocation = 0
+    // No totAmt validation, just enforce basic constraints
+    finalAllocation = clampAllocationToBalance(finalAllocation, currentBalance)
   }
 
   details[rowNumber].allocAmt = finalAllocation

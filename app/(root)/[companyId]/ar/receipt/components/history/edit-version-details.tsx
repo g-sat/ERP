@@ -287,7 +287,7 @@ export default function EditVersionDetails({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -305,7 +305,7 @@ export default function EditVersionDetails({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -440,7 +440,7 @@ export default function EditVersionDetails({
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
-            onRefresh={handleRefresh}
+            onRefreshAction={handleRefresh}
             onRowSelect={(receipt) => setSelectedReceipt(receipt)}
           />
         </CardContent>
@@ -514,7 +514,7 @@ export default function EditVersionDetails({
                   transactionId={transactionId}
                   tableName={TableName.arReceiptHistory}
                   emptyMessage="No receipt details available"
-                  onRefresh={handleRefresh}
+                  onRefreshAction={handleRefresh}
                   showHeader={true}
                   showFooter={false}
                   maxHeight="300px"

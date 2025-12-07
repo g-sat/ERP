@@ -23,11 +23,20 @@ interface AgencyRemunerationTableProps {
     agencyRemuneration: IAgencyRemuneration | undefined
   ) => void
   onDeleteAgencyRemuneration?: (agencyRemunerationId: string) => void
-  onEditAgencyRemuneration?: (agencyRemuneration: IAgencyRemuneration) => void
-  onCreateAgencyRemuneration?: () => void
-  onDebitNote?: (agencyRemunerationId: string, debitNoteNo?: string) => void
-  onPurchase?: (agencyRemunerationId: string) => void
-  onRefresh?: () => void
+  onEditActionAgencyRemuneration?: (
+    agencyRemuneration: IAgencyRemuneration
+  ) => void
+  onCreateActionAgencyRemuneration?: () => void
+  onRefreshActionte?: (
+    agencyRemunerationId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    agencyRemunerationId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (agencyRemunerationId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IAgencyRemunerationFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function AgencyRemunerationTable({
   isLoading = false,
   onAgencyRemunerationSelect,
   onDeleteAgencyRemuneration,
-  onEditAgencyRemuneration,
-  onCreateAgencyRemuneration,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionAgencyRemuneration,
+  onCreateActionAgencyRemuneration,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -204,7 +214,7 @@ export function AgencyRemunerationTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, formatDateTimeValue, handleOpenHistory]
+    [formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -227,8 +237,8 @@ export function AgencyRemunerationTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -243,14 +253,14 @@ export function AgencyRemunerationTable({
         tableName={TableName.agencyRemuneration}
         emptyMessage="No agency remunerations found."
         accessorId="agencyRemunerationId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateAgencyRemuneration}
-        onEdit={onEditAgencyRemuneration}
-        onDelete={onDeleteAgencyRemuneration}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionAgencyRemuneration}
+        onEditAction={onEditActionAgencyRemuneration}
+        onDeleteAction={onDeleteAgencyRemuneration}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

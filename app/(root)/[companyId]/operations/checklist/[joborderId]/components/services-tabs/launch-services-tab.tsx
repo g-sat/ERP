@@ -435,6 +435,7 @@ export function LaunchServicesTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (launchServiceId: string) => {
       const item = data?.find(
@@ -491,12 +492,12 @@ export function LaunchServicesTab({
             data={data || []}
             onLaunchServiceSelect={handleSelect}
             onDeleteLaunchService={handleDelete}
-            onEditLaunchService={handleEdit}
-            onCreateLaunchService={handleCreate}
+            onEditActionLaunchService={handleEdit}
+            onCreateActionLaunchService={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshLaunchServices}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshLaunchServices}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -554,7 +555,7 @@ export function LaunchServicesTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -573,7 +574,7 @@ export function LaunchServicesTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -587,7 +588,7 @@ export function LaunchServicesTab({
           taskId={Task.LaunchServices}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this launch services."
@@ -622,7 +623,7 @@ export function LaunchServicesTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -641,7 +642,7 @@ export function LaunchServicesTab({
         description="This action cannot be undone. This will permanently delete the launch service from our servers."
         itemName={deleteConfirmation.launchServiceName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             launchServiceId: null,

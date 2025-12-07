@@ -306,7 +306,7 @@ export default function EditVersionDetails({
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
-            onRefresh={handleRefresh}
+            onRefreshAction={handleRefresh}
             onRowSelect={(bankTransferCtm) =>
               setSelectedBankTransferCtmHd(bankTransferCtm)
             }

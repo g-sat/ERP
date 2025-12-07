@@ -37,7 +37,7 @@ interface FreshWaterFormProps {
   initialData?: IFreshWater
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: FreshWaterSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -47,7 +47,7 @@ export function FreshWaterForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: FreshWaterFormProps) {
@@ -101,7 +101,7 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -130,7 +130,7 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -227,10 +227,10 @@ export function FreshWaterForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <CustomNumberInput
+              <CustomInput
                 form={form}
                 name="receiptNo"
-                label="Receipt Number"
+                label="Receipt No"
                 isDisabled={isConfirmed}
               />
               <UomAutocomplete
@@ -357,7 +357,7 @@ export function FreshWaterForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

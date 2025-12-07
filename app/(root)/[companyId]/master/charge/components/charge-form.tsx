@@ -12,10 +12,7 @@ import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import {
-  ChartOfAccountAutocomplete,
-  TaskAutocomplete,
-} from "@/components/autocomplete"
+import { TaskAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -32,7 +29,6 @@ const defaultValues = {
   taskId: 0,
   chargeOrder: 0,
   itemNo: 0,
-  glId: 0,
   remarks: "",
   isActive: true,
 }
@@ -71,7 +67,6 @@ export function ChargeForm({
           taskId: initialData.taskId ?? 0,
           chargeOrder: initialData.chargeOrder ?? 0,
           itemNo: initialData.itemNo ?? 0,
-          glId: initialData.glId ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -91,7 +86,6 @@ export function ChargeForm({
             taskId: initialData.taskId ?? 0,
             chargeOrder: initialData.chargeOrder ?? 0,
             itemNo: initialData.itemNo ?? 0,
-            glId: initialData.glId ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -166,13 +160,6 @@ export function ChargeForm({
                 type="number"
                 isDisabled={isReadOnly}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="Account"
-                isRequired={true}
-                companyId={Number(companyId)}
-              />
             </div>
 
             <CustomTextarea
@@ -181,15 +168,14 @@ export function ChargeForm({
               label="Remarks"
               isDisabled={isReadOnly}
             />
-            <div className="grid grid-cols-2 gap-2">
-              <CustomSwitch
-                form={form}
-                name="isActive"
-                label="Active Status"
-                activeColor="success"
-                isDisabled={isReadOnly}
-              />
-            </div>
+
+            <CustomSwitch
+              form={form}
+              name="isActive"
+              label="Active Status"
+              activeColor="success"
+              isDisabled={isReadOnly}
+            />
 
             {/* Audit Information Section */}
             {initialData &&

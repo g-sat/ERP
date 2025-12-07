@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import {
   setDueDate,
   setExchangeRate,
-  setRecExchangeRate,
+  setPayExchangeRate,
 } from "@/helpers/account"
 import { IArRefundFilter, IArRefundHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -129,7 +129,7 @@ export default function RefundPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/refund`,
+    () => `history-doc:/${companyId}/ap/refund`,
     [companyId]
   )
 
@@ -222,8 +222,6 @@ export default function RefundPage() {
           remarks: refund.remarks ?? "",
           allocTotAmt: refund.allocTotAmt ?? 0,
           allocTotLocalAmt: refund.allocTotLocalAmt ?? 0,
-          jobOrderId: refund.jobOrderId ?? 0,
-          jobOrderNo: refund.jobOrderNo ?? "",
           moduleFrom: refund.moduleFrom ?? "",
           editVersion: refund.editVersion ?? 0,
           data_details:
@@ -499,7 +497,7 @@ export default function RefundPage() {
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
-          await setRecExchangeRate(form, exhRateDec)
+          await setPayExchangeRate(form, exhRateDec)
 
           // Calculate and set due date (for detail records)
           await setDueDate(form)
@@ -605,6 +603,57 @@ export default function RefundPage() {
     toast.success("Refund reset successfully")
   }
 
+  // Handle Print Refund Report
+  const handlePrintRefund = () => {
+    if (!refund || refund.refundId === "0") {
+      toast.error("Please select a refund to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const refundId = formValues.refundId || refund.refundId?.toString() || "0"
+    const refundNo = formValues.refundNo || refund.refundNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: refundId,
+      invoiceNo: refundNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_ArRefund.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IArRefundHd to ArRefundHdSchemaType
   const transformToSchemaType = useCallback(
     (apiRefund: IArRefundHd): ArRefundHdSchemaType => {
@@ -649,13 +698,11 @@ export default function RefundPage() {
         remarks: apiRefund.remarks ?? "",
         allocTotAmt: apiRefund.allocTotAmt ?? 0,
         allocTotLocalAmt: apiRefund.allocTotLocalAmt ?? 0,
-        jobOrderId: apiRefund.jobOrderId ?? 0,
-        jobOrderNo: apiRefund.jobOrderNo ?? "",
         moduleFrom: apiRefund.moduleFrom ?? "",
         editVersion: apiRefund.editVersion ?? 0,
-        createBy: apiRefund.createById?.toString() ?? "",
-        editBy: apiRefund.editById?.toString() ?? "",
-        cancelBy: apiRefund.cancelById?.toString() ?? "",
+        createBy: apiRefund.createBy ?? "",
+        editBy: apiRefund.editBy ?? "",
+        cancelBy: apiRefund.cancelBy ?? "",
         isCancel: apiRefund.isCancel ?? false,
         createDate: apiRefund.createDate
           ? format(
@@ -1066,6 +1113,7 @@ export default function RefundPage() {
               variant="outline"
               size="sm"
               disabled={!refund || refund.refundId === "0"}
+              onClick={handlePrintRefund}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1166,7 +1214,7 @@ export default function RefundPage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

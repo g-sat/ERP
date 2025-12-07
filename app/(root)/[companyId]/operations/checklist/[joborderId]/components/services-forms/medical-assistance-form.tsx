@@ -22,7 +22,7 @@ import {
   ChartOfAccountAutocomplete,
   RankAutocomplete,
   StatusTaskAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -39,7 +39,7 @@ interface MedicalAssistanceFormProps {
   initialData?: IMedicalAssistance
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: MedicalAssistanceSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -49,7 +49,7 @@ export function MedicalAssistanceForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: MedicalAssistanceFormProps) {
@@ -95,7 +95,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -115,7 +115,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
-      visaTypeId: initialData?.visaTypeId ?? 106,
+      visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -129,7 +129,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -149,7 +149,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
-      visaTypeId: initialData?.visaTypeId ?? 106,
+      visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -202,9 +202,9 @@ export function MedicalAssistanceForm({
                 label="Rank"
                 isDisabled={isConfirmed}
               />
-              <VisaTypeAutocomplete
+              <VisaAutocomplete
                 form={form}
-                name="visaTypeId"
+                name="visaId"
                 label="Visa Type"
                 isDisabled={isConfirmed}
               />
@@ -360,7 +360,7 @@ export function MedicalAssistanceForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

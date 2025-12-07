@@ -345,10 +345,10 @@ export default function BargePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -364,10 +364,10 @@ export default function BargePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewBarge : undefined}
-          onDelete={canDelete ? handleDeleteBarge : undefined}
-          onEdit={canEdit ? handleEditBarge : undefined}
-          onCreate={canCreate ? handleCreateBarge : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteBarge : undefined}
+          onEditAction={canEdit ? handleEditBarge : undefined}
+          onCreateAction={canCreate ? handleCreateBarge : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -438,7 +438,7 @@ export default function BargePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingBarge}
-        onCancel={() => setExistingBarge(null)}
+        onCancelAction={() => setExistingBarge(null)}
         code={existingBarge?.bargeCode}
         name={existingBarge?.bargeName}
         typeLabel="Barge"
@@ -455,7 +455,7 @@ export default function BargePage() {
         description="This action cannot be undone. This will permanently delete the barge from our servers."
         itemName={deleteConfirmation.bargeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             bargeId: null,
@@ -483,7 +483,7 @@ export default function BargePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

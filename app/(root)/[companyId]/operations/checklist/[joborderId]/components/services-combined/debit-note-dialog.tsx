@@ -18,10 +18,12 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { format } from "date-fns"
 import { ListChecks, Printer, Save, Trash } from "lucide-react"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
+import { parseDate } from "@/lib/date-utils"
 import { TaskIdToName } from "@/lib/operations-utils"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -48,7 +50,7 @@ interface DebitNoteDialogProps {
   title?: string
   description?: string
   onOpenChange: (open: boolean) => void
-  onDelete?: (debitNoteId: number) => void
+  onDeleteAction?: (debitNoteId: number) => void
   onUpdateHeader?: (updatedHeader: IDebitNoteHd) => void
   onClearSelection?: () => void
   jobOrder?: IJobOrderHd
@@ -62,13 +64,14 @@ export default function DebitNoteDialog({
   title = "Debit Note",
   description = "Manage debit note details for this service.",
   onOpenChange,
-  onDelete,
+  onDeleteAction,
   onUpdateHeader,
   onClearSelection,
   jobOrder,
 }: DebitNoteDialogProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
     debitNoteHd ?? ({} as IDebitNoteHd)
@@ -225,16 +228,15 @@ export default function DebitNoteDialog({
     (
       currentItemNo: number,
       chargeId: number,
-      glId: number,
-      totAftGstAmt: number,
+      totAmtAftGst: number,
       serviceCharge: number,
       taskId: number
     ) => {
-      if (serviceCharge <= 0 || totAftGstAmt <= 0) return
+      if (serviceCharge <= 0 || totAmtAftGst <= 0) return
 
-      // Calculate unitPrice = totAftGstAmt / serviceCharge using account helper
+      // Calculate unitPrice = totAmtAftGst / serviceCharge using account helper
       const unitPrice = calculateDivisionAmount(
-        totAftGstAmt,
+        totAmtAftGst,
         serviceCharge,
         amtDec
       )
@@ -249,7 +251,6 @@ export default function DebitNoteDialog({
         itemNo: currentItemNo + 1, // Insert after current item
         taskId: taskId,
         chargeId: chargeId,
-        glId: glId,
         qty: qty,
         unitPrice: unitPrice,
         totLocalAmt: 0,
@@ -257,7 +258,7 @@ export default function DebitNoteDialog({
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: totAmt, // Since gstAmt = 0
+        totAmtAftGst: totAmt, // Since gstAmt = 0
         remarks: `${serviceCharge} % Service Charges`,
         editVersion: 0,
         isServiceCharge: false,
@@ -309,7 +310,6 @@ export default function DebitNoteDialog({
               ? {
                   ...item,
                   chargeId: data.chargeId ?? 0,
-                  glId: data.glId ?? 0,
                   qty: data.qty ?? 0,
                   unitPrice: data.unitPrice ?? 0,
                   totLocalAmt: data.totLocalAmt ?? 0,
@@ -317,7 +317,7 @@ export default function DebitNoteDialog({
                   gstId: data.gstId ?? 0,
                   gstPercentage: data.gstPercentage ?? 0,
                   gstAmt: data.gstAmt ?? 0,
-                  totAftGstAmt: data.totAftGstAmt ?? 0,
+                  totAmtAftGst: data.totAmtAftGst ?? 0,
                   remarks: data.remarks ?? "",
                   editVersion: data.editVersion ?? 0,
                   isServiceCharge: data.isServiceCharge ?? false,
@@ -331,13 +331,12 @@ export default function DebitNoteDialog({
         if (
           data.isServiceCharge &&
           data.serviceCharge > 0 &&
-          data.totAftGstAmt > 0
+          data.totAmtAftGst > 0
         ) {
           createServiceChargeEntry(
             updatedItemNo,
             data.chargeId ?? 0,
-            data.glId ?? 0,
-            data.totAftGstAmt,
+            data.totAmtAftGst,
             data.serviceCharge,
             data.taskId ?? 0
           )
@@ -358,7 +357,6 @@ export default function DebitNoteDialog({
           itemNo: newItemNo,
           taskId: data.taskId ?? 0,
           chargeId: data.chargeId ?? 0,
-          glId: data.glId ?? 0,
           qty: data.qty ?? 0,
           unitPrice: data.unitPrice ?? 0,
           totLocalAmt: data.totLocalAmt ?? 0,
@@ -366,7 +364,7 @@ export default function DebitNoteDialog({
           gstId: data.gstId ?? 0,
           gstPercentage: data.gstPercentage ?? 0,
           gstAmt: data.gstAmt ?? 0,
-          totAftGstAmt: data.totAftGstAmt ?? 0,
+          totAmtAftGst: data.totAmtAftGst ?? 0,
           remarks: data.remarks ?? "",
           editVersion: data.editVersion ?? 0,
           isServiceCharge: data.isServiceCharge ?? false,
@@ -379,13 +377,12 @@ export default function DebitNoteDialog({
         if (
           data.isServiceCharge &&
           data.serviceCharge > 0 &&
-          data.totAftGstAmt > 0
+          data.totAmtAftGst > 0
         ) {
           createServiceChargeEntry(
             newItemNo,
             data.chargeId ?? 0,
-            data.glId ?? 0,
-            data.totAftGstAmt,
+            data.totAmtAftGst,
             data.serviceCharge,
             data.taskId ?? 0
           )
@@ -457,7 +454,7 @@ export default function DebitNoteDialog({
         0
       )
       const totalAfterGst = details.reduce(
-        (sum, detail) => sum + (detail?.totAftGstAmt ?? 0),
+        (sum, detail) => sum + (detail?.totAmtAftGst ?? 0),
         0
       )
 
@@ -479,7 +476,7 @@ export default function DebitNoteDialog({
         editVersion: debitNoteHdState?.editVersion ?? 0,
         totAmt: totalAmount,
         gstAmt: totalGstAmount,
-        totAftGstAmt: totalAfterGst,
+        totAmtAftGst: totalAfterGst,
         isLocked: debitNoteHdState?.isLocked ?? false,
         data_details: details ?? [], // Include all details with null safety
       }
@@ -496,16 +493,20 @@ export default function DebitNoteDialog({
           onClearSelection()
         }
 
+        console.log("debit note response", response)
+
         // Update local state with response data if available
         if (response.data && "data_details" in response.data) {
           const responseData = response.data as unknown as {
             data_details: IDebitNoteDt[]
           } & IDebitNoteHd
 
-          setDebitNoteHdState(responseData)
+          console.log("debit note response data", responseData)
+
+          setDebitNoteHdState(responseData as unknown as IDebitNoteHd)
 
           // Update details
-          setDetails(responseData.data_details)
+          setDetails(responseData.data_details as unknown as IDebitNoteDt[])
 
           // Update header if callback is provided
           if (onUpdateHeader) {
@@ -558,15 +559,15 @@ export default function DebitNoteDialog({
 
   // Handler for confirmed main debit note deletion
   const handleConfirmMainDeleteMain = useCallback(() => {
-    if (mainDeleteConfirmation.debitNoteId && onDelete) {
-      onDelete(mainDeleteConfirmation.debitNoteId)
+    if (mainDeleteConfirmation.debitNoteId && onDeleteAction) {
+      onDeleteAction(mainDeleteConfirmation.debitNoteId)
       setMainDeleteConfirmation({
         isOpen: false,
         debitNoteId: null,
         debitNoteNo: null,
       })
     }
-  }, [mainDeleteConfirmation, onDelete])
+  }, [mainDeleteConfirmation, onDeleteAction])
 
   // Handler for bulk delete of debit note details
   const handleBulkDeleteDebitNoteDetails = useCallback(
@@ -664,7 +665,7 @@ export default function DebitNoteDialog({
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: item?.basicRate ?? 0,
+        totAmtAftGst: item?.basicRate ?? 0,
         remarks: item?.remarks ?? item?.chargeName ?? "",
         editVersion: 0,
         isServiceCharge: false,
@@ -777,9 +778,20 @@ export default function DebitNoteDialog({
                     className="bg-blue-100 px-2 py-0.5 text-xs whitespace-nowrap text-blue-800 hover:bg-blue-200"
                   >
                     {debitNoteHdState?.debitNoteDate
-                      ? new Date(
-                          debitNoteHdState.debitNoteDate
-                        ).toLocaleDateString()
+                      ? (() => {
+                          const dateValue = debitNoteHdState.debitNoteDate
+                          const date =
+                            dateValue instanceof Date
+                              ? dateValue
+                              : parseDate(
+                                  typeof dateValue === "string"
+                                    ? dateValue
+                                    : String(dateValue)
+                                ) || new Date(dateValue)
+                          return date && !isNaN(date.getTime())
+                            ? format(date, dateFormat)
+                            : "N/A"
+                        })()
                       : "N/A"}
                   </Badge>
                   <Badge
@@ -805,6 +817,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                 onClick={() => setSaveConfirmation({ isOpen: true })}
                 className="h-8 px-2"
+                tabIndex={100}
               >
                 <Save className="mr-2 h-4 w-4" />
                 Save
@@ -815,6 +828,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                 onClick={handleDeleteDebitNote}
                 className="h-8 px-2"
+                tabIndex={101}
               >
                 <Trash className="mr-2 h-4 w-4" />
                 Delete
@@ -824,6 +838,7 @@ export default function DebitNoteDialog({
                 variant="outline"
                 disabled={false}
                 className="h-8 px-2"
+                tabIndex={102}
               >
                 <Printer className="mr-2 h-4 w-4" />
                 Print
@@ -834,6 +849,7 @@ export default function DebitNoteDialog({
                 disabled={isConfirmed}
                 onClick={() => setBulkChargesDialog({ isOpen: true })}
                 className="h-8 px-2"
+                tabIndex={103}
               >
                 <ListChecks className="mr-2 h-4 w-4" />
                 Bulk Charges
@@ -853,7 +869,7 @@ export default function DebitNoteDialog({
                   : undefined
               }
               submitAction={handleFormSubmit}
-              onCancel={() => setSelectedDebitNoteDetail(undefined)}
+              onCancelAction={() => setSelectedDebitNoteDetail(undefined)}
               isSubmitting={false}
               isConfirmed={isConfirmed}
               taskId={taskId}
@@ -872,11 +888,11 @@ export default function DebitNoteDialog({
               <DebitNoteTable
                 data={details}
                 onSelect={handleViewDebitNoteDetail}
-                onEdit={handleEditDebitNoteDetail}
-                onDelete={handleDeleteDebitNoteDetail}
-                onBulkDelete={handleBulkDeleteDebitNoteDetails}
-                onCreate={handleCreateDebitNoteDetail}
-                onRefresh={handleRefresh}
+                onEditAction={handleEditDebitNoteDetail}
+                onDeleteAction={handleDeleteDebitNoteDetail}
+                onBulkDeleteAction={handleBulkDeleteDebitNoteDetails}
+                onCreateAction={handleCreateDebitNoteDetail}
+                onRefreshAction={handleRefresh}
                 onFilterChange={() => {}}
                 onDataReorder={handleDataReorder}
                 moduleId={taskId}
@@ -896,7 +912,7 @@ export default function DebitNoteDialog({
             description="This action cannot be undone. This will permanently delete the entire debit note and all its details from our servers."
             itemName={mainDeleteConfirmation.debitNoteNo || ""}
             onConfirm={handleConfirmMainDeleteMain}
-            onCancel={() =>
+            onCancelAction={() =>
               setMainDeleteConfirmation({
                 isOpen: false,
                 debitNoteId: null,
@@ -916,7 +932,7 @@ export default function DebitNoteDialog({
             description="This action cannot be undone. This will permanently delete the debit note detail from our servers."
             itemName={detailsDeleteConfirmation.debitNoteNo || ""}
             onConfirm={handleConfirmDeleteDetails}
-            onCancel={() =>
+            onCancelAction={() =>
               setDetailsDeleteConfirmation({
                 isOpen: false,
                 debitNoteId: null,
@@ -939,7 +955,7 @@ export default function DebitNoteDialog({
               `${bulkDeleteConfirmation.count} selected item${bulkDeleteConfirmation.count !== 1 ? "s" : ""}`
             }
             onConfirm={handleConfirmBulkDeleteBulk}
-            onCancel={() =>
+            onCancelAction={() =>
               setBulkDeleteConfirmation({
                 isOpen: false,
                 selectedIds: [],
@@ -960,7 +976,7 @@ export default function DebitNoteDialog({
             operationType={"update"}
             itemName={`Debit Note ${debitNoteHdState?.debitNoteNo || ""}`}
             onConfirm={handleSaveDebitNote}
-            onCancel={() =>
+            onCancelAction={() =>
               setSaveConfirmation({
                 isOpen: false,
               })

@@ -72,7 +72,7 @@ export default function AdminUserLogPage() {
         <UserLogTable
           data={userLogFilters.search ? [] : userLogsData || []}
           isLoading={isLoadingUserLogs}
-          onRefresh={refetchUserLogs}
+          onRefreshAction={refetchUserLogs}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}

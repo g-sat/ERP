@@ -21,19 +21,19 @@ type ComponentType = "Earning" | "Deduction" | "Salary"
 
 interface Props {
   data: IPayrollComponent[]
-  onCreate?(): void
-  onRefresh?(): void
-  onEdit(item: IPayrollComponent): void
-  onDelete(item: IPayrollComponent): void
+  onCreateAction?(): void
+  onRefreshAction?(): void
+  onEditAction(item: IPayrollComponent): void
+  onDeleteAction(item: IPayrollComponent): void
   onView(item: IPayrollComponent): void
 }
 
 export function PayrollComponentTable({
   data,
-  onCreate,
-  onRefresh,
-  onEdit,
-  onDelete,
+  onCreateAction,
+  onRefreshAction,
+  onEditAction,
+  onDeleteAction,
   onView,
 }: Props) {
   const [search, setSearch] = useState("")
@@ -123,7 +123,7 @@ export function PayrollComponentTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onEdit(component)}
+                      onClick={() => onEditAction(component)}
                       className="h-6 w-6 p-0"
                     >
                       <Edit className="h-3 w-3" />
@@ -132,7 +132,7 @@ export function PayrollComponentTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDelete(component)}
+                      onClick={() => onDeleteAction(component)}
                       className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -189,13 +189,17 @@ export function PayrollComponentTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
+            onClick={onRefreshAction}
             className="h-8 px-2 lg:px-3"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button size="sm" onClick={onCreate} className="h-8 px-2 lg:px-3">
+          <Button
+            size="sm"
+            onClick={onCreateAction}
+            className="h-8 px-2 lg:px-3"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add
           </Button>

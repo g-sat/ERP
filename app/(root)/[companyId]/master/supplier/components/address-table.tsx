@@ -18,11 +18,11 @@ interface AddresssTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (address: ISupplierAddress | null) => void
-  onDelete?: (addressId: string) => Promise<void>
-  onEdit?: (address: ISupplierAddress | null) => void
-  onCreate?: () => void
+  onDeleteAction?: (addressId: string) => Promise<void>
+  onEditAction?: (address: ISupplierAddress | null) => void
+  onCreateAction?: () => void
   onFilterChange?: (filters: ISupplierAddressFilter) => void
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   moduleId: number
   transactionId: number
   // Permission props
@@ -37,11 +37,11 @@ export function AddresssTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
   onFilterChange,
-  onRefresh,
+  onRefreshAction,
   moduleId,
   transactionId,
   // Permission props
@@ -277,13 +277,13 @@ export function AddresssTable({
       emptyMessage="No addresses found."
       accessorId="addressId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={handleDialogFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={false}

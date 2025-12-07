@@ -697,8 +697,8 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IArDocSetOffDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onDeleteAction={handleDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onDataReorder={
             handleDataReorder as (newData: IArDocSetOffDt[]) => void
           }
@@ -710,7 +710,7 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
         description="Selected docSetOff details will be removed. This action cannot be undone."
       />

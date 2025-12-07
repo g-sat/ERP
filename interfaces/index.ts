@@ -13,6 +13,7 @@ export * from "./bank"
 export * from "./barge"
 export * from "./category"
 export * from "./charge"
+export * from "./chargeglmapping"
 export * from "./chartofaccount"
 export * from "./checklist"
 export * from "./coacategory"
@@ -67,6 +68,9 @@ export * from "./uom"
 export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
+
+// Tariff interfaces
+export * from "./tariff"
 
 //account-ar
 export * from "./ar-customer-invoice"

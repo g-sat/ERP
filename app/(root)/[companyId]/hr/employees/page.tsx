@@ -78,8 +78,8 @@ export default function EmployeePage() {
       ) : (
         <EmployeeListTable
           data={(data?.data as unknown as IEmployeeBasic[]) || []}
-          onEdit={handleEdit}
-          onRefresh={refetch}
+          onEditAction={handleEdit}
+          onRefreshAction={refetch}
         />
       )}
 
@@ -90,7 +90,7 @@ export default function EmployeePage() {
         description="This action cannot be undone. This will permanently delete the employee from our servers."
         itemName={employeeToDelete?.employeeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

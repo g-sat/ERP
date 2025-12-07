@@ -119,10 +119,10 @@ export default function EmployerPage() {
       ) : (
         <EmployerTable
           data={employerData?.data || []}
-          onEdit={handleEditEmployer}
-          onDelete={handleDeleteEmployer}
-          onCreate={handleCreateEmployer}
-          onRefresh={refetchEmployer}
+          onEditAction={handleEditEmployer}
+          onDeleteAction={handleDeleteEmployer}
+          onCreateAction={handleCreateEmployer}
+          onRefreshAction={refetchEmployer}
           canCreate={canCreateEmployer}
           canEdit={canEditEmployer}
           canDelete={canDeleteEmployer}
@@ -153,7 +153,7 @@ export default function EmployerPage() {
 
           <EmployerForm
             employer={selectedEmployer || undefined}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

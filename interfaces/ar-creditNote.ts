@@ -85,6 +85,8 @@ export interface IArCreditNoteHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   jobOrderId: number
   jobOrderNo: string
   vesselId: number

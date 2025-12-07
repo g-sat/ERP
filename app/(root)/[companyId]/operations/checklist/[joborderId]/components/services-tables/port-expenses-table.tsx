@@ -18,11 +18,11 @@ interface PortExpensesTableProps {
   isLoading?: boolean
   onPortExpensesSelect?: (portExpenses: IPortExpenses | undefined) => void
   onDeletePortExpenses?: (portExpensesId: string) => void
-  onEditPortExpenses?: (portExpenses: IPortExpenses) => void
-  onCreatePortExpenses?: () => void
-  onDebitNote?: (portExpenseId: string, debitNoteNo: string) => void
-  onPurchase?: (portExpenseId: string) => void
-  onRefresh?: () => void
+  onEditActionPortExpenses?: (portExpenses: IPortExpenses) => void
+  onCreateActionPortExpenses?: () => void
+  onDebitNoteAction?: (portExpenseId: string, debitNoteNo: string) => void
+  onPurchaseAction?: (portExpenseId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IPortExpensesFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function PortExpensesTable({
   isLoading = false,
   onPortExpensesSelect,
   onDeletePortExpenses,
-  onEditPortExpenses,
-  onCreatePortExpenses,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionPortExpenses,
+  onCreateActionPortExpenses,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -261,8 +261,8 @@ export function PortExpensesTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -277,14 +277,14 @@ export function PortExpensesTable({
         tableName={TableName.portExpense}
         emptyMessage="No port expenses found."
         accessorId="portExpenseId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreatePortExpenses}
-        onEdit={onEditPortExpenses}
-        onDelete={onDeletePortExpenses}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionPortExpenses}
+        onEditAction={onEditActionPortExpenses}
+        onDeleteAction={onDeletePortExpenses}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

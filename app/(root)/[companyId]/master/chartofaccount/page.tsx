@@ -184,15 +184,13 @@ export default function ChartOfAccountPage() {
   }
 
   // Destructure with fallback values
-  const {
-    data: category1Data,
-    totalRecords: category1TotalRecords,
-  } = (category1Response as ApiResponse<ICoaCategory1>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-    totalRecords: 0,
-  }
+  const { data: category1Data, totalRecords: category1TotalRecords } =
+    (category1Response as ApiResponse<ICoaCategory1>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+      totalRecords: 0,
+    }
 
   const {
     result: category2Result,
@@ -205,15 +203,13 @@ export default function ChartOfAccountPage() {
     totalRecords: 0,
   }
 
-  const {
-    data: category3Data,
-    totalRecords: category3TotalRecords,
-  } = (category3Response as ApiResponse<ICoaCategory3>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-    totalRecords: 0,
-  }
+  const { data: category3Data, totalRecords: category3TotalRecords } =
+    (category3Response as ApiResponse<ICoaCategory3>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+      totalRecords: 0,
+    }
 
   // Mutations
   const saveMutation1 = usePersist<CoaCategory1SchemaType>(
@@ -945,10 +941,10 @@ export default function ChartOfAccountPage() {
                 isLoading={false}
                 totalRecords={chartOfAccountsTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -963,10 +959,14 @@ export default function ChartOfAccountPage() {
               data={chartOfAccountsData}
               totalRecords={chartOfAccountsTotalRecords}
               onSelect={canView ? handleViewChartOfAccount : undefined}
-              onDelete={canDelete ? handleDeleteChartOfAccount : undefined}
-              onEdit={canEdit ? handleEditChartOfAccount : undefined}
-              onCreate={canCreate ? handleCreateChartOfAccount : undefined}
-              onRefresh={refetchChart}
+              onDeleteAction={
+                canDelete ? handleDeleteChartOfAccount : undefined
+              }
+              onEditAction={canEdit ? handleEditChartOfAccount : undefined}
+              onCreateAction={
+                canCreate ? handleCreateChartOfAccount : undefined
+              }
+              onRefreshAction={refetchChart}
               onFilterChange={handleChartFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -1012,10 +1012,10 @@ export default function ChartOfAccountPage() {
                 isLoading={false}
                 totalRecords={category1TotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -1031,10 +1031,10 @@ export default function ChartOfAccountPage() {
               totalRecords={category1TotalRecords}
               isLoading={isLoading1}
               onSelect={canView ? handleViewCategory1 : undefined}
-              onDelete={canDelete1 ? handleDelete1 : undefined}
-              onEdit={canEdit ? handleEdit1 : undefined}
-              onCreate={canCreate ? handleCreateCategory1 : undefined}
-              onRefresh={refetch1}
+              onDeleteAction={canDelete1 ? handleDelete1 : undefined}
+              onEditAction={canEdit ? handleEdit1 : undefined}
+              onCreateAction={canCreate ? handleCreateCategory1 : undefined}
+              onRefreshAction={refetch1}
               onFilterChange={handleCategory1FilterChange}
               onPageChange={handleCategory1PageChange}
               onPageSizeChange={handleCategory1PageSizeChange}
@@ -1080,10 +1080,10 @@ export default function ChartOfAccountPage() {
                 isLoading={false}
                 totalRecords={category2TotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -1099,10 +1099,10 @@ export default function ChartOfAccountPage() {
               isLoading={isLoading2}
               totalRecords={category2TotalRecords}
               onSelect={canView ? handleViewCategory2 : undefined}
-              onDelete={canDelete2 ? handleDelete2 : undefined}
-              onEdit={canEdit ? handleEdit2 : undefined}
-              onCreate={canCreate ? handleCreateCategory2 : undefined}
-              onRefresh={refetch2}
+              onDeleteAction={canDelete2 ? handleDelete2 : undefined}
+              onEditAction={canEdit ? handleEdit2 : undefined}
+              onCreateAction={canCreate ? handleCreateCategory2 : undefined}
+              onRefreshAction={refetch2}
               onFilterChange={handleCategory2FilterChange}
               onPageChange={handleCategory2PageChange}
               onPageSizeChange={handleCategory2PageSizeChange}
@@ -1148,10 +1148,10 @@ export default function ChartOfAccountPage() {
                 isLoading={false}
                 totalRecords={category3TotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -1167,10 +1167,10 @@ export default function ChartOfAccountPage() {
               totalRecords={category3TotalRecords}
               isLoading={isLoading3}
               onSelect={canView ? handleViewCategory3 : undefined}
-              onDelete={canDelete3 ? handleDelete3 : undefined}
-              onEdit={canEdit ? handleEdit3 : undefined}
-              onCreate={canCreate ? handleCreateCategory3 : undefined}
-              onRefresh={refetch3}
+              onDeleteAction={canDelete3 ? handleDelete3 : undefined}
+              onEditAction={canEdit ? handleEdit3 : undefined}
+              onCreateAction={canCreate ? handleCreateCategory3 : undefined}
+              onRefreshAction={refetch3}
               onFilterChange={handleCategory3FilterChange}
               onPageChange={handleCategory3PageChange}
               onPageSizeChange={handleCategory3PageSizeChange}
@@ -1334,7 +1334,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogChart}
         onOpenChange={setShowLoadDialogChart}
         onLoad={handleLoadExistingChartOfAccount}
-        onCancel={() => setExistingChartOfAccount(null)}
+        onCancelAction={() => setExistingChartOfAccount(null)}
         code={existingChartOfAccount?.glCode}
         name={existingChartOfAccount?.glName}
         typeLabel="Chart of Account"
@@ -1345,7 +1345,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory1}
         onOpenChange={setShowLoadDialogCategory1}
         onLoad={handleLoadExistingCoaCategory1}
-        onCancel={() => setExistingCoaCategory1(null)}
+        onCancelAction={() => setExistingCoaCategory1(null)}
         code={existingCoaCategory1?.coaCategoryCode}
         name={existingCoaCategory1?.coaCategoryName}
         typeLabel="COA Category 1"
@@ -1356,7 +1356,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory2}
         onOpenChange={setShowLoadDialogCategory2}
         onLoad={handleLoadExistingCoaCategory2}
-        onCancel={() => setExistingCoaCategory2(null)}
+        onCancelAction={() => setExistingCoaCategory2(null)}
         code={existingCoaCategory2?.coaCategoryCode}
         name={existingCoaCategory2?.coaCategoryName}
         typeLabel="COA Category 2"
@@ -1367,7 +1367,7 @@ export default function ChartOfAccountPage() {
         open={showLoadDialogCategory3}
         onOpenChange={setShowLoadDialogCategory3}
         onLoad={handleLoadExistingCoaCategory3}
-        onCancel={() => setExistingCoaCategory3(null)}
+        onCancelAction={() => setExistingCoaCategory3(null)}
         code={existingCoaCategory3?.coaCategoryCode}
         name={existingCoaCategory3?.coaCategoryName}
         typeLabel="COA Category 3"
@@ -1384,7 +1384,7 @@ export default function ChartOfAccountPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1438,7 +1438,7 @@ export default function ChartOfAccountPage() {
             type: "chartofaccount",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

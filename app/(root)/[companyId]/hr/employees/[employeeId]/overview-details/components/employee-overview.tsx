@@ -530,7 +530,7 @@ export function EmployeeOverview({
           <div className="mt-4">
             <EmployeeBasicForm
               employee={employeeBasic}
-              onCancel={() => setBasicDialogOpen(false)}
+              onCancelAction={() => setBasicDialogOpen(false)}
             />
           </div>
         </DialogContent>
@@ -549,7 +549,7 @@ export function EmployeeOverview({
           <div className="mt-6">
             <EmployeePersonalForm
               employee={employeePersonal}
-              onCancel={() => setPersonalDialogOpen(false)}
+              onCancelAction={() => setPersonalDialogOpen(false)}
             />
           </div>
         </DialogContent>
@@ -569,7 +569,7 @@ export function EmployeeOverview({
             <EmployeePaymentForm
               employee={employeeBank}
               companyId={companyId}
-              onCancel={() => setPaymentDialogOpen(false)}
+              onCancelAction={() => setPaymentDialogOpen(false)}
             />
           </div>
         </DialogContent>

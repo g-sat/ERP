@@ -28,7 +28,7 @@ interface ResetConfirmationProps {
   // Called when the user confirms the reset
   onConfirm: () => void
   // Called when the user cancels the reset
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the reset operation is in progress
   isResetting?: boolean
 }
@@ -40,7 +40,7 @@ export function ResetConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   isResetting = false,
 }: ResetConfirmationProps) {
   // Use internal state if open/onOpenChange are not provided
@@ -58,7 +58,7 @@ export function ResetConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

@@ -23,11 +23,20 @@ interface ConsignmentImportTableProps {
     consignmentImport: IConsignmentImport | undefined
   ) => void
   onDeleteConsignmentImport?: (consignmentImportId: string) => void
-  onEditConsignmentImport?: (consignmentImport: IConsignmentImport) => void
-  onCreateConsignmentImport?: () => void
-  onDebitNote?: (consignmentImportId: string, debitNoteNo?: string) => void
-  onPurchase?: (consignmentImportId: string) => void
-  onRefresh?: () => void
+  onEditActionConsignmentImport?: (
+    consignmentImport: IConsignmentImport
+  ) => void
+  onCreateActionConsignmentImport?: () => void
+  onRefreshActionte?: (
+    consignmentImportId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    consignmentImportId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (consignmentImportId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IConsignmentImportFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function ConsignmentImportTable({
   isLoading = false,
   onConsignmentImportSelect,
   onDeleteConsignmentImport,
-  onEditConsignmentImport,
-  onCreateConsignmentImport,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionConsignmentImport,
+  onCreateActionConsignmentImport,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -321,7 +331,7 @@ export function ConsignmentImportTable({
         maxSize: 80,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, _handleOpenHistory]
+    [formatDateValue, formatDateTimeValue]
   )
 
   // Wrapper functions to handle type differences
@@ -344,8 +354,8 @@ export function ConsignmentImportTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -360,14 +370,14 @@ export function ConsignmentImportTable({
         tableName={TableName.consignmentImport}
         emptyMessage="No consignment imports found."
         accessorId="consignmentImportId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateConsignmentImport}
-        onEdit={onEditConsignmentImport}
-        onDelete={onDeleteConsignmentImport}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionConsignmentImport}
+        onEditAction={onEditActionConsignmentImport}
+        onDeleteAction={onDeleteConsignmentImport}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

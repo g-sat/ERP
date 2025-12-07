@@ -21,7 +21,7 @@ export interface CbPettyCashTableProps {
   onFilterChange: (filters: ICbPettyCashFilter) => void
   initialFilters?: ICbPettyCashFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function CbPettyCashTable({
@@ -29,7 +29,7 @@ export default function CbPettyCashTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: CbPettyCashTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -310,7 +310,7 @@ export default function CbPettyCashTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -328,7 +328,7 @@ export default function CbPettyCashTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -472,11 +472,11 @@ export default function CbPettyCashTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -495,7 +495,7 @@ export default function CbPettyCashTable({
         transactionId={transactionId}
         tableName={TableName.cbPettyCash}
         emptyMessage="No cbPettyCashs found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbPettyCashs()}
+        onRefreshAction={() => refetchCbPettyCashs()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbPettyCashSelect(row || undefined)}
         // Pagination props

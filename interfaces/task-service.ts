@@ -5,10 +5,10 @@ export interface ITaskService {
   glId?: number | null
   uomId?: number | null
   carrierTypeId?: number | null
-  modeTypeId?: number | null
+  serviceModeId?: number | null
   consignmentTypeId?: number | null
   landingTypeId?: number | null
-  visaTypeId?: number | null
+  visaId?: number | null
   statusTypeId?: number | null
   createById: number
   createDate: string

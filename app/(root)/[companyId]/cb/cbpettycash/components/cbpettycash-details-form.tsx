@@ -49,7 +49,7 @@ import {
   JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
   PortAutocomplete,
-  ServiceTypeAutocomplete,
+  ServiceCategoryAutocomplete,
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
@@ -1399,7 +1399,7 @@ export default function CbPettyCashDetailsForm({
 
           {/* Service Type */}
           {visible?.m_ServiceTypeId && (
-            <ServiceTypeAutocomplete
+            <ServiceCategoryAutocomplete
               form={form}
               name="serviceTypeId"
               label="Service Type"
@@ -1456,7 +1456,7 @@ export default function CbPettyCashDetailsForm({
         open={showDuplicateConfirmation}
         onOpenChange={setShowDuplicateConfirmation}
         onConfirm={handleDuplicateConfirm}
-        onCancel={handleDuplicateCancel}
+        onCancelAction={handleDuplicateCancel}
         duplicateInfo={
           pendingSubmitData
             ? {

@@ -18,10 +18,10 @@ interface SubCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (subcategory: ISubCategory | null) => void
-  onDelete?: (subcategoryId: string) => void
-  onEdit?: (subcategory: ISubCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (subcategoryId: string) => void
+  onEditAction?: (subcategory: ISubCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function SubCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -157,7 +157,7 @@ export function SubCategoryTable({
       emptyMessage="No subcategories found."
       accessorId="subCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -166,9 +166,9 @@ export function SubCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

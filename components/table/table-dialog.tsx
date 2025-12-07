@@ -52,7 +52,7 @@ interface DialogDataTableProps<T> {
   transactionId?: number
   tableName: TableName
   emptyMessage?: string
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onRowSelect?: (row: T | null) => void
   // Paging props
@@ -72,7 +72,7 @@ export function DialogDataTable<T>({
   transactionId,
   tableName,
   emptyMessage = "No data found.",
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onRowSelect,
   // Pagination props
@@ -350,7 +350,7 @@ export function DialogDataTable<T>({
       <DialogDataTableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         //columns={table.getAllLeafColumns()}
         columns={table
           .getHeaderGroups()
@@ -375,7 +375,10 @@ export function DialogDataTable<T>({
               scrollbarGutter: "stable",
             }}
           >
-            <table className="w-full table-fixed border-collapse text-xs" style={{ minWidth: "100%" }}>
+            <table
+              className="w-full table-fixed border-collapse text-xs"
+              style={{ minWidth: "100%" }}
+            >
               <colgroup>
                 {table.getAllLeafColumns().map((col) => (
                   <col
@@ -397,12 +400,15 @@ export function DialogDataTable<T>({
                       strategy={horizontalListSortingStrategy}
                     >
                       {headerGroup.headers.map((header, headerIndex) => {
-                        const isFirst = headerIndex === 0 || header.id === "actions"
+                        const isFirst =
+                          headerIndex === 0 || header.id === "actions"
                         return (
                           <SortableTableHeader
                             key={header.id}
                             header={header}
-                            className={isFirst ? "bg-background sticky left-0 z-20" : ""}
+                            className={
+                              isFirst ? "bg-background sticky left-0 z-20" : ""
+                            }
                             style={
                               isFirst
                                 ? {
@@ -449,12 +455,17 @@ export function DialogDataTable<T>({
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
                               position:
-                                isFirstColumn || isActions ? "sticky" : "relative",
+                                isFirstColumn || isActions
+                                  ? "sticky"
+                                  : "relative",
                               left: isFirstColumn || isActions ? 0 : "auto",
                               zIndex: isFirstColumn || isActions ? 10 : 1,
                             }}
                           >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
                           </TableCell>
                         )
                       })}
@@ -478,13 +489,18 @@ export function DialogDataTable<T>({
                         <TableCell
                           key={`empty-${index}-${column.id}`}
                           className={`px-2 py-1 ${
-                            isFirstColumn || isActions ? "bg-background sticky left-0 z-10" : ""
+                            isFirstColumn || isActions
+                              ? "bg-background sticky left-0 z-10"
+                              : ""
                           }`}
                           style={{
                             width: `${column.getSize()}px`,
                             minWidth: `${column.getSize()}px`,
                             maxWidth: `${column.getSize()}px`,
-                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            position:
+                              isFirstColumn || isActions
+                                ? "sticky"
+                                : "relative",
                             left: isFirstColumn || isActions ? 0 : "auto",
                             zIndex: isFirstColumn || isActions ? 10 : 1,
                           }}
@@ -499,7 +515,10 @@ export function DialogDataTable<T>({
                 {/* Show empty state or loading message when no data */}
                 {table.getRowModel().rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={tableColumns.length} className="h-7 py-2 text-center">
+                    <TableCell
+                      colSpan={tableColumns.length}
+                      className="h-7 py-2 text-center"
+                    >
                       {isLoading ? "Loading..." : emptyMessage}
                     </TableCell>
                   </TableRow>
@@ -507,9 +526,9 @@ export function DialogDataTable<T>({
               </TableBody>
             </table>
           </div>
-        {/* Native scrollbars are used; no custom overlay */}
-      </div>
-    </DndContext>
+          {/* Native scrollbars are used; no custom overlay */}
+        </div>
+      </DndContext>
 
       <MainTableFooter
         currentPage={currentPage} // Current page number

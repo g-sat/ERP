@@ -84,17 +84,6 @@ export function ThirdPartyHistoryDialog({
       minSize: 120,
     },
     {
-      accessorKey: "supplierMobileNumber",
-      header: "Mobile Number",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("supplierMobileNumber") || "-"}
-        </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
       accessorKey: "chargeName",
       header: "Charge",
       cell: ({ row }) => (

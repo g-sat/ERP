@@ -23,11 +23,20 @@ interface CrewMiscellaneousTableProps {
     crewMiscellaneous: ICrewMiscellaneous | undefined
   ) => void
   onDeleteCrewMiscellaneous?: (crewMiscellaneousId: string) => void
-  onEditCrewMiscellaneous?: (crewMiscellaneous: ICrewMiscellaneous) => void
-  onCreateCrewMiscellaneous?: () => void
-  onDebitNote?: (crewMiscellaneousId: string, debitNoteNo?: string) => void
-  onPurchase?: (crewMiscellaneousId: string) => void
-  onRefresh?: () => void
+  onEditActionCrewMiscellaneous?: (
+    crewMiscellaneous: ICrewMiscellaneous
+  ) => void
+  onCreateActionCrewMiscellaneous?: () => void
+  onRefreshActionte?: (
+    crewMiscellaneousId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    crewMiscellaneousId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (crewMiscellaneousId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ICrewMiscellaneousFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function CrewMiscellaneousTable({
   isLoading = false,
   onCrewMiscellaneousSelect,
   onDeleteCrewMiscellaneous,
-  onEditCrewMiscellaneous,
-  onCreateCrewMiscellaneous,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionCrewMiscellaneous,
+  onCreateActionCrewMiscellaneous,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -213,7 +223,7 @@ export function CrewMiscellaneousTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, formatDateTimeValue, handleOpenHistory]
+    [formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -236,8 +246,8 @@ export function CrewMiscellaneousTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -252,14 +262,14 @@ export function CrewMiscellaneousTable({
         tableName={TableName.crewMiscellaneous}
         emptyMessage="No crew miscellaneous found."
         accessorId="crewMiscellaneousId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateCrewMiscellaneous}
-        onEdit={onEditCrewMiscellaneous}
-        onDelete={onDeleteCrewMiscellaneous}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionCrewMiscellaneous}
+        onEditAction={onEditActionCrewMiscellaneous}
+        onDeleteAction={onDeleteCrewMiscellaneous}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

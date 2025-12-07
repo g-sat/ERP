@@ -21,7 +21,7 @@ export interface RefundTableProps {
   onFilterChange: (filters: IArRefundFilter) => void
   initialFilters?: IArRefundFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function RefundTable({
@@ -29,7 +29,7 @@ export default function RefundTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: RefundTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -354,7 +354,7 @@ export default function RefundTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -372,7 +372,7 @@ export default function RefundTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -516,11 +516,11 @@ export default function RefundTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -539,7 +539,7 @@ export default function RefundTable({
         transactionId={transactionId}
         tableName={TableName.arRefund}
         emptyMessage="No refunds found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchRefunds()}
+        onRefreshAction={() => refetchRefunds()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onRefundSelect(row || undefined)}
         // Pagination props

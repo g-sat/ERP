@@ -30,10 +30,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   employee?: IEmployeeBasic
-  onCancel?: () => void
+  onCancelAction?: () => void
 }
 
-export function EmployeeBasicForm({ employee, onCancel }: Props) {
+export function EmployeeBasicForm({ employee, onCancelAction }: Props) {
   const { decimals } = useAuthStore()
   const dateFormat = useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -183,13 +183,13 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     if (saveMutation.isSuccess && !saveMutation.isPending) {
       console.log("✅ Save successful! Closing dialog...")
       form.reset()
-      onCancel?.()
+      onCancelAction?.()
     }
-  }, [saveMutation.isSuccess, saveMutation.isPending, form, onCancel])
+  }, [saveMutation.isSuccess, saveMutation.isPending, form, onCancelAction])
 
   const handleCancel = () => {
     form.reset()
-    onCancel?.()
+    onCancelAction?.()
   }
 
   return (

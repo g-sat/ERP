@@ -308,10 +308,10 @@ export default function PortRegionPage() {
           <PortRegionsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -326,10 +326,10 @@ export default function PortRegionPage() {
         <PortRegionsTable
           data={portregionsData || []}
           onSelect={canView ? handleViewPortRegion : undefined}
-          onDelete={canDelete ? handleDeletePortRegion : undefined}
-          onEdit={canEdit ? handleEditPortRegion : undefined}
-          onCreate={canCreate ? handleCreatePortRegion : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeletePortRegion : undefined}
+          onEditAction={canEdit ? handleEditPortRegion : undefined}
+          onCreateAction={canCreate ? handleCreatePortRegion : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -398,7 +398,7 @@ export default function PortRegionPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPortRegion}
-        onCancel={() => setExistingPortRegion(null)}
+        onCancelAction={() => setExistingPortRegion(null)}
         code={existingPortRegion?.portRegionCode}
         name={existingPortRegion?.portRegionName}
         typeLabel="Port Region"
@@ -414,7 +414,7 @@ export default function PortRegionPage() {
         description="This action cannot be undone. This will permanently delete the portregion from our servers."
         itemName={deleteConfirmation.portRegionName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             portRegionId: null,
@@ -444,7 +444,7 @@ export default function PortRegionPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

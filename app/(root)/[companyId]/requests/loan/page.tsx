@@ -206,7 +206,7 @@ export default function LoanPage() {
         <CardContent>
           <LoanRequestTable
             loans={loans}
-            onSave={() => {}}
+            onSaveAction={() => {}}
             showActions={false}
           />
         </CardContent>

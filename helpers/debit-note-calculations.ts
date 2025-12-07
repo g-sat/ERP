@@ -115,7 +115,7 @@ export const calculateTotalAfterVatSum = (
 ): number => {
   const precision = decimals?.amtDec || 2
   const sum = details.reduce((total, detail) => {
-    return calculateAdditionAmount(total, detail.totAftGstAmt || 0, precision)
+    return calculateAdditionAmount(total, detail.totAmtAftGst || 0, precision)
   }, 0)
 
   return mathRound(sum, precision)
@@ -165,7 +165,7 @@ export const recalculateDebitNoteDetail = (
     ...detail,
     totAmt: calculated.totalAmount,
     gstAmt: calculated.vatAmount,
-    totAftGstAmt: calculated.totalAfterVat,
+    totAmtAftGst: calculated.totalAfterVat,
   }
 }
 

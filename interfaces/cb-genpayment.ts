@@ -52,6 +52,8 @@ export interface ICbGenPaymentHd {
   appById: null | number
   appDate: null | Date
 
+  appBy: string
+
   data_details: ICbGenPaymentDt[]
 }
 

@@ -19,10 +19,13 @@ import {
 
 interface Props {
   initialData?: PayrollComponentGLMappingFormData
-  onSave(data: PayrollComponentGLMappingFormData): void
+  onSaveAction(data: PayrollComponentGLMappingFormData): void
 }
 
-export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
+export function PayrollAccountIntegrationForm({
+  initialData,
+  onSaveAction,
+}: Props) {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(
     initialData?.companyId || null
   )
@@ -69,7 +72,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
     <Form {...form}>
       <form
         id="payroll-account-integration-form"
-        onSubmit={form.handleSubmit(onSave)}
+        onSubmit={form.handleSubmit(onSaveAction)}
         className="space-y-4"
       >
         <div className="grid grid-cols-2 gap-4">

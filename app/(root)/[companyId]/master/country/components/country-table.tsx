@@ -18,10 +18,10 @@ interface CountriesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (country: ICountry | null) => void
-  onCreate?: () => void
-  onEdit?: (country: ICountry) => void
-  onDelete?: (countryId: string) => void
-  onRefresh?: () => void
+  onCreateAction?: () => void
+  onEditAction?: (country: ICountry) => void
+  onDeleteAction?: (countryId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function CountriesTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onCreate,
-  onEdit,
-  onDelete,
-  onRefresh,
+  onCreateAction,
+  onEditAction,
+  onDeleteAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -164,7 +164,7 @@ export function CountriesTable({
       emptyMessage="No countries found."
       accessorId="countryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -173,9 +173,9 @@ export function CountriesTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

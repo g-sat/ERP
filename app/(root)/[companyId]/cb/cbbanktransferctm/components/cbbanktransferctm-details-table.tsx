@@ -10,10 +10,10 @@ import { AccountBaseTable } from "@/components/table/table-account"
 // Use flexible data type that can work with form data
 interface BankTransferCtmDetailsTableProps {
   data: ICbBankTransferCtmDt[]
-  onDelete?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbBankTransferCtmDt) => void
-  onRefresh?: () => void
+  onDeleteAction?: (itemNo: number) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
+  onEditAction?: (template: ICbBankTransferCtmDt) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankTransferCtmDt[]) => void
   visible: IVisibleFields
@@ -21,10 +21,10 @@ interface BankTransferCtmDetailsTableProps {
 
 export default function BankTransferCtmDetailsTable({
   data,
-  onDelete,
-  onBulkDelete,
-  onEdit,
-  onRefresh,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onEditAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   visible,
@@ -41,14 +41,14 @@ export default function BankTransferCtmDetailsTable({
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
     }
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -199,15 +199,15 @@ export default function BankTransferCtmDetailsTable({
         tableName={TableName.cbBankTransferCtmDt}
         emptyMessage="No transfer details found. Add transfer destinations."
         accessorId={"itemNo" as keyof unknown}
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={(newData) =>
           onDataReorder?.(newData as ICbBankTransferCtmDt[])
         }
-        onEdit={(row) => onEdit?.(row as ICbBankTransferCtmDt)}
-        onDelete={handleDelete}
+        onEditAction={(row) => onEditAction?.(row as ICbBankTransferCtmDt)}
+        onDeleteAction={handleDelete}
         showHeader={true}
         showActions={true}
         hideEdit={false}

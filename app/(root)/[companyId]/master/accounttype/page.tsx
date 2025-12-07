@@ -323,10 +323,10 @@ export default function AccountTypePage() {
             isLoading={false}
             totalRecords={totalRecords}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -342,10 +342,10 @@ export default function AccountTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewAccountType : undefined}
-          onDelete={canDelete ? handleDeleteAccountType : undefined}
-          onEdit={canEdit ? handleEditAccountType : undefined}
-          onCreate={canCreate ? handleCreateAccountType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteAccountType : undefined}
+          onEditAction={canEdit ? handleEditAccountType : undefined}
+          onCreateAction={canCreate ? handleCreateAccountType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -412,7 +412,7 @@ export default function AccountTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingAccountType}
-        onCancel={() => setExistingAccountType(null)}
+        onCancelAction={() => setExistingAccountType(null)}
         code={existingAccountType?.accTypeCode}
         name={existingAccountType?.accTypeName}
         typeLabel="Account Type"
@@ -429,7 +429,7 @@ export default function AccountTypePage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.accountTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             accountTypeId: null,
@@ -459,7 +459,7 @@ export default function AccountTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

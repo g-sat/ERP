@@ -129,7 +129,7 @@ export default function PaymentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/payment`,
+    () => `history-doc:/${companyId}/ap/payment`,
     [companyId]
   )
 
@@ -603,6 +603,58 @@ export default function PaymentPage() {
     toast.success("Payment reset successfully")
   }
 
+  // Handle Print Payment Report
+  const handlePrintPayment = () => {
+    if (!payment || payment.paymentId === "0") {
+      toast.error("Please select a payment to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const paymentId =
+      formValues.paymentId || payment.paymentId?.toString() || "0"
+    const paymentNo = formValues.paymentNo || payment.paymentNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: paymentId,
+      invoiceNo: paymentNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_ApPayment.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IApPaymentHd to ApPaymentHdSchemaType
   const transformToSchemaType = useCallback(
     (apiPayment: IApPaymentHd): ApPaymentHdSchemaType => {
@@ -654,9 +706,9 @@ export default function PaymentPage() {
         allocTotLocalAmt: apiPayment.allocTotLocalAmt ?? 0,
         moduleFrom: apiPayment.moduleFrom ?? "",
         editVersion: apiPayment.editVersion ?? 0,
-        createBy: apiPayment.createById?.toString() ?? "",
-        editBy: apiPayment.editById?.toString() ?? "",
-        cancelBy: apiPayment.cancelById?.toString() ?? "",
+        createBy: apiPayment.createBy ?? "",
+        editBy: apiPayment.editBy ?? "",
+        cancelBy: apiPayment.cancelBy ?? "",
         isCancel: apiPayment.isCancel ?? false,
         createDate: apiPayment.createDate
           ? format(
@@ -1067,6 +1119,7 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               disabled={!payment || payment.paymentId === "0"}
+              onClick={handlePrintPayment}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1167,7 +1220,7 @@ export default function PaymentPage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

@@ -226,7 +226,7 @@ export default function DocumentTypeAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
@@ -261,7 +261,7 @@ export default function DocumentTypeAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -295,7 +295,7 @@ export default function DocumentTypeAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -380,7 +380,7 @@ export default function DocumentTypeAutocomplete<
   const handleMenuOpen = React.useCallback(() => {
     // Reset the option selected flag when menu opens
     isOptionSelectedRef.current = false
-    
+
     // Use setTimeout to ensure the menu is fully rendered
     setTimeout(() => {
       const selectedValue = form && name ? form.getValues(name) : null

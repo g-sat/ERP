@@ -304,10 +304,10 @@ export default function TaskPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -323,10 +323,10 @@ export default function TaskPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewTask : undefined}
-          onDelete={canDelete ? handleDeleteTask : undefined}
-          onEdit={canEdit ? handleEditTask : undefined}
-          onCreate={canCreate ? handleCreateTask : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteTask : undefined}
+          onEditAction={canEdit ? handleEditTask : undefined}
+          onCreateAction={canCreate ? handleCreateTask : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -391,7 +391,7 @@ export default function TaskPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingTask}
-        onCancel={() => setExistingTask(null)}
+        onCancelAction={() => setExistingTask(null)}
         code={existingTask?.taskCode}
         name={existingTask?.taskName}
         typeLabel="Task"
@@ -408,7 +408,7 @@ export default function TaskPage() {
         description="This action cannot be undone. This will permanently delete the task from our servers."
         itemName={deleteConfirmation.taskName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             taskId: null,
@@ -436,7 +436,7 @@ export default function TaskPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

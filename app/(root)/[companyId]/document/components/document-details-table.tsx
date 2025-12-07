@@ -17,15 +17,15 @@ import {
 
 interface DocumentDetailsTableProps {
   details: IUniversalDocumentDt[]
-  onEdit?: (detail: IUniversalDocumentDt, index: number) => void
-  onDelete?: (index: number) => void
+  onEditAction?: (detail: IUniversalDocumentDt, index: number) => void
+  onDeleteAction?: (index: number) => void
   isLoading?: boolean
 }
 
 export function DocumentDetailsTable({
   details,
-  onEdit,
-  onDelete,
+  onEditAction,
+  onDeleteAction,
   isLoading = false,
 }: DocumentDetailsTableProps) {
   const getExpiryStatus = (expiryDate: string | null) => {
@@ -142,14 +142,14 @@ export function DocumentDetailsTable({
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          onClick={() => onEdit?.(detail, index)}
+                          onClick={() => onEditAction?.(detail, index)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          onClick={() => onDelete?.(index)}
+                          onClick={() => onDeleteAction?.(index)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

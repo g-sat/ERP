@@ -365,6 +365,12 @@ export interface IOrderTypeCategoryLookup {
   orderTypeCategoryName: string
 }
 
+export interface IServiceCategoryLookup {
+  serviceCategoryId: number
+  serviceCategoryCode: string
+  serviceCategoryName: string
+}
+
 export interface IServiceTypeLookup {
   serviceTypeId: number
   serviceTypeCode: string
@@ -416,10 +422,10 @@ export interface IGenderLookup {
   genderCode: string
   genderName: string
 }
-export interface IVisaTypeLookup {
-  visaTypeId: number
-  visaTypeCode: string
-  visaTypeName: string
+export interface IVisaLookup {
+  visaId: number
+  visaCode: string
+  visaName: string
 }
 
 export interface IPassTypeLookup {
@@ -434,10 +440,10 @@ export interface ILandingTypeLookup {
   landingTypeName: string
 }
 
-export interface IModeTypeLookup {
-  modeTypeId: number
-  modeTypeCode: string
-  modeTypeName: string
+export interface IServiceModeLookup {
+  serviceModeId: number
+  serviceModeCode: string
+  serviceModeName: string
 }
 
 export interface IConsignmentTypeLookup {

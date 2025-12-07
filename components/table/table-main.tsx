@@ -61,7 +61,12 @@ import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 // Hook to get grid layout settings
 // UI components for table structure
-import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 // Custom table components
 import { SortableTableHeader } from "./sortable-table-header"
@@ -96,7 +101,7 @@ interface MainTableProps<T> {
   // ============================================================================
   // HEADER FUNCTIONALITY PROPS
   // ============================================================================
-  onRefresh?: () => void // Callback function for refresh button
+  onRefreshAction?: () => void // Callback function for refresh button
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void // Callback for filter changes
   // ============================================================================
   // PAGINATION PROPS
@@ -110,9 +115,9 @@ interface MainTableProps<T> {
   // ACTION HANDLER PROPS
   // ============================================================================
   onSelect?: (item: T | null) => void // Callback when item is selected/viewed
-  onCreate?: () => void // Callback for creating new item
-  onEdit?: (item: T) => void // Callback for editing existing item
-  onDelete?: (itemId: string) => void // Callback for deleting item
+  onCreateAction?: () => void // Callback for creating new item
+  onEditAction?: (item: T) => void // Callback for editing existing item
+  onDeleteAction?: (itemId: string) => void // Callback for deleting item
   // ============================================================================
   // VISIBILITY CONTROL PROPS
   // ============================================================================
@@ -160,7 +165,7 @@ export function MainTable<T>({
   emptyMessage = "No data found.", // Default empty message
   accessorId, // Key for unique identifier
   // Header functionality props
-  onRefresh, // Refresh callback
+  onRefreshAction, // Refresh callback
   onFilterChange, // Filter change callback
   // Pagination props
   onPageChange, // Page change callback
@@ -170,9 +175,9 @@ export function MainTable<T>({
   serverSidePagination = false, // Whether to use server-side pagination
   // Action handler props
   onSelect, // Item selection callback
-  onCreate, // Create item callback
-  onEdit, // Edit item callback
-  onDelete, // Delete item callback
+  onCreateAction, // Create item callback
+  onEditAction, // Edit item callback
+  onDeleteAction, // Delete item callback
   // Visibility control props with defaults
   showHeader = true, // Show header by default
   showFooter = true, // Show footer by default
@@ -309,8 +314,8 @@ export function MainTable<T>({
                 row={row.original} // Pass the row data
                 idAccessor={accessorId} // Pass the ID accessor key
                 onView={onSelect} // View/select handler
-                onEdit={onEdit} // Edit handler
-                onDelete={onDelete} // Delete handler
+                onEditAction={onEditAction} // Edit handler
+                onDeleteAction={onDeleteAction} // Delete handler
                 hideView={!canView} // Hide view button if no permission
                 hideEdit={!canEdit} // Hide edit button if no permission
                 hideDelete={!canDelete} // Hide delete button if no permission
@@ -547,8 +552,8 @@ export function MainTable<T>({
         <MainTableHeader
           searchQuery={searchQuery} // Current search query
           onSearchChange={handleSearch} // Search change handler
-          onRefresh={onRefresh} // Refresh button handler
-          onCreate={onCreate} // Create button handler
+          onRefreshAction={onRefreshAction} // Refresh button handler
+          onCreateAction={onCreateAction} // Create button handler
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()
@@ -583,7 +588,10 @@ export function MainTable<T>({
               scrollbarGutter: "stable",
             }}
           >
-            <table className="w-full table-fixed border-collapse text-xs" style={{ minWidth: "100%" }}>
+            <table
+              className="w-full table-fixed border-collapse text-xs"
+              style={{ minWidth: "100%" }}
+            >
               <colgroup>
                 {table.getAllLeafColumns().map((col) => (
                   <col
@@ -604,12 +612,15 @@ export function MainTable<T>({
                       strategy={horizontalListSortingStrategy}
                     >
                       {headerGroup.headers.map((header, headerIndex) => {
-                        const isFirst = headerIndex === 0 || header.id === "actions"
+                        const isFirst =
+                          headerIndex === 0 || header.id === "actions"
                         return (
                           <SortableTableHeader
                             key={header.id}
                             header={header}
-                            className={isFirst ? "bg-background sticky left-0 z-20" : ""}
+                            className={
+                              isFirst ? "bg-background sticky left-0 z-20" : ""
+                            }
                             style={
                               isFirst
                                 ? { position: "sticky", left: 0, zIndex: 20 }
@@ -623,79 +634,32 @@ export function MainTable<T>({
                 ))}
               </TableHeader>
               <TableBody>
-                  {/* ============================================================================
+                {/* ============================================================================
                     DATA ROWS RENDERING
                     ============================================================================ */}
-                  {/* Render data rows */}
-                  {table.getRowModel().rows.map((row) => {
-                    return (
-                      <TableRow key={row.id}>
-                        {/* Render each visible cell in the row */}
-                        {row.getVisibleCells().map((cell, cellIndex) => {
-                          const isActions = cell.column.id === "actions"
-                          const isFirstColumn = cellIndex === 0
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={`py-1 ${
-                                isFirstColumn || isActions
-                                  ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
-                                  : ""
-                              }`}
-                              style={{
-                                width: `${cell.column.getSize()}px`,
-                                minWidth: `${cell.column.getSize()}px`,
-                                maxWidth: `${cell.column.getSize()}px`,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                position:
-                                  isFirstColumn || isActions
-                                    ? "sticky"
-                                    : "relative",
-                                left: isFirstColumn || isActions ? 0 : "auto",
-                                zIndex: isFirstColumn || isActions ? 10 : 1,
-                              }}
-                            >
-                              {/* Render cell content using column definition */}
-                              {flexRender(
-                                cell.column.columnDef.cell, // Cell renderer from column definition
-                                cell.getContext() // Cell context with row data
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    )
-                  })}
-                  {/* ============================================================================
-                    EMPTY ROWS TO FILL PAGE SIZE
-                    ============================================================================ */}
-                  {/* Add empty rows to ensure minimum 5 rows total, but only if data rows < 5 */}
-                  {Array.from({
-                    length: (() => {
-                      const dataRows = table.getRowModel().rows.length
-                      // If we have 5+ data rows, show only data rows (no empty rows)
-                      // If we have less than 5 data rows, add empty rows to make it 5 total
-                      return dataRows >= 5 ? 0 : Math.max(0, 5 - dataRows)
-                    })(),
-                  }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} className="h-7">
-                      {table.getAllLeafColumns().map((column, cellIndex) => {
-                        const isActions = column.id === "actions"
+                {/* Render data rows */}
+                {table.getRowModel().rows.map((row) => {
+                  return (
+                    <TableRow key={row.id}>
+                      {/* Render each visible cell in the row */}
+                      {row.getVisibleCells().map((cell, cellIndex) => {
+                        const isActions = cell.column.id === "actions"
                         const isFirstColumn = cellIndex === 0
                         return (
                           <TableCell
-                            key={`empty-${index}-${column.id}`}
+                            key={cell.id}
                             className={`py-1 ${
                               isFirstColumn || isActions
                                 ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
                                 : ""
                             }`}
                             style={{
-                              width: `${column.getSize()}px`,
-                              minWidth: `${column.getSize()}px`,
-                              maxWidth: `${column.getSize()}px`,
+                              width: `${cell.column.getSize()}px`,
+                              minWidth: `${cell.column.getSize()}px`,
+                              maxWidth: `${cell.column.getSize()}px`,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
                               position:
                                 isFirstColumn || isActions
                                   ? "sticky"
@@ -704,32 +668,79 @@ export function MainTable<T>({
                               zIndex: isFirstColumn || isActions ? 10 : 1,
                             }}
                           >
-                            {/* Empty cell content */}
+                            {/* Render cell content using column definition */}
+                            {flexRender(
+                              cell.column.columnDef.cell, // Cell renderer from column definition
+                              cell.getContext() // Cell context with row data
+                            )}
                           </TableCell>
                         )
                       })}
                     </TableRow>
-                  ))}
-                  {/* ============================================================================
+                  )
+                })}
+                {/* ============================================================================
+                    EMPTY ROWS TO FILL PAGE SIZE
+                    ============================================================================ */}
+                {/* Add empty rows to ensure minimum 5 rows total, but only if data rows < 5 */}
+                {Array.from({
+                  length: (() => {
+                    const dataRows = table.getRowModel().rows.length
+                    // If we have 5+ data rows, show only data rows (no empty rows)
+                    // If we have less than 5 data rows, add empty rows to make it 5 total
+                    return dataRows >= 5 ? 0 : Math.max(0, 5 - dataRows)
+                  })(),
+                }).map((_, index) => (
+                  <TableRow key={`empty-${index}`} className="h-7">
+                    {table.getAllLeafColumns().map((column, cellIndex) => {
+                      const isActions = column.id === "actions"
+                      const isFirstColumn = cellIndex === 0
+                      return (
+                        <TableCell
+                          key={`empty-${index}-${column.id}`}
+                          className={`py-1 ${
+                            isFirstColumn || isActions
+                              ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
+                              : ""
+                          }`}
+                          style={{
+                            width: `${column.getSize()}px`,
+                            minWidth: `${column.getSize()}px`,
+                            maxWidth: `${column.getSize()}px`,
+                            position:
+                              isFirstColumn || isActions
+                                ? "sticky"
+                                : "relative",
+                            left: isFirstColumn || isActions ? 0 : "auto",
+                            zIndex: isFirstColumn || isActions ? 10 : 1,
+                          }}
+                        >
+                          {/* Empty cell content */}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+                {/* ============================================================================
                     EMPTY STATE OR LOADING
                     ============================================================================ */}
-                  {/* Show empty state or loading message when no data */}
-                  {table.getRowModel().rows.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length} // Span all columns
-                        className="h-7 text-center" // Center the message
-                      >
-                        {isLoading ? "Loading..." : emptyMessage}
-                      </TableCell>
-                    </TableRow>
-                  )}
+                {/* Show empty state or loading message when no data */}
+                {table.getRowModel().rows.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={tableColumns.length} // Span all columns
+                      className="h-7 text-center" // Center the message
+                    >
+                      {isLoading ? "Loading..." : emptyMessage}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </table>
           </div>
-        {/* Native scrollbars are used; no custom overlay */}
-      </div>
-    </DndContext>
+          {/* Native scrollbars are used; no custom overlay */}
+        </div>
+      </DndContext>
       {/* ============================================================================
           TABLE FOOTER SECTION
           ============================================================================ */}
@@ -761,8 +772,8 @@ export function MainTable<T>({
  *   columns={employeeColumns}
  *   tableName="employees"
  *   accessorId="id"
- *   onEdit={(employee) => setEditingEmployee(employee)}
- *   onDelete={(id) => deleteEmployee(id)}
+ *   onEditAction={(employee) => setEditingEmployee(employee)}
+ *   onDeleteAction={(id) => deleteEmployee(id)}
  * />
  * ```
  *
@@ -776,7 +787,7 @@ export function MainTable<T>({
  *   canEdit={userPermissions.canEditProducts}
  *   canDelete={userPermissions.canDeleteProducts}
  *   canCreate={userPermissions.canCreateProducts}
- *   onCreate={() => setShowCreateModal(true)}
+ *   onCreateAction={() => setShowCreateModal(true)}
  * />
  * ```
  *
@@ -788,10 +799,10 @@ export function MainTable<T>({
  *   tableName="orders"
  *   accessorId="orderId"
  *   onFilterChange={(filters) => fetchOrders(filters)}
- *   onCreate={() => setShowCreateModal(true)}
- *   onEdit={(order) => setEditingOrder(order)}
- *   onDelete={(id) => deleteOrder(id)}
- *   onRefresh={() => fetchOrders()}
+ *   onCreateAction={() => setShowCreateModal(true)}
+ *   onEditAction={(order) => setEditingOrder(order)}
+ *   onDeleteAction={(id) => deleteOrder(id)}
+ *   onRefreshAction={() => fetchOrders()}
  * />
  * ```
  *

@@ -53,7 +53,7 @@ interface ApprovalDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   requestDetail: IApprovalRequestDetail | null
-  onClose: () => void
+  onCloseAction: () => void
   isPendingApproval: boolean
 }
 
@@ -61,7 +61,7 @@ export function ApprovalDetailDialog({
   open,
   onOpenChange,
   requestDetail,
-  onClose,
+  onCloseAction,
   isPendingApproval,
 }: ApprovalDetailDialogProps) {
   const {
@@ -87,7 +87,7 @@ export function ApprovalDetailDialog({
 
       if (success) {
         setRemarks("")
-        onClose()
+        onCloseAction()
       }
     } finally {
       setIsProcessing(false)

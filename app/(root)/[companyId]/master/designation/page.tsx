@@ -310,10 +310,10 @@ export default function DesignationPage() {
           <DesignationsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -328,10 +328,10 @@ export default function DesignationPage() {
         <DesignationsTable
           data={designationsData || []}
           onSelect={canView ? handleViewDesignation : undefined}
-          onDelete={canDelete ? handleDeleteDesignation : undefined}
-          onEdit={canEdit ? handleEditDesignation : undefined}
-          onCreate={canCreate ? handleCreateDesignation : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDesignation : undefined}
+          onEditAction={canEdit ? handleEditDesignation : undefined}
+          onCreateAction={canCreate ? handleCreateDesignation : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -404,7 +404,7 @@ export default function DesignationPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingDesignation}
-        onCancel={() => setExistingDesignation(null)}
+        onCancelAction={() => setExistingDesignation(null)}
         code={existingDesignation?.designationCode}
         name={existingDesignation?.designationName}
         typeLabel="Designation"
@@ -420,7 +420,7 @@ export default function DesignationPage() {
         description="This action cannot be undone. This will permanently delete the designation from our servers."
         itemName={deleteConfirmation.designationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             designationId: null,
@@ -450,7 +450,7 @@ export default function DesignationPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

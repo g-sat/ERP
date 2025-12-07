@@ -12,10 +12,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface EmployerFormProps {
   employer?: IEmployer
-  onSave: (data: EmployerSchemaType) => void
+  onSaveAction: (data: EmployerSchemaType) => void
 }
 
-export function EmployerForm({ employer, onSave }: EmployerFormProps) {
+export function EmployerForm({ employer, onSaveAction }: EmployerFormProps) {
   const form = useForm<EmployerSchemaType>({
     resolver: zodResolver(employerschema),
     defaultValues: {
@@ -35,7 +35,7 @@ export function EmployerForm({ employer, onSave }: EmployerFormProps) {
   })
 
   const onSubmit = (data: EmployerSchemaType) => {
-    onSave(data)
+    onSaveAction(data)
   }
 
   return (

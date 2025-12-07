@@ -20,10 +20,10 @@ interface DocumentOperationsManagerTableProps {
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
-  onDelete?: (doc: IDocType) => void
-  onRefresh?: () => void
+  onDeleteAction?: (doc: IDocType) => void
+  onRefreshAction?: () => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
 }
 
 export default function DocumentOperationsManagerTable({
@@ -31,10 +31,10 @@ export default function DocumentOperationsManagerTable({
   isLoading = false,
   onPreview,
   onDownload,
-  onDelete,
-  onRefresh,
+  onDeleteAction,
+  onRefreshAction,
   onBulkSelectionChange,
-  onBulkDelete,
+  onBulkDeleteAction,
 }: DocumentOperationsManagerTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
@@ -148,10 +148,10 @@ export default function DocumentOperationsManagerTable({
       onDataReorder={handleDataReorder}
       onSaveOrder={handleSaveOrder}
       onDownload={onDownload}
-      onDelete={onDelete}
-      onRefresh={onRefresh}
+      onDeleteAction={onDeleteAction}
+      onRefreshAction={onRefreshAction}
       onBulkSelectionChange={onBulkSelectionChange}
-      onBulkDelete={onBulkDelete}
+      onBulkDeleteAction={onBulkDeleteAction}
       showHeader={true}
       showActions={true}
       hideView={false}

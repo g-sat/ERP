@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { IJobOrderHd, ILaunchService } from "@/interfaces/checklist"
 import {
   LaunchServiceSchema,
@@ -26,7 +26,6 @@ import {
   BargeAutocomplete,
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  PortAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -47,7 +46,7 @@ interface LaunchServiceFormProps {
   initialData?: ILaunchService
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: LaunchServiceSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -57,7 +56,7 @@ export function LaunchServiceForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: LaunchServiceFormProps) {
@@ -135,7 +134,6 @@ export function LaunchServiceForm({
       boatOperator: initialData?.boatOperator ?? "",
       annexure: initialData?.annexure ?? "",
       invoiceNo: initialData?.invoiceNo ?? "",
-      portId: initialData?.portId ?? 0,
       bargeId: initialData?.bargeId ?? 0,
       statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -172,7 +170,8 @@ export function LaunchServiceForm({
           ? parseWithFallback(initialData.leftJetty as string) || undefined
           : undefined,
         alongsideVessel: initialData?.alongsideVessel
-          ? parseWithFallback(initialData.alongsideVessel as string) || undefined
+          ? parseWithFallback(initialData.alongsideVessel as string) ||
+            undefined
           : undefined,
         departedFromVessel: initialData?.departedFromVessel
           ? parseWithFallback(initialData.departedFromVessel as string) ||
@@ -188,7 +187,6 @@ export function LaunchServiceForm({
         boatOperator: initialData?.boatOperator ?? "",
         annexure: initialData?.annexure ?? "",
         invoiceNo: initialData?.invoiceNo ?? "",
-        portId: initialData?.portId ?? 0,
         bargeId: initialData?.bargeId ?? 0,
         remarks: initialData?.remarks ?? "",
         statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
@@ -296,25 +294,27 @@ export function LaunchServiceForm({
       ...data,
       loadingTime:
         data.loadingTime instanceof Date
-          ? format(data.loadingTime, dateFormat)
+          ? format(data.loadingTime, datetimeFormat)
           : data.loadingTime,
       leftJetty:
         data.leftJetty instanceof Date
-          ? format(data.leftJetty, dateFormat)
+          ? format(data.leftJetty, datetimeFormat)
           : data.leftJetty,
       alongsideVessel:
         data.alongsideVessel instanceof Date
-          ? format(data.alongsideVessel, dateFormat)
+          ? format(data.alongsideVessel, datetimeFormat)
           : data.alongsideVessel,
       departedFromVessel:
         data.departedFromVessel instanceof Date
-          ? format(data.departedFromVessel, dateFormat)
+          ? format(data.departedFromVessel, datetimeFormat)
           : data.departedFromVessel,
       arrivedAtJetty:
         data.arrivedAtJetty instanceof Date
-          ? format(data.arrivedAtJetty, dateFormat)
+          ? format(data.arrivedAtJetty, datetimeFormat)
           : data.arrivedAtJetty,
     }
+
+    console.log(formData)
 
     submitAction(formData)
   }
@@ -379,13 +379,7 @@ export function LaunchServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <PortAutocomplete
-                form={form}
-                name="portId"
-                label="Port"
-                isRequired={true}
-                isDisabled={isConfirmed}
-              />
+
               <CustomInput
                 form={form}
                 name="ameTally"
@@ -660,7 +654,7 @@ export function LaunchServiceForm({
               )}
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

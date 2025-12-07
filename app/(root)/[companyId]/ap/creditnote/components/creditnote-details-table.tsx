@@ -11,10 +11,10 @@ import { AccountBaseTable } from "@/components/table/table-account"
 // Use flexible data type that can work with form data
 interface CreditNoteDetailsTableProps {
   data: IApCreditNoteDt[]
-  onDelete?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IApCreditNoteDt) => void
-  onRefresh?: () => void
+  onDeleteAction?: (itemNo: number) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
+  onEditAction?: (template: IApCreditNoteDt) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApCreditNoteDt[]) => void
   visible: IVisibleFields
@@ -23,10 +23,10 @@ interface CreditNoteDetailsTableProps {
 
 export default function CreditNoteDetailsTable({
   data,
-  onDelete,
-  onBulkDelete,
-  onEdit,
-  onRefresh,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onEditAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   visible,
@@ -43,14 +43,14 @@ export default function CreditNoteDetailsTable({
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
     }
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -336,13 +336,13 @@ export default function CreditNoteDetailsTable({
         tableName={TableName.arCreditNoteDt}
         emptyMessage="No creditNote details found."
         accessorId="itemNo"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDeleteAction={handleBulkDelete}
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
+        onEditAction={onEditAction}
+        onDeleteAction={handleDelete}
         showHeader={true}
         showActions={true}
         hideEdit={isCancelled}

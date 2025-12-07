@@ -23,7 +23,7 @@ export interface CbGenPaymentTableProps {
   onFilterChange: (filters: ICbGenPaymentFilter) => void
   initialFilters?: ICbGenPaymentFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function CbGenPaymentTable({
@@ -31,7 +31,7 @@ export default function CbGenPaymentTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: CbGenPaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -312,7 +312,7 @@ export default function CbGenPaymentTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -330,7 +330,7 @@ export default function CbGenPaymentTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -474,11 +474,11 @@ export default function CbGenPaymentTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -497,7 +497,7 @@ export default function CbGenPaymentTable({
         transactionId={transactionId}
         tableName={TableName.cbGenPayment}
         emptyMessage="No cbGenPayments found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbGenPayments()}
+        onRefreshAction={() => refetchCbGenPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbGenPaymentSelect(row || undefined)}
         // Pagination props

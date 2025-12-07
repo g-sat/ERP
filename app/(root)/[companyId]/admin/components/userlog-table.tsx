@@ -16,7 +16,7 @@ import { BasicTable } from "@/components/table/table-basic"
 interface UserLogTableProps {
   data: IUserLog[]
   isLoading?: boolean
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
@@ -25,7 +25,7 @@ interface UserLogTableProps {
 export function UserLogTable({
   data,
   isLoading = false,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -91,7 +91,7 @@ export function UserLogTable({
       transactionId={transactionId}
       tableName={TableName.userlog}
       emptyMessage="No user log found."
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
     />
   )

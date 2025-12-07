@@ -18,10 +18,10 @@ interface ProductsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (product: IProduct | null) => void
-  onDelete?: (productId: string) => void
-  onEdit?: (product: IProduct) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (productId: string) => void
+  onEditAction?: (product: IProduct) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function ProductsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -157,7 +157,7 @@ export function ProductsTable({
       emptyMessage="No products found."
       accessorId="productId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -166,9 +166,9 @@ export function ProductsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

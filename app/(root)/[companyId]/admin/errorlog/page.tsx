@@ -75,7 +75,7 @@ export default function AdminErrorLogPage() {
         <ErrorLogTable
           data={errorLogFilters.search ? [] : errorLogsData || []}
           isLoading={isLoadingErrorLogs}
-          onRefresh={refetchErrorLogs}
+          onRefreshAction={refetchErrorLogs}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}

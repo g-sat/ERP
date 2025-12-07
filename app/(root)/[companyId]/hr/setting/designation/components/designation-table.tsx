@@ -18,11 +18,11 @@ import {
 
 interface DesignationTableProps {
   data: IDesignation[]
-  onEdit: (designation: IDesignation) => void
-  onDelete?: (designation: IDesignation) => void
-  onCreate: () => void
+  onEditAction: (designation: IDesignation) => void
+  onDeleteAction?: (designation: IDesignation) => void
+  onCreateAction: () => void
   onView: (designation: IDesignation) => void
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   canCreate?: boolean
   canEdit?: boolean
   canDelete?: boolean
@@ -30,11 +30,11 @@ interface DesignationTableProps {
 
 export function DesignationTable({
   data,
-  onEdit,
-  onDelete,
-  onCreate,
+  onEditAction,
+  onDeleteAction,
+  onCreateAction,
   onView,
-  onRefresh,
+  onRefreshAction,
   canCreate = true,
   canEdit = true,
   canDelete = true,
@@ -78,14 +78,18 @@ export function DesignationTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
+            onClick={onRefreshAction}
             className="h-8 px-2 lg:px-3"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
           {canCreate && (
-            <Button size="sm" onClick={onCreate} className="h-8 px-2 lg:px-3">
+            <Button
+              size="sm"
+              onClick={onCreateAction}
+              className="h-8 px-2 lg:px-3"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add
             </Button>
@@ -152,18 +156,18 @@ export function DesignationTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onEdit(designation)}
+                              onClick={() => onEditAction(designation)}
                               className="h-5 w-5 p-0"
                             >
                               <Edit className="h-2.5 w-2.5" />
                               <span className="sr-only">Edit</span>
                             </Button>
                           )}
-                          {canDelete && onDelete && (
+                          {canDelete && onDeleteAction && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onDelete(designation)}
+                              onClick={() => onDeleteAction(designation)}
                               className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-2.5 w-2.5" />

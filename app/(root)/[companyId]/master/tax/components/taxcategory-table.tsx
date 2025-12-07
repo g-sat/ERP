@@ -18,10 +18,10 @@ interface TaxCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (taxdtcategory: ITaxCategory | null) => void
-  onDelete?: (taxId: string) => void
-  onEdit?: (taxdtcategory: ITaxCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (taxId: string) => void
+  onEditAction?: (taxdtcategory: ITaxCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function TaxCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -164,7 +164,7 @@ export function TaxCategoryTable({
       emptyMessage="No tax categories found."
       accessorId="taxCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -173,9 +173,9 @@ export function TaxCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

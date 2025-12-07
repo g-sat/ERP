@@ -15,7 +15,7 @@ export interface InvoiceTableProps {
   data: IArInvoiceHd[]
   isLoading: boolean
   onInvoiceSelect: (selectedInvoice: IArInvoiceHd | undefined) => void
-  onRefresh: () => void
+  onRefreshAction: () => void
   onFilterChange: (filters: IArInvoiceFilter) => void
   initialFilters?: IArInvoiceFilter
 }
@@ -24,7 +24,7 @@ export default function InvoiceTable({
   data,
   isLoading = false,
   onInvoiceSelect,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   initialFilters,
 }: InvoiceTableProps) {
@@ -221,7 +221,7 @@ export default function InvoiceTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -239,7 +239,7 @@ export default function InvoiceTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -330,7 +330,7 @@ export default function InvoiceTable({
         transactionId={ARTransactionId.invoice}
         tableName={TableName.arInvoice}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
       />

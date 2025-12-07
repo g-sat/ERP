@@ -422,8 +422,8 @@ export default function ChecklistPage() {
               selectedStatus={selectedStatus}
               moduleId={moduleId}
               transactionId={transactionId}
-              onCreate={handleAddNew}
-              onRefresh={handleRefresh}
+              onCreateAction={handleAddNew}
+              onRefreshAction={handleRefresh}
             />
           </div>
         )}

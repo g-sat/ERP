@@ -13,10 +13,10 @@ interface TaxDtTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (taxdt: ITaxDt | null) => void
-  onDelete?: (taxId: string) => void
-  onEdit?: (taxdt: ITaxDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (taxId: string) => void
+  onEditAction?: (taxdt: ITaxDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -37,10 +37,10 @@ export function TaxDtTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -153,7 +153,7 @@ export function TaxDtTable({
       emptyMessage="No tax details found."
       accessorId="taxId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -162,9 +162,9 @@ export function TaxDtTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

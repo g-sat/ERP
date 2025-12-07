@@ -53,6 +53,12 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -277,6 +283,7 @@ export default function InvoicePage() {
               gstCtyAmt: detail.gstCtyAmt ?? 0,
               deliveryDate: detail.deliveryDate ?? "",
               supplyDate: detail.supplyDate ?? "",
+              debitNoteNo: detail.debitNoteNo ?? "",
               remarks: detail.remarks ?? "",
               supplierName: detail.supplierName ?? "",
               suppInvoiceNo: detail.suppInvoiceNo ?? "",
@@ -752,6 +759,64 @@ export default function InvoicePage() {
     toast.success("Invoice reset successfully")
   }
 
+  // Handle Print Invoice Report
+  const handlePrintInvoice = (reportType: "direct" | "invoice" = "invoice") => {
+    if (!invoice || invoice.invoiceId === "0") {
+      toast.error("Please select an invoice to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const invoiceId =
+      formValues.invoiceId || invoice.invoiceId?.toString() || "0"
+    const invoiceNo = formValues.invoiceNo || invoice.invoiceNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: invoiceId,
+      invoiceNo: invoiceNo,
+      reportType: reportType === "direct" ? 1 : 2,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Determine report file based on type
+    const reportFile =
+      reportType === "direct"
+        ? "RPT_ArInvoiceDirect.trdp"
+        : "RPT_ArInvoice.trdp"
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: reportFile,
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IArInvoiceHd to ArInvoiceHdSchemaType
   const transformToSchemaType = useCallback(
     (apiInvoice: IArInvoiceHd): ArInvoiceHdSchemaType => {
@@ -892,6 +957,7 @@ export default function InvoicePage() {
                 totLocalAmt: detail.totLocalAmt ?? 0,
                 totCtyAmt: detail.totCtyAmt ?? 0,
                 remarks: detail.remarks ?? "",
+                debitNoteNo: detail.debitNoteNo ?? "",
                 gstId: detail.gstId ?? 0,
                 gstName: detail.gstName ?? "",
                 gstPercentage: detail.gstPercentage ?? 0,
@@ -1321,14 +1387,26 @@ export default function InvoicePage() {
                   : "Save"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!invoice || invoice.invoiceId === "0"}
-            >
-              <Printer className="mr-1 h-4 w-4" />
-              Print
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!invoice || invoice.invoiceId === "0"}
+                >
+                  <Printer className="mr-1 h-4 w-4" />
+                  Print
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handlePrintInvoice("direct")}>
+                  1. Direct
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePrintInvoice("invoice")}>
+                  2. Invoice
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
@@ -1426,7 +1504,7 @@ export default function InvoicePage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

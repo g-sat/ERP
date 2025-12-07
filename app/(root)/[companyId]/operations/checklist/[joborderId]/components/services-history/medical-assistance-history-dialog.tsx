@@ -102,10 +102,10 @@ export function MedicalAssistanceHistoryDialog({
       minSize: 80,
     },
     {
-      accessorKey: "visaTypeName",
+      accessorKey: "visaName",
       header: "Visa Type",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("visaTypeName") || "-"}</div>
+        <div className="text-center">{row.getValue("visaName") || "-"}</div>
       ),
       size: 120,
       minSize: 100,

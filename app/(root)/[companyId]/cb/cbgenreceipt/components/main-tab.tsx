@@ -290,10 +290,10 @@ export default function Main({
         key={tableKey}
         data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
         visible={visible}
-        onDelete={handleDelete}
-        onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
-        onRefresh={() => {}} // Add refresh logic if needed
+        onDeleteAction={handleDelete}
+        onBulkDeleteAction={handleBulkDelete}
+        onEditAction={handleEdit as (template: ICbGenReceiptDt) => void}
+        onRefreshAction={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={
           handleDataReorder as (newData: ICbGenReceiptDt[]) => void
@@ -308,7 +308,7 @@ export default function Main({
         open={showDeleteConfirmation}
         onOpenChange={setShowDeleteConfirmation}
         onConfirm={confirmBulkDelete}
-        onCancel={() => {
+        onCancelAction={() => {
           setShowDeleteConfirmation(false)
           setSelectedItemsToDelete([])
         }}
@@ -321,7 +321,7 @@ export default function Main({
         open={showSingleDeleteConfirmation}
         onOpenChange={setShowSingleDeleteConfirmation}
         onConfirm={confirmSingleDelete}
-        onCancel={() => {
+        onCancelAction={() => {
           setShowSingleDeleteConfirmation(false)
           setItemToDelete(null)
         }}

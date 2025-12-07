@@ -27,7 +27,6 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
-import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
@@ -37,7 +36,7 @@ interface PortExpensesFormProps {
   initialData?: IPortExpenses
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: PortExpensesSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -47,7 +46,7 @@ export function PortExpensesForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: PortExpensesFormProps) {
@@ -127,7 +126,8 @@ export function PortExpensesForm({
         glId: initialData?.glId ?? taskDefaults.glId ?? 0,
         deliverDate: initialData?.deliverDate
           ? format(
-              parseWithFallback(initialData.deliverDate as string) || new Date(),
+              parseWithFallback(initialData.deliverDate as string) ||
+                new Date(),
               dateFormat
             )
           : format(new Date(), dateFormat),
@@ -330,7 +330,7 @@ export function PortExpensesForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

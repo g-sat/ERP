@@ -34,7 +34,6 @@ import {
   ILandingTypeLookup,
   ILeaveTypeLookup,
   ILoanTypeLookup,
-  IModeTypeLookup,
   IModuleLookup,
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
@@ -45,9 +44,10 @@ import {
   IPortRegionLookup,
   IProductLookup,
   IRankLookup,
+  IServiceCategoryLookup,
   IServiceLookup,
+  IServiceModeLookup,
   IServiceTypeCategoryLookup,
-  IServiceTypeLookup,
   IStatusLookup,
   IStatusTypeLookup,
   ISubCategoryLookup,
@@ -61,7 +61,7 @@ import {
   IUserLookup,
   IUserRoleLookup,
   IVesselLookup,
-  IVisaTypeLookup,
+  IVisaLookup,
   IVoyageLookup,
   IWorkLocationLookup,
   IYearLookup,
@@ -942,13 +942,13 @@ export const useOrderTypeCategoryLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useServiceTypeLookup = () => {
-  return useQuery<IServiceTypeLookup[]>({
-    queryKey: ["servicetype-lookUp"],
+export const useServiceCategoryLookup = () => {
+  return useQuery<IServiceCategoryLookup[]>({
+    queryKey: ["servicecategory-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getServiceType)
+        const data = await getData(Lookup.getServiceCategory)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1295,9 +1295,10 @@ export const useChargeLookup = (taskId: number) => {
         return data?.data || []
       } catch (error) {
         handleApiError(error)
+        return []
       }
     },
-    enabled: taskId !== 0,
+    enabled: true,
   })
 }
 export const useCustomerLookup = () => {
@@ -1419,7 +1420,7 @@ export const useStatusLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getStatus)
+        const data = await getData(Lookup.getJobStatus)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1434,7 +1435,7 @@ export const useStatusTaskLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getStatusTask)
+        const data = await getData(Lookup.getTaskStatus)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1473,13 +1474,13 @@ export const useGenderLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useVisaTypeLookup = () => {
-  return useQuery<IVisaTypeLookup[]>({
+export const useVisaLookup = () => {
+  return useQuery<IVisaLookup[]>({
     queryKey: ["visatype-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getVisaType)
+        const data = await getData(Lookup.getVisa)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1518,13 +1519,29 @@ export const useLandingTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useModeTypeLookup = () => {
-  return useQuery<IModeTypeLookup[]>({
-    queryKey: ["modetype-lookUp"],
+
+export const usePurposeOfLandingTypeLookup = () => {
+  return useQuery<ILandingTypeLookup[]>({
+    queryKey: ["purposeoflandingtype-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getModeType)
+        const data = await getData(Lookup.getPurposeOfLandingType)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+export const useServiceModeLookup = () => {
+  return useQuery<IServiceModeLookup[]>({
+    queryKey: ["servicemode-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getServiceMode)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

@@ -93,11 +93,11 @@ export default function WorkLocationPage() {
       ) : (
         <WorkLocationTable
           data={data?.data as IWorkLocation[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 
@@ -127,7 +127,7 @@ export default function WorkLocationPage() {
 
           <WorkLocationForm
             initialData={editingItem as WorkLocationFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
@@ -172,7 +172,7 @@ export default function WorkLocationPage() {
         description="This action cannot be undone. This will permanently delete the work location from our servers."
         itemName={editingItem?.workLocationName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

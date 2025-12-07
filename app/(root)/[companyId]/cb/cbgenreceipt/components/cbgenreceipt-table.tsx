@@ -23,7 +23,7 @@ export interface CbGenReceiptTableProps {
   onFilterChange: (filters: ICbGenReceiptFilter) => void
   initialFilters?: ICbGenReceiptFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function CbGenReceiptTable({
@@ -31,7 +31,7 @@ export default function CbGenReceiptTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: CbGenReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -312,7 +312,7 @@ export default function CbGenReceiptTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -330,7 +330,7 @@ export default function CbGenReceiptTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -474,11 +474,11 @@ export default function CbGenReceiptTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -497,7 +497,7 @@ export default function CbGenReceiptTable({
         transactionId={transactionId}
         tableName={TableName.cbGenReceipt}
         emptyMessage="No cbGenReceipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCbGenReceipts()}
+        onRefreshAction={() => refetchCbGenReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbGenReceiptSelect(row || undefined)}
         // Pagination props

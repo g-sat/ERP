@@ -21,7 +21,7 @@ export interface PaymentTableProps {
   onFilterChange: (filters: IApPaymentFilter) => void
   initialFilters?: IApPaymentFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function PaymentTable({
@@ -29,7 +29,7 @@ export default function PaymentTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: PaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -359,7 +359,7 @@ export default function PaymentTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -377,7 +377,7 @@ export default function PaymentTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -521,11 +521,11 @@ export default function PaymentTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -544,7 +544,7 @@ export default function PaymentTable({
         transactionId={transactionId}
         tableName={TableName.apPayment}
         emptyMessage="No payments found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchPayments()}
+        onRefreshAction={() => refetchPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
         // Pagination props

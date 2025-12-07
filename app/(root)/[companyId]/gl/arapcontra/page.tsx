@@ -531,6 +531,57 @@ export default function ArapcontraPage() {
     toast.success("Contra reset successfully")
   }
 
+  // Handle Print Contra Report
+  const handlePrintContra = () => {
+    if (!contra || contra.contraId === "0") {
+      toast.error("Please select a contra to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const contraId = formValues.contraId || contra.contraId?.toString() || "0"
+    const contraNo = formValues.contraNo || contra.contraNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: contraId,
+      invoiceNo: contraNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_GLContra.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IGLContraHd to GLContraHdSchemaType
   const transformToSchemaType = useCallback(
     (apiContra: IGLContraHd): GLContraHdSchemaType => {
@@ -560,9 +611,9 @@ export default function ArapcontraPage() {
         remarks: apiContra.remarks ?? "",
         moduleFrom: apiContra.moduleFrom ?? "",
         editVersion: apiContra.editVersion ?? 0,
-        createBy: apiContra.createById?.toString() ?? "",
-        editBy: apiContra.editById?.toString() ?? "",
-        cancelBy: apiContra.cancelById?.toString() ?? "",
+        createBy: apiContra.createBy ?? "",
+        editBy: apiContra.editBy ?? "",
+        cancelBy: apiContra.cancelBy ?? "",
         isCancel: apiContra.isCancel ?? false,
         createDate: apiContra.createDate
           ? format(
@@ -888,7 +939,7 @@ export default function ArapcontraPage() {
               jobOrderNo: detailedPayment.jobOrderNo ?? "",
               moduleFrom: detailedPayment.moduleFrom ?? "",
               editVersion: detailedPayment.editVersion ?? 0,
-              createBy: detailedPayment.createById?.toString() ?? "",
+              createBy: detailedPayment.createBy ?? "",
               createDate: detailedPayment.createDate
                 ? format(
                     parseDate(detailedPayment.createDate as string) ||
@@ -896,7 +947,7 @@ export default function ArapcontraPage() {
                     decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                   )
                 : "",
-              editBy: detailedPayment.editById?.toString() ?? "",
+              editBy: detailedPayment.editBy ?? "",
               editDate: detailedPayment.editDate
                 ? format(
                     parseDate(detailedPayment.editDate as string) || new Date(),
@@ -904,7 +955,7 @@ export default function ArapcontraPage() {
                   )
                 : "",
               isCancel: detailedPayment.isCancel ?? false,
-              cancelBy: detailedPayment.cancelById?.toString() ?? "",
+              cancelBy: detailedPayment.cancelBy ?? "",
               cancelDate: detailedPayment.cancelDate
                 ? format(
                     parseDate(detailedPayment.cancelDate as string) ||
@@ -1161,6 +1212,7 @@ export default function ArapcontraPage() {
               variant="outline"
               size="sm"
               disabled={!contra || contra.contraId === "0"}
+              onClick={handlePrintContra}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1260,7 +1312,7 @@ export default function ArapcontraPage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

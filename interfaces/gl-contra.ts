@@ -34,6 +34,12 @@ export interface IGLContraHd {
   appStatusId?: number
   appById?: number
   appDate?: Date | string
+
+  createBy: string
+  editBy: string
+  cancelBy: string
+  appBy: string
+
   data_details: IGLContraDt[]
 }
 

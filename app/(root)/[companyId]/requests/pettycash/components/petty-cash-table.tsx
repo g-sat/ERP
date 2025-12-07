@@ -40,7 +40,7 @@ import { CurrencyFormatter } from "@/components/currency-icons/currency-formatte
 
 interface PettyCashTableProps {
   pettyCashRequests: IPettyCashRequest[]
-  onSave?: (
+  onSaveAction?: (
     pettyCashId: string,
     action: "approve" | "reject" | "cancel",
     notes?: string
@@ -56,7 +56,7 @@ interface ApprovalDialogData {
 
 export function PettyCashTable({
   pettyCashRequests,
-  onSave,
+  onSaveAction,
   showActions = true,
 }: PettyCashTableProps) {
   const [_selectedPettyCash, _setSelectedPettyCash] =
@@ -83,8 +83,8 @@ export function PettyCashTable({
 
     const { pettyCash, action, notes } = approvalDialog
 
-    // Call the single onSave function with action and notes
-    onSave?.(pettyCash.pettyCashId.toString(), action, notes)
+    // Call the single onSaveAction function with action and notes
+    onSaveAction?.(pettyCash.pettyCashId.toString(), action, notes)
 
     // Close dialog and reset
     setApprovalDialog({

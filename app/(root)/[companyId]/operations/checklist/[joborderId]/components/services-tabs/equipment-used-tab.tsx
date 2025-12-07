@@ -332,7 +332,7 @@ export function EquipmentUsedTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          console.error("Equipment used(s) not found")
+          console.error("Equipment Used(s) not found")
           return
         }
 
@@ -348,8 +348,6 @@ export function EquipmentUsedTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -357,13 +355,19 @@ export function EquipmentUsedTab({
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
-            console.log("Existing debit note data:", debitNoteResponse.data)
+            console.log("New debit note data:", debitNoteResponse.data)
             const debitNoteData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("Existing debitNoteData", debitNoteData)
+            console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -392,22 +396,21 @@ export function EquipmentUsedTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.EquipmentUsed}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
-
+          console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -493,12 +496,12 @@ export function EquipmentUsedTab({
             data={data || []}
             onEquipmentUsedSelect={handleSelect}
             onDeleteEquipmentUsed={handleDelete}
-            onEditEquipmentUsed={handleEdit}
-            onCreateEquipmentUsed={handleCreate}
+            onEditActionEquipmentUsed={handleEdit}
+            onCreateActionEquipmentUsed={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshEquipmentUsed}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshEquipmentUsed}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -556,7 +559,7 @@ export function EquipmentUsedTab({
                 : undefined
             }
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
             taskDefaults={taskDefaults}
@@ -577,7 +580,7 @@ export function EquipmentUsedTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -591,7 +594,7 @@ export function EquipmentUsedTab({
           taskId={Task.EquipmentUsed}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this equipment used."
@@ -627,7 +630,7 @@ export function EquipmentUsedTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -647,7 +650,7 @@ export function EquipmentUsedTab({
         description="This action cannot be undone. This will permanently delete the equipment used from our servers."
         itemName={deleteConfirmation.equipmentUsedName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             equipmentUsedId: null,

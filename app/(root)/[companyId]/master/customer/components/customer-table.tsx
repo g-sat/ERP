@@ -24,7 +24,7 @@ interface CustomerTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   moduleId: number
   transactionId: number
 }
@@ -40,7 +40,7 @@ export function CustomerTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
-  onRefresh,
+  onRefreshAction,
   moduleId,
   transactionId,
 }: CustomerTableProps) {
@@ -209,7 +209,7 @@ export function CustomerTable({
         transactionId={transactionId}
         tableName={TableName.customer}
         emptyMessage="No customers found."
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}

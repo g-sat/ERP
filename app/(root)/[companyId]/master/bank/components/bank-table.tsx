@@ -19,7 +19,7 @@ interface BankTableProps {
   totalRecords?: number
   onSelect?: (bank: IBank | null) => void
   onFilterChange?: (filters: IBankFilter) => void
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   moduleId: number
   transactionId: number
 }
@@ -30,7 +30,7 @@ export function BankTable({
   totalRecords = 0,
   onSelect,
   onFilterChange,
-  onRefresh,
+  onRefreshAction,
   moduleId,
   transactionId,
 }: BankTableProps) {
@@ -215,7 +215,7 @@ export function BankTable({
         transactionId={transactionId}
         tableName={TableName.bank}
         emptyMessage="No banks found."
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={onSelect}
       />

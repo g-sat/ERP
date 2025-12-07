@@ -46,6 +46,7 @@ export interface ICbBankTransferCtmHd {
   appStatusId: number | null
   appBy: string | null
   appDate: Date | null
+
   data_details: ICbBankTransferCtmDt[]
 }
 

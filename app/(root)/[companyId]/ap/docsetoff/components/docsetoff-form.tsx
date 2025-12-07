@@ -7,17 +7,11 @@ import {
   setExchangeRateLocal,
   setPayExchangeRate,
 } from "@/helpers/account"
-import {
-  calauteLocalAmtandGainLoss,
-  calculateUnallocated,
-} from "@/helpers/ap-docSetOff-calculations"
-import { IApDocSetOffDt } from "@/interfaces/ap-docsetoff"
+import { calauteLocalAmtandGainLoss } from "@/helpers/ap-docSetOff-calculations"
+import { IApDocSetOffDt } from "@/interfaces"
 import { ICurrencyLookup, ISupplierLookup } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  ApDocSetOffDtSchemaType,
-  ApDocSetOffHdSchemaType,
-} from "@/schemas/ap-docsetoff"
+import { ApDocSetOffDtSchemaType, ApDocSetOffHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
@@ -57,7 +51,6 @@ export default function DocSetOffForm({
   dataDetails = [],
 }: DocSetOffFormProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
@@ -100,10 +93,6 @@ export default function DocSetOffForm({
           (s, r) => s + (Number(r.allocAmt) || 0),
           0
         )
-        const sumAllocLocalAmt = arr.reduce(
-          (s, r) => s + (Number(r.allocLocalAmt) || 0),
-          0
-        )
         const sumExhGainLoss = arr.reduce(
           (s, r) => s + (Number(r.exhGainLoss) || 0),
           0
@@ -114,18 +103,10 @@ export default function DocSetOffForm({
           shouldTouch: true,
         })
         form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+        // Note: Preserve the sign of exhGainLoss (positive or negative) - do not use Math.abs()
         form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
         form.setValue("balTotAmt", balTotAmt, { shouldDirty: true })
-
-        // Recalculate unallocated amounts with updated totals
-        const currentAllocTotAmt = form.getValues("allocTotAmt") || 0
-
-        const { unAllocAmt } = calculateUnallocated(
-          currentAllocTotAmt,
-          sumAllocAmt,
-          dec
-        )
-        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+        form.setValue("unAllocTotAmt", balTotAmt, { shouldDirty: true })
       }
     },
     [form, decimals, dataDetails]
@@ -209,7 +190,6 @@ export default function DocSetOffForm({
         // Only set exchange rates if currency is available
         if (selectedSupplier.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setPayExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)
@@ -223,6 +203,7 @@ export default function DocSetOffForm({
 
         // Clear exchange rates
         form.setValue("exhRate", 0)
+
         // Calculate and set due date (for detail records)
         await setDueDate(form)
 
@@ -242,7 +223,6 @@ export default function DocSetOffForm({
       if (currencyId && accountDate) {
         // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
-
         // Recalculate all amounts based on currency comparison - clear allocations for currency change
         recalculateAmountsBasedOnCurrency(true)
       }
@@ -368,6 +348,22 @@ export default function DocSetOffForm({
           onBlurEvent={handleExchangeRateChange}
         />
 
+        {/* Allocated Amount */}
+        <CustomNumberInput
+          form={form}
+          name="allocTotAmt"
+          label="Allocated Amount"
+          isDisabled={true}
+        />
+
+        {/* Balanced Amount */}
+        <CustomNumberInput
+          form={form}
+          name="balTotAmt"
+          label="Balanced Amount"
+          isDisabled={true}
+        />
+
         {/* Unallocated Amount - Always read-only */}
         <CustomNumberInput
           form={form}
@@ -376,18 +372,12 @@ export default function DocSetOffForm({
           isDisabled={true}
         />
 
-        {/* Balanced Amount - Always read-only */}
-        <CustomNumberInput
-          form={form}
-          name="balTotAmt"
-          label="Balanced Amount"
-        />
-
         {/* Exchange Gain/Loss */}
         <CustomNumberInput
           form={form}
           name="exhGainLoss"
           label="Exchange Gain/Loss"
+          isDisabled={true}
         />
 
         {/* Remarks */}

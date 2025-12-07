@@ -279,10 +279,10 @@ export default function AdminUsersPage() {
             data={[]}
             isLoading={false}
             onSelect={canView ? handleViewUser : undefined}
-            onDelete={canDelete ? handleDeleteUser : undefined}
-            onEdit={canEdit ? handleEditUser : undefined}
-            onCreate={canCreate ? handleCreateUser : undefined}
-            onRefresh={refetchUsers}
+            onDeleteAction={canDelete ? handleDeleteUser : undefined}
+            onEditAction={canEdit ? handleEditUser : undefined}
+            onCreateAction={canCreate ? handleCreateUser : undefined}
+            onRefreshAction={refetchUsers}
             onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -297,10 +297,10 @@ export default function AdminUsersPage() {
           data={filters.search ? [] : usersData || []}
           isLoading={isLoadingUsers}
           onSelect={canView ? handleViewUser : undefined}
-          onDelete={canDelete ? handleDeleteUser : undefined}
-          onEdit={canEdit ? handleEditUser : undefined}
-          onCreate={canCreate ? handleCreateUser : undefined}
-          onRefresh={refetchUsers}
+          onDeleteAction={canDelete ? handleDeleteUser : undefined}
+          onEditAction={canEdit ? handleEditUser : undefined}
+          onCreateAction={canCreate ? handleCreateUser : undefined}
+          onRefreshAction={refetchUsers}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
                 : undefined
             }
             submitAction={handleUserFormSubmit}
-            onCancel={() => setIsUserModalOpen(false)}
+            onCancelAction={() => setIsUserModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
@@ -361,7 +361,7 @@ export default function AdminUsersPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExisting}
-        onCancel={() => setExistingUser(null)}
+        onCancelAction={() => setExistingUser(null)}
         code={existingUser?.userCode}
         name={existingUser?.userName}
         typeLabel="User"
@@ -378,7 +378,7 @@ export default function AdminUsersPage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.userName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             userId: null,
@@ -410,7 +410,7 @@ export default function AdminUsersPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

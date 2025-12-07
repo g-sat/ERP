@@ -18,10 +18,10 @@ interface DesignationsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (designation: IDesignation | null) => void
-  onDelete?: (designationId: string) => void
-  onEdit?: (designation: IDesignation) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (designationId: string) => void
+  onEditAction?: (designation: IDesignation) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function DesignationsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -157,7 +157,7 @@ export function DesignationsTable({
       emptyMessage="No designations found."
       accessorId="designationId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -166,9 +166,9 @@ export function DesignationsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

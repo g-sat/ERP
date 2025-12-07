@@ -63,7 +63,10 @@ export default function AddEmployeePage() {
         </div>
       </div>
 
-      <EmployeeBasicForm onSave={handleSave} onCancel={handleCancel} />
+      <EmployeeBasicForm
+        onSaveAction={handleSave}
+        onCancelAction={handleCancel}
+      />
     </div>
   )
 }

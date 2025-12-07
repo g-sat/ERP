@@ -15,11 +15,11 @@ interface DebitNoteTableProps {
   data: IDebitNoteDt[]
   isLoading?: boolean
   onSelect?: (debitNote: IDebitNoteDt | null) => void
-  onDelete?: (debitNoteId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
-  onEdit?: (debitNote: IDebitNoteDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (debitNoteId: string) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
+  onEditAction?: (debitNote: IDebitNoteDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IDebitNoteDt[]) => void
   moduleId?: number
@@ -31,11 +31,11 @@ export function DebitNoteTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
-  onBulkDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   moduleId,
@@ -69,12 +69,12 @@ export function DebitNoteTable({
             {row.original.itemNo || "-"}
           </div>
         ),
-        size: 40,
+        size: 30,
       },
       {
         accessorKey: "remarks",
         header: "Remarks",
-        size: 200,
+        size: 500,
       },
       {
         accessorKey: "qty",
@@ -125,12 +125,12 @@ export function DebitNoteTable({
         ),
       },
       {
-        accessorKey: "totAftGstAmt",
+        accessorKey: "totAmtAftGst",
         header: "Total",
         size: 100,
         cell: ({ row }) => (
           <div className="text-right">
-            {formatNumber(row.getValue("totAftGstAmt"), amtDec)}
+            {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
           </div>
         ),
       },
@@ -148,13 +148,13 @@ export function DebitNoteTable({
       tableName={TableName.debitNote}
       emptyMessage="No debit note details found."
       accessorId="itemNo"
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onBulkDelete={onBulkDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
+      onBulkDeleteAction={onBulkDeleteAction}
       onDataReorder={onDataReorder}
       isConfirmed={isConfirmed}
       showHeader={true}

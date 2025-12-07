@@ -376,6 +376,11 @@ export const menuData = {
         { title: "Petty Cash", url: "/requests/pettycash", icon: HandCoins },
       ],
     },
+    {
+      title: "Reports",
+      url: "/reports",
+      icon: FileText,
+    },
   ],
 }
 

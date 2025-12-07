@@ -434,10 +434,10 @@ export default function TemplatePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -452,10 +452,10 @@ export default function TemplatePage() {
           data={filters.search ? [] : templatesData || []}
           isLoading={isLoading}
           onSelect={handleViewTemplate}
-          onDelete={handleDeleteTemplate}
-          onEdit={handleEditTemplate}
-          onCreate={handleCreateTemplate}
-          onRefresh={handleRefresh}
+          onDeleteAction={handleDeleteTemplate}
+          onEditAction={handleEditTemplate}
+          onCreateAction={handleCreateTemplate}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
@@ -539,7 +539,7 @@ export default function TemplatePage() {
                     ? selectedTemplate
                     : undefined
                 }
-                onCancel={() => setIsModalOpen(false)}
+                onCancelAction={() => setIsModalOpen(false)}
                 isReadOnly={modalMode === "view"}
                 onCodeBlur={() => {}}
                 onChange={handleFormChange}
@@ -551,7 +551,7 @@ export default function TemplatePage() {
               <TemplateDetailsForm
                 initialData={_selectedDetail} // Pass selected detail for editing
                 submitAction={handleDetailFormSubmit}
-                onCancel={() => setSelectedDetail(undefined)}
+                onCancelAction={() => setSelectedDetail(undefined)}
                 isSubmitting={false}
                 isReadOnly={!isTemplateFormComplete}
                 shouldReset={shouldResetDetailForm}
@@ -571,11 +571,11 @@ export default function TemplatePage() {
                   data={templateDetails}
                   isLoading={false}
                   onSelect={handleViewDetail}
-                  onDelete={handleDeleteDetail}
-                  onBulkDelete={() => {}}
-                  onEdit={handleEditDetail}
-                  onCreate={() => setSelectedDetail(undefined)}
-                  onRefresh={() => {}}
+                  onDeleteAction={handleDeleteDetail}
+                  onBulkDeleteAction={() => {}}
+                  onEditAction={handleEditDetail}
+                  onCreateAction={() => setSelectedDetail(undefined)}
+                  onRefreshAction={() => {}}
                   onFilterChange={() => {}}
                   onDataReorder={() => {}}
                 />
@@ -590,7 +590,7 @@ export default function TemplatePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingTemplate}
-        onCancel={() => setExistingTemplate(null)}
+        onCancelAction={() => setExistingTemplate(null)}
         code={existingTemplate?.templateName}
         name={existingTemplate?.templateName}
         typeLabel="Template"
@@ -607,7 +607,7 @@ export default function TemplatePage() {
         description="This action cannot be undone. This will permanently delete the template from our servers."
         itemName={deleteConfirmation.templateName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             templateId: null,
@@ -635,7 +635,7 @@ export default function TemplatePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

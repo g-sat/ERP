@@ -12,9 +12,9 @@ import { AccountEditableBaseTable } from "@/components/table/table-account-edita
 // Use flexible data type that can work with form data
 interface BankReconDetailsTableProps {
   data: ICbBankReconDt[]
-  onDelete?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
-  onRefresh?: () => void
+  onDeleteAction?: (itemNo: number) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankReconDt[]) => void
   onCellUpdate?: (
@@ -27,9 +27,9 @@ interface BankReconDetailsTableProps {
 
 export default function BankReconDetailsTable({
   data,
-  onDelete,
-  onBulkDelete,
-  onRefresh,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
   onCellUpdate,
@@ -49,14 +49,14 @@ export default function BankReconDetailsTable({
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
     }
   }
 
   const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
     }
   }
 
@@ -276,9 +276,9 @@ export default function BankReconDetailsTable({
       data={data as unknown[]}
       columns={columns as ColumnDef<unknown>[]}
       accessorId={"itemNo" as keyof unknown}
-      onDelete={handleDelete}
-      onBulkDelete={handleBulkDelete}
-      onRefresh={onRefresh}
+      onDeleteAction={handleDelete}
+      onBulkDeleteAction={handleBulkDelete}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onDataReorder={(newData) => onDataReorder?.(newData as ICbBankReconDt[])}
       tableName={TableName.cbBankReconDt}

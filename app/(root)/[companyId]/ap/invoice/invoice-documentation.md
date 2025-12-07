@@ -1271,8 +1271,8 @@ InvoicePage
 // Main → InvoiceDetailsTable
 <InvoiceDetailsTable
   data={data_details}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
+  onEditAction={handleEdit}
+  onDeleteAction={handleDelete}
   visible={visible}
 />
 ```

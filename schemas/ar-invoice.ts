@@ -204,6 +204,7 @@ export const ArInvoiceDtSchema = (
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // Remarks
+    debitNoteNo: z.string().optional(),
     remarks: required?.m_Remarks
       ? z.string().min(1, "Remarks is required")
       : z.string().optional(),

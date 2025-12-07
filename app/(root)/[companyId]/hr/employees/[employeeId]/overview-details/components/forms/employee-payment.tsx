@@ -15,10 +15,14 @@ import CustomInput from "@/components/custom/custom-input"
 interface Props {
   employee?: IEmployeeBank
   companyId?: number
-  onCancel?: () => void
+  onCancelAction?: () => void
 }
 
-export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
+export function EmployeePaymentForm({
+  employee,
+  companyId,
+  onCancelAction,
+}: Props) {
   const saveMutation = useSaveEmployeeBank()
 
   console.log("companyId", companyId)
@@ -74,7 +78,7 @@ export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
 
   const handleCancel = () => {
     form.reset()
-    onCancel?.()
+    onCancelAction?.()
   }
 
   return (

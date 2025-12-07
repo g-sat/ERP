@@ -520,13 +520,13 @@ export function ChecklistTabs({
             <DebitNoteItemsTable
               data={debitNoteData}
               isLoading={debitNoteLoading}
-              onRefresh={handleDebitNoteRefresh}
+              onRefreshAction={handleDebitNoteRefresh}
               onFilterChange={handleDebitNoteFilterChange}
               onSelect={handleDebitNoteSelect}
-              onCreate={handleDebitNoteCreate}
-              onEdit={handleDebitNoteEdit}
-              onDelete={handleDebitNoteDelete}
-              onBulkDelete={handleDebitNoteBulkDelete}
+              onCreateAction={handleDebitNoteCreate}
+              onEditAction={handleDebitNoteEdit}
+              onDeleteAction={handleDebitNoteDelete}
+              onBulkDeleteAction={handleDebitNoteBulkDelete}
               onDataReorder={handleDebitNoteDataReorder}
               moduleId={parseInt(jobOrderId) || 0}
               transactionId={parseInt(jobOrderId) || 0}

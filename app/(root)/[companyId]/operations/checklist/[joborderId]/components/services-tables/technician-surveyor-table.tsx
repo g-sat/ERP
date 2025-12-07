@@ -23,11 +23,20 @@ interface TechnicianSurveyorTableProps {
     technicianSurveyor: ITechnicianSurveyor | null
   ) => void
   onDeleteTechnicianSurveyor?: (technicianSurveyorId: string) => void
-  onEditTechnicianSurveyor?: (technicianSurveyor: ITechnicianSurveyor) => void
-  onCreateTechnicianSurveyor?: () => void
-  onDebitNote?: (technicianSurveyorId: string, debitNoteNo?: string) => void
-  onPurchase?: (technicianSurveyorId: string) => void
-  onRefresh?: () => void
+  onEditActionTechnicianSurveyor?: (
+    technicianSurveyor: ITechnicianSurveyor
+  ) => void
+  onCreateActionTechnicianSurveyor?: () => void
+  onRefreshActionte?: (
+    technicianSurveyorId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    technicianSurveyorId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (technicianSurveyorId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ITechnicianSurveyorFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function TechnicianSurveyorTable({
   isLoading = false,
   onTechnicianSurveyorSelect,
   onDeleteTechnicianSurveyor,
-  onEditTechnicianSurveyor,
-  onCreateTechnicianSurveyor,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionTechnicianSurveyor,
+  onCreateActionTechnicianSurveyor,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -339,7 +349,7 @@ export function TechnicianSurveyorTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -362,8 +372,8 @@ export function TechnicianSurveyorTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -378,14 +388,14 @@ export function TechnicianSurveyorTable({
         tableName={TableName.techniciansSurveyors}
         emptyMessage="No technician surveyors found."
         accessorId="technicianSurveyorId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateTechnicianSurveyor}
-        onEdit={onEditTechnicianSurveyor}
-        onDelete={onDeleteTechnicianSurveyor}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionTechnicianSurveyor}
+        onEditAction={onEditActionTechnicianSurveyor}
+        onDeleteAction={onDeleteTechnicianSurveyor}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

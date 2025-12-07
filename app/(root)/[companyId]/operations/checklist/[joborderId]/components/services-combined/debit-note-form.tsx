@@ -26,11 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import {
-  ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
-  GSTAutocomplete,
-} from "@/components/autocomplete"
+import { ChargeAutocomplete, GSTAutocomplete } from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextArea from "@/components/custom/custom-textarea"
@@ -39,7 +35,7 @@ interface DebitNoteFormProps {
   debitNoteHd?: IDebitNoteHd
   initialData?: IDebitNoteDt
   submitAction: (data: DebitNoteDtSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
   taskId: number
@@ -59,7 +55,7 @@ export default function DebitNoteForm({
   debitNoteHd,
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
   taskId,
@@ -105,7 +101,7 @@ export default function DebitNoteForm({
       gstId: 0,
       gstPercentage: 0,
       gstAmt: 0,
-      totAftGstAmt: 0,
+      totAmtAftGst: 0,
       remarks: "",
       editVersion: 0,
       totLocalAmt: 0,
@@ -133,14 +129,13 @@ export default function DebitNoteForm({
           itemNo: initialData?.itemNo ?? 0,
           taskId: taskId,
           chargeId: initialData?.chargeId ?? 0,
-          glId: initialData?.glId ?? 0,
           qty: initialData?.qty ?? 0,
           unitPrice: initialData?.unitPrice ?? 0,
           totAmt: initialData?.totAmt ?? 0,
           gstId: initialData?.gstId ?? 0,
           gstPercentage: initialData?.gstPercentage ?? 0,
           gstAmt: initialData?.gstAmt ?? 0,
-          totAftGstAmt: initialData?.totAftGstAmt ?? 0,
+          totAmtAftGst: initialData?.totAmtAftGst ?? 0,
           remarks: initialData?.remarks ?? "",
           editVersion: initialData?.editVersion ?? 0,
           totLocalAmt: initialData?.totLocalAmt ?? 0,
@@ -184,12 +179,12 @@ export default function DebitNoteForm({
       const gstAmount = calculateGSTAmount(totalAmount, gstPercentage)
       form.setValue("gstAmt", gstAmount)
       form.setValue(
-        "totAftGstAmt",
+        "totAmtAftGst",
         calculateTotalAfterGST(totalAmount, gstAmount)
       )
     } else {
       form.setValue("gstAmt", 0)
-      form.setValue("totAftGstAmt", totalAmount)
+      form.setValue("totAmtAftGst", totalAmount)
     }
   }
 
@@ -528,9 +523,6 @@ export default function DebitNoteForm({
   const handleChargeChange = (selectedCharge: IChargeLookup | null) => {
     if (selectedCharge) {
       form.setValue("chargeId", selectedCharge.chargeId)
-      // Automatically set the GL ID from the selected charge
-      form.setValue("glId", selectedCharge.glId)
-
       // Add charge name to remarks when charge changes
       const currentRemarks = form.getValues("remarks") || ""
       const newRemarks = currentRemarks
@@ -543,7 +535,6 @@ export default function DebitNoteForm({
     } else {
       // Clear related data when charge is cleared
       form.setValue("chargeId", 0)
-      form.setValue("glId", 0)
 
       // Notify parent component that charge is cleared
       onChargeChange?.("")
@@ -604,14 +595,13 @@ export default function DebitNoteForm({
             itemNo: initialData?.itemNo ?? 0,
             taskId: taskId,
             chargeId: initialData?.chargeId ?? 0,
-            glId: initialData?.glId ?? 0,
             qty: initialData?.qty ?? 0,
             unitPrice: initialData?.unitPrice ?? 0,
             totAmt: initialData?.totAmt ?? 0,
             gstId: initialData?.gstId ?? 0,
             gstPercentage: initialData?.gstPercentage ?? 0,
             gstAmt: initialData?.gstAmt ?? 0,
-            totAftGstAmt: initialData?.totAftGstAmt ?? 0,
+            totAmtAftGst: initialData?.totAmtAftGst ?? 0,
             remarks: initialData?.remarks ?? "",
             editVersion: initialData?.editVersion ?? 0,
             totLocalAmt: initialData?.totLocalAmt ?? 0,
@@ -674,8 +664,8 @@ export default function DebitNoteForm({
     setDialogType("replaceUnitPrice")
     // Notify parent that charge is cleared
     onChargeChange?.("")
-    // Call the onCancel callback if provided
-    onCancel?.()
+    // Call the onCancelAction callback if provided
+    onCancelAction?.()
   }
 
   return (
@@ -695,17 +685,6 @@ export default function DebitNoteForm({
               isRequired={true}
               isDisabled={isConfirmed}
               onChangeEvent={handleChargeChange}
-            />
-          </div>
-
-          <div className="col-span-1">
-            <ChartOfAccountAutocomplete
-              form={form}
-              name="glId"
-              label="Account"
-              isDisabled={isConfirmed}
-              isRequired={true}
-              companyId={companyId}
             />
           </div>
 
@@ -791,7 +770,7 @@ export default function DebitNoteForm({
           <div className="col-span-1">
             <CustomNumberInput
               form={form}
-              name="totAftGstAmt"
+              name="totAmtAftGst"
               label="Tot Aft Vat"
               round={amtDec}
               isDisabled={true}
@@ -838,7 +817,7 @@ export default function DebitNoteForm({
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} tabIndex={14}>
                 {isSubmitting ? "Saving..." : initialData ? "Update" : "Add"}
               </Button>
             )}
@@ -850,7 +829,7 @@ export default function DebitNoteForm({
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
             {/* Header */}
             <div className="mb-2 border-b border-blue-300 pb-2 text-center text-sm font-bold text-blue-800">
-              Summary
+              Total Summary
             </div>
 
             {/* Summary Values */}

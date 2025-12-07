@@ -47,7 +47,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -64,14 +64,14 @@ import {
   ResetConfirmation,
   SaveConfirmation,
 } from "@/components/confirmation"
+//import { Table } from "@/components/ui/table"
+import InvoiceTable from "@/components/table/tblcmp"
 
 import History from "./components/history"
 import { getDefaultValues } from "./components/invoice-defaultvalues"
 //import InvoiceTable from "./components/invoice-table"
 import Main from "./components/main-tab"
 import Other from "./components/other"
-//import { Table } from "@/components/ui/table"
-import InvoiceTable from "@/components/table/tblcmp"
 
 export default function InvoicePage() {
   const params = useParams()
@@ -79,7 +79,7 @@ export default function InvoicePage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.invoice
+  const transactionId = APTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -138,7 +138,7 @@ export default function InvoicePage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/invoice`,
+    () => `history-doc:/${companyId}/ap/invoice`,
     [companyId]
   )
 
@@ -756,6 +756,58 @@ export default function InvoicePage() {
     toast.success("Invoice reset successfully")
   }
 
+  // Handle Print Invoice Report
+  const handlePrintInvoice = () => {
+    if (!invoice || invoice.invoiceId === "0") {
+      toast.error("Please select an invoice to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const invoiceId =
+      formValues.invoiceId || invoice.invoiceId?.toString() || "0"
+    const invoiceNo = formValues.invoiceNo || invoice.invoiceNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: invoiceId,
+      invoiceNo: invoiceNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_ApInvoice.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IApInvoiceHd to ApInvoiceHdSchemaType
   const transformToSchemaType = useCallback(
     (apiInvoice: IApInvoiceHd): ApInvoiceHdSchemaType => {
@@ -1329,6 +1381,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               disabled={!invoice || invoice.invoiceId === "0"}
+              onClick={handlePrintInvoice}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1430,7 +1483,7 @@ export default function InvoicePage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

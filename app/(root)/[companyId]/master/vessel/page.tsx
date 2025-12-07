@@ -345,10 +345,10 @@ export default function VesselPage() {
             isLoading={false}
             totalRecords={0}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -364,10 +364,10 @@ export default function VesselPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewVessel : undefined}
-          onDelete={canDelete ? handleDeleteVessel : undefined}
-          onEdit={canEdit ? handleEditVessel : undefined}
-          onCreate={canCreate ? handleCreateVessel : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteVessel : undefined}
+          onEditAction={canEdit ? handleEditVessel : undefined}
+          onCreateAction={canCreate ? handleCreateVessel : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -438,7 +438,7 @@ export default function VesselPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingVessel}
-        onCancel={() => setExistingVessel(null)}
+        onCancelAction={() => setExistingVessel(null)}
         code={existingVessel?.vesselCode || ""}
         name={existingVessel?.vesselName}
         typeLabel="Vessel"
@@ -455,7 +455,7 @@ export default function VesselPage() {
         description="This action cannot be undone. This will permanently delete the vessel from our servers."
         itemName={deleteConfirmation.vesselName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             vesselId: null,
@@ -483,7 +483,7 @@ export default function VesselPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

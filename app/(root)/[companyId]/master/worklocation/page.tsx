@@ -347,10 +347,10 @@ export default function WorkLocationPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -366,10 +366,10 @@ export default function WorkLocationPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewWorkLocation : undefined}
-          onDelete={canDelete ? handleDeleteWorkLocation : undefined}
-          onEdit={canEdit ? handleEditWorkLocation : undefined}
-          onCreate={canCreate ? handleCreateWorkLocation : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteWorkLocation : undefined}
+          onEditAction={canEdit ? handleEditWorkLocation : undefined}
+          onCreateAction={canCreate ? handleCreateWorkLocation : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -440,7 +440,7 @@ export default function WorkLocationPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingWorkLocation}
-        onCancel={() => setExistingWorkLocation(null)}
+        onCancelAction={() => setExistingWorkLocation(null)}
         code={existingWorkLocation?.workLocationCode}
         name={existingWorkLocation?.workLocationName}
         typeLabel="WorkLocation"
@@ -457,7 +457,7 @@ export default function WorkLocationPage() {
         description="This action cannot be undone. This will permanently delete the workLocation from our servers."
         itemName={deleteConfirmation.workLocationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             workLocationId: null,
@@ -487,7 +487,7 @@ export default function WorkLocationPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

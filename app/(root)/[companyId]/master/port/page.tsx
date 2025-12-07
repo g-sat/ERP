@@ -297,10 +297,10 @@ export default function PortPage() {
           <PortsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -315,10 +315,10 @@ export default function PortPage() {
         <PortsTable
           data={portsData || []}
           onSelect={canView ? handleViewPort : undefined}
-          onDelete={canDelete ? handleDeletePort : undefined}
-          onEdit={canEdit ? handleEditPort : undefined}
-          onCreate={canCreate ? handleCreatePort : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeletePort : undefined}
+          onEditAction={canEdit ? handleEditPort : undefined}
+          onCreateAction={canCreate ? handleCreatePort : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -389,7 +389,7 @@ export default function PortPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPort}
-        onCancel={() => setExistingPort(null)}
+        onCancelAction={() => setExistingPort(null)}
         code={existingPort?.portCode}
         name={existingPort?.portName}
         typeLabel="Port"
@@ -405,7 +405,7 @@ export default function PortPage() {
         description="This action cannot be undone. This will permanently delete the port from our servers."
         itemName={deleteConfirmation.portName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             portId: null,
@@ -433,7 +433,7 @@ export default function PortPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

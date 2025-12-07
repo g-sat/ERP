@@ -37,7 +37,7 @@ interface ThirdPartyFormProps {
   initialData?: IThirdParty
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: ThirdPartySchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -47,7 +47,7 @@ export function ThirdPartyForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: ThirdPartyFormProps) {
@@ -97,9 +97,9 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
-      supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
+      name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
@@ -124,9 +124,9 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
-      supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
+      name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
@@ -342,7 +342,7 @@ export function ThirdPartyForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

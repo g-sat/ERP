@@ -121,11 +121,11 @@ export default function DepartmentPage() {
       ) : (
         <DepartmentTable
           data={departmentData?.data || []}
-          onEdit={handleEditDepartment}
-          onDelete={handleDeleteDepartment}
-          onCreate={handleCreateDepartment}
+          onEditAction={handleEditDepartment}
+          onDeleteAction={handleDeleteDepartment}
+          onCreateAction={handleCreateDepartment}
           onView={handleViewDepartment}
-          onRefresh={refetchDepartment}
+          onRefreshAction={refetchDepartment}
           canCreate={canCreateDepartment}
           canEdit={canEditDepartment}
           canDelete={canDeleteDepartment}
@@ -156,7 +156,7 @@ export default function DepartmentPage() {
 
           <DepartmentForm
             department={selectedDepartment || undefined}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

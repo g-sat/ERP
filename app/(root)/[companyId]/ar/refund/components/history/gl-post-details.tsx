@@ -262,12 +262,12 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
       header: "Product Name",
     },
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
       accessorKey: "customerCode",
@@ -312,7 +312,7 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
           transactionId={transactionId}
           tableName={TableName.glPostDetails}
           emptyMessage="No results."
-          onRefresh={handleRefresh}
+          onRefreshAction={handleRefresh}
           showHeader={true}
           showFooter={false}
           maxHeight="300px"

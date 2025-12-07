@@ -11,10 +11,13 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DesignationFormProps {
   designation?: IDesignation
-  onSave: (data: DesignationSchemaType) => void
+  onSaveAction: (data: DesignationSchemaType) => void
 }
 
-export function DesignationForm({ designation, onSave }: DesignationFormProps) {
+export function DesignationForm({
+  designation,
+  onSaveAction,
+}: DesignationFormProps) {
   const form = useForm<DesignationSchemaType>({
     resolver: zodResolver(designationSchema),
     defaultValues: {
@@ -26,7 +29,7 @@ export function DesignationForm({ designation, onSave }: DesignationFormProps) {
   })
 
   const onSubmit = (data: DesignationSchemaType) => {
-    onSave(data)
+    onSaveAction(data)
   }
 
   return (

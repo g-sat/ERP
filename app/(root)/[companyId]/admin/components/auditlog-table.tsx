@@ -11,7 +11,7 @@ import { BasicTable } from "@/components/table/table-basic"
 interface AuditLogTableProps {
   data: IAuditLog[]
   isLoading?: boolean
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
@@ -20,7 +20,7 @@ interface AuditLogTableProps {
 export function AuditLogTable({
   data,
   isLoading = false,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -114,7 +114,7 @@ export function AuditLogTable({
       transactionId={transactionId}
       tableName={TableName.auditlog}
       emptyMessage="No audit log found."
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
     />
   )

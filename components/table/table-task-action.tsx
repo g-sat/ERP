@@ -1,13 +1,15 @@
 import { Eye, Pencil, Receipt, ShoppingCart, Trash2 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+
 interface TaskTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
-  onEdit?: (row: T) => void
-  onDelete?: (id: string) => void
-  onDebitNote?: (id: string) => void
-  onPurchase?: (id: string) => void
+  onEditAction?: (row: T) => void
+  onDeleteAction?: (id: string) => void
+  onDebitNoteAction?: (id: string) => void
+  onPurchaseAction?: (id: string) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideView?: boolean
@@ -21,10 +23,10 @@ interface TaskTableActionsProps<T> {
 export function TaskTableActions<T>({
   row,
   onView,
-  onEdit,
-  onDelete,
-  onDebitNote,
-  onPurchase,
+  onEditAction,
+  onDeleteAction,
+  onDebitNoteAction,
+  onPurchaseAction,
   onSelect,
   idAccessor,
   hideView,
@@ -71,7 +73,7 @@ export function TaskTableActions<T>({
             ? "cursor-not-allowed text-gray-400 opacity-50"
             : ""
         }`}
-        onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
+        onClick={() => !hasValidDebitNoteId && onEditAction?.(row)}
         disabled={hideEdit || Boolean(hasValidDebitNoteId) || isConfirmed}
         title={hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"}
       >
@@ -86,7 +88,7 @@ export function TaskTableActions<T>({
             : "text-destructive hover:bg-destructive/10"
         }`}
         onClick={() =>
-          !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
+          !hasValidDebitNoteId && onDeleteAction?.(String(row[idAccessor]))
         }
         disabled={hideDelete || Boolean(hasValidDebitNoteId) || isConfirmed}
         title={
@@ -100,7 +102,7 @@ export function TaskTableActions<T>({
         size="icon"
         className="h-6 w-6 text-purple-600 hover:bg-purple-100"
         disabled={hidePurchase || isConfirmed}
-        onClick={() => onPurchase?.(String(row[idAccessor]))}
+        onClick={() => onPurchaseAction?.(String(row[idAccessor]))}
         title={
           hasValidDebitNoteId
             ? "Cannot purchase - Debit Note exists"
@@ -118,7 +120,7 @@ export function TaskTableActions<T>({
             : "cursor-not-allowed text-gray-400 opacity-50"
         }`}
         onClick={() =>
-          hasValidDebitNoteId && onDebitNote?.(String(row[idAccessor]))
+          hasValidDebitNoteId && onDebitNoteAction?.(String(row[idAccessor]))
         }
         disabled={hideDebitNote || !hasValidDebitNoteId}
         title={

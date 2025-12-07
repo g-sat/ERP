@@ -280,10 +280,10 @@ export default function AdminUserGroupsPage() {
             data={[]}
             isLoading={false}
             onSelect={canView ? handleViewUserGroup : undefined}
-            onDelete={canDelete ? handleDeleteUserGroup : undefined}
-            onEdit={canEdit ? handleEditUserGroup : undefined}
-            onCreate={canCreate ? handleCreateUserGroup : undefined}
-            onRefresh={refetchUserGroups}
+            onDeleteAction={canDelete ? handleDeleteUserGroup : undefined}
+            onEditAction={canEdit ? handleEditUserGroup : undefined}
+            onCreateAction={canCreate ? handleCreateUserGroup : undefined}
+            onRefreshAction={refetchUserGroups}
             onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionIdGroup}
@@ -298,10 +298,10 @@ export default function AdminUserGroupsPage() {
           data={groupFilters.search ? [] : userGroupsData || []}
           isLoading={isLoadingUserGroups}
           onSelect={canView ? handleViewUserGroup : undefined}
-          onDelete={canDelete ? handleDeleteUserGroup : undefined}
-          onEdit={canEdit ? handleEditUserGroup : undefined}
-          onCreate={canCreate ? handleCreateUserGroup : undefined}
-          onRefresh={refetchUserGroups}
+          onDeleteAction={canDelete ? handleDeleteUserGroup : undefined}
+          onEditAction={canEdit ? handleEditUserGroup : undefined}
+          onCreateAction={canCreate ? handleCreateUserGroup : undefined}
+          onRefreshAction={refetchUserGroups}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionIdGroup}
@@ -348,7 +348,7 @@ export default function AdminUserGroupsPage() {
                 : undefined
             }
             submitAction={handleUserGroupFormSubmit}
-            onCancel={() => setIsGroupModalOpen(false)}
+            onCancelAction={() => setIsGroupModalOpen(false)}
             isSubmitting={
               saveGroupMutation.isPending || updateGroupMutation.isPending
             }
@@ -364,7 +364,7 @@ export default function AdminUserGroupsPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExisting}
-        onCancel={() => setExistingUserGroup(null)}
+        onCancelAction={() => setExistingUserGroup(null)}
         code={existingUserGroup?.userGroupCode}
         name={existingUserGroup?.userGroupName}
         typeLabel="User Group"
@@ -381,7 +381,7 @@ export default function AdminUserGroupsPage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.groupName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             groupId: null,
@@ -413,7 +413,7 @@ export default function AdminUserGroupsPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

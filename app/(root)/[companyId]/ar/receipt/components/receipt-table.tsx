@@ -21,7 +21,7 @@ export interface ReceiptTableProps {
   onFilterChange: (filters: IArReceiptFilter) => void
   initialFilters?: IArReceiptFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function ReceiptTable({
@@ -29,7 +29,7 @@ export default function ReceiptTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -359,7 +359,7 @@ export default function ReceiptTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -377,7 +377,7 @@ export default function ReceiptTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -521,11 +521,11 @@ export default function ReceiptTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -544,7 +544,7 @@ export default function ReceiptTable({
         transactionId={transactionId}
         tableName={TableName.arReceipt}
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchReceipts()}
+        onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
         // Pagination props

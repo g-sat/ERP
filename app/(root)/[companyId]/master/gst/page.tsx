@@ -653,10 +653,10 @@ export default function GstPage() {
                 isLoading={false}
                 totalRecords={gstsTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
@@ -672,10 +672,10 @@ export default function GstPage() {
               isLoading={isLoadingGst}
               totalRecords={gstsTotalRecords}
               onSelect={canView ? handleViewGst : undefined}
-              onDelete={canDelete ? handleDeleteGst : undefined}
-              onEdit={canEdit ? handleEditGst : undefined}
-              onCreate={canCreate ? handleCreateGst : undefined}
-              onRefresh={refetchGst}
+              onDeleteAction={canDelete ? handleDeleteGst : undefined}
+              onEditAction={canEdit ? handleEditGst : undefined}
+              onCreateAction={canCreate ? handleCreateGst : undefined}
+              onRefreshAction={refetchGst}
               onFilterChange={handleFilterChange}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
@@ -723,10 +723,10 @@ export default function GstPage() {
                 isLoading={false}
                 totalRecords={gstsDtTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
@@ -742,10 +742,10 @@ export default function GstPage() {
               isLoading={isLoadingGstDt}
               totalRecords={gstsDtTotalRecords}
               onSelect={canViewDt ? handleViewGstDt : undefined}
-              onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
-              onEdit={canEditDt ? handleEditGstDt : undefined}
-              onCreate={canCreateDt ? handleCreateGstDt : undefined}
-              onRefresh={refetchGstDt}
+              onDeleteAction={canDeleteDt ? handleDeleteGstDt : undefined}
+              onEditAction={canEditDt ? handleEditGstDt : undefined}
+              onCreateAction={canCreateDt ? handleCreateGstDt : undefined}
+              onRefreshAction={refetchGstDt}
               onFilterChange={handleDtFilterChange}
               onPageChange={handleDtPageChange}
               onPageSizeChange={handleDtPageSizeChange}
@@ -796,10 +796,10 @@ export default function GstPage() {
                 isLoading={false}
                 totalRecords={gstsCategoryTotalRecords}
                 onSelect={() => {}}
-                onDelete={() => {}}
-                onEdit={() => {}}
-                onCreate={() => {}}
-                onRefresh={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
                 onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
@@ -815,10 +815,14 @@ export default function GstPage() {
               isLoading={isLoadingGstCategory}
               totalRecords={gstsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewGstCategory : undefined}
-              onDelete={canDeleteCategory ? handleDeleteGstCategory : undefined}
-              onEdit={canEditCategory ? handleEditGstCategory : undefined}
-              onCreate={canCreateCategory ? handleCreateGstCategory : undefined}
-              onRefresh={refetchGstCategory}
+              onDeleteAction={
+                canDeleteCategory ? handleDeleteGstCategory : undefined
+              }
+              onEditAction={canEditCategory ? handleEditGstCategory : undefined}
+              onCreateAction={
+                canCreateCategory ? handleCreateGstCategory : undefined
+              }
+              onRefreshAction={refetchGstCategory}
               onFilterChange={handleCategoryFilterChange}
               onPageChange={handleCategoryPageChange}
               onPageSizeChange={handleCategoryPageSizeChange}
@@ -948,7 +952,7 @@ export default function GstPage() {
         open={showLoadDialogGst}
         onOpenChange={setShowLoadDialogGst}
         onLoad={handleLoadExistingGst}
-        onCancel={() => setExistingGst(null)}
+        onCancelAction={() => setExistingGst(null)}
         code={existingGst?.gstCode}
         name={existingGst?.gstName}
         typeLabel="VAT | GST"
@@ -959,7 +963,7 @@ export default function GstPage() {
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingGstCategory}
-        onCancel={() => setExistingGstCategory(null)}
+        onCancelAction={() => setExistingGstCategory(null)}
         code={existingGstCategory?.gstCategoryCode}
         name={existingGstCategory?.gstCategoryName}
         typeLabel="VAT | GST Category"
@@ -978,7 +982,7 @@ export default function GstPage() {
         description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
         itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             id: null,
@@ -1027,7 +1031,7 @@ export default function GstPage() {
             type: "gst",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

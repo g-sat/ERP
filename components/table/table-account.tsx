@@ -57,12 +57,12 @@ interface AccountBaseTableProps<T> {
   tableName: TableName
   emptyMessage?: string
   accessorId: keyof T
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
-  onEdit?: (item: T) => void
-  onDelete?: (itemId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
+  onEditAction?: (item: T) => void
+  onDeleteAction?: (itemId: string) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
@@ -86,12 +86,12 @@ export function AccountBaseTable<T>({
   tableName,
   emptyMessage = "No data found.",
   accessorId,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
-  onEdit,
-  onDelete,
-  onBulkDelete,
+  onEditAction,
+  onDeleteAction,
+  onBulkDeleteAction,
   onBulkSelectionChange,
   onDataReorder,
   isConfirmed,
@@ -230,7 +230,7 @@ export function AccountBaseTable<T>({
   }, [gridSettingsData])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onSelect || onEdit || onDelete)
+    ...(showActions && (onSelect || onEditAction || onDeleteAction)
       ? [
           {
             id: "drag-actions",
@@ -284,8 +284,8 @@ export function AccountBaseTable<T>({
                   {/* Action Buttons */}
                   <AccountTableActions
                     row={item as T & { debitNoteId?: number }}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
+                    onEditAction={onEditAction}
+                    onDeleteAction={onDeleteAction}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}
@@ -376,7 +376,7 @@ export function AccountBaseTable<T>({
 
   // Handle bulk delete
   const handleBulkDelete = () => {
-    if (!onBulkDelete) return
+    if (!onBulkDeleteAction) return
 
     const selectedRowIds = Object.keys(rowSelection)
     const selectedItems = data.filter((_, index) =>
@@ -391,7 +391,7 @@ export function AccountBaseTable<T>({
       })
       .filter((id) => id !== "")
 
-    onBulkDelete(selectedIds)
+    onBulkDeleteAction(selectedIds)
   }
 
   // Handle bulk selection change
@@ -453,8 +453,8 @@ export function AccountBaseTable<T>({
         <AccountTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
-          onBulkDelete={handleBulkDelete}
+          onRefreshAction={onRefreshAction}
+          onBulkDeleteAction={handleBulkDelete}
           columns={table
             .getHeaderGroups()
             .flatMap((group) => group.headers)

@@ -1,15 +1,18 @@
 "use client"
 
-import { useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
+import { ICustomerLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { Task } from "@/lib/operations-utils"
+import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
@@ -19,17 +22,23 @@ import {
   PortAutocomplete,
   TaskAutocomplete,
   UomAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
+import CustomAccordion, {
+  CustomAccordionContent,
+  CustomAccordionItem,
+  CustomAccordionTrigger,
+} from "@/components/custom/custom-accordion"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TariffFormProps {
-  tariff?: ITariff
-  onSave: (data: ITariff) => void
-  onClose: () => void
+  initialData?: ITariff
+  onSaveAction: (data: ITariff) => void
+  onCloseAction: () => void
   mode: "create" | "edit" | "view"
+  companyId: number
   customerId: number
   portId: number
   taskId: number
@@ -37,10 +46,11 @@ interface TariffFormProps {
 }
 
 export function TariffForm({
-  tariff,
-  onSave,
-  onClose,
+  initialData,
+  onSaveAction,
+  onCloseAction,
   mode,
+  companyId,
   customerId,
   portId,
   taskId,
@@ -48,66 +58,78 @@ export function TariffForm({
 }: TariffFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  const { data: customers = [] } = useCompanyCustomerLookup(companyId)
+
+  // Extract currency ID to prevent infinite loop - useMemo ensures stable reference
+  const firstCustomerCurrencyId = customers[0]?.currencyId
+  const defaultCurrencyId = useMemo(() => {
+    return firstCustomerCurrencyId || 0
+  }, [firstCustomerCurrencyId])
 
   const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
     defaultValues: {
-      tariffId: tariff?.tariffId || 0,
-      taskId: tariff?.taskId || taskId,
-      chargeId: tariff?.chargeId || 0,
-      portId: tariff?.portId || portId,
-      customerId: tariff?.customerId || customerId,
-      currencyId: tariff?.currencyId || 0,
-      uomId: tariff?.uomId || 0,
-      visaTypeId: tariff?.visaTypeId || 0,
-      displayRate: tariff?.displayRate || 0,
-      basicRate: tariff?.basicRate || 0,
-      minUnit: tariff?.minUnit || 0,
-      maxUnit: tariff?.maxUnit || 0,
-      isAdditional: tariff?.isAdditional || false,
-      additionalUnit: tariff?.additionalUnit || 0,
-      additionalRate: tariff?.additionalRate || 0,
-      prepaymentPercentage: tariff?.prepaymentPercentage || 0,
-      isPrepayment: tariff?.isPrepayment || false,
-      seqNo: tariff?.seqNo || 0,
-      isDefault: tariff?.isDefault || true,
-      isActive: tariff?.isActive || true,
-      remarks: tariff?.remarks || "",
+      tariffId: initialData?.tariffId || 0,
+      taskId: initialData?.taskId || taskId,
+      chargeId: initialData?.chargeId || 0,
+      portId: initialData?.portId || portId,
+      customerId: initialData?.customerId || customerId,
+      currencyId: initialData?.currencyId || defaultCurrencyId,
+      uomId: initialData?.uomId || 0,
+      visaId: initialData?.visaId || 0,
+      displayRate: initialData?.displayRate || 0,
+      basicRate: initialData?.basicRate || 0,
+      minUnit: initialData?.minUnit || 0,
+      maxUnit: initialData?.maxUnit || 0,
+      isAdditional: initialData?.isAdditional || false,
+      additionalUnit: initialData?.additionalUnit || 0,
+      additionalRate: initialData?.additionalRate || 0,
+      prepaymentPercentage: initialData?.prepaymentPercentage || 0,
+      isPrepayment: initialData?.isPrepayment || false,
+      seqNo: initialData?.seqNo || 0,
+      isDefault: initialData?.isDefault || true,
+      isActive: initialData?.isActive || true,
+      remarks: initialData?.remarks || "",
+      editVersion: initialData?.editVersion || 0,
     },
   })
 
   useEffect(() => {
     console.log("TariffForm useEffect triggered:", {
       mode,
+      currencyId: defaultCurrencyId,
       customerId,
       portId,
       taskId,
-      tariff: !!tariff,
+      tariff: !!initialData,
     })
 
-    if (tariff) {
+    if (initialData) {
       form.reset({
-        tariffId: tariff.tariffId || 0,
-        taskId: tariff.taskId || taskId,
-        chargeId: tariff.chargeId || 0,
-        portId: tariff.portId || portId,
-        customerId: tariff.customerId || customerId,
-        currencyId: tariff.currencyId || 0,
-        uomId: tariff.uomId || 0,
-        visaTypeId: tariff.visaTypeId || 0,
-        displayRate: tariff.displayRate || 0,
-        basicRate: tariff.basicRate || 0,
-        minUnit: tariff.minUnit || 0,
-        maxUnit: tariff.maxUnit || 0,
-        isAdditional: tariff.isAdditional || false,
-        additionalUnit: tariff.additionalUnit || 0,
-        additionalRate: tariff.additionalRate || 0,
-        prepaymentPercentage: tariff.prepaymentPercentage || 0,
-        isPrepayment: tariff.isPrepayment || false,
-        seqNo: tariff.seqNo || 0,
-        isDefault: tariff.isDefault || true,
-        isActive: tariff.isActive || true,
-        remarks: tariff.remarks || "",
+        tariffId: initialData.tariffId || 0,
+        taskId: initialData.taskId || taskId,
+        chargeId: initialData.chargeId || 0,
+        portId: initialData.portId || portId,
+        customerId: initialData.customerId || customerId,
+        currencyId: initialData.currencyId || defaultCurrencyId,
+        uomId: initialData.uomId || 0,
+        visaId: initialData.visaId || 0,
+        displayRate: initialData.displayRate || 0,
+        basicRate: initialData.basicRate || 0,
+        minUnit: initialData.minUnit || 0,
+        maxUnit: initialData.maxUnit || 0,
+        isAdditional: initialData.isAdditional || false,
+        additionalUnit: initialData.additionalUnit || 0,
+        additionalRate: initialData.additionalRate || 0,
+        prepaymentPercentage: initialData.prepaymentPercentage || 0,
+        isPrepayment: initialData.isPrepayment || false,
+        seqNo: initialData.seqNo || 0,
+        isDefault: initialData.isDefault || true,
+        isActive: initialData.isActive || true,
+        remarks: initialData.remarks || "",
+        editVersion: initialData.editVersion || 0,
       })
     } else if (mode === "create") {
       // For create mode, reset form with props values
@@ -122,9 +144,9 @@ export function TariffForm({
         chargeId: 0,
         portId: portId,
         customerId: customerId,
-        currencyId: 0,
+        currencyId: defaultCurrencyId,
         uomId: 0,
-        visaTypeId: 0,
+        visaId: 0,
         displayRate: 0,
         basicRate: 0,
         minUnit: 0,
@@ -138,21 +160,19 @@ export function TariffForm({
         isDefault: true,
         isActive: true,
         remarks: "",
+        editVersion: 0,
       })
     }
-  }, [tariff, form, customerId, portId, taskId, mode])
-
-  // Watch switch states for conditional field editing
-  const isAdditional = form.watch("isAdditional")
-  const isPrepayment = form.watch("isPrepayment")
+  }, [initialData, form, customerId, portId, taskId, mode, defaultCurrencyId])
 
   // Watch form values for debugging
   const watchedCustomerId = form.watch("customerId")
   const watchedPortId = form.watch("portId")
   const watchedTaskId = form.watch("taskId")
 
-  // Check if current task is VisaService (taskId = 16)
-  const isVisaService = watchedTaskId === Task.VisaService
+  // Watch switch states for conditional field editing
+  const isAdditional = form.watch("isAdditional")
+  const isPrepayment = form.watch("isPrepayment")
 
   console.log("Form watched values:", {
     customerId: watchedCustomerId,
@@ -174,7 +194,7 @@ export function TariffForm({
       customerId: data.customerId,
       currencyId: data.currencyId || 0,
       uomId: data.uomId,
-      visaTypeId: data.visaTypeId,
+      visaId: data.visaId,
       displayRate: data.displayRate,
       basicRate: data.basicRate,
       minUnit: data.minUnit,
@@ -188,11 +208,21 @@ export function TariffForm({
       isDefault: data.isDefault,
       isActive: data.isActive,
       remarks: data.remarks || "",
+      editVersion: data.editVersion || 0,
     }
 
-    console.log("Calling onSave with tariffData:", tariffData)
-    onSave(tariffData)
+    console.log("Calling onSaveAction with tariffData:", tariffData)
+    onSaveAction(tariffData)
   }
+
+  // Handle customer selection
+  const handleCustomerChange = React.useCallback(
+    async (selectedCustomer: ICustomerLookup | null) => {
+      form.setValue("currencyId", selectedCustomer?.currencyId || 0)
+      form.trigger()
+    },
+    [form]
+  )
 
   return (
     <div className="max-w flex flex-col gap-2">
@@ -243,16 +273,17 @@ export function TariffForm({
               }
             }
           )}
-          className="space-y-6"
+          className="space-y-3"
         >
           <div className="grid grid-cols-4 gap-2">
             <CustomerAutocomplete
-              key={`customer-${mode}-${customerId}`}
+              key={`customer-autocomplete-${mode}-${customerId}`}
               form={form}
               name="customerId"
-              label="Customer"
-              isRequired
+              label="Customer-S"
+              isRequired={true}
               isDisabled={mode === "view"}
+              onChangeEvent={handleCustomerChange}
             />
 
             <CurrencyAutocomplete
@@ -277,23 +308,25 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
             <ChargeAutocomplete
               form={form}
               name="chargeId"
               label="Charge"
-              taskId={form.watch("taskId") || taskId}
+              isRequired
+              isDisabled={mode === "view"}
+              taskId={form.watch("taskId")}
+            />
+
+            <VisaAutocomplete
+              form={form}
+              name="visaId"
+              label="Visa Type"
               isRequired
               isDisabled={mode === "view"}
             />
-            {isVisaService && (
-              <VisaTypeAutocomplete
-                form={form}
-                name="visaTypeId"
-                label="Visa Type"
-                isRequired={isVisaService}
-                isDisabled={mode === "view"}
-              />
-            )}
+
             <UomAutocomplete
               form={form}
               name="uomId"
@@ -301,7 +334,8 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-4 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomNumberInput
               form={form}
               name="displayRate"
@@ -334,7 +368,8 @@ export function TariffForm({
               isDisabled={mode === "view"}
               round={amtDec}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-3 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomSwitch
               form={form}
               name="isAdditional"
@@ -349,7 +384,6 @@ export function TariffForm({
               isDisabled={mode === "view" || !isAdditional}
               round={amtDec}
             />
-
             <CustomNumberInput
               form={form}
               name="additionalRate"
@@ -358,7 +392,8 @@ export function TariffForm({
               isDisabled={mode === "view" || !isAdditional}
               round={amtDec}
             />
-
+          </div>
+          <div className="bg-card grid grid-cols-2 gap-2 rounded-lg border p-2 shadow-sm">
             <CustomSwitch
               form={form}
               name="isPrepayment"
@@ -373,6 +408,8 @@ export function TariffForm({
               isDisabled={mode === "view" || !isPrepayment}
               round={amtDec}
             />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
             <CustomTextarea
               form={form}
               name="remarks"
@@ -392,12 +429,101 @@ export function TariffForm({
               isDisabled={mode === "view"}
             />
           </div>
+          <>
+            {/* Audit Information Section */}
+            {initialData &&
+              (initialData.createBy ||
+                initialData.createDate ||
+                initialData.editBy ||
+                initialData.editDate) && (
+                <div className="space-y-2">
+                  <div className="border-border border-b pb-4"></div>
+
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="border-border bg-muted/50 rounded-lg border"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">View Audit Trail</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {initialData.createDate ? "Created" : ""}
+                            {initialData.editDate ? " • Modified" : ""}
+                          </Badge>
+                          {initialData.editVersion && (
+                            <Badge
+                              variant="destructive"
+                              className="bg-primary text-primary-foreground text-xs font-semibold"
+                            >
+                              V {initialData.editVersion}
+                            </Badge>
+                          )}
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-6 pb-4">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Created By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.createBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {format(
+                                  new Date(initialData.createDate),
+                                  datetimeFormat
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {initialData.editBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Last Modified By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.editBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {initialData.editDate
+                                  ? format(
+                                      new Date(initialData.editDate),
+                                      datetimeFormat
+                                    )
+                                  : "-"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
+              )}
+          </>
 
           <div className="flex justify-end space-x-2">
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={onCloseAction}
               className="flex items-center gap-2"
             >
               <XIcon className="h-4 w-4" />

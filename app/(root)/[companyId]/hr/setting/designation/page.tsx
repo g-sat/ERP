@@ -121,11 +121,11 @@ export default function DesignationPage() {
       ) : (
         <DesignationTable
           data={designationData?.data || []}
-          onEdit={handleEditDesignation}
-          onDelete={handleDeleteDesignation}
-          onCreate={handleCreateDesignation}
+          onEditAction={handleEditDesignation}
+          onDeleteAction={handleDeleteDesignation}
+          onCreateAction={handleCreateDesignation}
           onView={handleViewDesignation}
-          onRefresh={refetchDesignation}
+          onRefreshAction={refetchDesignation}
           canCreate={canCreateDesignation}
           canEdit={canEditDesignation}
           canDelete={canDeleteDesignation}
@@ -156,7 +156,7 @@ export default function DesignationPage() {
 
           <DesignationForm
             designation={selectedDesignation || undefined}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">

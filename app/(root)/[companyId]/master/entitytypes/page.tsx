@@ -316,10 +316,10 @@ export default function EntityTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -335,10 +335,10 @@ export default function EntityTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewEntityType : undefined}
-          onDelete={canDelete ? handleDeleteEntityType : undefined}
-          onEdit={canEdit ? handleEditEntityType : undefined}
-          onCreate={canCreate ? handleCreateEntityType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteEntityType : undefined}
+          onEditAction={canEdit ? handleEditEntityType : undefined}
+          onCreateAction={canCreate ? handleCreateEntityType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -405,7 +405,7 @@ export default function EntityTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingEntityType}
-        onCancel={() => setExistingEntityType(null)}
+        onCancelAction={() => setExistingEntityType(null)}
         code={existingEntityType?.entityTypeCode}
         name={existingEntityType?.entityTypeName}
         typeLabel="Entity Type"
@@ -422,7 +422,7 @@ export default function EntityTypePage() {
         description="This action cannot be undone. This will permanently delete the entity type from our servers."
         itemName={deleteConfirmation.entityTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             entityTypeId: null,
@@ -452,7 +452,7 @@ export default function EntityTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

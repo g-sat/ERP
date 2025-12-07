@@ -220,7 +220,7 @@ export default function PaySchedulePage() {
 
           <PayScheduleForm
             initialData={editingItem as PayScheduleFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">

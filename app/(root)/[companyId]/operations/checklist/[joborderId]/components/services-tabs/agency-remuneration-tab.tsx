@@ -306,6 +306,13 @@ export function AgencyRemunerationTab({
     setShowCombinedServiceModal(true)
   }, [])
 
+  // Function to clear selection after operations
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems([])
+    // Reset table selection by changing key
+    setTableResetKey((prev) => prev + 1)
+  }, [])
+
   const handleDebitNote = useCallback(
     async (agencyRemunerationId: string, debitNoteNo?: string) => {
       try {
@@ -322,7 +329,7 @@ export function AgencyRemunerationTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          console.error("Agency remuneration(s) not found")
+          console.error("Agency Remuneration(s) not found")
           return
         }
 
@@ -338,8 +345,6 @@ export function AgencyRemunerationTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -347,13 +352,19 @@ export function AgencyRemunerationTab({
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
-            console.log("Existing debit note data:", debitNoteResponse.data)
+            console.log("New debit note data:", debitNoteResponse.data)
             const debitNoteData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("Existing debitNoteData", debitNoteData)
+            console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["agencyRemuneration"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -382,22 +393,21 @@ export function AgencyRemunerationTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.AgencyRemuneration}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
-
+          console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -424,6 +434,7 @@ export function AgencyRemunerationTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (agencyRemunerationId: string) => {
       const item = data?.find(
@@ -481,13 +492,6 @@ export function AgencyRemunerationTab({
     ]
   )
 
-  // Function to clear selection after operations
-  const handleClearSelection = useCallback(() => {
-    setSelectedItems([])
-    // Reset table selection by changing key
-    setTableResetKey((prev) => prev + 1)
-  }, [])
-
   return (
     <>
       <div className="space-y-4">
@@ -497,12 +501,12 @@ export function AgencyRemunerationTab({
             data={data || []}
             onAgencyRemunerationSelect={handleSelect}
             onDeleteAgencyRemuneration={handleDelete}
-            onEditAgencyRemuneration={handleEdit}
-            onCreateAgencyRemuneration={handleCreate}
+            onEditActionAgencyRemuneration={handleEdit}
+            onCreateActionAgencyRemuneration={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshAgencyRemuneration}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshAgencyRemuneration}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -560,7 +564,7 @@ export function AgencyRemunerationTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -579,7 +583,7 @@ export function AgencyRemunerationTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -593,7 +597,7 @@ export function AgencyRemunerationTab({
           taskId={Task.AgencyRemuneration}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this agency remuneration."
@@ -628,7 +632,7 @@ export function AgencyRemunerationTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -647,7 +651,7 @@ export function AgencyRemunerationTab({
         description="This action cannot be undone. This will permanently delete the agency remuneration from our servers."
         itemName={deleteConfirmation.agencyRemunerationName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             agencyRemunerationId: null,

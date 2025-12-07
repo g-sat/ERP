@@ -18,10 +18,10 @@ interface PortsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (port: IPort | null) => void
-  onDelete?: (portId: string) => void
-  onEdit?: (port: IPort) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (portId: string) => void
+  onEditAction?: (port: IPort) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function PortsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -169,7 +169,7 @@ export function PortsTable({
       emptyMessage="No ports found."
       accessorId="portId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -178,9 +178,9 @@ export function PortsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

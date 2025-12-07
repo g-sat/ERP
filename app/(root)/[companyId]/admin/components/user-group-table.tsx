@@ -17,10 +17,10 @@ interface UserGroupTableProps {
   data: IUserGroup[]
   isLoading?: boolean
   onSelect?: (group: IUserGroup | null) => void
-  onDelete?: (groupId: string) => void
-  onEdit?: (group: IUserGroup) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (groupId: string) => void
+  onEditAction?: (group: IUserGroup) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
@@ -35,10 +35,10 @@ export function UserGroupTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -151,13 +151,13 @@ export function UserGroupTable({
       emptyMessage="No User group found."
       accessorId="userGroupId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

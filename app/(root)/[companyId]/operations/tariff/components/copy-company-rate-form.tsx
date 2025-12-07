@@ -1,16 +1,18 @@
+//copy-company-rate-form.tsx
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
-import { ITariff } from "@/interfaces/tariff"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { Tariff } from "@/lib/api-routes"
-import { useGetByParams, usePersist } from "@/hooks/use-common"
+import {
+  copyCompanyTariffDirect,
+  useGetTariffByCompanyTask,
+} from "@/hooks/use-tariff"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
@@ -20,32 +22,74 @@ import {
   PortAutocomplete,
   TaskAutocomplete,
 } from "@/components/autocomplete"
+import { CustomCheckbox } from "@/components/custom"
 
 import { TariffTable } from "./tariff-table"
 
-// Schema for copy company rate form
-const copyCompanyRateSchema = z.object({
-  fromCompanyId: z.number().min(1, "From Company is required"),
-  fromCustomerId: z.number().min(1, "From Customer is required"),
-  fromPortId: z.number().min(1, "From Port is required"),
-  toCompanyId: z.number().min(1, "To Company is required"),
-  toCustomerId: z.number().min(1, "To Customer is required"),
-  toPortId: z.number().min(1, "To Port is required"),
-  fromTaskId: z.number().min(1, "From Task is required"),
-  multipleId: z.string().optional(),
-  isOverwrite: z.boolean(),
-  isDelete: z.boolean(),
-})
+const copyCompanyRateSchema = z
+  .object({
+    fromCompanyId: z.number().min(1, "From Company is required"),
+    fromCustomerId: z.number().min(1, "From Customer is required"),
+    fromPortId: z.number().min(0),
+    toCompanyId: z.number().min(1, "To Company is required"),
+    toCustomerId: z.number().min(1, "To Customer is required"),
+    toPortId: z.number().min(0),
+    fromTaskId: z.number().min(0),
+    multipleId: z.string().optional(),
+    isOverwrite: z.boolean(),
+    isDelete: z.boolean(),
+    isAllTasks: z.boolean(),
+    isAllPorts: z.boolean(),
+  })
+  .refine(
+    (data) => {
+      // If isAllPorts is false, fromPortId is required
+      if (!data.isAllPorts && data.fromPortId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "From Port is required",
+      path: ["fromPortId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If isAllTasks is false, fromTaskId is required
+      if (!data.isAllTasks && data.fromTaskId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "From Task is required",
+      path: ["fromTaskId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If isAllPorts is false, toPortId is required
+      if (!data.isAllPorts && data.toPortId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "To Port is required",
+      path: ["toPortId"],
+    }
+  )
 
 type CopyCompanyRateSchemaType = z.infer<typeof copyCompanyRateSchema>
 
 interface CopyCompanyRateFormProps {
-  onCancel: () => void
+  onCancelAction: () => void
   onSaveConfirmation?: (data: Record<string, unknown>) => void
 }
 
 export function CopyCompanyRateForm({
-  onCancel,
+  onCancelAction,
   onSaveConfirmation,
 }: CopyCompanyRateFormProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -66,43 +110,41 @@ export function CopyCompanyRateForm({
       multipleId: "",
       isOverwrite: true,
       isDelete: false,
+      isAllTasks: false,
+      isAllPorts: false,
     },
   })
 
-  // Copy tariff mutation
-  const copyTariffMutation = usePersist(Tariff.copyCompanyTariff)
+  // Direct API function using api-client.ts
 
-  // Watch form values to determine when to show table
   const watchedValues = form.watch([
+    "fromCompanyId",
     "fromCustomerId",
     "fromPortId",
     "fromTaskId",
+    "isAllPorts",
+    "isAllTasks",
   ])
-  const watchedFromCustomerId = watchedValues[0]
-  const watchedFromPortId = watchedValues[1]
-  const watchedFromTaskId = watchedValues[2]
+  const watchedFromCompanyId = watchedValues[0]
+  const watchedFromCustomerId = watchedValues[1]
+  const watchedFromPortId = watchedValues[2]
+  const watchedFromTaskId = watchedValues[3]
+  const watchedIsAllPorts = watchedValues[4]
+  const watchedIsAllTasks = watchedValues[5]
 
-  // Create a stable key for the API call
-  const apiKey = useMemo(() => {
-    if (
-      watchedFromCustomerId > 0 &&
-      watchedFromPortId > 0 &&
-      watchedFromTaskId > 0
-    ) {
-      return `copyCompanyRateTariffs-${watchedFromCustomerId}-${watchedFromPortId}-${watchedFromTaskId}`
-    }
-    return null
-  }, [watchedFromCustomerId, watchedFromPortId, watchedFromTaskId])
-
-  // Fetch tariff data when all required fields are selected
   const { data: tariffResponse, isLoading: isLoadingTariffs } =
-    useGetByParams<ITariff>(
-      Tariff.getTariffByTask,
-      apiKey || "copyCompanyRateTariffs",
-      `${watchedFromCustomerId}/${watchedFromPortId}/${watchedFromTaskId}`
+    useGetTariffByCompanyTask(
+      watchedFromCompanyId,
+      watchedFromCustomerId,
+      watchedFromPortId,
+      watchedFromTaskId,
+      watchedFromCompanyId > 0 &&
+        watchedFromCustomerId > 0 &&
+        (watchedIsAllPorts || watchedFromPortId > 0) &&
+        !watchedIsAllTasks &&
+        watchedFromTaskId > 0
     )
 
-  // Process tariff data
   const tariffData = useMemo(() => {
     return tariffResponse?.data
       ? Array.isArray(tariffResponse.data)
@@ -111,62 +153,65 @@ export function CopyCompanyRateForm({
       : []
   }, [tariffResponse?.data])
 
-  // Show table when all required fields are selected and data is loaded
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (
+      // Don't show table if isAllTasks is selected
+      if (watchedIsAllTasks) {
+        setShowTable(false)
+      } else if (
+        watchedFromCompanyId > 0 &&
         watchedFromCustomerId > 0 &&
-        watchedFromPortId > 0 &&
+        (watchedIsAllPorts || watchedFromPortId > 0) &&
         watchedFromTaskId > 0
       ) {
         setShowTable(true)
       } else {
         setShowTable(false)
       }
-    }, 300) // Small delay to prevent rapid state changes
+    }, 300)
 
     return () => clearTimeout(timer)
-  }, [watchedFromCustomerId, watchedFromPortId, watchedFromTaskId])
+  }, [
+    watchedFromCompanyId,
+    watchedFromCustomerId,
+    watchedFromPortId,
+    watchedFromTaskId,
+    watchedIsAllPorts,
+    watchedIsAllTasks,
+  ])
 
   const handleSubmit = async (data: CopyCompanyRateSchemaType) => {
-    // Prepare copy rate data
     const copyRateData = {
       fromCompanyId: data.fromCompanyId,
       toCompanyId: data.toCompanyId,
       fromTaskId: data.fromTaskId,
       fromPortId: data.fromPortId,
-      toPortId: data.toPortId,
+      toPortId: data.isAllPorts ? 0 : data.toPortId,
       fromCustomerId: data.fromCustomerId,
       toCustomerId: data.toCustomerId,
       multipleId: data.multipleId || "",
       isOverwrite: data.isOverwrite,
       isDelete: data.isDelete,
+      isAllTasks: data.isAllTasks,
+      isAllPorts: data.isAllPorts,
     }
 
     if (onSaveConfirmation) {
+      console.log("copyRateData", copyRateData)
       onSaveConfirmation(copyRateData)
     } else {
       // Fallback to direct execution if no confirmation handler
       setIsLoading(true)
       try {
-        // Call the copy tariff API
-        copyTariffMutation.mutate(copyRateData, {
-          onSuccess: (response) => {
-            console.log("Copy response:", response)
-            if (response?.result === 1) {
-              toast.success("Rates copied successfully")
-              onCancel()
-              form.reset()
-            } else {
-              const errorMessage = response?.message || "Failed to copy rates"
-              toast.error(errorMessage)
-            }
-          },
-          onError: (error) => {
-            console.error("Error copying rates:", error)
-            toast.error("Failed to copy rates")
-          },
-        })
+        const response = await copyCompanyTariffDirect(copyRateData)
+        if (response?.result === 1) {
+          toast.success(response.message || "Rates copied successfully")
+          onCancelAction()
+          form.reset()
+        } else {
+          const errorMessage = response?.message || "Failed to copy rates"
+          toast.error(errorMessage)
+        }
       } catch (error) {
         console.error("Error copying rates:", error)
         toast.error("Failed to copy rates")
@@ -175,32 +220,6 @@ export function CopyCompanyRateForm({
       }
     }
   }
-
-  const handleCustomerChange = useCallback(
-    (field: "fromCustomerId" | "toCustomerId") => {
-      return (selectedCustomer: ICustomerLookup | null) => {
-        if (selectedCustomer) {
-          form.setValue(field, selectedCustomer.customerId || 0)
-        } else {
-          form.setValue(field, 0)
-        }
-      }
-    },
-    [form]
-  )
-
-  const handlePortChange = useCallback(
-    (field: "fromPortId" | "toPortId") => {
-      return (selectedPort: IPortLookup | null) => {
-        if (selectedPort) {
-          form.setValue(field, selectedPort.portId || 0)
-        } else {
-          form.setValue(field, 0)
-        }
-      }
-    },
-    [form]
-  )
 
   const handleCompanyChange = useCallback(
     (field: "fromCompanyId" | "toCompanyId") => {
@@ -235,11 +254,77 @@ export function CopyCompanyRateForm({
     [form]
   )
 
+  const handleCustomerChange = useCallback(
+    (field: "fromCustomerId" | "toCustomerId") =>
+      (selectedCustomer: ICustomerLookup | null) => {
+        form.setValue(field, selectedCustomer?.customerId || 0)
+      },
+    [form]
+  )
+
+  const handlePortChange = useCallback(
+    (field: "fromPortId" | "toPortId") =>
+      (selectedPort: IPortLookup | null) => {
+        form.setValue(field, selectedPort?.portId || 0)
+      },
+    [form]
+  )
+
+  // Watch checkbox values to control field states
+  const isAllPorts = form.watch("isAllPorts")
+  const isAllTasks = form.watch("isAllTasks")
+
+  // Handle All Ports checkbox change - clear fromPortId and toPortId when checked
+  useEffect(() => {
+    if (isAllPorts) {
+      form.setValue("fromPortId", 0)
+      form.setValue("toPortId", 0)
+    }
+  }, [isAllPorts, form])
+
+  // Handle All Tasks checkbox change - clear fromTaskId when checked
+  useEffect(() => {
+    if (isAllTasks) {
+      form.setValue("fromTaskId", 0)
+    }
+  }, [isAllTasks, form])
+
+  // Get form errors for display
+  const formErrors = form.formState.errors
+
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Validation Error Display */}
+        {Object.keys(formErrors).length > 0 && (
+          <div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
+            <h4 className="text-destructive mb-2 text-sm font-medium">
+              Please fix the following errors:
+            </h4>
+            <ul className="text-destructive space-y-1 text-sm">
+              {Object.entries(formErrors).map(([field, error]) => (
+                <li key={field}>
+                  • {error?.message || `${field} is required`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <form
+          onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+            console.error("Form validation failed:", errors)
+            // Scroll to first error
+            const firstErrorField = Object.keys(errors)[0]
+            if (firstErrorField) {
+              const element = document.querySelector(
+                `[name="${firstErrorField}"]`
+              )
+              element?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+          })}
+          className="w-full space-y-4"
+        >
+          <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
             {/* From Section */}
             <div className="bg-card space-y-3 rounded-lg border p-4">
               <div className="flex items-center gap-2">
@@ -262,19 +347,39 @@ export function CopyCompanyRateForm({
                   isRequired
                   onChangeEvent={handleCustomerChange("fromCustomerId")}
                 />
-                <PortAutocomplete
-                  form={form}
-                  name="fromPortId"
-                  label="Port"
-                  isRequired
-                  onChangeEvent={handlePortChange("fromPortId")}
-                />
-                <TaskAutocomplete
-                  form={form}
-                  name="fromTaskId"
-                  label="Task"
-                  isRequired
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <PortAutocomplete
+                    form={form}
+                    name="fromPortId"
+                    label="Port"
+                    isRequired={!isAllPorts}
+                    isDisabled={isAllPorts}
+                    onChangeEvent={handlePortChange("fromPortId")}
+                  />
+                  <div className="flex items-end pb-2">
+                    <CustomCheckbox
+                      form={form}
+                      name="isAllPorts"
+                      label="All Ports"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TaskAutocomplete
+                    form={form}
+                    name="fromTaskId"
+                    label="Task"
+                    isRequired={!isAllTasks}
+                    isDisabled={isAllTasks}
+                  />
+                  <div className="flex items-end pb-2">
+                    <CustomCheckbox
+                      form={form}
+                      name="isAllTasks"
+                      label="All Tasks"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -304,7 +409,8 @@ export function CopyCompanyRateForm({
                   form={form}
                   name="toPortId"
                   label="Port"
-                  isRequired
+                  isRequired={!isAllPorts}
+                  isDisabled={isAllPorts}
                   onChangeEvent={handlePortChange("toPortId")}
                 />
               </div>
@@ -371,17 +477,17 @@ export function CopyCompanyRateForm({
                   </div>
                 )}
               </div>
-              <div className="bg-background max-h-96 w-full overflow-auto rounded-md border">
+              <div className="bg-background max-h-[50vh] w-full overflow-auto rounded-md border">
                 <TariffTable data={tariffData} isLoading={isLoadingTariffs} />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               className="flex items-center gap-2"
             >
               <XIcon className="h-4 w-4" />

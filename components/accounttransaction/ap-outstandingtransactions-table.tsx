@@ -18,7 +18,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 // Use flexible data type that can work with form data
 interface ApOutStandingTransactionsTableProps {
   data: IApOutTransaction[]
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   visible: IVisibleFields
   onSelect?: (transaction: IApOutTransaction | null) => void
@@ -28,7 +28,7 @@ interface ApOutStandingTransactionsTableProps {
 
 export default function ApOutStandingTransactionsTable({
   data,
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   onSelect,
   onBulkSelectionChange,
@@ -60,10 +60,10 @@ export default function ApOutStandingTransactionsTable({
   }, [])
 
   const handleRefresh = useCallback(() => {
-    if (onRefresh) {
-      onRefresh()
+    if (onRefreshAction) {
+      onRefreshAction()
     }
-  }, [onRefresh])
+  }, [onRefreshAction])
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
@@ -240,7 +240,7 @@ export default function ApOutStandingTransactionsTable({
         tableName={TableName.apOutTransaction}
         emptyMessage="No outstanding transactions found."
         accessorId="documentId"
-        onRefresh={handleRefresh}
+        onRefreshAction={handleRefresh}
         onFilterChange={handleFilterChange}
         onSelect={handleSelect}
         onBulkSelectionChange={handleBulkSelectionChange}

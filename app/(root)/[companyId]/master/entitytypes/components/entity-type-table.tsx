@@ -13,10 +13,10 @@ interface EntityTypesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (entityType: IEntityType | null) => void
-  onDelete?: (entityTypeId: string) => void
-  onEdit?: (entityType: IEntityType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (entityTypeId: string) => void
+  onEditAction?: (entityType: IEntityType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -37,10 +37,10 @@ export function EntityTypesTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   moduleId = 1,
   transactionId = 1,
@@ -121,10 +121,10 @@ export function EntityTypesTable({
       tableName={TableName.entityTypes}
       accessorId="entityTypeId"
       onSelect={onSelect}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onCreate={onCreate}
-      onRefresh={onRefresh}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
+      onCreateAction={onCreateAction}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}

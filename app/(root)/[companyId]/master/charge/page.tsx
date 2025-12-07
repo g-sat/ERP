@@ -2,13 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ApiResponse, ICharge, IChargeFilter } from "@/interfaces"
-import { ChargeSchemaType } from "@/schemas"
+import {
+  ApiResponse,
+  ICharge,
+  IChargeFilter,
+  IChargeGLMapping,
+  IChargeGLMappingFilter,
+} from "@/interfaces"
+import { ChargeGLMappingSchemaType, ChargeSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getById } from "@/lib/api-client"
-import { Charge } from "@/lib/api-routes"
+import { Charge, ChargeGLMapping } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -20,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
@@ -28,6 +35,8 @@ import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { ChargeForm } from "./components/charge-form"
 import { ChargeTable } from "./components/charge-table"
+import { ChargeGLMappingForm } from "./components/chargeglmapping-form"
+import { ChargeGLMappingTable } from "./components/chargeglmapping-table"
 
 export default function ChargePage() {
   const params = useParams()
@@ -35,36 +44,66 @@ export default function ChargePage() {
 
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.charge
+  const transactionIdGLMapping = MasterTransactionId.chargeGLMapping
 
-  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
-
   const { hasPermission } = usePermissionStore()
 
+  // Permissions for Charge
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  // Fetch account groups from the API using useGet
-  const [filters, setFilters] = useState<IChargeFilter>({})
-  const [isLocked, setIsLocked] = useState(false)
+  // Permissions for ChargeGLMapping
+  const canViewGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isRead"
+  )
+  const canEditGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isEdit"
+  )
+  const canDeleteGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isDelete"
+  )
+  const canCreateGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isCreate"
+  )
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
-
-  // Get user setting defaults
+  // Get user settings for default page size
   const { defaults } = useUserSettingDefaults()
 
-  // Update page size when defaults change
+  // State for filters
+  const [filters, setFilters] = useState<IChargeFilter>({})
+  const [glMappingFilters, setGLMappingFilters] =
+    useState<IChargeGLMappingFilter>({})
+
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [glMappingCurrentPage, setGLMappingCurrentPage] = useState(1)
+  const [glMappingPageSize, setGLMappingPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
   useEffect(() => {
     if (defaults?.common?.masterGridTotalRecords) {
       setPageSize(defaults.common.masterGridTotalRecords)
+      setGLMappingPageSize(defaults.common.masterGridTotalRecords)
     }
   }, [defaults?.common?.masterGridTotalRecords])
 
-  // Filter handler wrapper
+  // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IChargeFilter)
@@ -73,20 +112,39 @@ export default function ChargePage() {
     []
   )
 
-  // Pagination handlers
+  const handleGLMappingFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setGLMappingFilters(newFilters as IChargeGLMappingFilter)
+      setGLMappingCurrentPage(1) // Reset to first page when filtering
+    },
+    []
+  )
+
+  // Page change handlers for each tab
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page)
   }, [])
 
-  const handlePageSizeChange = useCallback((size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
+  const handleGLMappingPageChange = useCallback((page: number) => {
+    setGLMappingCurrentPage(page)
   }, [])
 
+  // Page size change handlers for each tab
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleGLMappingPageSizeChange = useCallback((size: number) => {
+    setGLMappingPageSize(size)
+    setGLMappingCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  // Data fetching for Charge
   const {
     data: chargesResponse,
-    refetch,
-    isLoading,
+    refetch: refetchCharge,
+    isLoading: isLoadingCharge,
   } = useGetWithPagination<ICharge>(
     `${Charge.get}`,
     "charges",
@@ -95,11 +153,24 @@ export default function ChargePage() {
     pageSize
   )
 
-  // Destructure with fallback values
+  // Data fetching for ChargeGLMapping
+  const {
+    data: chargeGLMappingResponse,
+    refetch: refetchChargeGLMapping,
+    isLoading: isLoadingChargeGLMapping,
+  } = useGetWithPagination<IChargeGLMapping>(
+    `${ChargeGLMapping.get}`,
+    "chargeglmappings",
+    glMappingFilters.search,
+    glMappingCurrentPage,
+    glMappingPageSize
+  )
+
+  // Extract data from responses with fallback values
   const {
     result: chargesResult,
     data: chargesData,
-    totalRecords,
+    totalRecords: chargesTotalRecords,
   } = (chargesResponse as ApiResponse<ICharge>) ?? {
     result: 0,
     message: "",
@@ -107,76 +178,90 @@ export default function ChargePage() {
     totalRecords: 0,
   }
 
-  // Handle result = -1 and result = -2 cases
-  useEffect(() => {
-    if (!chargesResponse) return
+  const {
+    result: chargeGLMappingResult,
+    data: chargeGLMappingData,
+    totalRecords: chargeGLMappingTotalRecords,
+  } = (chargeGLMappingResponse as ApiResponse<IChargeGLMapping>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
-    if (chargesResponse.result === -1) {
-      setFilters({})
-    } else if (chargesResponse.result === -2 && !isLocked) {
-      setIsLocked(true)
-    } else if (chargesResponse.result !== -2) {
-      setIsLocked(false)
-    }
-  }, [chargesResponse, isLocked])
-
-  // Define mutations for CRUD operations
+  // Mutations for Charge
   const saveMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
   const updateMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
   const deleteMutation = useDelete(`${Charge.delete}`)
 
-  // State for modal and selected account group
-  const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>(
-    undefined
+  // Mutations for ChargeGLMapping
+  const saveGLMappingMutation = usePersist<ChargeGLMappingSchemaType>(
+    `${ChargeGLMapping.add}`
   )
+  const updateGLMappingMutation = usePersist<ChargeGLMappingSchemaType>(
+    `${ChargeGLMapping.add}`
+  )
+  const deleteGLMappingMutation = useDelete(`${ChargeGLMapping.delete}`)
+
+  // State management for Charge
+  const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-  // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingCharge, setExistingCharge] = useState<ICharge | null>(null)
 
-  // State for delete confirmation
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    chargeId: string | null
-    chargeName: string | null
-  }>({
+  // State management for ChargeGLMapping
+  const [selectedChargeGLMapping, setSelectedChargeGLMapping] = useState<
+    IChargeGLMapping | undefined
+  >()
+  const [isGLMappingModalOpen, setIsGLMappingModalOpen] = useState(false)
+  const [glMappingModalMode, setGLMappingModalMode] = useState<
+    "create" | "edit" | "view"
+  >("create")
+
+  // State for delete confirmations
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,
-    chargeId: null,
-    chargeName: null,
+    id: null as string | null,
+    name: null as string | null,
+    type: "charge" as "charge" | "chargeglmapping",
   })
 
-  // State for save confirmation
+  // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: ChargeSchemaType | null
+    data: ChargeSchemaType | ChargeGLMappingSchemaType | null
+    type: "charge" | "chargeglmapping"
   }>({
     isOpen: false,
     data: null,
+    type: "charge",
   })
 
-  // Handler to Re-fetches data when called
-  const handleRefresh = () => {
-    refetch()
-  }
+  // Refetch when filters change
+  useEffect(() => {
+    if (filters.search !== undefined) refetchCharge()
+  }, [filters.search, refetchCharge])
 
-  // Handler to open modal for creating a new account group
+  useEffect(() => {
+    if (glMappingFilters.search !== undefined) refetchChargeGLMapping()
+  }, [glMappingFilters.search, refetchChargeGLMapping])
+
+  // Action handlers for Charge
   const handleCreateCharge = () => {
     setModalMode("create")
     setSelectedCharge(undefined)
     setIsModalOpen(true)
   }
 
-  // Handler to open modal for editing an account group
   const handleEditCharge = (charge: ICharge) => {
     setModalMode("edit")
     setSelectedCharge(charge)
     setIsModalOpen(true)
   }
 
-  // Handler to open modal for viewing an account group
   const handleViewCharge = (charge: ICharge | null) => {
     if (!charge) return
     setModalMode("view")
@@ -184,64 +269,179 @@ export default function ChargePage() {
     setIsModalOpen(true)
   }
 
+  // Action handlers for ChargeGLMapping
+  const handleCreateChargeGLMapping = () => {
+    setGLMappingModalMode("create")
+    setSelectedChargeGLMapping(undefined)
+    setIsGLMappingModalOpen(true)
+  }
+
+  const handleEditChargeGLMapping = (chargeGLMapping: IChargeGLMapping) => {
+    setGLMappingModalMode("edit")
+    setSelectedChargeGLMapping(chargeGLMapping)
+    setIsGLMappingModalOpen(true)
+  }
+
+  const handleViewChargeGLMapping = (
+    chargeGLMapping: IChargeGLMapping | null
+  ) => {
+    if (!chargeGLMapping) return
+    setGLMappingModalMode("view")
+    setSelectedChargeGLMapping(chargeGLMapping)
+    setIsGLMappingModalOpen(true)
+  }
+
+  // Helper function for API responses
+  const handleApiResponse = (
+    response: ApiResponse<ICharge | IChargeGLMapping>
+  ) => {
+    if (response.result === 1) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  // Form handlers for Charge
+  const handleChargeSubmit = async (data: ChargeSchemaType) => {
+    try {
+      if (modalMode === "create") {
+        const response = (await saveMutation.mutateAsync(
+          data
+        )) as ApiResponse<ICharge>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["charges"] })
+        }
+      } else if (modalMode === "edit" && selectedCharge) {
+        const response = (await updateMutation.mutateAsync(
+          data
+        )) as ApiResponse<ICharge>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["charges"] })
+        }
+      }
+    } catch (error) {
+      console.error("Charge form submission error:", error)
+    }
+  }
+
+  // Form handlers for ChargeGLMapping
+  const handleChargeGLMappingSubmit = async (
+    data: ChargeGLMappingSchemaType
+  ) => {
+    try {
+      if (glMappingModalMode === "create") {
+        const response = (await saveGLMappingMutation.mutateAsync(
+          data
+        )) as ApiResponse<IChargeGLMapping>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["chargeglmappings"] })
+        }
+      } else if (glMappingModalMode === "edit" && selectedChargeGLMapping) {
+        const response = (await updateGLMappingMutation.mutateAsync(
+          data
+        )) as ApiResponse<IChargeGLMapping>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["chargeglmappings"] })
+        }
+      }
+    } catch (error) {
+      console.error("ChargeGLMapping form submission error:", error)
+    }
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
+    data: ChargeSchemaType | ChargeGLMappingSchemaType
+  ) => {
+    try {
+      if (saveConfirmation.type === "chargeglmapping") {
+        await handleChargeGLMappingSubmit(data as ChargeGLMappingSchemaType)
+        setIsGLMappingModalOpen(false)
+      } else {
+        await handleChargeSubmit(data as ChargeSchemaType)
+        setIsModalOpen(false)
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+    }
+  }
+
   // Handler for form submission (create or edit) - shows confirmation first
   const handleFormSubmit = (data: ChargeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
+      type: "charge",
     })
   }
 
-  // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: ChargeSchemaType) => {
-    try {
-      if (modalMode === "create") {
-        const response = await saveMutation.mutateAsync(data)
-        if (response.result === 1) {
-          // Invalidate and refetch the charges query
-          queryClient.invalidateQueries({ queryKey: ["charges"] })
-          setIsModalOpen(false)
-        }
-      } else if (modalMode === "edit" && selectedCharge) {
-        const response = await updateMutation.mutateAsync(data)
-        if (response.result === 1) {
-          // Invalidate and refetch the charges query
-          queryClient.invalidateQueries({ queryKey: ["charges"] })
-          setIsModalOpen(false)
-        }
-      }
-    } catch (error) {
-      console.error("Error in form submission:", error)
-    }
+  const handleGLMappingFormSubmit = (data: ChargeGLMappingSchemaType) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: "chargeglmapping",
+    })
   }
 
-  // Handler for deleting an account group
+  // Delete handlers
   const handleDeleteCharge = (chargeId: string) => {
-    const chargeToDelete = chargesData?.find(
-      (ag) => ag.chargeId.toString() === chargeId
+    const chargeToDelete = chargesData.find(
+      (c) => c.chargeId.toString() === chargeId
     )
     if (!chargeToDelete) return
-
-    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
-      chargeId,
-      chargeName: chargeToDelete.chargeName,
+      id: chargeId,
+      name: chargeToDelete.chargeName,
+      type: "charge",
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.chargeId) {
-      deleteMutation.mutateAsync(deleteConfirmation.chargeId).then(() => {
-        // Invalidate and refetch the charges query after successful deletion
-        queryClient.invalidateQueries({ queryKey: ["charges"] })
-      })
-      setDeleteConfirmation({
-        isOpen: false,
-        chargeId: null,
-        chargeName: null,
-      })
-    }
+  const handleDeleteChargeGLMapping = (id: string) => {
+    const chargeGLMappingToDelete = chargeGLMappingData.find(
+      (c) => c.chargeId.toString() === id
+    )
+    if (!chargeGLMappingToDelete) return
+    setDeleteConfirmation({
+      isOpen: true,
+      id: id,
+      name: chargeGLMappingToDelete.chargeName,
+      type: "chargeglmapping",
+    })
+  }
+
+  // Individual deletion executors for each entity type
+  const executeDeleteCharge = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["charges"] })
+  }
+
+  const executeDeleteChargeGLMapping = async (id: string) => {
+    await deleteGLMappingMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["chargeglmappings"] })
+  }
+
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    charge: executeDeleteCharge,
+    chargeglmapping: executeDeleteChargeGLMapping,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
+
+    setDeleteConfirmation({
+      isOpen: false,
+      id: null,
+      name: null,
+      type: "charge",
+    })
   }
 
   // Handler for code availability check (memoized to prevent unnecessary re-renders)
@@ -262,15 +462,12 @@ export default function ChargePage() {
           `${Charge.getByCode}/${trimmedCode}/${taskId}`
         )
 
-        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-          // Handle both array and single object responses
           const chargeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           if (chargeData) {
-            // Ensure all required fields are present
             const validChargeData: ICharge = {
               chargeId: chargeData.chargeId,
               chargeCode: chargeData.chargeCode,
@@ -278,7 +475,6 @@ export default function ChargePage() {
               taskId: chargeData.taskId,
               chargeOrder: chargeData.chargeOrder,
               itemNo: chargeData.itemNo,
-              glId: chargeData.glId,
               isActive: chargeData.isActive,
               remarks: chargeData.remarks || "",
               createBy: chargeData.createBy,
@@ -289,7 +485,6 @@ export default function ChargePage() {
               editById: chargeData.editById,
               companyId: chargeData.companyId,
               taskName: chargeData.taskName,
-              glName: chargeData.glName,
             }
 
             setExistingCharge(validChargeData)
@@ -303,7 +498,7 @@ export default function ChargePage() {
     [modalMode]
   )
 
-  // Handler for loading existing account group
+  // Load existing records
   const handleLoadExistingCharge = () => {
     if (existingCharge) {
       setModalMode("edit")
@@ -319,7 +514,7 @@ export default function ChargePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Charges
+            Charge
           </h1>
           <p className="text-muted-foreground text-sm">
             Manage charge information and settings
@@ -327,82 +522,154 @@ export default function ChargePage() {
         </div>
       </div>
 
-      {/* Account Groups Table */}
-      {isLoading ? (
-        <DataTableSkeleton
-          columnCount={7}
-          filterCount={2}
-          cellWidths={[
-            "10rem",
-            "30rem",
-            "10rem",
-            "10rem",
-            "6rem",
-            "6rem",
-            "6rem",
-          ]}
-          shrinkZero
-        />
-      ) : chargesResult === -2 ||
-        (!canView && !canEdit && !canDelete && !canCreate) ? (
-        <LockSkeleton locked={true}>
-          <ChargeTable
-            data={[]}
-            isLoading={false}
-            onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
-            onFilterChange={() => {}}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            canView={false}
-            canCreate={false}
-            canEdit={false}
-            canDelete={false}
-          />
-        </LockSkeleton>
-      ) : (
-        <ChargeTable
-          data={chargesData || []}
-          isLoading={isLoading}
-          totalRecords={totalRecords}
-          onSelect={canView ? handleViewCharge : undefined}
-          onDelete={canDelete ? handleDeleteCharge : undefined}
-          onEdit={canEdit ? handleEditCharge : undefined}
-          onCreate={canCreate ? handleCreateCharge : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          serverSidePagination={true}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
-      )}
+      <Tabs defaultValue="charge" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="charge">Charge</TabsTrigger>
+          <TabsTrigger value="chargeglmapping">Charge GL Mapping</TabsTrigger>
+        </TabsList>
 
-      {/* Modal for Create, Edit, and View */}
-      <Dialog
-        open={isModalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsModalOpen(false)
-          }
-        }}
-      >
+        <TabsContent value="charge" className="space-y-4">
+          {isLoadingCharge ? (
+            <DataTableSkeleton
+              columnCount={7}
+              filterCount={2}
+              cellWidths={[
+                "10rem",
+                "30rem",
+                "10rem",
+                "10rem",
+                "6rem",
+                "6rem",
+                "6rem",
+              ]}
+              shrinkZero
+            />
+          ) : chargesResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
+            <LockSkeleton locked={true}>
+              <ChargeTable
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
+                onFilterChange={() => {}}
+                moduleId={moduleId}
+                transactionId={transactionId}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
+              />
+            </LockSkeleton>
+          ) : (
+            <ChargeTable
+              data={chargesData || []}
+              isLoading={isLoadingCharge}
+              totalRecords={chargesTotalRecords}
+              onSelect={canView ? handleViewCharge : undefined}
+              onDeleteAction={canDelete ? handleDeleteCharge : undefined}
+              onEditAction={canEdit ? handleEditCharge : undefined}
+              onCreateAction={canCreate ? handleCreateCharge : undefined}
+              onRefreshAction={refetchCharge}
+              onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
+              moduleId={moduleId}
+              transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="chargeglmapping" className="space-y-4">
+          {isLoadingChargeGLMapping ? (
+            <DataTableSkeleton
+              columnCount={8}
+              filterCount={2}
+              cellWidths={[
+                "10rem",
+                "30rem",
+                "10rem",
+                "10rem",
+                "10rem",
+                "6rem",
+                "6rem",
+                "6rem",
+              ]}
+              shrinkZero
+            />
+          ) : chargeGLMappingResult === -2 ||
+            (!canViewGLMapping &&
+              !canEditGLMapping &&
+              !canDeleteGLMapping &&
+              !canCreateGLMapping) ? (
+            <LockSkeleton locked={true}>
+              <ChargeGLMappingTable
+                data={[]}
+                isLoading={false}
+                totalRecords={chargeGLMappingTotalRecords}
+                onSelect={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
+                onFilterChange={() => {}}
+                moduleId={moduleId}
+                transactionId={transactionIdGLMapping}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
+              />
+            </LockSkeleton>
+          ) : (
+            <ChargeGLMappingTable
+              data={chargeGLMappingData || []}
+              totalRecords={chargeGLMappingTotalRecords}
+              onSelect={
+                canViewGLMapping ? handleViewChargeGLMapping : undefined
+              }
+              onDeleteAction={
+                canDeleteGLMapping ? handleDeleteChargeGLMapping : undefined
+              }
+              onEditAction={
+                canEditGLMapping ? handleEditChargeGLMapping : undefined
+              }
+              onCreateAction={
+                canCreateGLMapping ? handleCreateChargeGLMapping : undefined
+              }
+              onRefreshAction={refetchChargeGLMapping}
+              onFilterChange={handleGLMappingFilterChange}
+              onPageChange={handleGLMappingPageChange}
+              onPageSizeChange={handleGLMappingPageSizeChange}
+              currentPage={glMappingCurrentPage}
+              pageSize={glMappingPageSize}
+              serverSidePagination={true}
+              moduleId={moduleId}
+              transactionId={transactionIdGLMapping}
+              canEdit={canEditGLMapping}
+              canDelete={canDeleteGLMapping}
+              canView={canViewGLMapping}
+              canCreate={canCreateGLMapping}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Charge Form Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
+          onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>
@@ -420,51 +687,94 @@ export default function ChargePage() {
           </DialogHeader>
           <Separator />
           <ChargeForm
-            initialData={
-              modalMode === "edit" || modalMode === "view"
-                ? selectedCharge
-                : undefined
-            }
+            initialData={modalMode !== "create" ? selectedCharge : undefined}
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view" || !canEdit}
+            isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
             companyId={companyId}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Account Group Dialog */}
+      {/* ChargeGLMapping Form Dialog */}
+      <Dialog
+        open={isGLMappingModalOpen}
+        onOpenChange={setIsGLMappingModalOpen}
+      >
+        <DialogContent
+          className="sm:max-w-2xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {glMappingModalMode === "create" && "Create Charge GL Mapping"}
+              {glMappingModalMode === "edit" && "Update Charge GL Mapping"}
+              {glMappingModalMode === "view" && "View Charge GL Mapping"}
+            </DialogTitle>
+            <DialogDescription>
+              {glMappingModalMode === "create"
+                ? "Add a new charge GL mapping to the system database."
+                : glMappingModalMode === "edit"
+                  ? "Update charge GL mapping information."
+                  : "View charge GL mapping details."}
+            </DialogDescription>
+          </DialogHeader>
+          <Separator />
+          <ChargeGLMappingForm
+            initialData={
+              glMappingModalMode !== "create"
+                ? selectedChargeGLMapping
+                : undefined
+            }
+            submitAction={handleGLMappingFormSubmit}
+            onCancelAction={() => setIsGLMappingModalOpen(false)}
+            isSubmitting={
+              saveGLMappingMutation.isPending ||
+              updateGLMappingMutation.isPending
+            }
+            isReadOnly={glMappingModalMode === "view"}
+            companyId={companyId}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Record Dialogs */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCharge}
-        onCancel={() => setExistingCharge(null)}
+        onCancelAction={() => setExistingCharge(null)}
         code={existingCharge?.chargeCode}
         name={existingCharge?.chargeName}
-        typeLabel="Account Group"
+        typeLabel="Charge"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete Account Type"
-        description="This action cannot be undone. This will permanently delete the account type from our servers."
-        itemName={deleteConfirmation.chargeName || ""}
+        title={`Delete ${deleteConfirmation.type.toUpperCase()}`}
+        description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
+        itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
-            chargeId: null,
-            chargeName: null,
+            id: null,
+            name: null,
+            type: "charge",
           })
         }
-        isDeleting={deleteMutation.isPending}
+        isDeleting={
+          deleteConfirmation.type === "charge"
+            ? deleteMutation.isPending
+            : deleteGLMappingMutation.isPending
+        }
       />
 
       {/* Save Confirmation Dialog */}
@@ -473,9 +783,36 @@ export default function ChargePage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Charge" : "Update Charge"}
-        itemName={saveConfirmation.data?.chargeName || ""}
-        operationType={modalMode === "create" ? "create" : "update"}
+        title={
+          (
+            saveConfirmation.type === "charge"
+              ? modalMode === "create"
+              : glMappingModalMode === "create"
+          )
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "charge"
+            ? (saveConfirmation.data as ChargeSchemaType)?.chargeName || ""
+            : (saveConfirmation.data as ChargeGLMappingSchemaType)
+              ? chargeGLMappingData.find(
+                  (c) =>
+                    c.chargeId ===
+                    (saveConfirmation.data as ChargeGLMappingSchemaType)
+                      .chargeId
+                )?.chargeName || ""
+              : ""
+        }
+        operationType={
+          (
+            saveConfirmation.type === "charge"
+              ? modalMode === "create"
+              : glMappingModalMode === "create"
+          )
+            ? "create"
+            : "update"
+        }
         onConfirm={() => {
           if (saveConfirmation.data) {
             handleConfirmedFormSubmit(saveConfirmation.data)
@@ -483,15 +820,22 @@ export default function ChargePage() {
           setSaveConfirmation({
             isOpen: false,
             data: null,
+            type: "charge",
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,
+            type: "charge",
           })
         }
-        isSaving={saveMutation.isPending || updateMutation.isPending}
+        isSaving={
+          saveConfirmation.type === "charge"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveGLMappingMutation.isPending ||
+              updateGLMappingMutation.isPending
+        }
       />
     </div>
   )

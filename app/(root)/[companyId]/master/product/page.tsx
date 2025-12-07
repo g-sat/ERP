@@ -291,10 +291,10 @@ export default function ProductPage() {
           <ProductsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -309,10 +309,10 @@ export default function ProductPage() {
         <ProductsTable
           data={filters.search ? [] : productsData || []}
           onSelect={canView ? handleViewProduct : undefined}
-          onDelete={canDelete ? handleDeleteProduct : undefined}
-          onEdit={canEdit ? handleEditProduct : undefined}
-          onCreate={canCreate ? handleCreateProduct : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteProduct : undefined}
+          onEditAction={canEdit ? handleEditProduct : undefined}
+          onCreateAction={canCreate ? handleCreateProduct : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -385,7 +385,7 @@ export default function ProductPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingProduct}
-        onCancel={() => setExistingProduct(null)}
+        onCancelAction={() => setExistingProduct(null)}
         code={existingProduct?.productCode}
         name={existingProduct?.productName}
         typeLabel="Product"
@@ -401,7 +401,7 @@ export default function ProductPage() {
         description="This action cannot be undone. This will permanently delete the product from our servers."
         itemName={deleteConfirmation.productName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             productId: null,
@@ -429,7 +429,7 @@ export default function ProductPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

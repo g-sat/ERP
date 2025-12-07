@@ -511,12 +511,12 @@ export function PortExpensesTab({
             data={data || []}
             onPortExpensesSelect={handleSelect}
             onDeletePortExpenses={handleDelete}
-            onEditPortExpenses={handleEdit}
-            onCreatePortExpenses={handleCreate}
+            onEditActionPortExpenses={handleEdit}
+            onCreateActionPortExpenses={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshPortExpenses}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshPortExpenses}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -575,7 +575,7 @@ export function PortExpensesTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -595,7 +595,7 @@ export function PortExpensesTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -609,7 +609,7 @@ export function PortExpensesTab({
           taskId={Task.PortExpenses}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this port expenses."
@@ -645,7 +645,7 @@ export function PortExpensesTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -665,7 +665,7 @@ export function PortExpensesTab({
         description="This action cannot be undone. This will permanently delete the port expense from our servers."
         itemName={deleteConfirmation.portExpenseName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             portExpenseId: null,

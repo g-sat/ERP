@@ -1084,8 +1084,8 @@ export default function DocumentOperationsManager({
                 isLoading={isLoading}
                 onPreview={handlePreview}
                 onDownload={handleDownload}
-                onDelete={handleDelete}
-                onRefresh={useCallback(() => {
+                onDeleteAction={handleDelete}
+                onRefreshAction={useCallback(() => {
                   queryClient.invalidateQueries({
                     queryKey: [
                       `documents-${moduleId}-${transactionId}-${recordId}`,
@@ -1093,7 +1093,7 @@ export default function DocumentOperationsManager({
                   })
                 }, [queryClient, moduleId, transactionId, recordId])}
                 onBulkSelectionChange={handleBulkSelectionChange}
-                onBulkDelete={handleBulkDelete}
+                onBulkDeleteAction={handleBulkDelete}
               />
             </CardContent>
           </Card>

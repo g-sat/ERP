@@ -34,10 +34,10 @@ import { DebitNoteConfirmation } from "@/components/confirmation/debitnote-confi
 
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {
-  onRefresh?: () => void
-  onCreate?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
   onCombinedService?: () => void
-  onDebitNote?: (debitNoteNo?: string, selectedIds?: string[]) => void
+  onDebitNoteAction?: (debitNoteNo?: string, selectedIds?: string[]) => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -58,10 +58,10 @@ type TaskTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function TaskTableHeader<TData>({
-  onRefresh,
-  onCreate,
+  onRefreshAction,
+  onCreateAction,
   onCombinedService,
-  onDebitNote,
+  onDebitNoteAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -151,12 +151,12 @@ export function TaskTableHeader<TData>({
     }
   }, [hasValidDebitNoteIds])
   const handleConfirmDebitNote = useCallback(() => {
-    if (onDebitNote) {
-      onDebitNote(debitNoteNo || "", selectedRowIds)
+    if (onDebitNoteAction) {
+      onDebitNoteAction(debitNoteNo || "", selectedRowIds)
       setDebitNoteNo("") // Clear the input after use
     }
     setShowDebitNoteConfirmation(false)
-  }, [onDebitNote, debitNoteNo, selectedRowIds])
+  }, [onDebitNoteAction, debitNoteNo, selectedRowIds])
   const handleCancelDebitNote = useCallback(() => {
     setShowDebitNoteConfirmation(false)
   }, [])
@@ -234,7 +234,7 @@ export function TaskTableHeader<TData>({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
-              onClick={onCreate}
+              onClick={onCreateAction}
               disabled={isConfirmed}
               title={
                 isConfirmed ? "Cannot create when confirmed" : "Create new item"
@@ -246,7 +246,7 @@ export function TaskTableHeader<TData>({
             <Button
               variant="outline"
               size="icon"
-              onClick={onRefresh}
+              onClick={onRefreshAction}
               disabled={isConfirmed}
               title={
                 isConfirmed ? "Cannot refresh when confirmed" : "Refresh data"
@@ -452,7 +452,7 @@ export function TaskTableHeader<TData>({
         itemName={`${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`}
         hasExistingDebitNote={hasValidDebitNoteIds}
         onConfirm={handleConfirmDebitNote}
-        onCancel={handleCancelDebitNote}
+        onCancelAction={handleCancelDebitNote}
         isCreating={false} // You can add loading state here if needed
       />
     </>

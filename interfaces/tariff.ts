@@ -25,9 +25,9 @@ export interface ITariff {
   uomId?: number
   uomCode?: string
   uomName?: string
-  visaTypeId?: number
-  visaTypeCode?: string
-  visaTypeName?: string
+  visaId?: number
+  visaCode?: string
+  visaName?: string
   displayRate?: number
   basicRate?: number
   minUnit?: number
@@ -41,6 +41,11 @@ export interface ITariff {
   isDefault: boolean
   remarks?: string
   isActive?: boolean
+  createBy?: string
+  createDate?: Date | string
+  editBy?: string
+  editDate?: Date | string
+  editVersion?: number
 }
 
 export interface ITariffCount {
@@ -75,4 +80,43 @@ export interface CopyRate {
   multipleId: string
   isOverwrite: boolean
   isDelete: boolean
+}
+
+/**
+ * TypeScript interface matching C# class TariffRPT
+ * Used for tariff report/download functionality
+ */
+export interface ITariffRPTRequest {
+  companyId: number
+  customerId: number
+  portId: number
+  isAllPorts: boolean
+}
+export interface ITariffRPT {
+  companyName: string
+  customerName: string
+  currencyCode: string
+  portName: string
+  taskName: string
+  chargeName: string
+  uomName: string
+  visaName: string
+  displayRate: number // decimal in C#
+  basicRate: number // decimal in C#
+  minUnit: number
+  maxUnit: number
+  isAdditional: boolean
+  additionalRate: number // decimal in C#
+  additionalUnit: number
+  isPrepayment: boolean
+  prepaymentPercentage: number // decimal in C#
+  seqNo: string
+  remarks: string
+  isDefault: boolean
+  isActive: boolean
+  createBy: string
+  createDate: string | null // DateTime? in C#
+  editBy: string
+  editDate: string | null // DateTime? in C#
+  editVersion: number
 }

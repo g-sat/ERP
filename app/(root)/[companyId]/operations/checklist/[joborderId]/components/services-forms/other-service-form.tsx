@@ -37,7 +37,7 @@ interface OtherServiceFormProps {
   initialData?: IOtherService
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: OtherServiceSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -47,7 +47,7 @@ export function OtherServiceForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: OtherServiceFormProps) {
@@ -101,7 +101,7 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -150,7 +150,7 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -367,7 +367,7 @@ export function OtherServiceForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

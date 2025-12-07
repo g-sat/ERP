@@ -18,10 +18,10 @@ interface OrderTypeCategoryTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (ordertypedtcategory: IOrderTypeCategory | null) => void
-  onDelete?: (ordertypeId: string) => void
-  onEdit?: (ordertypedtcategory: IOrderTypeCategory) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (ordertypeId: string) => void
+  onEditAction?: (ordertypedtcategory: IOrderTypeCategory) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function OrderTypeCategoryTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -166,7 +166,7 @@ export function OrderTypeCategoryTable({
       emptyMessage="No order type categories found."
       accessorId="orderTypeCategoryId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -175,9 +175,9 @@ export function OrderTypeCategoryTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

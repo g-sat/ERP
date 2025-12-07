@@ -24,7 +24,7 @@ export const documentTablePropsSchema = z.object({
 export const documentTableActionsSchema = z.object({
   onPreview: z.function(),
   onDownload: z.function(),
-  onDelete: z.function(),
+  onDeleteAction: z.function(),
 })
 
 export type DocumentTableRowType = z.infer<typeof documentTableRowSchema>

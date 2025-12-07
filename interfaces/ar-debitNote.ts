@@ -84,6 +84,7 @@ export interface IArDebitNoteHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+  appBy: string
 
   jobOrderId: number
   jobOrderNo: string

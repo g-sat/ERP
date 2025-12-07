@@ -39,7 +39,7 @@ interface EquipmentUsedFormProps {
   initialData?: IEquipmentUsed
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: EquipmentUsedSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -49,7 +49,7 @@ export function EquipmentUsedForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: EquipmentUsedFormProps) {
@@ -115,7 +115,7 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
@@ -157,7 +157,7 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
@@ -471,7 +471,7 @@ export function EquipmentUsedForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

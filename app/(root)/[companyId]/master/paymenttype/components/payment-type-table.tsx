@@ -18,10 +18,10 @@ interface PaymentTypesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (paymentType: IPaymentType | null) => void
-  onDelete?: (paymentTypeId: string) => void
-  onEdit?: (paymentType: IPaymentType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (paymentTypeId: string) => void
+  onEditAction?: (paymentType: IPaymentType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function PaymentTypesTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -166,7 +166,7 @@ export function PaymentTypesTable({
       emptyMessage="No payment types found."
       accessorId="paymentTypeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -175,9 +175,9 @@ export function PaymentTypesTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

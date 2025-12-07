@@ -18,10 +18,10 @@ interface WorkLocationTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (worklocation: IWorkLocation | null) => void
-  onDelete?: (worklocationId: string) => void
-  onEdit?: (worklocation: IWorkLocation) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (worklocationId: string) => void
+  onEditAction?: (worklocation: IWorkLocation) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function WorkLocationTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -168,7 +168,7 @@ export function WorkLocationTable({
       emptyMessage="No worklocations found."
       accessorId="workLocationId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -177,9 +177,9 @@ export function WorkLocationTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

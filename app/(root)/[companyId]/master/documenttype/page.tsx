@@ -321,10 +321,10 @@ export default function DocumentTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -340,10 +340,10 @@ export default function DocumentTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewDocumentType : undefined}
-          onDelete={canDelete ? handleDeleteDocumentType : undefined}
-          onEdit={canEdit ? handleEditDocumentType : undefined}
-          onCreate={canCreate ? handleCreateDocumentType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDocumentType : undefined}
+          onEditAction={canEdit ? handleEditDocumentType : undefined}
+          onCreateAction={canCreate ? handleCreateDocumentType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -410,7 +410,7 @@ export default function DocumentTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingDocumentType}
-        onCancel={() => setExistingDocumentType(null)}
+        onCancelAction={() => setExistingDocumentType(null)}
         code={existingDocumentType?.docTypeCode}
         name={existingDocumentType?.docTypeName}
         typeLabel="Document Type"
@@ -427,7 +427,7 @@ export default function DocumentTypePage() {
         description="This action cannot be undone. This will permanently delete the document type from our servers."
         itemName={deleteConfirmation.documentTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             documentTypeId: null,
@@ -459,7 +459,7 @@ export default function DocumentTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

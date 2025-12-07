@@ -160,6 +160,7 @@ export const visibleFieldsSchema = z
     m_CtyCurrHd: z.boolean(),
     m_PayeeToHd: z.boolean(),
     m_BankChgGLId: z.boolean(),
+    m_DebitNoteNo: z.boolean(),
   })
   .partial()
 

@@ -45,7 +45,7 @@ import { LoanSkipRequestForm } from "./loan-skip-request-form"
 
 interface LoanRequestTableProps {
   loans: ILoanRequest[]
-  onSave?: (
+  onSaveAction?: (
     loanId: string,
     action: "approve" | "reject" | "cancel",
     notes?: string
@@ -61,7 +61,7 @@ interface ApprovalDialogData {
 
 export function LoanRequestTable({
   loans,
-  onSave,
+  onSaveAction,
   showActions = true,
 }: LoanRequestTableProps) {
   const [selectedLoan, setSelectedLoan] = useState<ILoanRequest | null>(null)
@@ -99,8 +99,8 @@ export function LoanRequestTable({
 
     const { loan, action, notes } = approvalDialog
 
-    // Call the single onSave function with action and notes
-    onSave?.(loan.loanRequestId.toString(), action, notes)
+    // Call the single onSaveAction function with action and notes
+    onSaveAction?.(loan.loanRequestId.toString(), action, notes)
 
     // Close dialog and reset
     setApprovalDialog({

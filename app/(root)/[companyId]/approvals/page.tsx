@@ -285,7 +285,7 @@ export default function ApprovalsPage() {
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         requestDetail={requestDetail}
-        onClose={handleCloseDetail}
+        onCloseAction={handleCloseDetail}
         isPendingApproval={activeTab === "pending"}
       />
     </div>

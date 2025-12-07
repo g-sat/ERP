@@ -150,15 +150,30 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
       if (!date || !isValid(date)) return false
 
       // Check max date (including isFutureShow logic)
-      const effectiveMaxDate = isFutureShow ? maxDate : new Date()
-      if (effectiveMaxDate) {
-        const maxDateObj =
-          effectiveMaxDate instanceof Date
-            ? effectiveMaxDate
-            : new Date(effectiveMaxDate)
-        if (isValid(maxDateObj) && isAfter(date, maxDateObj)) {
-          return false
+      let effectiveMaxDate: Date | undefined
+      if (isFutureShow) {
+        // If isFutureShow is true, allow future dates
+        // If maxDate is provided, use it; otherwise allow 2 years into the future
+        if (maxDate) {
+          effectiveMaxDate =
+            maxDate instanceof Date ? maxDate : new Date(maxDate)
+        } else {
+          // Set max date to 2 years from now to allow future dates
+          const futureDate = new Date()
+          futureDate.setFullYear(futureDate.getFullYear() + 2)
+          effectiveMaxDate = futureDate
         }
+      } else {
+        // If isFutureShow is false, limit to today
+        effectiveMaxDate = new Date()
+      }
+
+      if (
+        effectiveMaxDate &&
+        isValid(effectiveMaxDate) &&
+        isAfter(date, effectiveMaxDate)
+      ) {
+        return false
       }
 
       // Check min date
@@ -209,17 +224,40 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
   const calendarMaxDate = React.useMemo(() => {
     if (isFutureShow) {
       // If isFutureShow is true, allow future dates
-      // If maxDate is provided, use it; otherwise set a far future date (100 years from now)
+      // If maxDate is provided, use it; otherwise allow 2 years into the future
       if (maxDate) {
         return maxDate instanceof Date ? maxDate : new Date(maxDate)
       }
-      // Set max date to 100 years from now to show future years in dropdown
-      const farFutureDate = new Date()
-      farFutureDate.setFullYear(farFutureDate.getFullYear() + 100)
-      return farFutureDate
+      // Set max date to 2 years from now
+      const futureDate = new Date()
+      futureDate.setFullYear(futureDate.getFullYear() + 2)
+      return futureDate
     }
     // If isFutureShow is false, limit to today
     return new Date()
+  }, [isFutureShow, maxDate])
+
+  // Calculate year range for calendar dropdown
+  const fromYear = React.useMemo(() => {
+    if (minDate) {
+      const minDateObj = minDate instanceof Date ? minDate : new Date(minDate)
+      return minDateObj.getFullYear()
+    }
+    // Default to 100 years ago
+    return new Date().getFullYear() - 100
+  }, [minDate])
+
+  const toYear = React.useMemo(() => {
+    if (isFutureShow) {
+      if (maxDate) {
+        const maxDateObj = maxDate instanceof Date ? maxDate : new Date(maxDate)
+        return maxDateObj.getFullYear()
+      }
+      // Show 2 years into the future when isFutureShow is true
+      return new Date().getFullYear() + 2
+    }
+    // If isFutureShow is false, limit to current year
+    return new Date().getFullYear()
   }, [isFutureShow, maxDate])
 
   return (
@@ -409,6 +447,8 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                         month={month}
                         onMonthChange={setMonth}
                         onSelect={handleCalendarSelect}
+                        fromYear={fromYear}
+                        toYear={toYear}
                         disabled={(date) => {
                           if (
                             calendarMinDate &&

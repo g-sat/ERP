@@ -21,7 +21,7 @@ export interface GLJournalTableProps {
   onFilterChange: (filters: IGLJournalFilter) => void
   initialFilters?: IGLJournalFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function GLJournalTable({
@@ -29,7 +29,7 @@ export default function GLJournalTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: GLJournalTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -275,7 +275,7 @@ export default function GLJournalTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -293,7 +293,7 @@ export default function GLJournalTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -437,11 +437,11 @@ export default function GLJournalTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -460,7 +460,7 @@ export default function GLJournalTable({
         transactionId={transactionId}
         tableName={TableName.glJournal}
         emptyMessage="No glJournals found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchGLJournals()}
+        onRefreshAction={() => refetchGLJournals()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onGLJournalSelect(row || undefined)}
         // Pagination props

@@ -1,13 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { ITariff, ITariffRPT, ITariffRPTRequest } from "@/interfaces"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
-import { ITariff } from "@/interfaces/tariff"
 import { usePermissionStore } from "@/stores/permission-store"
 import {
   BuildingIcon,
   CopyIcon,
+  DownloadIcon,
   PlusIcon,
   RefreshCcwIcon,
   SearchIcon,
@@ -19,8 +21,10 @@ import { toast } from "sonner"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import {
+  copyCompanyTariffDirect,
   copyRateDirect,
   deleteTariffDirect,
+  getRPTTariffDirect,
   saveTariffDirect,
   updateTariffDirect,
   useGetTariffByTask,
@@ -46,6 +50,7 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
 import { CopyRateForm } from "./components/copy-rate-form"
+import { DownloadTariffForm } from "./components/download-tariff-form"
 import { TariffForm } from "./components/tariff-form"
 import { TariffTable } from "./components/tariff-table"
 
@@ -134,16 +139,14 @@ const CATEGORY_CONFIG: Record<
     label: "Agency Remuneration",
     taskId: Task.AgencyRemuneration,
   },
-  visaService: {
-    id: "visaService",
-    label: "Visa Service",
-    taskId: Task.VisaService,
-  },
 }
 
 export default function TariffPage() {
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.tariff
+
+  const params = useParams()
+  const companyId = Number(params?.companyId) || 0
 
   const { hasPermission } = usePermissionStore()
 
@@ -222,6 +225,8 @@ export default function TariffPage() {
   // Copy forms state
   const [showCopyRateForm, setShowCopyRateForm] = useState(false)
   const [showCopyCompanyRateForm, setShowCopyCompanyRateForm] = useState(false)
+  const [showDownloadForm, setShowDownloadForm] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // Delete confirmation state
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -504,6 +509,7 @@ export default function TariffPage() {
   }
 
   const handleCopyRateConfirmation = (data: Record<string, unknown>) => {
+    console.log("handleCopyRateConfirmation", data)
     setSaveConfirmation({
       isOpen: true,
       type: "copyRate",
@@ -512,11 +518,100 @@ export default function TariffPage() {
   }
 
   const handleCopyCompanyRateConfirmation = (data: Record<string, unknown>) => {
+    console.log("handleCopyCompanyRateConfirmation", data)
     setSaveConfirmation({
       isOpen: true,
       type: "copyCompanyRate",
       data: data,
     })
+  }
+
+  const handleDownloadTariff = async (data: ITariffRPTRequest) => {
+    try {
+      setIsDownloading(true)
+      const response = await getRPTTariffDirect(data)
+
+      if (response?.result === 1 && response.data) {
+        // Convert data to CSV format
+        const csvData = convertToCSV(response.data)
+        downloadCSV(csvData, `tariff_rates_${new Date().getTime()}.csv`)
+        toast.success(
+          response.message || "Tariff rates downloaded successfully"
+        )
+        setShowDownloadForm(false)
+      } else {
+        const errorMessage =
+          response?.message || "Failed to download tariff rates"
+        toast.error(errorMessage)
+      }
+    } catch (error) {
+      console.error("Error downloading tariff rates:", error)
+      toast.error("Failed to download tariff rates")
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  // Helper function to convert camelCase to Title Case
+  const camelCaseToTitleCase = (str: string): string => {
+    return str
+      .replace(/([A-Z])/g, " $1") // Add space before capital letters
+      .replace(/^./, (char) => char.toUpperCase()) // Capitalize first letter
+      .trim()
+  }
+
+  // Helper function to convert ITariffRPT[] to CSV
+  const convertToCSV = (data: ITariffRPT[]): string => {
+    if (!data || data.length === 0) {
+      return ""
+    }
+
+    // Get headers from the first object
+    const headers = Object.keys(data[0])
+
+    // Convert headers to Title Case (e.g., "companyName" -> "Company Name")
+    const formattedHeaders = headers.map((header) =>
+      camelCaseToTitleCase(header)
+    )
+
+    // Create CSV header row with formatted headers
+    const csvHeaders = formattedHeaders.join(",")
+
+    // Create CSV data rows
+    const csvRows = data.map((row) => {
+      return headers
+        .map((header) => {
+          const value = row[header as keyof ITariffRPT]
+          // Handle null/undefined values
+          if (value === null || value === undefined) {
+            return ""
+          }
+          // Escape commas and quotes in values
+          const stringValue = String(value)
+          if (stringValue.includes(",") || stringValue.includes('"')) {
+            return `"${stringValue.replace(/"/g, '""')}"`
+          }
+          return stringValue
+        })
+        .join(",")
+    })
+
+    // Combine headers and rows
+    return [csvHeaders, ...csvRows].join("\n")
+  }
+
+  // Helper function to download CSV file
+  const downloadCSV = (csvContent: string, filename: string) => {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute("href", url)
+    link.setAttribute("download", filename)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleConfirmCopyRate = async () => {
@@ -550,14 +645,22 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      // This would need to be implemented based on your copy company rate API
-      // For now, we'll show a success message
-      setShowCopyCompanyRateForm(false)
-      toast.success("Company rates copied successfully")
-      refetchTariffByTask()
+      const response = await copyCompanyTariffDirect(
+        saveConfirmation.data as unknown as Parameters<
+          typeof copyCompanyTariffDirect
+        >[0]
+      )
+      if (response?.result === 1) {
+        setShowCopyCompanyRateForm(false)
+        toast.success(response.message || "Rates copied successfully")
+        refetchTariffByTask()
+      } else {
+        const errorMessage = response?.message || "Failed to copy rates"
+        toast.error(errorMessage)
+      }
     } catch (error) {
-      console.error("Error copying company rates:", error)
-      toast.error("Failed to copy company rates")
+      console.error("Error copying rates:", error)
+      toast.error("Failed to copy rates")
     } finally {
       setSaveConfirmation({
         isOpen: false,
@@ -617,7 +720,6 @@ export default function TariffPage() {
         [Task.LandingItems]: "landingItems",
         [Task.OtherService]: "otherService",
         [Task.AgencyRemuneration]: "agencyRemuneration",
-        [Task.VisaService]: "visaService",
       }
 
       const propertyName = taskCountMap[config.taskId as number]
@@ -651,6 +753,15 @@ export default function TariffPage() {
 
         {/* Top right action buttons */}
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowDownloadForm(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            title="Download Rates"
+          >
+            <DownloadIcon className="h-4 w-4" />
+          </Button>
           <Button
             onClick={() => setShowCopyRateForm(true)}
             variant="outline"
@@ -820,9 +931,9 @@ export default function TariffPage() {
             <TariffTable
               data={(tariffByTaskData as ITariff[]) || []}
               isLoading={isLoading}
-              onDelete={handleDeleteConfirmation}
-              onEdit={handleEditTariff}
-              onRefresh={() => {
+              onDeleteAction={handleDeleteConfirmation}
+              onEditAction={handleEditTariff}
+              onRefreshAction={() => {
                 handleRefresh()
               }}
               canEdit={canEdit}
@@ -830,7 +941,7 @@ export default function TariffPage() {
               canView={canView}
               canCreate={canCreate}
               onSelect={handleViewTariff}
-              onCreate={handleCreateTariff}
+              onCreateAction={handleCreateTariff}
             />
           ) : (
             <div className="text-muted-foreground py-12 text-center">
@@ -857,7 +968,7 @@ export default function TariffPage() {
         }}
       >
         <DialogContent
-          className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             if (hasFormErrors) {
               e.preventDefault()
@@ -883,10 +994,11 @@ export default function TariffPage() {
             </DialogDescription>
           </DialogHeader>
           <TariffForm
-            tariff={selectedTariff}
-            onSave={handleSaveTariff}
-            onClose={() => setIsModalOpen(false)}
+            initialData={selectedTariff}
+            onSaveAction={handleSaveTariff}
+            onCloseAction={() => setIsModalOpen(false)}
             mode={modalMode}
+            companyId={Number(companyId)}
             customerId={watchedCustomerId || apiParams.customerId}
             portId={apiParams.portId}
             taskId={
@@ -917,7 +1029,7 @@ export default function TariffPage() {
               </DialogDescription>
             </DialogHeader>
             <CopyRateForm
-              onCancel={() => setShowCopyRateForm(false)}
+              onCancelAction={() => setShowCopyRateForm(false)}
               onSaveConfirmation={handleCopyRateConfirmation}
             />
           </DialogContent>
@@ -947,9 +1059,32 @@ export default function TariffPage() {
               </DialogDescription>
             </DialogHeader>
             <CopyCompanyRateForm
-              onCancel={() => setShowCopyCompanyRateForm(false)}
+              onCancelAction={() => setShowCopyCompanyRateForm(false)}
               onSaveConfirmation={handleCopyCompanyRateConfirmation}
             />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Download Form Dialog */}
+      {showDownloadForm && (
+        <Dialog open={showDownloadForm} onOpenChange={setShowDownloadForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Download Tariff Rates</DialogTitle>
+              <DialogDescription>
+                Select filters to download tariff rates
+              </DialogDescription>
+            </DialogHeader>
+            <DownloadTariffForm
+              onCancelAction={() => setShowDownloadForm(false)}
+              onDownloadAction={handleDownloadTariff}
+            />
+            {isDownloading && (
+              <div className="text-muted-foreground py-2 text-center text-sm">
+                Downloading tariff rates...
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       )}

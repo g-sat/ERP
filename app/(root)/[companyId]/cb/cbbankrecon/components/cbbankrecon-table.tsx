@@ -326,7 +326,7 @@ export default function BankReconTable({
         transactionId={transactionId}
         tableName={TableName.cbBankRecon}
         emptyMessage="No data found."
-        onRefresh={() => refetchBankRecons()}
+        onRefreshAction={() => refetchBankRecons()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onBankReconSelect(row || undefined)}
       />

@@ -18,10 +18,10 @@ import {
 
 interface EmployerTableProps {
   data: IEmployer[]
-  onEdit?: (employer: IEmployer) => void
-  onDelete?: (employer: IEmployer) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onEditAction?: (employer: IEmployer) => void
+  onDeleteAction?: (employer: IEmployer) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   canCreate?: boolean
   canEdit?: boolean
   canDelete?: boolean
@@ -29,10 +29,10 @@ interface EmployerTableProps {
 
 export function EmployerTable({
   data,
-  onEdit,
-  onDelete,
-  onCreate,
-  onRefresh,
+  onEditAction,
+  onDeleteAction,
+  onCreateAction,
+  onRefreshAction,
   canCreate = true,
   canEdit = true,
   canDelete = true,
@@ -75,14 +75,18 @@ export function EmployerTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
+            onClick={onRefreshAction}
             className="h-8 px-2 lg:px-3"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
           {canCreate && (
-            <Button size="sm" onClick={onCreate} className="h-8 px-2 lg:px-3">
+            <Button
+              size="sm"
+              onClick={onCreateAction}
+              className="h-8 px-2 lg:px-3"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add
             </Button>
@@ -139,22 +143,22 @@ export function EmployerTable({
                     <TableRow key={employer.employerId}>
                       <TableCell className="bg-background sticky left-0 z-10 w-[80px] py-2 text-left">
                         <div className="flex items-center justify-start gap-1">
-                          {canEdit && onEdit && (
+                          {canEdit && onEditAction && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onEdit(employer)}
+                              onClick={() => onEditAction(employer)}
                               className="h-6 w-6 p-0"
                             >
                               <Edit className="h-3 w-3" />
                               <span className="sr-only">Edit</span>
                             </Button>
                           )}
-                          {canDelete && onDelete && (
+                          {canDelete && onDeleteAction && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onDelete(employer)}
+                              onClick={() => onDeleteAction(employer)}
                               className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-3 w-3" />

@@ -18,7 +18,7 @@ import {
   ChartOfAccountAutocomplete,
   RankAutocomplete,
   StatusTaskAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -34,7 +34,7 @@ interface CrewSignOffFormProps {
   initialData?: ICrewSignOff
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: CrewSignOffSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -44,7 +44,7 @@ export function CrewSignOffForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: CrewSignOffFormProps) {
@@ -66,7 +66,7 @@ export function CrewSignOffForm({
       taskId: Task.CrewSignOff,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
+      visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       rankId: initialData?.rankId ?? 0,
@@ -75,7 +75,7 @@ export function CrewSignOffForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -92,7 +92,7 @@ export function CrewSignOffForm({
       taskId: Task.CrewSignOff,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
+      visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       rankId: initialData?.rankId ?? 0,
@@ -101,7 +101,7 @@ export function CrewSignOffForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -159,13 +159,6 @@ export function CrewSignOffForm({
                 isDisabled={isConfirmed}
                 isRequired
               />
-              <VisaTypeAutocomplete
-                form={form}
-                name="visaTypeId"
-                label="Visa Type"
-                isRequired
-                isDisabled={isConfirmed}
-              />
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
@@ -175,6 +168,14 @@ export function CrewSignOffForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
+              <VisaAutocomplete
+                form={form}
+                name="visaId"
+                label="Visa Type"
+                isRequired
+                isDisabled={isConfirmed}
+              />
+
               <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"
@@ -350,7 +351,7 @@ export function CrewSignOffForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

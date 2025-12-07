@@ -47,7 +47,7 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type BasicTableHeaderProps<TData> = {
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterToggle?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -60,7 +60,7 @@ type BasicTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function BasicTableHeader<TData>({
-  onRefresh,
+  onRefreshAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -229,8 +229,8 @@ export function BasicTableHeader<TData>({
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {onRefresh && (
-          <Button variant="outline" size="icon" onClick={onRefresh}>
+        {onRefreshAction && (
+          <Button variant="outline" size="icon" onClick={onRefreshAction}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         )}

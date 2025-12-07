@@ -76,7 +76,7 @@ export default function AdminAuditLogPage() {
         <AuditLogTable
           data={auditLogFilters.search ? [] : auditLogsData || []}
           isLoading={isLoadingAuditLogs}
-          onRefresh={refetchAuditLogs}
+          onRefreshAction={refetchAuditLogs}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}

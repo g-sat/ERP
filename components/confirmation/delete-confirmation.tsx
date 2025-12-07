@@ -28,7 +28,7 @@ interface DeleteConfirmationProps {
   // Called when the user confirms the deletion
   onConfirm: () => void
   // Called when the user cancels the deletion
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the delete operation is in progress
   isDeleting?: boolean
 }
@@ -40,7 +40,7 @@ export function DeleteConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   isDeleting = false,
 }: DeleteConfirmationProps) {
   // Use internal state if open/onOpenChange are not provided
@@ -58,7 +58,7 @@ export function DeleteConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

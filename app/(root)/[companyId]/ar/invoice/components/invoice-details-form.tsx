@@ -62,6 +62,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -197,6 +198,7 @@ const InvoiceDetailsForm = React.forwardRef<
             totLocalAmt: editingDetail.totLocalAmt ?? 0,
             totCtyAmt: editingDetail.totCtyAmt ?? 0,
             remarks: editingDetail.remarks ?? "",
+            debitNoteNo: editingDetail.debitNoteNo ?? "",
             gstId: editingDetail.gstId ?? 0,
             gstName: editingDetail.gstName ?? "",
             gstPercentage: editingDetail.gstPercentage ?? 0,
@@ -489,6 +491,7 @@ const InvoiceDetailsForm = React.forwardRef<
           totLocalAmt: editingDetail.totLocalAmt ?? 0,
           totCtyAmt: editingDetail.totCtyAmt ?? 0,
           remarks: editingDetail.remarks ?? "",
+          debitNoteNo: editingDetail.debitNoteNo ?? "",
           gstId: editingDetail.gstId ?? 0,
           gstName: editingDetail.gstName ?? "",
           gstPercentage: editingDetail.gstPercentage ?? 0,
@@ -644,6 +647,7 @@ const InvoiceDetailsForm = React.forwardRef<
           totLocalAmt: updatedData.totLocalAmt ?? 0,
           totCtyAmt: updatedData.totCtyAmt ?? 0,
           remarks: updatedData.remarks ?? "",
+          debitNoteNo: updatedData.debitNoteNo ?? "",
           gstId: populatedData.gstId ?? 0,
           gstName: populatedData.gstName ?? "",
           gstPercentage: updatedData.gstPercentage ?? 0,
@@ -1353,6 +1357,16 @@ const InvoiceDetailsForm = React.forwardRef<
                 className="col-span-2"
                 minRows={2}
                 maxRows={6}
+              />
+            )}
+
+            {/* Debit Note No */}
+
+            {visible?.m_DebitNoteNo && (
+              <CustomInput
+                form={form}
+                name="debitNoteNo"
+                label="Debit Note No"
               />
             )}
 

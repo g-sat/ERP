@@ -340,7 +340,7 @@ export function TechniciansSurveyorsTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          console.error("Technician surveyor(s) not found")
+          console.error("Technicians Surveyors(s) not found")
           return
         }
 
@@ -356,8 +356,6 @@ export function TechniciansSurveyorsTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -365,13 +363,19 @@ export function TechniciansSurveyorsTab({
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
-            console.log("Existing debit note data:", debitNoteResponse.data)
+            console.log("New debit note data:", debitNoteResponse.data)
             const debitNoteData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("Existing debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData as IDebitNoteHd)
+            console.log("New debitNoteData", debitNoteData)
+            setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -400,22 +404,21 @@ export function TechniciansSurveyorsTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.TechniciansSurveyors}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
-
+          console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData as IDebitNoteHd)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -442,6 +445,7 @@ export function TechniciansSurveyorsTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (technicianSurveyorId: string) => {
       const item = data?.find(
@@ -503,12 +507,12 @@ export function TechniciansSurveyorsTab({
             data={data || []}
             onTechnicianSurveyorSelect={handleSelect}
             onDeleteTechnicianSurveyor={handleDelete}
-            onEditTechnicianSurveyor={handleEdit}
-            onCreateTechnicianSurveyor={handleCreate}
+            onEditActionTechnicianSurveyor={handleEdit}
+            onCreateActionTechnicianSurveyor={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshTechnicianSurveyor}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshTechnicianSurveyor}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -566,7 +570,7 @@ export function TechniciansSurveyorsTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -585,7 +589,7 @@ export function TechniciansSurveyorsTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -599,7 +603,7 @@ export function TechniciansSurveyorsTab({
           taskId={Task.TechniciansSurveyors}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this technicians surveyors."
@@ -634,7 +638,7 @@ export function TechniciansSurveyorsTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -653,7 +657,7 @@ export function TechniciansSurveyorsTab({
         description="This action cannot be undone. This will permanently delete the technicians surveyors from our servers."
         itemName={deleteConfirmation.technicianSurveyorName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             technicianSurveyorId: null,

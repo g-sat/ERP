@@ -21,8 +21,8 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 // Use flexible data type that can work with form data
 interface RefundDetailsTableProps {
   data: IApRefundDt[]
-  onDelete?: (itemNo: number) => void
-  onBulkDelete?: (selectedItemNos: number[]) => void
+  onDeleteAction?: (itemNo: number) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IApRefundDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => number | void
   visible: IVisibleFields
@@ -31,8 +31,8 @@ interface RefundDetailsTableProps {
 
 export default function RefundDetailsTable({
   data,
-  onDelete,
-  onBulkDelete,
+  onDeleteAction,
+  onBulkDeleteAction,
   onDataReorder,
   onCellEdit,
   visible: _visible,
@@ -172,7 +172,7 @@ export default function RefundDetailsTable({
 
   const handleDeleteRequest = useCallback(
     (itemId: string) => {
-      if (isCancelled || !onDelete) return
+      if (isCancelled || !onDeleteAction) return
 
       const itemNo = Number(itemId)
       if (!Number.isFinite(itemNo)) return
@@ -189,15 +189,15 @@ export default function RefundDetailsTable({
       })
       setDeleteDialogOpen(true)
     },
-    [data, isCancelled, onDelete]
+    [data, isCancelled, onDeleteAction]
   )
 
   const handleDeleteConfirm = useCallback(() => {
-    if (!pendingDeleteTarget || !onDelete) return
+    if (!pendingDeleteTarget || !onDeleteAction) return
 
-    onDelete(pendingDeleteTarget.itemNo)
+    onDeleteAction(pendingDeleteTarget.itemNo)
     setPendingDeleteTarget(null)
-  }, [onDelete, pendingDeleteTarget])
+  }, [onDeleteAction, pendingDeleteTarget])
 
   const handleDeleteCancel = useCallback(() => {
     setPendingDeleteTarget(null)
@@ -500,15 +500,15 @@ export default function RefundDetailsTable({
         tableName={TableName.apRefundDt}
         emptyMessage="No refund details found."
         accessorId="itemNo"
-        onBulkDelete={
+        onBulkDeleteAction={
           isCancelled
             ? undefined
             : (selectedIds: string[]) =>
-                onBulkDelete?.(selectedIds.map((id) => Number(id)))
+                onBulkDeleteAction?.(selectedIds.map((id) => Number(id)))
         }
         onBulkSelectionChange={() => {}}
         onDataReorder={isCancelled ? undefined : onDataReorder}
-        onDelete={isCancelled ? undefined : handleDeleteRequest}
+        onDeleteAction={isCancelled ? undefined : handleDeleteRequest}
         showHeader={true}
         showActions={true}
         hideEdit={true}
@@ -522,7 +522,7 @@ export default function RefundDetailsTable({
         open={deleteDialogOpen}
         onOpenChange={handleDeleteDialogChange}
         onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
+        onCancelAction={handleDeleteCancel}
         itemName={pendingDeleteTarget?.label}
         description="This detail will be removed from the refund. This action cannot be undone."
       />

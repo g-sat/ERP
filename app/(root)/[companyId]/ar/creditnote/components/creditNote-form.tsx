@@ -42,7 +42,7 @@ import {
   PortAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
-import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
+import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import InvoiceSelectionDialog from "@/components/common/ar-invoice-selection-dialog"
 import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -883,7 +883,7 @@ export default function CreditNoteForm({
 
           {/* Service Type */}
           {visible?.m_ServiceTypeId && (
-            <ServiceTypeAutocomplete
+            <ServiceCategoryAutocomplete
               form={form}
               name="serviceTypeId"
               label="Service Type"

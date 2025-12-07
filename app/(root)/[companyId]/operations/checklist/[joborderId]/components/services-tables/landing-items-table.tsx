@@ -18,11 +18,11 @@ interface LandingItemsTableProps {
   isLoading?: boolean
   onLandingItemsSelect?: (landingItems: ILandingItems | undefined) => void
   onDeleteLandingItems?: (landingItemsId: string) => void
-  onEditLandingItems?: (landingItems: ILandingItems) => void
-  onCreateLandingItems?: () => void
-  onDebitNote?: (landingItemsId: string, debitNoteNo?: string) => void
-  onPurchase?: (landingItemsId: string) => void
-  onRefresh?: () => void
+  onEditActionLandingItems?: (landingItems: ILandingItems) => void
+  onCreateActionLandingItems?: () => void
+  onDebitNoteAction?: (landingItemsId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (landingItemsId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ILandingItemsFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function LandingItemsTable({
   isLoading = false,
   onLandingItemsSelect,
   onDeleteLandingItems,
-  onEditLandingItems,
-  onCreateLandingItems,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionLandingItems,
+  onCreateActionLandingItems,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -286,7 +286,7 @@ export function LandingItemsTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -309,8 +309,8 @@ export function LandingItemsTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -325,14 +325,14 @@ export function LandingItemsTable({
         tableName={TableName.landingItems}
         emptyMessage="No landing items found."
         accessorId="landingItemId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateLandingItems}
-        onEdit={onEditLandingItems}
-        onDelete={onDeleteLandingItems}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionLandingItems}
+        onEditAction={onEditActionLandingItems}
+        onDeleteAction={onDeleteLandingItems}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

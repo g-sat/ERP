@@ -23,14 +23,14 @@ import { CurrencyFormatter } from "@/components/currency-icons/currency-formatte
 
 interface PayRunPreviewFormProps {
   employee: IPayrollEmployeeHd | null
-  onClose: () => void
+  onCloseAction: () => void
   onRefetch: () => void
   payrunId: string
 }
 
 export function PayRunPreviewForm({
   employee,
-  onClose,
+  onCloseAction,
   onRefetch,
   payrunId,
 }: PayRunPreviewFormProps) {
@@ -240,7 +240,7 @@ export function PayRunPreviewForm({
             // No need to increment refreshKey since it's not in query key anymore
             // Just call onRefetch to refresh the parent table data
             onRefetch()
-            onClose()
+            onCloseAction()
           } else {
             console.log(
               "❌ PayRunPreviewForm: Save failed with result:",
@@ -721,7 +721,7 @@ export function PayRunPreviewForm({
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-3 border-t pt-6">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onCloseAction}>
             Cancel
           </Button>
           <Button

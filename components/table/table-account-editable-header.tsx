@@ -47,9 +47,9 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type AccountEditableTableHeaderProps<TData> = {
-  onRefresh?: () => void
-  onCreate?: () => void
-  onBulkDelete?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
+  onBulkDeleteAction?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -65,8 +65,8 @@ type AccountEditableTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function AccountEditableTableHeader<TData>({
-  onRefresh,
-  onBulkDelete,
+  onRefreshAction,
+  onBulkDeleteAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -251,7 +251,7 @@ export function AccountEditableTableHeader<TData>({
             {hasSelectedRows && selectedRowsCount > 0 && (
               <Button
                 variant="destructive"
-                onClick={onBulkDelete}
+                onClick={onBulkDeleteAction}
                 disabled={isConfirmed}
                 title={
                   isConfirmed
@@ -266,7 +266,7 @@ export function AccountEditableTableHeader<TData>({
             <Button
               variant="outline"
               size="icon"
-              onClick={onRefresh}
+              onClick={onRefreshAction}
               disabled={isConfirmed}
               title={
                 isConfirmed ? "Cannot refresh when confirmed" : "Refresh data"

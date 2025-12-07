@@ -18,11 +18,11 @@ interface CrewSignOffTableProps {
   isLoading?: boolean
   onCrewSignOffSelect?: (crewSignOff: ICrewSignOff | undefined) => void
   onDeleteCrewSignOff?: (crewSignOffId: string) => void
-  onEditCrewSignOff?: (crewSignOff: ICrewSignOff) => void
-  onCreateCrewSignOff?: () => void
-  onDebitNote?: (crewSignOffId: string, debitNoteNo?: string) => void
-  onPurchase?: (crewSignOffId: string) => void
-  onRefresh?: () => void
+  onEditActionCrewSignOff?: (crewSignOff: ICrewSignOff) => void
+  onCreateActionCrewSignOff?: () => void
+  onDebitNoteAction?: (crewSignOffId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (crewSignOffId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: ICrewSignOffFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function CrewSignOffTable({
   isLoading = false,
   onCrewSignOffSelect,
   onDeleteCrewSignOff,
-  onEditCrewSignOff,
-  onCreateCrewSignOff,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionCrewSignOff,
+  onCreateActionCrewSignOff,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -291,7 +291,7 @@ export function CrewSignOffTable({
         maxSize: 200,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateTimeValue, handleOpenHistory]
+    [formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -314,8 +314,8 @@ export function CrewSignOffTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -330,14 +330,14 @@ export function CrewSignOffTable({
         tableName={TableName.crewSignOff}
         emptyMessage="No crew sign offs found."
         accessorId="crewSignOffId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateCrewSignOff}
-        onEdit={onEditCrewSignOff}
-        onDelete={onDeleteCrewSignOff}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionCrewSignOff}
+        onEditAction={onEditActionCrewSignOff}
+        onDeleteAction={onDeleteCrewSignOff}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

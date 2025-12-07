@@ -235,7 +235,7 @@ export default function InvoiceSelectionDialog({
               transactionId={transactionId}
               tableName={TableName.arInvoice}
               emptyMessage="No invoices found for the selected customer and currency."
-              onRefresh={() => refetch()}
+              onRefreshAction={() => refetch()}
               onRowSelect={handleRowSelect}
             />
           </div>

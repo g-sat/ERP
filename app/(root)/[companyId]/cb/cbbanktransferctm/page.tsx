@@ -60,7 +60,7 @@ export default function BankTransferCtmPage() {
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransferctm
 
-  const { decimals } = useAuthStore()
+  const { decimals, user } = useAuthStore()
   const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showListDialog, setShowListDialog] = useState(false)
@@ -343,6 +343,58 @@ export default function BankTransferCtmPage() {
     setSearchNo("") // Clear search input
     form.reset(defaultBankTransferCtmHd)
     toast.success("Bank Transfer CTM reset successfully")
+  }
+
+  // Handle Print Bank Transfer CTM Report
+  const handlePrintBankTransferCtm = () => {
+    if (!bankTransferCtm || bankTransferCtm.transferId === "0") {
+      toast.error("Please select a bank transfer CTM to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const transferId =
+      formValues.transferId || bankTransferCtm.transferId?.toString() || "0"
+    const transferNo = formValues.transferNo || bankTransferCtm.transferNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: transferId,
+      invoiceNo: transferNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_CbBankTransferCtm.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
   }
 
   // Helper function to transform ICbBankTransferCtm to CbBankTransferCtmSchemaType
@@ -691,6 +743,7 @@ export default function BankTransferCtmPage() {
               variant="outline"
               size="sm"
               disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
+              onClick={handlePrintBankTransferCtm}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print

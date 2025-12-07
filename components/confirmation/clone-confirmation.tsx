@@ -28,7 +28,7 @@ interface CloneConfirmationProps {
   // Called when the user confirms the clone
   onConfirm: () => void
   // Called when the user cancels the clone
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the clone operation is in progress
   isCloning?: boolean
 }
@@ -40,7 +40,7 @@ export function CloneConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   isCloning = false,
 }: CloneConfirmationProps) {
   // Use internal state if open/onOpenChange are not provided
@@ -58,7 +58,7 @@ export function CloneConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

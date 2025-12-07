@@ -14,7 +14,6 @@ export const chargeSchema = z.object({
   taskId: z.number().min(1, { message: "task is required" }),
   chargeOrder: z.number().min(0, { message: "charge order is required" }),
   itemNo: z.number().min(0, { message: "item no is required" }),
-  glId: z.number().min(1, { message: "gl account is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })

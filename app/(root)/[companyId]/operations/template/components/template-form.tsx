@@ -22,7 +22,7 @@ const defaultValues: TemplateHdSchemaType = {
 }
 interface TemplateFormProps {
   initialData?: ITemplateHd
-  onCancel?: () => void
+  onCancelAction?: () => void
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
   onChange?: (data: TemplateHdSchemaType) => void
@@ -35,7 +35,7 @@ export const TemplateForm = forwardRef<
   (
     {
       initialData,
-      onCancel: _onCancel,
+      onCancelAction: _onCancel,
       isReadOnly = false,
       onCodeBlur,
       onChange,

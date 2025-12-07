@@ -116,7 +116,7 @@ export interface IConsignmentExport {
   carrierTypeName?: string
   uomId: number
   uomName?: string
-  modeTypeId?: number
+  serviceModeId?: number
   modeTypeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string
@@ -168,7 +168,7 @@ export interface IConsignmentImport {
   carrierTypeName?: string
   uomId: number
   uomName?: string
-  modeTypeId?: number
+  serviceModeId?: number
   modeTypeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string
@@ -243,7 +243,7 @@ export interface ICrewSignOff {
   chargeName?: string
   glId: number
   glName?: string
-  visaTypeId: number
+  visaId: number
   crewName: string
   nationality: string
   rankId: number
@@ -283,7 +283,7 @@ export interface ICrewSignOn {
   chargeName?: string
   glId: number
   glName?: string
-  visaTypeId: number
+  visaId: number
   crewName: string
   nationality: string
   rankId: number
@@ -468,7 +468,6 @@ export interface ILaunchService {
   landedWeight: number
   annexure?: string
   invoiceNo?: string
-  portId?: number
   statusId: number
   debitNoteId?: number
   debitNoteNo?: string
@@ -582,8 +581,8 @@ export interface IMedicalAssistance {
   nationality: string
   rankId: number
   rankName?: string
-  visaTypeId: number
-  visaTypeName?: string
+  visaId: number
+  visaName?: string
   reason?: string
   admittedDate?: Date | string
   dischargedDate?: Date | string
@@ -744,7 +743,6 @@ export interface IThirdParty {
   statusId: number
   statusName?: string
   supplierId: number
-  supplierMobileNumber?: string
   uomId: number
   uomName?: string
   deliverDate?: Date | string
@@ -770,7 +768,7 @@ export interface IDebitNoteHd {
   exhRate: number
   totAmt: number
   gstAmt: number
-  totAftGstAmt: number
+  totAmtAftGst: number
   glId: number
   glName?: string
   taxableAmt: number
@@ -788,8 +786,6 @@ export interface IDebitNoteDt {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
   qty: number
   unitPrice: number
   totLocalAmt: number
@@ -798,7 +794,7 @@ export interface IDebitNoteDt {
   gstName?: string
   gstPercentage: number
   gstAmt: number
-  totAftGstAmt: number
+  totAmtAftGst: number
   remarks: string
   editVersion: number
   isServiceCharge: boolean

@@ -21,6 +21,7 @@ import { APTransactionId } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
+import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 
 import PaymentDetailsTable from "./payment-details-table"
@@ -439,8 +440,9 @@ export default function Main({
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
     const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
+    console.log("totLocalAmt", totLocalAmt)
     const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-    let sumAllocLocalAmt = arr.reduce(
+    const sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
       0
     )
@@ -451,24 +453,32 @@ export default function Main({
 
     // If totAmt was 0, update it with the calculated sumAllocAmt
     const finalTotAmt = totAmt === 0 ? sumAllocAmt : totAmt
+    const finalTotLocalAmt = totLocalAmt === 0 ? sumAllocLocalAmt : totLocalAmt
+    console.log("finalTotAmt", finalTotAmt)
+    console.log("sumAllocAmt", sumAllocAmt)
+    console.log("sumAllocLocalAmt", sumAllocLocalAmt)
+    console.log("finalTotLocalAmt", finalTotLocalAmt)
 
     let { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
       finalTotAmt,
-      totLocalAmt,
+      finalTotLocalAmt,
       sumAllocAmt,
       sumAllocLocalAmt,
       dec
     )
 
+    console.log("unAllocAmt", unAllocAmt)
+    console.log("unAllocLocalAmt", unAllocLocalAmt)
     const centDiffUpdated = applyCentDiffAdjustment(
       arr,
       unAllocAmt,
       unAllocLocalAmt,
       dec
     )
+    console.log("centDiffUpdated", centDiffUpdated)
 
     if (centDiffUpdated) {
-      sumAllocLocalAmt = arr.reduce(
+      const sumAllocLocalAmt = arr.reduce(
         (s, r) => s + (Number(r.allocLocalAmt) || 0),
         0
       )
@@ -476,7 +486,7 @@ export default function Main({
 
       const recalculatedUnallocated = calculateUnallocated(
         finalTotAmt,
-        totLocalAmt,
+        finalTotLocalAmt,
         sumAllocAmt,
         sumAllocLocalAmt,
         dec
@@ -487,6 +497,9 @@ export default function Main({
 
     const sumCentDiff = arr.reduce((s, r) => s + (Number(r.centDiff) || 0), 0)
     unAllocLocalAmt = unAllocLocalAmt - sumCentDiff
+    console.log("unAllocLocalAmt", unAllocLocalAmt)
+    console.log("sumCentDiff", sumCentDiff)
+    console.log("unAllocAmt", unAllocAmt)
 
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -715,8 +728,8 @@ export default function Main({
           key={refreshKey}
           data={(dataDetails as unknown as IApPaymentDt[]) || []}
           visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
+          onDeleteAction={handleDelete}
+          onBulkDeleteAction={handleBulkDelete}
           onDataReorder={handleDataReorder as (newData: IApPaymentDt[]) => void}
           onCellEdit={handleCellEdit}
         />
@@ -726,14 +739,14 @@ export default function Main({
         open={isBulkDeleteDialogOpen}
         onOpenChange={handleBulkDeleteDialogChange}
         onConfirm={handleBulkDeleteConfirm}
-        onCancel={handleBulkDeleteCancel}
+        onCancelAction={handleBulkDeleteCancel}
         itemName={bulkDeleteItemName}
         description="Selected payment details will be removed. This action cannot be undone."
       />
 
       {/* Transaction Selection Dialog */}
       {showTransactionDialog && dialogParamsRef.current && (
-        <ArOutStandingTransactionsDialog
+        <ApOutStandingTransactionsDialog
           open={showTransactionDialog}
           onOpenChangeAction={setShowTransactionDialog}
           supplierId={dialogParamsRef.current.supplierId}
@@ -745,7 +758,7 @@ export default function Main({
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
           existingDocumentIds={dataDetails.map((detail) =>
-            Number(detail.documentId)
+            String(detail.documentId)
           )}
         />
       )}

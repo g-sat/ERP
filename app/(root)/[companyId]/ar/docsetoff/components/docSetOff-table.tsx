@@ -21,7 +21,7 @@ export interface DocSetOffTableProps {
   onFilterChange: (filters: IArDocSetOffFilter) => void
   initialFilters?: IArDocSetOffFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function DocSetOffTable({
@@ -29,7 +29,7 @@ export default function DocSetOffTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: DocSetOffTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -304,7 +304,7 @@ export default function DocSetOffTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -322,7 +322,7 @@ export default function DocSetOffTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -466,11 +466,11 @@ export default function DocSetOffTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -489,7 +489,7 @@ export default function DocSetOffTable({
         transactionId={transactionId}
         tableName={TableName.arReceipt}
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchReceipts()}
+        onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onDocSetOffSelect(row || undefined)}
         // Pagination props

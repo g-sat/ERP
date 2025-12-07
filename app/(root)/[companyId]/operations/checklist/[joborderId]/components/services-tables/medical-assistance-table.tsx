@@ -23,11 +23,20 @@ interface MedicalAssistanceTableProps {
     medicalAssistance: IMedicalAssistance | undefined
   ) => void
   onDeleteMedicalAssistance?: (medicalAssistanceId: string) => void
-  onEditMedicalAssistance?: (medicalAssistance: IMedicalAssistance) => void
-  onCreateMedicalAssistance?: () => void
-  onDebitNote?: (medicalAssistanceId: string, debitNoteNo?: string) => void
-  onPurchase?: (medicalAssistanceId: string) => void
-  onRefresh?: () => void
+  onEditActionMedicalAssistance?: (
+    medicalAssistance: IMedicalAssistance
+  ) => void
+  onCreateActionMedicalAssistance?: () => void
+  onRefreshActionte?: (
+    medicalAssistanceId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    medicalAssistanceId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (medicalAssistanceId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IMedicalAssistanceFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function MedicalAssistanceTable({
   isLoading = false,
   onMedicalAssistanceSelect,
   onDeleteMedicalAssistance,
-  onEditMedicalAssistance,
-  onCreateMedicalAssistance,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionMedicalAssistance,
+  onCreateActionMedicalAssistance,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -178,10 +188,10 @@ export function MedicalAssistanceTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "visaTypeName",
+        accessorKey: "visaName",
         header: "Visa Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("visaTypeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("visaName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -281,7 +291,7 @@ export function MedicalAssistanceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -304,8 +314,8 @@ export function MedicalAssistanceTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -320,14 +330,14 @@ export function MedicalAssistanceTable({
         tableName={TableName.medicalAssistance}
         emptyMessage="No medical assistance found."
         accessorId="medicalAssistanceId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateMedicalAssistance}
-        onEdit={onEditMedicalAssistance}
-        onDelete={onDeleteMedicalAssistance}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionMedicalAssistance}
+        onEditAction={onEditActionMedicalAssistance}
+        onDeleteAction={onDeleteMedicalAssistance}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

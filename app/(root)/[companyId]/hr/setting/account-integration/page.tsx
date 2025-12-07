@@ -98,11 +98,11 @@ export default function AccountIntegrationPage() {
       ) : (
         <PayrollAccountIntegrationTable
           mappings={data?.data as IPayrollComponentGLMapping[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 
@@ -134,7 +134,7 @@ export default function AccountIntegrationPage() {
 
           <PayrollAccountIntegrationForm
             initialData={editingItem as PayrollComponentGLMappingFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
@@ -179,7 +179,7 @@ export default function AccountIntegrationPage() {
         description="This action cannot be undone. This will permanently delete the account integration mapping from our servers."
         itemName={editingItem?.componentName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

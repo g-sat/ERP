@@ -24,10 +24,10 @@ import {
   ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
-  ModeTypeAutocomplete,
+  ServiceModeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
-  VisaTypeAutocomplete,
+  VisaAutocomplete,
 } from "@/components/autocomplete"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -82,9 +82,9 @@ export function TaskServiceForm() {
             glId: 0,
             uomId: 0,
             carrierTypeId: 0,
-            modeTypeId: 0,
+            serviceModeId: 0,
             consignmentTypeId: 0,
-            visaTypeId: 0,
+            visaId: 0,
             landingTypeId: 0,
             statusTypeId: 0,
           }
@@ -98,9 +98,9 @@ export function TaskServiceForm() {
             glId: number
             uomId: number
             carrierTypeId: number
-            modeTypeId: number
+            serviceModeId: number
             consignmentTypeId: number
-            visaTypeId: number
+            visaId: number
             landingTypeId: number
             statusTypeId: number
           }
@@ -137,9 +137,9 @@ export function TaskServiceForm() {
             glId: number
             uomId: number
             carrierTypeId: number
-            modeTypeId: number
+            serviceModeId: number
             consignmentTypeId: number
-            visaTypeId: number
+            visaId: number
             landingTypeId: number
             statusTypeId: number
           }
@@ -155,9 +155,9 @@ export function TaskServiceForm() {
             glId: service.glId || 0,
             uomId: service.uomId || 0,
             carrierTypeId: service.carrierTypeId || 0,
-            modeTypeId: service.modeTypeId || 0,
+            serviceModeId: service.serviceModeId || 0,
             consignmentTypeId: service.consignmentTypeId || 0,
-            visaTypeId: service.visaTypeId || 0,
+            visaId: service.visaId || 0,
             landingTypeId: service.landingTypeId || 0,
             statusTypeId: service.statusTypeId || 0,
           }
@@ -206,9 +206,9 @@ export function TaskServiceForm() {
       glId: serviceData.glId,
       uomId: serviceData.uomId,
       carrierTypeId: serviceData.carrierTypeId,
-      modeTypeId: serviceData.modeTypeId,
+      serviceModeId: serviceData.serviceModeId,
       consignmentTypeId: serviceData.consignmentTypeId,
-      visaTypeId: serviceData.visaTypeId,
+      visaId: serviceData.visaId,
       landingTypeId: serviceData.landingTypeId,
       statusTypeId: serviceData.statusTypeId,
     }
@@ -306,9 +306,9 @@ export function TaskServiceForm() {
       glId: number
       uomId: number
       carrierTypeId: number
-      modeTypeId: number
+      serviceModeId: number
       consignmentTypeId: number
-      visaTypeId: number
+      visaId: number
       landingTypeId: number
       statusTypeId: number
     }
@@ -394,9 +394,9 @@ export function TaskServiceForm() {
 
           {/* Visa Type - Show for taskId 4,5 */}
           {[4, 5].includes(serviceData.taskId) && (
-            <VisaTypeAutocomplete
+            <VisaAutocomplete
               form={form}
-              name={`services.${serviceKey}.visaTypeId`}
+              name={`services.${serviceKey}.visaId`}
               label="Visa Type"
               isRequired={false}
             />
@@ -412,9 +412,9 @@ export function TaskServiceForm() {
                 isRequired={false}
               />
 
-              <ModeTypeAutocomplete
+              <ServiceModeAutocomplete
                 form={form}
-                name={`services.${serviceKey}.modeTypeId`}
+                name={`services.${serviceKey}.serviceModeId`}
                 label="Mode Type"
                 isRequired={false}
               />
@@ -468,10 +468,10 @@ export function TaskServiceForm() {
                 glId: 0,
                 uomId: 0,
                 carrierTypeId: 0,
-                modeTypeId: 0,
+                serviceModeId: 0,
                 consignmentTypeId: 0,
                 landingTypeId: 0,
-                visaTypeId: 0,
+                visaId: 0,
                 statusTypeId: 0,
               }
               return (

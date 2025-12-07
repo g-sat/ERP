@@ -22,9 +22,9 @@ interface ApprovalProcessTableProps {
   isLoading?: boolean
   onProcessSelect?: (process: IApprovalProcess | undefined) => void
   onDeleteProcess?: (processId: string) => void
-  onEditProcess?: (process: IApprovalProcess) => void
-  onCreateProcess?: () => void
-  onRefresh?: () => void
+  onEditActionProcess?: (process: IApprovalProcess) => void
+  onCreateActionProcess?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: Record<string, unknown>) => void
 }
 
@@ -33,9 +33,9 @@ export function ApprovalProcessTable({
   isLoading = false,
   onProcessSelect,
   onDeleteProcess,
-  onEditProcess,
-  onCreateProcess,
-  onRefresh,
+  onEditActionProcess,
+  onCreateActionProcess,
+  onRefreshAction,
   onFilterChange,
 }: ApprovalProcessTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -64,14 +64,14 @@ export function ApprovalProcessTable({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh}>
+          {onRefreshAction && (
+            <Button variant="outline" size="sm" onClick={onRefreshAction}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
           )}
-          {onCreateProcess && (
-            <Button size="sm" onClick={onCreateProcess}>
+          {onCreateActionProcess && (
+            <Button size="sm" onClick={onCreateActionProcess}>
               <Plus className="mr-2 h-4 w-4" />
               Create Process
             </Button>
@@ -133,11 +133,11 @@ export function ApprovalProcessTable({
                           View
                         </Button>
                       )}
-                      {onEditProcess && (
+                      {onEditActionProcess && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onEditProcess(process)}
+                          onClick={() => onEditActionProcess(process)}
                         >
                           Edit
                         </Button>

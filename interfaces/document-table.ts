@@ -10,7 +10,7 @@ export interface IDocumentTableProps {
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
-  onDelete?: (documentId: string) => void
+  onDeleteAction?: (documentId: string) => void
   onSelect?: (documentId: string, checked: boolean) => void
   onSelectAll?: (checked: boolean) => void
   selectedDocuments?: string[]
@@ -20,5 +20,5 @@ export interface IDocumentTableProps {
 export interface IDocumentTableActions {
   onPreview: (doc: IDocType) => void
   onDownload: (doc: IDocType) => void
-  onDelete: (documentId: string) => void
+  onDeleteAction: (documentId: string) => void
 }

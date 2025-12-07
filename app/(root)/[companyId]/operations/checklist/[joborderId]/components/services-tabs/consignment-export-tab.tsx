@@ -336,7 +336,7 @@ export function ConsignmentExportTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          console.error("Consignment export(s) not found")
+          console.error("Consignment Export(s) not found")
           return
         }
 
@@ -352,8 +352,6 @@ export function ConsignmentExportTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
 
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
@@ -361,13 +359,19 @@ export function ConsignmentExportTab({
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
-            console.log("Existing debit note data:", debitNoteResponse.data)
+            console.log("New debit note data:", debitNoteResponse.data)
             const debitNoteData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("Existing debitNoteData", debitNoteData)
+            console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["consignmentExport"] })
+          } else {
+            console.error("Failed to fetch existing debit note data")
           }
 
           console.log("Opening existing debit note")
@@ -396,22 +400,21 @@ export function ConsignmentExportTab({
         // Check if the mutation was successful
         if (response.result > 0) {
           // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.ConsignmentExport}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
-
+          console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)
-            const debitNoteData = Array.isArray(debitNoteResponse.data)
+            const debitNoteHdData = Array.isArray(debitNoteResponse.data)
               ? debitNoteResponse.data[0]
               : debitNoteResponse.data
 
-            console.log("New debitNoteData", debitNoteData)
-            setDebitNoteHd(debitNoteData)
+            console.log("New debitNoteData", debitNoteHdData)
+            setDebitNoteHd(debitNoteHdData)
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
           }
 
           console.log(
@@ -436,6 +439,7 @@ export function ConsignmentExportTab({
     },
     [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
+
   const handlePurchase = useCallback(
     (consignmentExportId: string) => {
       const item = data?.find(
@@ -502,12 +506,12 @@ export function ConsignmentExportTab({
             data={data || []}
             onConsignmentExportSelect={handleSelect}
             onDeleteConsignmentExport={handleDelete}
-            onEditConsignmentExport={handleEdit}
-            onCreateConsignmentExport={handleCreate}
+            onEditActionConsignmentExport={handleEdit}
+            onCreateActionConsignmentExport={handleCreate}
             onCombinedService={handleCombinedService}
-            onDebitNote={handleDebitNote}
-            onPurchase={handlePurchase}
-            onRefresh={handleRefreshConsignmentExport}
+            onDebitNoteAction={handleDebitNote}
+            onPurchaseAction={handlePurchase}
+            onRefreshAction={handleRefreshConsignmentExport}
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
@@ -565,7 +569,7 @@ export function ConsignmentExportTab({
             }
             taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
           />
@@ -584,7 +588,7 @@ export function ConsignmentExportTab({
           multipleId={selectedItems.join(",")}
           onTaskAdded={onTaskAdded}
           onClearSelection={handleClearSelection}
-          onCancel={() => setShowCombinedServiceModal(false)}
+          onCancelAction={() => setShowCombinedServiceModal(false)}
           title="Combined Services"
           description="Manage bulk updates and task forwarding operations"
         />
@@ -598,7 +602,7 @@ export function ConsignmentExportTab({
           taskId={Task.ConsignmentExport}
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
-          onDelete={handleDeleteDebitNote}
+          onDeleteAction={handleDeleteDebitNote}
           onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this consignment export."
@@ -633,7 +637,7 @@ export function ConsignmentExportTab({
         }
         operationType={saveConfirmation.operationType}
         onConfirm={handleConfirmSave}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             formData: null,
@@ -652,7 +656,7 @@ export function ConsignmentExportTab({
         description="This action cannot be undone. This will permanently delete the consignment export from our servers."
         itemName={deleteConfirmation.consignmentExportName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             consignmentExportId: null,

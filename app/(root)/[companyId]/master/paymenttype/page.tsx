@@ -306,10 +306,10 @@ export default function PaymentTypePage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -325,10 +325,10 @@ export default function PaymentTypePage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewPaymentType : undefined}
-          onDelete={canDelete ? handleDeletePaymentType : undefined}
-          onEdit={canEdit ? handleEditPaymentType : undefined}
-          onCreate={canCreate ? handleCreatePaymentType : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeletePaymentType : undefined}
+          onEditAction={canEdit ? handleEditPaymentType : undefined}
+          onCreateAction={canCreate ? handleCreatePaymentType : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -394,7 +394,7 @@ export default function PaymentTypePage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPaymentType}
-        onCancel={() => setExistingPaymentType(null)}
+        onCancelAction={() => setExistingPaymentType(null)}
         code={existingPaymentType?.paymentTypeCode}
         name={existingPaymentType?.paymentTypeName}
         typeLabel="Payment Type"
@@ -410,7 +410,7 @@ export default function PaymentTypePage() {
         description="This action cannot be undone. This will permanently delete the payment type from our servers."
         itemName={deleteConfirmation.paymentTypeName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             paymentTypeId: null,
@@ -440,7 +440,7 @@ export default function PaymentTypePage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

@@ -13,10 +13,10 @@ interface CurrencyDtsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (currencyDt: ICurrencyDt | null) => void
-  onDelete?: (currencyId: string) => void
-  onEdit?: (currencyDt: ICurrencyDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (currencyId: string) => void
+  onEditAction?: (currencyDt: ICurrencyDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -37,10 +37,10 @@ export function CurrencyDtsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -155,7 +155,7 @@ export function CurrencyDtsTable({
       emptyMessage="No currency details found."
       accessorId="currencyId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -164,9 +164,9 @@ export function CurrencyDtsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

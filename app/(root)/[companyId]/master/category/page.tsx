@@ -340,10 +340,10 @@ export default function CategoryPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -359,10 +359,10 @@ export default function CategoryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCategory : undefined}
-          onDelete={canDelete ? handleDeleteCategory : undefined}
-          onEdit={canEdit ? handleEditCategory : undefined}
-          onCreate={canCreate ? handleCreateCategory : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteCategory : undefined}
+          onEditAction={canEdit ? handleEditCategory : undefined}
+          onCreateAction={canCreate ? handleCreateCategory : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -429,7 +429,7 @@ export default function CategoryPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCategory}
-        onCancel={() => setExistingCategory(null)}
+        onCancelAction={() => setExistingCategory(null)}
         code={existingCategory?.categoryCode}
         name={existingCategory?.categoryName}
         typeLabel="Category Group"
@@ -446,7 +446,7 @@ export default function CategoryPage() {
         description="This action cannot be undone. This will permanently delete the category type from our servers."
         itemName={deleteConfirmation.categoryName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             categoryId: null,
@@ -478,7 +478,7 @@ export default function CategoryPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

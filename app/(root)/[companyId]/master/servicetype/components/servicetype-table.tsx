@@ -18,10 +18,10 @@ interface ServiceTypesTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (servicetype: IServiceType | null) => void
-  onDelete?: (serviceTypeId: string) => void
-  onEdit?: (servicetype: IServiceType) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (serviceTypeId: string) => void
+  onEditAction?: (servicetype: IServiceType) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function ServiceTypeTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -162,7 +162,7 @@ export function ServiceTypeTable({
       emptyMessage="No service types found."
       accessorId="serviceTypeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -171,9 +171,9 @@ export function ServiceTypeTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

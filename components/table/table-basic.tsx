@@ -53,7 +53,7 @@ interface BasicTableProps<T> {
   transactionId?: number
   tableName: TableName
   emptyMessage?: string
-  onRefresh?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   showHeader?: boolean
   showFooter?: boolean
@@ -69,7 +69,7 @@ export function BasicTable<T>({
   transactionId,
   tableName,
   emptyMessage = "No data found.",
-  onRefresh,
+  onRefreshAction,
   onFilterChange,
   showHeader = true,
   showFooter = true,
@@ -295,7 +295,7 @@ export function BasicTable<T>({
         <BasicTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
-          onRefresh={onRefresh}
+          onRefreshAction={onRefreshAction}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

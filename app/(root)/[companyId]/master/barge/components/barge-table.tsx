@@ -18,10 +18,10 @@ interface BargeTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (barge: IBarge | null) => void
-  onDelete?: (bargeId: string) => void
-  onEdit?: (barge: IBarge) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (bargeId: string) => void
+  onEditAction?: (barge: IBarge) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function BargeTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -212,7 +212,7 @@ export function BargeTable({
       emptyMessage="No barges found."
       accessorId="bargeId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -221,9 +221,9 @@ export function BargeTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

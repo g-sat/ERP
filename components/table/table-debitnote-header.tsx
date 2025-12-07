@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react"
+
 import { useDelete, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,9 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+
 // Import autoTable plugin
 import "jspdf-autotable"
 import * as XLSX from "xlsx"
+
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
   interface jsPDF {
@@ -45,9 +48,9 @@ declare module "jspdf" {
 }
 // Define types for clarity
 type DebitNoteTableHeaderProps<TData> = {
-  onRefresh?: () => void
-  onCreate?: () => void
-  onBulkDelete?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
+  onBulkDeleteAction?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -63,9 +66,9 @@ type DebitNoteTableHeaderProps<TData> = {
   onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function DebitNoteTableHeader<TData>({
-  onRefresh,
-  onCreate,
-  onBulkDelete,
+  onRefreshAction,
+  onCreateAction,
+  onBulkDeleteAction,
   searchQuery,
   onSearchChange,
   columns,
@@ -249,7 +252,7 @@ export function DebitNoteTableHeader<TData>({
           <div className="flex items-center gap-2">
             {!hideCreate && (
               <Button
-                onClick={onCreate}
+                onClick={onCreateAction}
                 disabled={isConfirmed}
                 title={
                   isConfirmed
@@ -265,7 +268,7 @@ export function DebitNoteTableHeader<TData>({
             {hasSelectedRows && selectedRowsCount > 0 && (
               <Button
                 variant="destructive"
-                onClick={onBulkDelete}
+                onClick={onBulkDeleteAction}
                 disabled={isConfirmed}
                 title={
                   isConfirmed
@@ -280,7 +283,7 @@ export function DebitNoteTableHeader<TData>({
             <Button
               variant="outline"
               size="icon"
-              onClick={onRefresh}
+              onClick={onRefreshAction}
               disabled={isConfirmed}
               title={
                 isConfirmed ? "Cannot refresh when confirmed" : "Refresh data"

@@ -18,10 +18,10 @@ interface CreditTermsTableProps {
   isLoading?: boolean
   totalRecords?: number
   onSelect?: (creditterm: ICreditTerm | null) => void
-  onDelete?: (creditTermId: string) => void
-  onEdit?: (creditterm: ICreditTerm) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (creditTermId: string) => void
+  onEditAction?: (creditterm: ICreditTerm) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
@@ -42,10 +42,10 @@ export function CreditTermsTable({
   isLoading = false,
   totalRecords = 0,
   onSelect,
-  onDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onPageChange,
   onPageSizeChange,
@@ -165,7 +165,7 @@ export function CreditTermsTable({
       emptyMessage="No credit terms found."
       accessorId="creditTermId"
       // Add handlers if provided
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
@@ -174,9 +174,9 @@ export function CreditTermsTable({
       serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
       //show props
       showHeader={true}
       showFooter={true}

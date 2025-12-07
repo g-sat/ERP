@@ -23,11 +23,20 @@ interface ConsignmentExportTableProps {
     consignmentExport: IConsignmentExport | undefined
   ) => void
   onDeleteConsignmentExport?: (consignmentExportId: string) => void
-  onEditConsignmentExport?: (consignmentExport: IConsignmentExport) => void
-  onCreateConsignmentExport?: () => void
-  onDebitNote?: (consignmentExportId: string, debitNoteNo?: string) => void
-  onPurchase?: (consignmentExportId: string) => void
-  onRefresh?: () => void
+  onEditActionConsignmentExport?: (
+    consignmentExport: IConsignmentExport
+  ) => void
+  onCreateActionConsignmentExport?: () => void
+  onRefreshActionte?: (
+    consignmentExportId: string,
+    debitNoteNo?: string
+  ) => void
+  onDebitNoteAction?: (
+    consignmentExportId: string,
+    debitNoteNo?: string
+  ) => void
+  onPurchaseAction?: (consignmentExportId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IConsignmentExportFilter) => void
   moduleId?: number
   transactionId?: number
@@ -40,11 +49,12 @@ export function ConsignmentExportTable({
   isLoading = false,
   onConsignmentExportSelect,
   onDeleteConsignmentExport,
-  onEditConsignmentExport,
-  onCreateConsignmentExport,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionConsignmentExport,
+  onCreateActionConsignmentExport,
+  onRefreshActionte,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -261,8 +271,8 @@ export function ConsignmentExportTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -277,14 +287,14 @@ export function ConsignmentExportTable({
         tableName={TableName.consignmentExport}
         emptyMessage="No consignment exports found."
         accessorId="consignmentExportId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateConsignmentExport}
-        onEdit={onEditConsignmentExport}
-        onDelete={onDeleteConsignmentExport}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionConsignmentExport}
+        onEditAction={onEditActionConsignmentExport}
+        onDeleteAction={onDeleteConsignmentExport}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

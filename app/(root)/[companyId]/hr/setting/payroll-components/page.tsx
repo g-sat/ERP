@@ -105,11 +105,11 @@ export default function PayrollComponentsPage() {
       ) : (
         <PayrollComponentTable
           data={data?.data as IPayrollComponent[]}
-          onCreate={openCreate}
-          onEdit={openEdit}
-          onDelete={confirmDelete}
+          onCreateAction={openCreate}
+          onEditAction={openEdit}
+          onDeleteAction={confirmDelete}
           onView={openView}
-          onRefresh={refetch}
+          onRefreshAction={refetch}
         />
       )}
 
@@ -139,7 +139,7 @@ export default function PayrollComponentsPage() {
 
           <PayrollComponentForm
             initialData={editingItem as PayrollComponentFormData}
-            onSave={handleSave}
+            onSaveAction={handleSave}
           />
 
           <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
@@ -184,7 +184,7 @@ export default function PayrollComponentsPage() {
         description="This action cannot be undone. This will permanently delete the payroll component from our servers."
         itemName={editingItem?.componentName || ""}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
+        onCancelAction={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
     </div>

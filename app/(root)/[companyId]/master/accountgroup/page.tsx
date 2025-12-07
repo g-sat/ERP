@@ -344,10 +344,10 @@ export default function AccountGroupPage() {
             data={[]}
             isLoading={false}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -363,10 +363,10 @@ export default function AccountGroupPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewAccountGroup : undefined}
-          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
-          onEdit={canEdit ? handleEditAccountGroup : undefined}
-          onCreate={canCreate ? handleCreateAccountGroup : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteAccountGroup : undefined}
+          onEditAction={canEdit ? handleEditAccountGroup : undefined}
+          onCreateAction={canCreate ? handleCreateAccountGroup : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -433,7 +433,7 @@ export default function AccountGroupPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingAccountGroup}
-        onCancel={() => setExistingAccountGroup(null)}
+        onCancelAction={() => setExistingAccountGroup(null)}
         code={existingAccountGroup?.accGroupCode}
         name={existingAccountGroup?.accGroupName}
         typeLabel="Account Group"
@@ -450,7 +450,7 @@ export default function AccountGroupPage() {
         description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.accountGroupName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             accountGroupId: null,
@@ -482,7 +482,7 @@ export default function AccountGroupPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

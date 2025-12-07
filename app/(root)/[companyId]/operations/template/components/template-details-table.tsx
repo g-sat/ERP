@@ -12,11 +12,11 @@ interface TemplateDetailsTableProps {
   data: ITemplateDt[]
   isLoading?: boolean
   onSelect?: (template: ITemplateDt | null) => void
-  onDelete?: (templateId: string) => void
-  onBulkDelete?: (selectedIds: string[]) => void
-  onEdit?: (template: ITemplateDt) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onDeleteAction?: (templateId: string) => void
+  onBulkDeleteAction?: (selectedIds: string[]) => void
+  onEditAction?: (template: ITemplateDt) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ITemplateDt[]) => void
 }
@@ -25,11 +25,11 @@ export function TemplateDetailsTable({
   data,
   isLoading = false,
   onSelect,
-  onDelete,
-  onBulkDelete,
-  onEdit,
-  onCreate,
-  onRefresh,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onEditAction,
+  onCreateAction,
+  onRefreshAction,
   onFilterChange,
   onDataReorder,
 }: TemplateDetailsTableProps) {
@@ -113,13 +113,13 @@ export function TemplateDetailsTable({
       tableName={TableName.template}
       emptyMessage="No template details found."
       accessorId="itemNo"
-      onRefresh={onRefresh}
+      onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onSelect={onSelect}
-      onCreate={onCreate}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onBulkDelete={onBulkDelete}
+      onCreateAction={onCreateAction}
+      onEditAction={onEditAction}
+      onDeleteAction={onDeleteAction}
+      onBulkDeleteAction={onBulkDeleteAction}
       onDataReorder={onDataReorder}
       isConfirmed={false}
       showHeader={true}

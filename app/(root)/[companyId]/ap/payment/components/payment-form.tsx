@@ -179,7 +179,7 @@ export default function PaymentForm({
         })
       }
 
-      // Recalculate all details with new exchange rate if data details exist
+      // Payalculate all details with new exchange rate if data details exist
       if (dataDetails && dataDetails.length > 0) {
         const updatedDetails = [...dataDetails]
         const arr = updatedDetails as unknown as IApPaymentDt[]
@@ -193,12 +193,12 @@ export default function PaymentForm({
           }
         }
 
-        // Recalculate local amounts and gain/loss for all rows
+        // Payalculate local amounts and gain/loss for all rows
         for (let i = 0; i < arr.length; i++) {
           calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
         }
 
-        // Recalculate header totals from recalculated details
+        // Payalculate header totals from recalculated details
         const sumAllocAmt = arr.reduce(
           (s, r) => s + (Number(r.allocAmt) || 0),
           0
@@ -212,7 +212,7 @@ export default function PaymentForm({
           0
         )
 
-        // Recalculate unallocated amounts with updated totals
+        // Payalculate unallocated amounts with updated totals
         const currentTotAmt = form.getValues("totAmt") || 0
         const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
         const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
@@ -505,7 +505,7 @@ export default function PaymentForm({
   // )
 
   // Handle pay currency change
-  const handleRecCurrencyChange = React.useCallback(
+  const handlePayCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       const payCurrencyId = selectedCurrency?.currencyId || 0
       const currencyId = form.getValues("currencyId") || 0
@@ -521,7 +521,7 @@ export default function PaymentForm({
         form.setValue("payExhRate", 0)
       }
 
-      // Recalculate all amounts based on currency comparison - clear allocations for currency change
+      // Payalculate all amounts based on currency comparison - clear allocations for currency change
       recalculateAmountsBasedOnCurrency(true)
     },
     [form, exhRateDec, recalculateAmountsBasedOnCurrency]
@@ -538,20 +538,20 @@ export default function PaymentForm({
         await setExchangeRate(form, exhRateDec, visible)
 
         const paymentId = form.getValues("paymentId")
-        let currentRecCurrency = form.getValues("payCurrencyId") || 0
+        let currentPayCurrency = form.getValues("payCurrencyId") || 0
         const isNewPayment = !isEdit || !paymentId || paymentId === "0"
 
-        if (currencyId > 0 && (isNewPayment || currentRecCurrency === 0)) {
+        if (currencyId > 0 && (isNewPayment || currentPayCurrency === 0)) {
           form.setValue("payCurrencyId", currencyId, { shouldDirty: true })
-          currentRecCurrency = currencyId
+          currentPayCurrency = currencyId
         }
 
-        if (currencyId > 0 && currentRecCurrency === currencyId) {
+        if (currencyId > 0 && currentPayCurrency === currencyId) {
           const exhRateValue = form.getValues("exhRate") || 0
           form.setValue("payExhRate", exhRateValue, { shouldDirty: true })
         }
 
-        // Recalculate all amounts based on currency comparison - clear allocations for currency change
+        // Payalculate all amounts based on currency comparison - clear allocations for currency change
         recalculateAmountsBasedOnCurrency(true)
       }
     },
@@ -592,12 +592,12 @@ export default function PaymentForm({
         form.setValue("exhRate", exhRate, { shouldDirty: true })
 
         const currentCurrency = form.getValues("currencyId") || 0
-        const currentRecCurrency = form.getValues("payCurrencyId") || 0
-        if (currentCurrency > 0 && currentCurrency === currentRecCurrency) {
+        const currentPayCurrency = form.getValues("payCurrencyId") || 0
+        if (currentCurrency > 0 && currentCurrency === currentPayCurrency) {
           form.setValue("payExhRate", exhRate, { shouldDirty: true })
         }
 
-        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        // Payalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
         recalculateAmountsBasedOnCurrency(false)
       } else {
         console.log("Exchange Rate unchanged - skipping recalculation")
@@ -632,7 +632,7 @@ export default function PaymentForm({
         console.log("Payment Exchange Rate changed - recalculating amounts")
         form.setValue("payExhRate", payExhRate, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        // Payalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
         recalculateAmountsBasedOnCurrency(false)
       } else {
         console.log("Payment Exchange Rate unchanged - skipping recalculation")
@@ -669,7 +669,7 @@ export default function PaymentForm({
         )
         form.setValue("totAmt", totAmt, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - clear allocations for totAmt change
+        // Payalculate all amounts based on currency comparison - clear allocations for totAmt change
         recalculateAmountsBasedOnCurrency(true)
       } else {
         console.log("Total Amount unchanged - skipping recalculation")
@@ -706,7 +706,7 @@ export default function PaymentForm({
         )
         form.setValue("payTotAmt", payTotAmt, { shouldDirty: true })
 
-        // Recalculate all amounts based on currency comparison - clear allocations for payTotAmt change
+        // Payalculate all amounts based on currency comparison - clear allocations for payTotAmt change
         recalculateAmountsBasedOnCurrency(true)
       } else {
         console.log("Payment Total Amount unchanged - skipping recalculation")
@@ -902,15 +902,15 @@ export default function PaymentForm({
         <CurrencyAutocomplete
           form={form}
           name="payCurrencyId"
-          label="Rec Currency"
-          onChangeEvent={handleRecCurrencyChange}
+          label="Pay Currency"
+          onChangeEvent={handlePayCurrencyChange}
         />
 
         {/* Pay Exchange Rate - Enabled when currencies are different */}
         <CustomNumberInput
           form={form}
           name="payExhRate"
-          label="Rec Exchange Rate"
+          label="Pay Exchange Rate"
           isRequired={true}
           round={exhRateDec}
           className="text-right"
@@ -923,7 +923,7 @@ export default function PaymentForm({
         <CustomNumberInput
           form={form}
           name="payTotAmt"
-          label="Rec Total Amount"
+          label="Pay Total Amount"
           isDisabled={isCurrenciesEqual}
           onFocusEvent={handlePayTotAmtFocus}
           onBlurEvent={handlePayTotAmtChange}
@@ -933,7 +933,7 @@ export default function PaymentForm({
         <CustomNumberInput
           form={form}
           name="payTotLocalAmt"
-          label="Rec Total Local Amount"
+          label="Pay Total Local Amount"
           isDisabled={true}
         />
 

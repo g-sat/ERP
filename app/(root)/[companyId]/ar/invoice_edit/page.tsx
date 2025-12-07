@@ -800,7 +800,7 @@ export default function InvoicePage() {
             data={invoicesData || []}
             isLoading={isLoadingInvoices || isRefetchingInvoices}
             onInvoiceSelect={handleInvoiceSelect}
-            onRefresh={() => refetchInvoices()}
+            onRefreshAction={() => refetchInvoices()}
             onFilterChange={handleFilterChange}
             initialFilters={filters}
           />

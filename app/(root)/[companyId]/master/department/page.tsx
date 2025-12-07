@@ -309,10 +309,10 @@ export default function DepartmentPage() {
           <DepartmentsTable
             data={[]}
             onSelect={() => {}}
-            onDelete={() => {}}
-            onEdit={() => {}}
-            onCreate={() => {}}
-            onRefresh={() => {}}
+            onDeleteAction={() => {}}
+            onEditAction={() => {}}
+            onCreateAction={() => {}}
+            onRefreshAction={() => {}}
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -327,10 +327,10 @@ export default function DepartmentPage() {
         <DepartmentsTable
           data={filters.search ? [] : departmentsData || []}
           onSelect={canView ? handleViewDepartment : undefined}
-          onDelete={canDelete ? handleDeleteDepartment : undefined}
-          onEdit={canEdit ? handleEditDepartment : undefined}
-          onCreate={canCreate ? handleCreateDepartment : undefined}
-          onRefresh={handleRefresh}
+          onDeleteAction={canDelete ? handleDeleteDepartment : undefined}
+          onEditAction={canEdit ? handleEditDepartment : undefined}
+          onCreateAction={canCreate ? handleCreateDepartment : undefined}
+          onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
@@ -404,7 +404,7 @@ export default function DepartmentPage() {
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingDepartment}
-        onCancel={() => setExistingDepartment(null)}
+        onCancelAction={() => setExistingDepartment(null)}
         code={existingDepartment?.departmentCode}
         name={existingDepartment?.departmentName}
         typeLabel="Department"
@@ -420,7 +420,7 @@ export default function DepartmentPage() {
         description="This action cannot be undone. This will permanently delete the department from our servers."
         itemName={deleteConfirmation.departmentName || ""}
         onConfirm={handleConfirmDelete}
-        onCancel={() =>
+        onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
             departmentId: null,
@@ -450,7 +450,7 @@ export default function DepartmentPage() {
             data: null,
           })
         }}
-        onCancel={() =>
+        onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,

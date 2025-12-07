@@ -24,7 +24,7 @@ interface DebitNoteConfirmationProps {
   // Called when the user confirms the debit note creation
   onConfirm: () => void
   // Called when the user cancels the debit note creation
-  onCancel?: () => void
+  onCancelAction?: () => void
   // Whether the debit note operation is in progress
   isCreating?: boolean
   // Whether this is for existing debit note or new one
@@ -36,7 +36,7 @@ export function DebitNoteConfirmation({
   open,
   onOpenChange,
   onConfirm,
-  onCancel,
+  onCancelAction,
   isCreating = false,
   hasExistingDebitNote = false,
 }: DebitNoteConfirmationProps) {
@@ -55,7 +55,7 @@ export function DebitNoteConfirmation({
 
   // Handle the cancel action
   const handleCancel = () => {
-    onCancel?.()
+    onCancelAction?.()
     setIsOpen(false)
   }
 

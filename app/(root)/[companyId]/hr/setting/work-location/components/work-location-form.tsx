@@ -15,10 +15,10 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   initialData?: WorkLocationFormData
-  onSave(data: WorkLocationFormData): void
+  onSaveAction(data: WorkLocationFormData): void
 }
 
-export function WorkLocationForm({ initialData, onSave }: Props) {
+export function WorkLocationForm({ initialData, onSaveAction }: Props) {
   const form = useForm<WorkLocationFormData>({
     resolver: zodResolver(workLocationSchema),
     defaultValues: {
@@ -39,7 +39,7 @@ export function WorkLocationForm({ initialData, onSave }: Props) {
     <Form {...form}>
       <form
         id="work-location-form"
-        onSubmit={form.handleSubmit(onSave)}
+        onSubmit={form.handleSubmit(onSaveAction)}
         className="space-y-4"
       >
         <div className="grid grid-cols-2 gap-4">

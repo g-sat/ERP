@@ -696,6 +696,28 @@ export function VisibleTable() {
       ),
       size: 100,
     },
+    {
+      accessorKey: "m_DebitNoteNo",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Debit Note No</div>
+      ),
+
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_DebitNoteNo}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_DebitNoteNo",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
   ]
 
   const handleSave = async () => {

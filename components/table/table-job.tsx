@@ -51,8 +51,8 @@ interface JobTableProps<T> {
   transactionId?: number
   tableName: TableName
   emptyMessage?: string
-  onRefresh?: () => void
-  onCreate?: () => void
+  onRefreshAction?: () => void
+  onCreateAction?: () => void
   hideCreateButton?: boolean
 }
 
@@ -64,8 +64,8 @@ export function JobTable<T>({
   transactionId,
   tableName,
   emptyMessage = "No data found.",
-  onRefresh,
-  onCreate,
+  onRefreshAction,
+  onCreateAction,
 }: JobTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -264,8 +264,8 @@ export function JobTable<T>({
     <div className="space-y-4">
       {/* Table Header with Search, Export, and Column Management */}
       <JobTableHeader
-        onRefresh={onRefresh}
-        onCreate={onCreate}
+        onRefreshAction={onRefreshAction}
+        onCreateAction={onCreateAction}
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
         columns={table.getAllColumns()}

@@ -18,11 +18,11 @@ interface OtherServiceTableProps {
   isLoading?: boolean
   onOtherServiceSelect?: (otherService: IOtherService | undefined) => void
   onDeleteOtherService?: (otherServiceId: string) => void
-  onEditOtherService?: (otherService: IOtherService) => void
-  onCreateOtherService?: () => void
-  onDebitNote?: (otherServiceId: string, debitNoteNo?: string) => void
-  onPurchase?: (otherServiceId: string) => void
-  onRefresh?: () => void
+  onEditActionOtherService?: (otherService: IOtherService) => void
+  onCreateActionOtherService?: () => void
+  onDebitNoteAction?: (otherServiceId: string, debitNoteNo?: string) => void
+  onPurchaseAction?: (otherServiceId: string) => void
+  onRefreshAction?: () => void
   onFilterChange?: (filters: IOtherServiceFilter) => void
   moduleId?: number
   transactionId?: number
@@ -35,11 +35,11 @@ export function OtherServiceTable({
   isLoading = false,
   onOtherServiceSelect,
   onDeleteOtherService,
-  onEditOtherService,
-  onCreateOtherService,
-  onDebitNote,
-  onPurchase,
-  onRefresh,
+  onEditActionOtherService,
+  onCreateActionOtherService,
+  onDebitNoteAction,
+  onPurchaseAction,
+  onRefreshAction,
   onFilterChange,
   moduleId,
   transactionId,
@@ -263,7 +263,7 @@ export function OtherServiceTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat, formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory]
   )
 
   // Wrapper functions to handle type differences
@@ -286,8 +286,8 @@ export function OtherServiceTable({
   }
 
   const handleDebitNote = (itemId: string, debitNoteNo?: string) => {
-    if (onDebitNote) {
-      onDebitNote(itemId, debitNoteNo || "")
+    if (onDebitNoteAction) {
+      onDebitNoteAction(itemId, debitNoteNo || "")
     }
   }
 
@@ -302,14 +302,14 @@ export function OtherServiceTable({
         tableName={TableName.otherService}
         emptyMessage="No other services found."
         accessorId="otherServiceId"
-        onRefresh={onRefresh}
+        onRefreshAction={onRefreshAction}
         onFilterChange={handleFilterChange}
         onSelect={handleItemSelect}
-        onCreate={onCreateOtherService}
-        onEdit={onEditOtherService}
-        onDelete={onDeleteOtherService}
-        onDebitNote={handleDebitNote}
-        onPurchase={onPurchase}
+        onCreateAction={onCreateActionOtherService}
+        onEditAction={onEditActionOtherService}
+        onDeleteAction={onDeleteOtherService}
+        onDebitNoteAction={handleDebitNote}
+        onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
         isConfirmed={isConfirmed}
         showHeader={true}

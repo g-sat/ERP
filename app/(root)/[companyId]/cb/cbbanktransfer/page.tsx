@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { ICbBankTransfer, ICbBankTransferFilter } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbBankTransferSchema, CbBankTransferSchemaType } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -51,6 +52,7 @@ import Other from "./components/other"
 export default function BankTransferPage() {
   const params = useParams()
   const companyId = params.companyId as string
+  const { decimals, user } = useAuthStore()
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransfer
@@ -307,6 +309,58 @@ export default function BankTransferPage() {
     setSearchNo("") // Clear search input
     form.reset(defaultBankTransfer)
     toast.success("Bank Transfer reset successfully")
+  }
+
+  // Handle Print Bank Transfer Report
+  const handlePrintBankTransfer = () => {
+    if (!bankTransfer || bankTransfer.transferId === "0") {
+      toast.error("Please select a bank transfer to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const transferId =
+      formValues.transferId || bankTransfer.transferId?.toString() || "0"
+    const transferNo = formValues.transferNo || bankTransfer.transferNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: transferId,
+      invoiceNo: transferNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_CbBankTransfer.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
   }
 
   // Helper function to transform ICbBankTransfer to CbBankTransferSchemaType
@@ -627,6 +681,7 @@ export default function BankTransferPage() {
               variant="outline"
               size="sm"
               disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              onClick={handlePrintBankTransfer}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print

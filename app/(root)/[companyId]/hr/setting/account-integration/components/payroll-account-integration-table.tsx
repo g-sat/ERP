@@ -44,19 +44,19 @@ import {
 interface PayrollAccountIntegrationTableProps {
   mappings: IPayrollComponentGLMapping[]
   onView?: (mapping: IPayrollComponentGLMapping) => void
-  onEdit?: (mapping: IPayrollComponentGLMapping) => void
-  onDelete?: (mapping: IPayrollComponentGLMapping) => void
-  onCreate?: () => void
-  onRefresh?: () => void
+  onEditAction?: (mapping: IPayrollComponentGLMapping) => void
+  onDeleteAction?: (mapping: IPayrollComponentGLMapping) => void
+  onCreateAction?: () => void
+  onRefreshAction?: () => void
 }
 
 export function PayrollAccountIntegrationTable({
   mappings,
   onView,
-  onEdit,
-  onDelete,
-  onCreate,
-  onRefresh,
+  onEditAction,
+  onDeleteAction,
+  onCreateAction,
+  onRefreshAction,
 }: PayrollAccountIntegrationTableProps) {
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(
     new Set()
@@ -123,7 +123,7 @@ export function PayrollAccountIntegrationTable({
               variant="ghost"
               onClick={() => {
                 console.log("Refresh button clicked for account integration")
-                onRefresh?.()
+                onRefreshAction?.()
               }}
               title="Refresh"
             >
@@ -155,7 +155,7 @@ export function PayrollAccountIntegrationTable({
             <Button
               className="flex items-center gap-2"
               size="sm"
-              onClick={onCreate}
+              onClick={onCreateAction}
             >
               <Plus className="h-4 w-4" />
               Create Mapping
@@ -361,16 +361,16 @@ export function PayrollAccountIntegrationTable({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => onEdit?.(mapping)}
+                                    onClick={() => onEditAction?.(mapping)}
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>
 
-                                  {onDelete && (
+                                  {onDeleteAction && (
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => onDelete(mapping)}
+                                      onClick={() => onDeleteAction(mapping)}
                                       className="text-red-600 hover:text-red-700"
                                     >
                                       <XCircle className="h-3 w-3" />

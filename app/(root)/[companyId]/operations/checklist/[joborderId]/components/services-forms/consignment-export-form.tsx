@@ -23,7 +23,7 @@ import {
   ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
-  ModeTypeAutocomplete,
+  ServiceModeAutocomplete,
   StatusTaskAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -43,7 +43,7 @@ interface ConsignmentExportFormProps {
   initialData?: IConsignmentExport
   taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: ConsignmentExportSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
 }
@@ -53,7 +53,7 @@ export function ConsignmentExportForm({
   initialData,
   taskDefaults = {}, // Default to empty object
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isConfirmed,
 }: ConsignmentExportFormProps) {
@@ -102,7 +102,8 @@ export function ConsignmentExportForm({
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      serviceModeId:
+        initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
       consignmentTypeId:
         initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
       landingTypeId:
@@ -135,7 +136,7 @@ export function ConsignmentExportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -155,7 +156,8 @@ export function ConsignmentExportForm({
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      serviceModeId:
+        initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
       consignmentTypeId:
         initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
       landingTypeId:
@@ -188,7 +190,7 @@ export function ConsignmentExportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -283,9 +285,9 @@ export function ConsignmentExportForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <ModeTypeAutocomplete
+              <ServiceModeAutocomplete
                 form={form}
-                name="modeTypeId"
+                name="serviceModeId"
                 label="Mode Type"
                 isDisabled={isConfirmed}
               />
@@ -490,7 +492,7 @@ export function ConsignmentExportForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (

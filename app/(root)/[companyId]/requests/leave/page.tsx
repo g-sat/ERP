@@ -245,7 +245,7 @@ export default function LeavePage() {
         <CardContent>
           <LeaveRequestTable
             leaves={leaves}
-            onSave={() => {}}
+            onSaveAction={() => {}}
             showActions={false}
           />
         </CardContent>

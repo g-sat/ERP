@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import { setExchangeRate } from "@/helpers/account"
+import {
+  setDueDate,
+  setExchangeRate,
+  setPayExchangeRate,
+} from "@/helpers/account"
 import { IApDocSetOffFilter, IApDocSetOffHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -36,7 +40,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDocSetOff, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -66,7 +70,7 @@ export default function DocSetOffPage() {
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ap
-  const transactionId = ARTransactionId.docsetoff
+  const transactionId = APTransactionId.docsetoff
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -127,7 +131,7 @@ export default function DocSetOffPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/ar/docsetoff`,
+    () => `history-doc:/${companyId}/ap/docsetoff`,
     [companyId]
   )
 
@@ -204,11 +208,11 @@ export default function DocSetOffPage() {
           supplierId: docSetOff.supplierId ?? 0,
           currencyId: docSetOff.currencyId ?? 0,
           exhRate: docSetOff.exhRate ?? 0,
+          unAllocTotAmt: docSetOff.unAllocTotAmt ?? 0,
           exhGainLoss: docSetOff.exhGainLoss ?? 0,
           remarks: docSetOff.remarks ?? "",
           allocTotAmt: docSetOff.allocTotAmt ?? 0,
           balTotAmt: docSetOff.balTotAmt ?? 0,
-          unAllocTotAmt: docSetOff.unAllocTotAmt ?? 0,
           moduleFrom: docSetOff.moduleFrom ?? "",
           editVersion: docSetOff.editVersion ?? 0,
           data_details:
@@ -260,10 +264,10 @@ export default function DocSetOffPage() {
 
     if (isDirty) return
 
-    const currentDocSetOffId = form.getValues("setoffId") || "0"
+    const currentSetoffId = form.getValues("setoffId") || "0"
     if (
       (docSetOff && docSetOff.setoffId && docSetOff.setoffId !== "0") ||
-      currentDocSetOffId !== "0"
+      currentSetoffId !== "0"
     ) {
       return
     }
@@ -338,8 +342,28 @@ export default function DocSetOffPage() {
       }
 
       //check totamt and totlocalamt should be zero
-      if (formValues.allocTotAmt === 0) {
-        toast.error("Allocated Total Amount should not be zero")
+      if (formValues.balTotAmt === 0 || formValues.allocTotAmt === 0) {
+        toast.error("Total Amount and Total Local Amount should not be zero")
+        setIsSaving(false)
+        return
+      }
+
+      // Check if totalSetOffAmt (sum of all allocAmt) is zero
+      // This ensures all allocations are balanced before saving
+      const totalSetOffAmt = (formValues.data_details || []).reduce(
+        (sum, detail) => {
+          const allocAmt =
+            Number((detail as ApDocSetOffDtSchemaType).allocAmt) || 0
+          return sum + allocAmt
+        },
+        0
+      )
+
+      if (totalSetOffAmt !== 0) {
+        toast.warning(
+          `You cannot save. SetOff Amount must be zero. Current value: ${totalSetOffAmt.toFixed(2)}`
+        )
+        setIsSaving(false)
         return
       }
 
@@ -463,9 +487,9 @@ export default function DocSetOffPage() {
         editDate: "",
         cancelDate: "",
         // Clear all amounts for new refund
+        balTotAmt: 0,
         exhGainLoss: 0,
         allocTotAmt: 0,
-        balTotAmt: 0,
         unAllocTotAmt: 0,
         // Clear data details - remove all records
         data_details: [],
@@ -485,6 +509,10 @@ export default function DocSetOffPage() {
           await new Promise((resolve) => setTimeout(resolve, 0))
 
           await setExchangeRate(form, exhRateDec, visible)
+          await setPayExchangeRate(form, exhRateDec)
+
+          // Calculate and set due date (for detail records)
+          await setDueDate(form)
         } catch (error) {
           console.error("Error updating exchange rates:", error)
         }
@@ -587,6 +615,58 @@ export default function DocSetOffPage() {
     toast.success("DocSetOff reset successfully")
   }
 
+  // Handle Print Doc Set Off Report
+  const handlePrintDocSetOff = () => {
+    if (!docSetOff || docSetOff.setoffId === "0") {
+      toast.error("Please select a doc set off to print")
+      return
+    }
+
+    const formValues = form.getValues()
+    const setoffId =
+      formValues.setoffId || docSetOff.setoffId?.toString() || "0"
+    const setoffNo = formValues.setoffNo || docSetOff.setoffNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Build report parameters
+    const reportParams = {
+      companyId: companyId,
+      invoiceId: setoffId,
+      invoiceNo: setoffNo,
+      reportType: 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: "RPT_ApDocSetOff.trdp",
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }
+
   // Helper function to transform IApDocSetOffHd to ApDocSetOffHdSchemaType
   const transformToSchemaType = useCallback(
     (apiDocSetOff: IApDocSetOffHd): ApDocSetOffHdSchemaType => {
@@ -609,16 +689,16 @@ export default function DocSetOffPage() {
         supplierId: apiDocSetOff.supplierId ?? 0,
         currencyId: apiDocSetOff.currencyId ?? 0,
         exhRate: apiDocSetOff.exhRate ?? 0,
+        unAllocTotAmt: apiDocSetOff.unAllocTotAmt ?? 0,
         exhGainLoss: apiDocSetOff.exhGainLoss ?? 0,
         remarks: apiDocSetOff.remarks ?? "",
         allocTotAmt: apiDocSetOff.allocTotAmt ?? 0,
         balTotAmt: apiDocSetOff.balTotAmt ?? 0,
-        unAllocTotAmt: apiDocSetOff.unAllocTotAmt ?? 0,
         moduleFrom: apiDocSetOff.moduleFrom ?? "",
         editVersion: apiDocSetOff.editVersion ?? 0,
-        createBy: apiDocSetOff.createById?.toString() ?? "",
-        editBy: apiDocSetOff.editById?.toString() ?? "",
-        cancelBy: apiDocSetOff.cancelById?.toString() ?? "",
+        createBy: apiDocSetOff.createBy ?? "",
+        editBy: apiDocSetOff.editBy ?? "",
+        cancelBy: apiDocSetOff.cancelBy ?? "",
         isCancel: apiDocSetOff.isCancel ?? false,
         createDate: apiDocSetOff.createDate
           ? format(
@@ -1034,6 +1114,7 @@ export default function DocSetOffPage() {
               variant="outline"
               size="sm"
               disabled={!docSetOff || docSetOff.setoffId === "0"}
+              onClick={handlePrintDocSetOff}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1134,7 +1215,7 @@ export default function DocSetOffPage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onClose={() => setShowListDialog(false)}
+              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

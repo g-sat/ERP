@@ -26,11 +26,15 @@ import {
 
 interface Props {
   data: IEmployeeBasic[]
-  onRefresh?(): void
-  onEdit(item: IEmployeeBasic): void
+  onRefreshAction?(): void
+  onEditAction(item: IEmployeeBasic): void
 }
 
-export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
+export function EmployeeListTable({
+  data,
+  onRefreshAction,
+  onEditAction,
+}: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -201,7 +205,7 @@ export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
           <Button
             variant="outline"
             size="sm"
-            onClick={onRefresh}
+            onClick={onRefreshAction}
             className="h-8 px-2 lg:px-3"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -268,7 +272,7 @@ export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
                           ? "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20"
                           : ""
                       }`}
-                      onClick={() => onEdit(employee)}
+                      onClick={() => onEditAction(employee)}
                     >
                       <TableCell className="bg-background sticky left-0 z-10 py-2">
                         <div className="flex items-center space-x-2">

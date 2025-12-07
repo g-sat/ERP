@@ -21,7 +21,7 @@ export interface CreditNoteTableProps {
   onFilterChange: (filters: IArCreditNoteFilter) => void
   initialFilters?: IArCreditNoteFilter
   pageSize: number
-  onClose?: () => void
+  onCloseAction?: () => void
 }
 
 export default function CreditNoteTable({
@@ -29,7 +29,7 @@ export default function CreditNoteTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
-  onClose,
+  onCloseAction,
 }: CreditNoteTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -346,7 +346,7 @@ export default function CreditNoteTable({
       header: "Created By Code",
     },
     {
-      accessorKey: "createByName",
+      accessorKey: "createBy",
       header: "Created By Name",
     },
     {
@@ -364,7 +364,7 @@ export default function CreditNoteTable({
       header: "Edited By Code",
     },
     {
-      accessorKey: "editByName",
+      accessorKey: "editBy",
       header: "Edited By Name",
     },
     {
@@ -508,11 +508,11 @@ export default function CreditNoteTable({
             </Button>
 
             {/* Close Button */}
-            {onClose && (
+            {onCloseAction && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onClose}
+                onClick={onCloseAction}
                 className="ml-auto"
               >
                 <X className="mr-1 h-4 w-4" />
@@ -531,7 +531,7 @@ export default function CreditNoteTable({
         transactionId={transactionId}
         tableName={TableName.arCreditNote}
         emptyMessage="No creditNotes found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCreditNotes()}
+        onRefreshAction={() => refetchCreditNotes()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
         // Pagination props
