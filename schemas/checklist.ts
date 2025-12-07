@@ -58,7 +58,7 @@ export const JobOrderHdSchema = z
       .string()
       .max(255, "Remarks must be less than 250 characters")
       .optional(),
-    statusId: z.number().min(1, "Status is required"),
+    jobStatusId: z.number().min(1, "Job Status is required"),
     gstId: z.number().optional(),
     gstPercentage: z.number().optional(),
     isActive: z.boolean().optional(),
@@ -115,7 +115,7 @@ export const AgencyRemunerationSchema = z.object({
   chargeId: z.number().min(1, "Charge is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -155,7 +155,7 @@ export const ConsignmentExportSchema = z.object({
   arrivalDate: z.union([z.string(), z.date()]).optional(),
   amountDeposited: z.number().min(0, "Amount deposited must be 0 or greater"),
   refundInstrumentNo: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -197,7 +197,7 @@ export const ConsignmentImportSchema = z.object({
   arrivalDate: z.union([z.string(), z.date()]).optional(),
   amountDeposited: z.number().min(0, "Amount deposited must be 0 or greater"),
   refundInstrumentNo: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -228,7 +228,7 @@ export const CrewMiscellaneousSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   editVersion: z.number(),
 })
 
@@ -252,7 +252,7 @@ export const CrewSignOffSchema = z.object({
   departureDetails: z.string().optional(),
   transportName: z.string().optional(),
   clearing: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   overStayRemark: z.string().optional(),
@@ -310,7 +310,7 @@ export const CrewSignOnSchema = z.object({
     .max(100, "Clearing must be less than 100 characters")
     .optional()
     .optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   overStayRemark: z
@@ -356,7 +356,7 @@ export const FreshWaterSchema = z.object({
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   remarks: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   editVersion: z.number(),
 })
 
@@ -377,7 +377,7 @@ export const LandingItemsSchema = z.object({
   locationName: z.string().min(1, "Location Name is required"),
   uomId: z.number().min(1, "UOM is required"),
   returnDate: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -404,7 +404,7 @@ export const MedicalAssistanceSchema = z.object({
   admittedDate: z.union([z.string(), z.date()]).optional(),
   dischargedDate: z.union([z.string(), z.date()]).optional(),
   visaId: z.number(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -431,7 +431,7 @@ export const OtherServiceSchema = z.object({
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
   amount: z.number().min(0, "Amount must be 0 or greater"),
   uomId: z.number().min(1, "UOM is required"),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   description: z.string().optional(),
@@ -452,7 +452,7 @@ export const PortExpensesSchema = z.object({
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
   supplierId: z.number().min(1, "Supplier is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   uomId: z.number().min(1, "UOM is required"),
   deliverDate: z.string().min(1, "Deliver Date is required"),
   glId: z.number().min(1, "GL Account is required"),
@@ -492,7 +492,7 @@ export const LaunchServiceSchema = z.object({
   annexure: z.string().optional(),
   invoiceNo: z.string().optional(),
   bargeId: z.number().min(1, "Barge is required"),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   remarks: z.string().optional(),
@@ -528,7 +528,7 @@ export const EquipmentUsedSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   isNotes: z.boolean(),
   notes: z.string().optional(),
   debitNoteId: z.number().optional(),
@@ -554,7 +554,7 @@ export const TechnicianSurveyorSchema = z.object({
   embarked: z.union([z.string(), z.date()]).optional(),
   disembarked: z.union([z.string(), z.date()]).optional(),
   portRequestNo: z.string().optional(),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -588,7 +588,7 @@ export const ThirdPartySchema = z.object({
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
   glId: z.number().min(1, "GL Account is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  statusId: z.number().min(1, "Status is required"),
+  taskStatusId: z.number().min(1, "Status is required"),
   supplierId: z.number().optional(),
   supplierName: z.string().optional(),
   uomId: z.number().min(1, "UOM is required"),

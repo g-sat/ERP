@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IStatusLookup } from "@/interfaces/lookup"
+import { ITaskStatusLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useStatusTaskLookup } from "@/hooks/use-lookup"
+import { useTaskStatusLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function StatusTaskAutocomplete<
+export default function TaskStatusAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -42,17 +42,17 @@ export default function StatusTaskAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IStatusLookup | null) => void
+  onChangeEvent?: (selectedOption: ITaskStatusLookup | null) => void
 }) {
-  const { data: statustasks = [], isLoading } = useStatusTaskLookup()
+  const { data: taskstatuses = [], isLoading } = useTaskStatusLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      statustasks.map((statustask: IStatusLookup) => ({
-        value: statustask.statusId.toString(),
-        label: statustask.statusName,
+      taskstatuses.map((taskstatus: ITaskStatusLookup) => ({
+        value: taskstatus.taskStatusId.toString(),
+        label: taskstatus.taskStatusName,
       })),
-    [statustasks]
+    [taskstatuses]
   )
 
   // Custom components with display names
@@ -182,7 +182,7 @@ export default function StatusTaskAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
@@ -190,15 +190,15 @@ export default function StatusTaskAutocomplete<
       }
       if (onChangeEvent) {
         const selectedStatus = selectedOption
-          ? statustasks.find(
-              (u: IStatusLookup) =>
-                u.statusId.toString() === selectedOption.value
+          ? taskstatuses.find(
+              (u: ITaskStatusLookup) =>
+                u.taskStatusId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedStatus)
       }
     },
-    [form, name, onChangeEvent, statustasks]
+    [form, name, onChangeEvent, taskstatuses]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -217,7 +217,7 @@ export default function StatusTaskAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
+
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
@@ -251,7 +251,7 @@ export default function StatusTaskAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false

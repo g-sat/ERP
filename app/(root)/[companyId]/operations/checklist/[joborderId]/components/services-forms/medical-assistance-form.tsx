@@ -21,7 +21,7 @@ import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
   RankAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -95,7 +95,8 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -129,7 +130,8 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -237,9 +239,9 @@ export function MedicalAssistanceForm({
                 label="Discharged Date"
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

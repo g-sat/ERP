@@ -20,7 +20,7 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -97,7 +97,8 @@ export function AgencyRemunerationForm({
         : format(new Date(), dateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
@@ -117,7 +118,8 @@ export function AgencyRemunerationForm({
         : format(new Date(), dateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
@@ -176,9 +178,9 @@ export function AgencyRemunerationForm({
                 companyId={jobData.companyId}
               />
 
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

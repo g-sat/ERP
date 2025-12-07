@@ -18,7 +18,7 @@ import {
   BargeAutocomplete,
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -101,7 +101,8 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -130,7 +131,8 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -240,9 +242,9 @@ export function FreshWaterForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

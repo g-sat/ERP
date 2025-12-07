@@ -18,7 +18,7 @@ import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
   PurposeOfLandingTypeAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -106,7 +106,8 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -140,7 +141,8 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -242,9 +244,9 @@ export function LandingItemsForm({
                 isDisabled={isConfirmed}
               />
 
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

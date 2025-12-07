@@ -20,7 +20,7 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -115,7 +115,8 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
@@ -157,7 +158,8 @@ export function EquipmentUsedForm({
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       isNotes: initialData?.isNotes ?? false,
       notes:
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
@@ -239,9 +241,9 @@ export function EquipmentUsedForm({
                 isDisabled={isConfirmed}
               />
 
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

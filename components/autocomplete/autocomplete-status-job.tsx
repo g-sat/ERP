@@ -25,7 +25,9 @@ interface FieldOption {
   label: string
 }
 
-export default function StatusAutocomplete<T extends Record<string, unknown>>({
+export default function JobStatusAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -354,7 +356,7 @@ export default function StatusAutocomplete<T extends Record<string, unknown>>({
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Status..."
+                    placeholder="Select Job Status..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -372,7 +374,7 @@ export default function StatusAutocomplete<T extends Record<string, unknown>>({
                     }
                     menuPosition="fixed"
                     isLoading={isLoading}
-                    loadingMessage={() => "Loading orderTypes..."}
+                    loadingMessage={() => "Loading job statuses..."}
                     blurInputOnSelect={true}
                   />
                 </div>
@@ -412,7 +414,7 @@ export default function StatusAutocomplete<T extends Record<string, unknown>>({
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select Status..."
+          placeholder="Select Job Status..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}
@@ -430,7 +432,7 @@ export default function StatusAutocomplete<T extends Record<string, unknown>>({
           }
           menuPosition="fixed"
           isLoading={isLoading}
-          loadingMessage={() => "Loading orderTypes..."}
+          loadingMessage={() => "Loading job statuses..."}
           blurInputOnSelect={true}
         />
       </div>

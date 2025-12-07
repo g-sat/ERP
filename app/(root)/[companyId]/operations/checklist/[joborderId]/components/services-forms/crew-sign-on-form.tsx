@@ -17,7 +17,7 @@ import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
   RankAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   VisaAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -75,7 +75,8 @@ export function CrewSignOnForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -101,7 +102,8 @@ export function CrewSignOnForm({
       departureDetails: initialData?.departureDetails ?? "",
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -184,9 +186,9 @@ export function CrewSignOnForm({
                 companyId={jobData.companyId}
               />
 
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

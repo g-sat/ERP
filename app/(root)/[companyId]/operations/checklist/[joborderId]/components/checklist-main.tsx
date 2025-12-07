@@ -31,8 +31,8 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   GSTAutocomplete,
+  JobStatusAutocomplete,
   PortAutocomplete,
-  StatusAutocomplete,
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
@@ -146,7 +146,7 @@ export function ChecklistMain({
       isPost: jobData?.isPost ?? false,
       isActive: jobData?.isActive ?? true,
       remarks: jobData?.remarks ?? "",
-      statusId: jobData?.statusId ?? 201,
+      jobStatusId: jobData?.jobStatusId ?? 201,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
       editVersion: jobData?.editVersion ?? 0,
@@ -261,7 +261,7 @@ export function ChecklistMain({
       isPost: jobData?.isPost ?? false,
       isActive: jobData?.isActive ?? true,
       remarks: jobData?.remarks ?? "",
-      statusId: jobData?.statusId ?? 201,
+      jobStatusId: jobData?.jobStatusId ?? 201,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
       editVersion: jobData?.editVersion ?? 0,
@@ -386,7 +386,7 @@ export function ChecklistMain({
       isPost: apiJobOrder.isPost ?? false,
       isActive: apiJobOrder.isActive ?? true,
       remarks: apiJobOrder.remarks ?? "",
-      statusId: apiJobOrder.statusId ?? 201,
+      jobStatusId: apiJobOrder.jobStatusId ?? 201,
       gstId: apiJobOrder.gstId ?? 0,
       gstPercentage: apiJobOrder.gstPercentage ?? 0,
       editVersion: apiJobOrder.editVersion ?? 0,
@@ -820,10 +820,10 @@ export function ChecklistMain({
                   isRequired={false}
                   isDisabled={isConfirmed}
                 />
-                <StatusAutocomplete
+                <JobStatusAutocomplete
                   form={form}
-                  name="statusId"
-                  label="Status"
+                  name="jobStatusId"
+                  label="Job Status"
                   isRequired={true}
                   isDisabled={isConfirmed}
                 />

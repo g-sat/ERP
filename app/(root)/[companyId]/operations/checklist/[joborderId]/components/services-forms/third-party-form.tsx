@@ -17,8 +17,8 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
   SupplierAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -97,7 +97,8 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -124,7 +125,8 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -203,9 +205,9 @@ export function ThirdPartyForm({
                 isDisabled={isConfirmed}
               />
 
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

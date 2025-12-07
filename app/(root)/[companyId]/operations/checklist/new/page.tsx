@@ -116,7 +116,7 @@ export default function NewChecklistPage() {
       isPost: false,
       isActive: true,
       remarks: "",
-      statusId: 201,
+      jobStatusId: 201,
       gstId: 0,
       gstPercentage: 0,
       editVersion: 0,
@@ -613,7 +613,7 @@ export default function NewChecklistPage() {
                   />
                   <StatusAutocomplete
                     form={form}
-                    name="statusId"
+                    name="jobStatusId"
                     label="Status"
                     isRequired={true}
                   />

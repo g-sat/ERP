@@ -19,7 +19,7 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
@@ -68,7 +68,8 @@ export function CrewMiscellaneousForm({
       taskId: Task.CrewMiscellaneous, // Crew Miscellaneous task ID
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 807,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -84,7 +85,8 @@ export function CrewMiscellaneousForm({
       taskId: Task.CrewMiscellaneous, // Crew Miscellaneous task ID
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -142,9 +144,9 @@ export function CrewMiscellaneousForm({
                 isDisabled={true}
                 companyId={jobData.companyId}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

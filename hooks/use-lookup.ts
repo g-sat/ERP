@@ -31,6 +31,7 @@ import {
   IGstCategoryLookup,
   IGstLookup,
   IJobOrderLookup,
+  IJobStatusLookup,
   ILandingTypeLookup,
   ILeaveTypeLookup,
   ILoanTypeLookup,
@@ -48,11 +49,11 @@ import {
   IServiceLookup,
   IServiceModeLookup,
   IServiceTypeCategoryLookup,
-  IStatusLookup,
   IStatusTypeLookup,
   ISubCategoryLookup,
   ISupplierLookup,
   ITaskLookup,
+  ITaskStatusLookup,
   ITaxCategoryLookup,
   ITaxLookup,
   ITransactionLookup,
@@ -1414,9 +1415,9 @@ export const useEntityTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useStatusLookup = () => {
-  return useQuery<IStatusLookup[]>({
-    queryKey: ["status-lookUp"],
+export const useJobStatusLookup = () => {
+  return useQuery<IJobStatusLookup[]>({
+    queryKey: ["jobstatus-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
@@ -1429,9 +1430,9 @@ export const useStatusLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useStatusTaskLookup = () => {
-  return useQuery<IStatusLookup[]>({
-    queryKey: ["statustask-lookUp"],
+export const useTaskStatusLookup = () => {
+  return useQuery<ITaskStatusLookup[]>({
+    queryKey: ["taskstatus-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {

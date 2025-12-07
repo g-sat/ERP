@@ -38,8 +38,8 @@ export interface IJobOrderHd {
   addressId?: number
   contactId?: number
   remarks?: string
-  statusId?: number
-  statusName?: string
+  jobStatusId?: number
+  jobStatusName?: string
   gstId?: number
   gstPercentage?: number
   isActive?: boolean
@@ -88,8 +88,8 @@ export interface IAgencyRemuneration {
   totAmt: number
   gstAmt: number
   totAmtAftGst: number
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks?: string
   createById: number
   createDate: Date
@@ -135,8 +135,8 @@ export interface IConsignmentExport {
   arrivalDate?: Date | string
   amountDeposited?: number
   refundInstrumentNo?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
@@ -187,8 +187,8 @@ export interface IConsignmentImport {
   arrivalDate?: Date | string
   amountDeposited?: number
   refundInstrumentNo?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
@@ -222,8 +222,8 @@ export interface ICrewMiscellaneous {
   chargeId?: number
   chargeName?: string
   remarks: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   createById: number
   createDate: Date
   editById?: number
@@ -253,8 +253,8 @@ export interface ICrewSignOff {
   departureDetails?: string
   transportName?: string
   clearing?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
   overStayRemark?: string
@@ -293,8 +293,8 @@ export interface ICrewSignOn {
   departureDetails?: string
   transportName?: string
   clearing?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
   overStayRemark?: string
@@ -343,8 +343,8 @@ export interface IEquipmentUsed {
   forkliftOffloading?: number
   stevedoreOffloading?: number
   remarks?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   isNotes?: boolean
   notes?: string
   debitNoteId?: number
@@ -382,8 +382,8 @@ export interface IFreshWater {
   receiptNo: string
   uomId: number
   uomName?: string | null
-  statusId: number
-  statusName?: string | null
+  taskStatusId: number
+  taskStatusName?: string | null
   remarks: string
   debitNoteId?: number | null
   debitNoteNo?: string | null
@@ -420,8 +420,8 @@ export interface ILandingItems {
   uomId: number
   uomName?: string
   returnDate?: Date | string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
@@ -468,7 +468,7 @@ export interface ILaunchService {
   landedWeight: number
   annexure?: string
   invoiceNo?: string
-  statusId: number
+  taskStatusId: number
   debitNoteId?: number
   debitNoteNo?: string
   totAmt: number
@@ -586,8 +586,8 @@ export interface IMedicalAssistance {
   reason?: string
   admittedDate?: Date | string
   dischargedDate?: Date | string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
@@ -616,8 +616,8 @@ export interface IOtherService {
   amount: number
   uomId: number
   uomName?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
   totAmt: number
@@ -646,8 +646,8 @@ export interface IPortExpenses {
   supplierName?: string
   chargeId: number
   chargeName?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   uomId: number
   uomName?: string
   deliverDate?: Date | string
@@ -695,8 +695,8 @@ export interface ITechnicianSurveyor {
   embarked?: Date | string
   disembarked?: Date | string
   portRequestNo?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
@@ -740,8 +740,8 @@ export interface IThirdParty {
   glName?: string
   chargeId: number
   chargeName?: string
-  statusId: number
-  statusName?: string
+  taskStatusId: number
+  taskStatusName?: string
   supplierId: number
   uomId: number
   uomName?: string

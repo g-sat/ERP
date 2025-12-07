@@ -26,7 +26,7 @@ import {
   BargeAutocomplete,
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -135,7 +135,8 @@ export function LaunchServiceForm({
       annexure: initialData?.annexure ?? "",
       invoiceNo: initialData?.invoiceNo ?? "",
       bargeId: initialData?.bargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
@@ -189,7 +190,8 @@ export function LaunchServiceForm({
         invoiceNo: initialData?.invoiceNo ?? "",
         bargeId: initialData?.bargeId ?? 0,
         remarks: initialData?.remarks ?? "",
-        statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+        taskStatusId:
+          initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
         debitNoteId: initialData?.debitNoteId ?? 0,
         debitNoteNo: initialData?.debitNoteNo ?? "",
         editVersion: initialData?.editVersion ?? 0,
@@ -372,9 +374,9 @@ export function LaunchServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

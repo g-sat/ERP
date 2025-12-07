@@ -21,7 +21,7 @@ import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
   PassTypeAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -115,7 +115,8 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -152,7 +153,8 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -269,9 +271,9 @@ export function TechniciansSurveyorsForm({
                 label="Port Request No"
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired
                 isDisabled={isConfirmed}

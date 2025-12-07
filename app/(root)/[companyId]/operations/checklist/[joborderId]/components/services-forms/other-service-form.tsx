@@ -18,7 +18,7 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   ChartOfAccountAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -101,7 +101,8 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -150,7 +151,8 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -230,9 +232,9 @@ export function OtherServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}

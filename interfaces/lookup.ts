@@ -412,6 +412,18 @@ export interface IStatusLookup {
   statusCode: string
   statusName: string
 }
+
+export interface IJobStatusLookup {
+  jobStatusId: number
+  jobStatusCode: string
+  jobStatusName: string
+}
+
+export interface ITaskStatusLookup {
+  taskStatusId: number
+  taskStatusCode: string
+  taskStatusName: string
+}
 export interface IRankLookup {
   rankId: number
   rankCode: string

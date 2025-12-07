@@ -49,7 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import {
   JobOrderCustomerAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   VisaAutocomplete,
 } from "@/components/autocomplete"
 
@@ -76,46 +76,46 @@ interface BulkUpdateFieldConfig {
 
 const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
   // Type 1: Port Expenses (1), Third Party (10)
-  // Fields: deliverDate, remarks, statusId
+  // Fields: deliverDate, remarks, taskStatusId
   1: [
     // PortExpenses
     { field: "deliverDate", label: "Delivery Date", type: "date" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   10: [
     // ThirdParty
     { field: "deliverDate", label: "Delivery Date", type: "date" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
 
   // Type 2: Consignment Export (9), Consignment Import (8), Landing Items (13)
-  // Fields: location, deliverDate, remarks, statusId
+  // Fields: location, deliverDate, remarks, taskStatusId
   8: [
     // ConsignmentImport - using deliveryLocation
     { field: "deliveryLocation", label: "Location", type: "text" },
     { field: "deliverDate", label: "Delivery Date", type: "date" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   9: [
     // ConsignmentExport - using deliveryLocation
     { field: "deliveryLocation", label: "Location", type: "text" },
     { field: "deliverDate", label: "Delivery Date", type: "date" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   13: [
     // LandingItems - using locationName
     { field: "locationName", label: "Location", type: "text" },
     { field: "deliverDate", label: "Delivery Date", type: "date" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
 
   // Type 3: Crew Sign On (4), Crew Sign Off (5)
-  // Fields: visaId, flightDetails, hotelName, transportName, remarks, statusId
+  // Fields: visaId, flightDetails, hotelName, transportName, remarks, taskStatusId
   4: [
     // CrewSignOn
     { field: "visaId", label: "Visa Type", type: "select" },
@@ -123,7 +123,7 @@ const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
     { field: "hotelName", label: "Hotel", type: "text" },
     { field: "transportName", label: "Transportation", type: "text" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   5: [
     // CrewSignOff
@@ -132,53 +132,53 @@ const BULK_UPDATE_CONFIG: Record<number, BulkUpdateFieldConfig[]> = {
     { field: "hotelName", label: "Hotel", type: "text" },
     { field: "transportName", label: "Transportation", type: "text" },
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
 
   // Type 4: All other tasks (default)
-  // Fields: remarks, statusId
+  // Fields: remarks, taskStatusId
   // Tasks: LaunchServices (2), EquipmentUsed (3), CrewMiscellaneous (6),
   //        MedicalAssistance (7), FreshWater (11), TechniciansSurveyors (12),
   //        OtherService (14), AgencyRemuneration (15)
   2: [
     // LaunchServices
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   3: [
     // EquipmentUsed
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   6: [
     // CrewMiscellaneous
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   7: [
     // MedicalAssistance
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   11: [
     // FreshWater
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   12: [
     // TechniciansSurveyors
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   14: [
     // OtherService
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
   15: [
     // AgencyRemuneration
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ],
 }
 
@@ -232,10 +232,10 @@ export function CombinedFormsDialog({
   const [selectedField, setSelectedField] = useState<string>("")
 
   // Get available fields for current task
-  // Default fallback: remarks and statusId for any unmapped tasks
+  // Default fallback: remarks and taskStatusId for any unmapped tasks
   const availableFields = BULK_UPDATE_CONFIG[taskId] || [
     { field: "remarks", label: "Remarks", type: "text" },
-    { field: "statusId", label: "Status", type: "select" },
+    { field: "taskStatusId", label: "Status", type: "select" },
   ]
 
   // Get selected field config
@@ -247,13 +247,13 @@ export function CombinedFormsDialog({
   const bulkUpdateForm = useBulkUpdateForm<{
     date?: string
     textValue?: string
-    statusId?: number
+    taskStatusId?: number
     visaId?: number
   }>({
     defaultValues: {
       date: "",
       textValue: "",
-      statusId: 0,
+      taskStatusId: 0,
       visaId: 0,
     },
   })
@@ -264,7 +264,7 @@ export function CombinedFormsDialog({
     bulkUpdateForm.reset({
       date: "",
       textValue: "",
-      statusId: 0,
+      taskStatusId: 0,
       visaId: 0,
     })
   }
@@ -362,8 +362,8 @@ export function CombinedFormsDialog({
         }
         fieldValue = textValue // Text is already a string
       } else if (selectedFieldConfig.type === "select") {
-        if (selectedField === "statusId") {
-          const statusValue = formValues.statusId || 0
+        if (selectedField === "taskStatusId") {
+          const statusValue = formValues.taskStatusId || 0
           if (!statusValue || statusValue === 0) {
             toast.error("Please select a status")
             return
@@ -666,10 +666,10 @@ export function CombinedFormsDialog({
                           />
                         )}
                         {selectedFieldConfig.type === "select" &&
-                          selectedField === "statusId" && (
-                            <StatusTaskAutocomplete
+                          selectedField === "taskStatusId" && (
+                            <TaskStatusAutocomplete
                               form={bulkUpdateForm}
-                              name="statusId"
+                              name="taskStatusId"
                               label=""
                               isDisabled={isConfirmed}
                               isRequired={true}
@@ -723,7 +723,7 @@ export function CombinedFormsDialog({
                             </>
                           )}
                         {selectedFieldConfig.type === "select" &&
-                          (bulkUpdateForm.watch("statusId") ||
+                          (bulkUpdateForm.watch("taskStatusId") ||
                             bulkUpdateForm.watch("visaId")) && (
                             <> to the selected value</>
                           )}{" "}
@@ -747,8 +747,8 @@ export function CombinedFormsDialog({
                         (selectedFieldConfig?.type === "text" &&
                           !bulkUpdateForm.watch("textValue")) ||
                         (selectedFieldConfig?.type === "select" &&
-                          selectedField === "statusId" &&
-                          !bulkUpdateForm.watch("statusId")) ||
+                          selectedField === "taskStatusId" &&
+                          !bulkUpdateForm.watch("taskStatusId")) ||
                         (selectedFieldConfig?.type === "select" &&
                           selectedField === "visaId" &&
                           !bulkUpdateForm.watch("visaId"))

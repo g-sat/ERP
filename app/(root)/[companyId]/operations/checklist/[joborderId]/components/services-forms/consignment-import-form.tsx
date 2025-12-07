@@ -24,7 +24,7 @@ import {
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
   ServiceModeAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -136,7 +136,8 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -190,7 +191,8 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -323,9 +325,9 @@ export function ConsignmentImportForm({
                 isRequired={false}
                 isDisabled={isConfirmed}
               />
-              <StatusTaskAutocomplete
+              <TaskStatusAutocomplete
                 form={form}
-                name="statusId"
+                name="taskStatusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}
