@@ -251,6 +251,16 @@ export function DialogDataTable<T>({
     useSensor(KeyboardSensor, {})
   )
 
+  const clampColumnSize = useCallback(
+    (columnId: string, size: number) => {
+      if (columnId === "remarks") {
+        return Math.min(Math.max(size, 150), 220)
+      }
+      return size
+    },
+    []
+  )
+
   const handleSearch = (query: string) => {
     setSearchQuery(query)
 
@@ -380,16 +390,19 @@ export function DialogDataTable<T>({
               style={{ minWidth: "100%" }}
             >
               <colgroup>
-                {table.getAllLeafColumns().map((col) => (
-                  <col
-                    key={col.id}
-                    style={{
-                      width: `${col.getSize()}px`,
-                      minWidth: `${col.getSize()}px`,
-                      maxWidth: `${col.getSize()}px`,
-                    }}
-                  />
-                ))}
+                {table.getAllLeafColumns().map((col) => {
+                  const size = clampColumnSize(col.id, col.getSize())
+                  return (
+                    <col
+                      key={col.id}
+                      style={{
+                        width: `${size}px`,
+                        minWidth: `${size}px`,
+                        maxWidth: `${size}px`,
+                      }}
+                    />
+                  )
+                })}
               </colgroup>
 
               <TableHeader className="bg-background sticky top-0 z-20">
@@ -409,15 +422,14 @@ export function DialogDataTable<T>({
                             className={
                               isFirst ? "bg-background sticky left-0 z-20" : ""
                             }
-                            style={
-                              isFirst
-                                ? {
-                                    position: "sticky",
-                                    left: 0,
-                                    zIndex: 20,
-                                  }
-                                : undefined
-                            }
+                            style={{
+                              ...(isFirst
+                                ? { position: "sticky", left: 0, zIndex: 20 }
+                                : undefined),
+                              width: `${clampColumnSize(header.column.id, header.column.getSize())}px`,
+                              minWidth: `${clampColumnSize(header.column.id, header.column.getSize())}px`,
+                              maxWidth: `${clampColumnSize(header.column.id, header.column.getSize())}px`,
+                            }}
                           />
                         )
                       })}
@@ -439,6 +451,11 @@ export function DialogDataTable<T>({
                         const isActions = cell.column.id === "actions"
                         const isFirstColumn = cellIndex === 0
 
+                        const columnSize = clampColumnSize(
+                          cell.column.id,
+                          cell.column.getSize()
+                        )
+
                         return (
                           <TableCell
                             key={cell.id}
@@ -448,9 +465,9 @@ export function DialogDataTable<T>({
                                 : ""
                             }`}
                             style={{
-                              width: `${cell.column.getSize()}px`,
-                              minWidth: `${cell.column.getSize()}px`,
-                              maxWidth: `${cell.column.getSize()}px`,
+                              width: `${columnSize}px`,
+                              minWidth: `${columnSize}px`,
+                              maxWidth: `${columnSize}px`,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -485,6 +502,11 @@ export function DialogDataTable<T>({
                       const isActions = column.id === "actions"
                       const isFirstColumn = cellIndex === 0
 
+                      const columnSize = clampColumnSize(
+                        column.id,
+                        column.getSize()
+                      )
+
                       return (
                         <TableCell
                           key={`empty-${index}-${column.id}`}
@@ -494,9 +516,9 @@ export function DialogDataTable<T>({
                               : ""
                           }`}
                           style={{
-                            width: `${column.getSize()}px`,
-                            minWidth: `${column.getSize()}px`,
-                            maxWidth: `${column.getSize()}px`,
+                            width: `${columnSize}px`,
+                            minWidth: `${columnSize}px`,
+                            maxWidth: `${columnSize}px`,
                             position:
                               isFirstColumn || isActions
                                 ? "sticky"

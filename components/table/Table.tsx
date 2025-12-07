@@ -58,7 +58,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 /* -------------------------------------------------------------------------- */
 /*  Types – Fully Type-Safe                                                   */
 /* -------------------------------------------------------------------------- */
-interface TableMeta<T extends object> {
+interface TableMeta<_T extends object> {
   updateData: (rowIndex: number, columnId: string, value: unknown) => void;
 }
 
@@ -110,6 +110,7 @@ interface TableContainerProps<T extends object> {
   initialColumnSizing?: ColumnSizingState;
   onDataUpdate?: (updatedData: T[]) => void;
   onColumnSizingChange?: (sizing: ColumnSizingState) => void;
+  onGlobalSearch?: (value: string) => void;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -236,6 +237,7 @@ function DraggableHeader<T extends object>({ header }: { header: Header<T, unkno
         left: isActions ? 0 : undefined,
         zIndex: isActions ? 20 : undefined,
         background: isActions ? "RGBA(12, 11, 9,1)" : undefined, // bg-muted/30 fallback
+        backgroundColor: "rgba(15,15,15,0.95)",
         whiteSpace: isActions ? "nowrap" : undefined,
       }}
       className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30${isActions ? " sticky-action-header" : ""}`}
@@ -361,7 +363,11 @@ export function TableContainer<T extends object>({
   initialColumnSizing = {},
   onDataUpdate,
   onColumnSizingChange,
+  onGlobalSearch,
 }: TableContainerProps<T>): React.JSX.Element {
+  const resolvedPageSize = settings.pageSize ?? 10;
+  const visibleRows = 7; // max rows shown at once before scrolling
+  const rowHeight = 48; // height of each row in pixels
   /* -------------------------- State -------------------------------------- */
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -370,7 +376,7 @@ export function TableContainer<T extends object>({
   const [globalFilter, setGlobalFilter] = useState("")
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: settings.pageSize ?? 15,
+    pageSize: resolvedPageSize,
   })
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(initialColumnSizing)
   const [columnOrder, setColumnOrder] = useState<string[]>(
@@ -521,6 +527,12 @@ export function TableContainer<T extends object>({
     },
   });
 
+  useEffect(() => {
+    setPagination((prev) =>
+      prev.pageSize === resolvedPageSize ? prev : { ...prev, pageSize: resolvedPageSize }
+    );
+  }, [resolvedPageSize]);
+
   /* -------------------------- Row Reorder ------------------------------- */
   const handleRowDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -562,7 +574,51 @@ export function TableContainer<T extends object>({
     onResetLayout?.();
   }, [columns, onResetLayout]);
 
+  /* -------------------------- Global Search Handler ---------------------- */
+  const handleGlobalSearchChange = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      setGlobalFilter(trimmed);
+      onGlobalSearch?.(trimmed);
+    },
+    [onGlobalSearch]
+  );
+
   /* -------------------------- Render ------------------------------------ */
+  const tableBodyHeight = visibleRows * rowHeight;
+  const visibleLeafColumns = table.getVisibleLeafColumns();
+  const fillerRowCount = Math.max(
+    0,
+    visibleRows - table.getRowModel().rows.length
+  );
+  const renderFillerRows = (keyPrefix: string) =>
+    Array.from({ length: fillerRowCount }, (_, fillerIndex) => (
+      <tr key={`${keyPrefix}-filler-${fillerIndex}`} className="border-b border-border">
+        {visibleLeafColumns.map((column) => {
+          const align =
+            (column.columnDef.meta as { align?: "left" | "center" | "right" } | undefined)?.align ??
+            "left";
+          const isActions = column.id === "actions";
+          return (
+            <td
+              key={`${keyPrefix}-${column.id}-${fillerIndex}`}
+              style={{
+                textAlign: align,
+                width: column.getSize(),
+                position: isActions ? "sticky" : undefined,
+                left: isActions ? 0 : undefined,
+                zIndex: isActions ? 10 : undefined,
+                background: isActions ? "rgba(0,0,0,1)" : undefined,
+              }}
+              className="px-1 py-2 text-sm text-transparent"
+            >
+              &nbsp;
+            </td>
+          );
+        })}
+      </tr>
+    ));
+
   return (
     <div
       className={`rounded-md bg-card text-card-foreground shadow-sm ${className ?? ""}`}
@@ -575,7 +631,7 @@ export function TableContainer<T extends object>({
           <Input
             placeholder={settings.globalFilterPlaceholder}
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={(e) => handleGlobalSearchChange(e.target.value)}
             className="max-w-sm h-9 text-sm"
           />
         )}
@@ -629,9 +685,9 @@ export function TableContainer<T extends object>({
           onDragEnd={handleColumnDragEnd}
               >
           <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-            <div className="overflow-auto" style={{ maxHeight: "480px" }}>
-              <table className="min-w-full table-auto">
-                <thead className="sticky top-0 z-10">
+                <div className="overflow-auto" style={{ maxHeight: `${tableBodyHeight}px` }}>
+                  <table className="min-w-full table-auto">
+                    <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="bg-muted/30">
                 {hg.headers.map((header) => (
@@ -639,18 +695,19 @@ export function TableContainer<T extends object>({
                 ))}
               </tr>
             ))}
-                </thead>
-                <tbody className="divide-y divide-border">
+                    </thead>
+                    <tbody className="divide-y divide-border">
             {table.getRowModel().rows.map((row) => (
               <SortableRow key={row.id} row={row} columnOrder={columnOrder} />
             ))}
-                </tbody>
-              </table>
-            </div>
+            {renderFillerRows("row-col-reorder")}
+                    </tbody>
+                  </table>
+                </div>
           </SortableContext>
               </DndContext>
             ) : (
-              <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+              <div className="overflow-auto" style={{ maxHeight: `${tableBodyHeight}px` }}>
           <table className="min-w-full table-auto">
             <thead className="sticky top-0 z-10">
               {table.getHeaderGroups().map((hg) => (
@@ -666,6 +723,7 @@ export function TableContainer<T extends object>({
               width: header.getSize(),
               position: "relative",
               cursor: header.column.getCanSort() ? "pointer" : "default",
+                          backgroundColor: "rgba(15,15,15,0.95)",
                   }}
                   className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30 truncate ${isActions ? "sticky left-0 z-20 whitespace-nowrap" : ""}`}
                 >
@@ -709,6 +767,7 @@ export function TableContainer<T extends object>({
               {table.getRowModel().rows.map((row) => (
                 <SortableRow key={row.id} row={row} columnOrder={columnOrder} />
               ))}
+              {renderFillerRows("row-reorder")}
             </tbody>
           </table>
               </div>
@@ -723,7 +782,7 @@ export function TableContainer<T extends object>({
           onDragEnd={handleColumnDragEnd}
         >
           <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-            <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+            <div className="overflow-auto" style={{ maxHeight: `${tableBodyHeight}px` }}>
               <table className="min-w-full table-auto">
           <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map((hg) => (
@@ -744,13 +803,14 @@ export function TableContainer<T extends object>({
                 </SortableContext>
               </tr>
             ))}
+            {renderFillerRows("col-reorder")}
           </tbody>
               </table>
             </div>
           </SortableContext>
         </DndContext>
       ) : (
-        <div className="overflow-auto" style={{ maxHeight: "480px" }}>
+        <div className="overflow-auto" style={{ maxHeight: `${tableBodyHeight}px` }}>
           <table className="min-w-full table-auto">
             <thead className="sticky top-0 z-10">
               {table.getHeaderGroups().map((hg) => (
@@ -766,6 +826,7 @@ export function TableContainer<T extends object>({
                           width: header.getSize(),
                           position: "relative",
                           cursor: header.column.getCanSort() ? "pointer" : "default",
+                          backgroundColor: "rgba(15,15,15,0.95)",
                         }}
                         className={`px-1 py-0.5 text-center text-sm font-semibold bg-muted/30 truncate ${isActions ? "sticky left-0 z-20 whitespace-nowrap" : ""}`}
                       >
@@ -825,35 +886,9 @@ export function TableContainer<T extends object>({
                   })}
                 </tr>
               ))}
+              {renderFillerRows("basic")}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {settings.showPagination && (
-        <div className="flex items-center justify-between p-4 border-t border-border">
-          <div className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
         </div>
       )}
     </div>
