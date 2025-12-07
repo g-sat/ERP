@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IVATServiceCategory, IVATServiceCategoryFilter } from "@/interfaces/vat-service-category"
+import {
+  IVATServiceCategory,
+  IVATServiceCategoryFilter,
+} from "@/interfaces/vat-service-category"
 import { VATServiceCategorySchemaType } from "@/schemas/vat-service-category"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -94,18 +97,24 @@ export default function VATServiceCategoryPage() {
     totalRecords: 0,
   }
 
-  const saveMutation = usePersist<VATServiceCategorySchemaType>(`${VATServiceCategory.add}`)
-  const updateMutation = usePersist<VATServiceCategorySchemaType>(`${VATServiceCategory.add}`)
+  const saveMutation = usePersist<VATServiceCategorySchemaType>(
+    `${VATServiceCategory.add}`
+  )
+  const updateMutation = usePersist<VATServiceCategorySchemaType>(
+    `${VATServiceCategory.add}`
+  )
   const deleteMutation = useDelete(`${VATServiceCategory.delete}`)
 
-  const [selectedVATServiceCategory, setSelectedVATServiceCategory] = useState<IVATServiceCategory | null>(null)
+  const [selectedVATServiceCategory, setSelectedVATServiceCategory] =
+    useState<IVATServiceCategory | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingVATServiceCategory, setExistingVATServiceCategory] = useState<IVATServiceCategory | null>(null)
+  const [existingVATServiceCategory, setExistingVATServiceCategory] =
+    useState<IVATServiceCategory | null>(null)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -135,13 +144,17 @@ export default function VATServiceCategoryPage() {
     setIsModalOpen(true)
   }
 
-  const handleEditVATServiceCategory = (vatServiceCategory: IVATServiceCategory) => {
+  const handleEditVATServiceCategory = (
+    vatServiceCategory: IVATServiceCategory
+  ) => {
     setModalMode("edit")
     setSelectedVATServiceCategory(vatServiceCategory)
     setIsModalOpen(true)
   }
 
-  const handleViewVATServiceCategory = (vatServiceCategory: IVATServiceCategory | null) => {
+  const handleViewVATServiceCategory = (
+    vatServiceCategory: IVATServiceCategory | null
+  ) => {
     if (!vatServiceCategory) return
     setModalMode("view")
     setSelectedVATServiceCategory(vatServiceCategory)
@@ -155,7 +168,9 @@ export default function VATServiceCategoryPage() {
     })
   }
 
-  const handleConfirmedFormSubmit = async (data: VATServiceCategorySchemaType) => {
+  const handleConfirmedFormSubmit = async (
+    data: VATServiceCategorySchemaType
+  ) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
@@ -176,20 +191,24 @@ export default function VATServiceCategoryPage() {
   }
 
   const handleDeleteVATServiceCategory = (vatServiceCategoryId: string) => {
-    const vatServiceCategoryToDelete = vatServiceCategoriesData?.find((b) => b.vatServiceCategoryId.toString() === vatServiceCategoryId)
+    const vatServiceCategoryToDelete = vatServiceCategoriesData?.find(
+      (b) => b.serviceCategoryId.toString() === vatServiceCategoryId
+    )
     if (!vatServiceCategoryToDelete) return
     setDeleteConfirmation({
       isOpen: true,
       vatServiceCategoryId,
-      vatServiceCategoryName: vatServiceCategoryToDelete.vatServiceCategoryName,
+      vatServiceCategoryName: vatServiceCategoryToDelete.serviceCategoryName,
     })
   }
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.vatServiceCategoryId) {
-      deleteMutation.mutateAsync(deleteConfirmation.vatServiceCategoryId).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["vatServiceCategories"] })
-      })
+      deleteMutation
+        .mutateAsync(deleteConfirmation.vatServiceCategoryId)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["vatServiceCategories"] })
+        })
       setDeleteConfirmation({
         isOpen: false,
         vatServiceCategoryId: null,
@@ -206,7 +225,9 @@ export default function VATServiceCategoryPage() {
       if (!trimmedCode) return
 
       try {
-        const response = await getById(`${VATServiceCategory.getByCode}/${trimmedCode}`)
+        const response = await getById(
+          `${VATServiceCategory.getByCode}/${trimmedCode}`
+        )
         if (response?.result === 1 && response.data) {
           const vatServiceCategoryData = Array.isArray(response.data)
             ? response.data[0]
@@ -214,10 +235,9 @@ export default function VATServiceCategoryPage() {
 
           if (vatServiceCategoryData) {
             const validVATServiceCategoryData: IVATServiceCategory = {
-              vatServiceCategoryId: vatServiceCategoryData.vatServiceCategoryId,
-              vatServiceCategoryCode: vatServiceCategoryData.vatServiceCategoryCode,
-              vatServiceCategoryName: vatServiceCategoryData.vatServiceCategoryName,
               serviceCategoryId: vatServiceCategoryData.serviceCategoryId,
+              serviceCategoryCode: vatServiceCategoryData.serviceCategoryCode,
+              serviceCategoryName: vatServiceCategoryData.serviceCategoryName,
               seqNo: vatServiceCategoryData.seqNo || 0,
               companyId: vatServiceCategoryData.companyId,
               remarks: vatServiceCategoryData.remarks || "",
@@ -303,9 +323,13 @@ export default function VATServiceCategoryPage() {
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewVATServiceCategory : undefined}
-          onDeleteAction={canDelete ? handleDeleteVATServiceCategory : undefined}
+          onDeleteAction={
+            canDelete ? handleDeleteVATServiceCategory : undefined
+          }
           onEditAction={canEdit ? handleEditVATServiceCategory : undefined}
-          onCreateAction={canCreate ? handleCreateVATServiceCategory : undefined}
+          onCreateAction={
+            canCreate ? handleCreateVATServiceCategory : undefined
+          }
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
           onPageChange={handlePageChange}
@@ -353,7 +377,9 @@ export default function VATServiceCategoryPage() {
           <Separator />
           <VATServiceCategoryForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedVATServiceCategory : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedVATServiceCategory
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -369,8 +395,8 @@ export default function VATServiceCategoryPage() {
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingVATServiceCategory}
         onCancelAction={() => setExistingVATServiceCategory(null)}
-        code={existingVATServiceCategory?.vatServiceCategoryCode}
-        name={existingVATServiceCategory?.vatServiceCategoryName}
+        code={existingVATServiceCategory?.serviceCategoryCode}
+        name={existingVATServiceCategory?.serviceCategoryName}
         typeLabel="VAT Service Category"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
@@ -399,8 +425,12 @@ export default function VATServiceCategoryPage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create VAT Service Category" : "Update VAT Service Category"}
-        itemName={saveConfirmation.data?.vatServiceCategoryName || ""}
+        title={
+          modalMode === "create"
+            ? "Create VAT Service Category"
+            : "Update VAT Service Category"
+        }
+        itemName={saveConfirmation.data?.serviceCategoryName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {
@@ -422,4 +452,3 @@ export default function VATServiceCategoryPage() {
     </div>
   )
 }
-

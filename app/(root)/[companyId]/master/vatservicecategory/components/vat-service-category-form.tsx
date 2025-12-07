@@ -2,7 +2,10 @@
 
 import { useEffect } from "react"
 import { IVATServiceCategory } from "@/interfaces/vat-service-category"
-import { VATServiceCategorySchemaType, vatServiceCategorySchema } from "@/schemas/vat-service-category"
+import {
+  VATServiceCategorySchemaType,
+  vatServiceCategorySchema,
+} from "@/schemas/vat-service-category"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -11,6 +14,7 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { ServiceCategoryAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -19,7 +23,6 @@ import CustomAccordion, {
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { ServiceCategoryAutocomplete } from "@/components/autocomplete"
 
 const defaultValues = {
   vatServiceCategoryId: 0,
@@ -54,10 +57,9 @@ export function VATServiceCategoryForm({
     resolver: zodResolver(vatServiceCategorySchema),
     defaultValues: initialData
       ? {
-          vatServiceCategoryId: initialData.vatServiceCategoryId ?? 0,
-          vatServiceCategoryName: initialData.vatServiceCategoryName ?? "",
-          vatServiceCategoryCode: initialData.vatServiceCategoryCode ?? "",
           serviceCategoryId: initialData.serviceCategoryId ?? 0,
+          serviceCategoryName: initialData.serviceCategoryName ?? "",
+          serviceCategoryCode: initialData.serviceCategoryCode ?? "",
           seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
@@ -71,10 +73,9 @@ export function VATServiceCategoryForm({
     form.reset(
       initialData
         ? {
-            vatServiceCategoryId: initialData.vatServiceCategoryId ?? 0,
-            vatServiceCategoryName: initialData.vatServiceCategoryName ?? "",
-            vatServiceCategoryCode: initialData.vatServiceCategoryCode ?? "",
             serviceCategoryId: initialData.serviceCategoryId ?? 0,
+            serviceCategoryName: initialData.serviceCategoryName ?? "",
+            serviceCategoryCode: initialData.serviceCategoryCode ?? "",
             seqNo: initialData.seqNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
@@ -86,7 +87,7 @@ export function VATServiceCategoryForm({
   }, [initialData, form])
 
   const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
-    const code = form.getValues("vatServiceCategoryCode")
+    const code = form.getValues("serviceCategoryCode")
     if (code) {
       onCodeBlur?.(code)
     }
@@ -104,33 +105,25 @@ export function VATServiceCategoryForm({
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
-                name="vatServiceCategoryCode"
-                label="VAT Service Category Code"
+                name="serviceCategoryCode"
+                label="Service Category Code"
                 isRequired
                 isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
               <CustomInput
                 form={form}
-                name="vatServiceCategoryName"
-                label="VAT Service Category Name"
+                name="serviceCategoryName"
+                label="Service Category Name"
                 isRequired
                 isDisabled={isReadOnly}
               />
             </div>
 
-            <ServiceCategoryAutocomplete
-              form={form}
-              name="serviceCategoryId"
-              label="Service Category"
-              isRequired
-              isDisabled={isReadOnly}
-            />
-
             <CustomInput
               form={form}
               name="seqNo"
-              label="VAT Service Category Order"
+              label="Sequence Number"
               type="number"
               isDisabled={isReadOnly}
             />
@@ -239,8 +232,8 @@ export function VATServiceCategoryForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update VAT Service Category"
-                    : "Create VAT Service Category"}
+                    ? "Update Service Category"
+                    : "Create Service Category"}
               </Button>
             )}
           </div>
@@ -249,4 +242,3 @@ export function VATServiceCategoryForm({
     </div>
   )
 }
-

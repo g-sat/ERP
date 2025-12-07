@@ -63,14 +63,14 @@ export function VATServiceCategoriesTable({
 
   const columns: ColumnDef<IVATServiceCategory>[] = [
     {
-      accessorKey: "vatServiceCategoryCode",
+      accessorKey: "serviceCategoryCode",
       header: "Code",
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
     },
     {
-      accessorKey: "vatServiceCategoryName",
+      accessorKey: "serviceCategoryName",
       header: "Name",
       size: 200,
       minSize: 50,
@@ -148,7 +148,7 @@ export function VATServiceCategoriesTable({
       transactionId={transactionId}
       tableName={TableName.vatServiceCategory}
       emptyMessage="No VAT service categories found."
-      accessorId="vatServiceCategoryId"
+      accessorId="serviceCategoryId"
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
       onPageChange={onPageChange}
@@ -170,4 +170,3 @@ export function VATServiceCategoriesTable({
     />
   )
 }
-

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { IChargeGLMapping } from "@/interfaces/chargeglmapping"
+import { IChargeLookup, IChartOfAccountLookup } from "@/interfaces/lookup"
 import {
   ChargeGLMappingSchemaType,
   chargeGLMappingSchema,
@@ -11,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
+import { useChargeLookup, useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -52,8 +53,14 @@ export function ChargeGLMappingForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  useChartOfAccountLookup(Number(companyId))
+  // Fetch lookup data for populating code/name fields
+  const { data: charges, refetch: refetchCharges } = useChargeLookup(0)
+  const { data: chartOfAccounts } = useChartOfAccountLookup(Number(companyId))
+
+  // Ensure charges are loaded when form opens (refetch on mount)
+  useEffect(() => {
+    refetchCharges()
+  }, [refetchCharges])
 
   const form = useForm<ChargeGLMappingSchemaType>({
     resolver: zodResolver(chargeGLMappingSchema),
@@ -83,8 +90,50 @@ export function ChargeGLMappingForm({
     )
   }, [initialData, form])
 
+  // Function to populate code/name fields from lookup data
+  const populateData = (
+    formData: ChargeGLMappingSchemaType
+  ): ChargeGLMappingSchemaType & {
+    chargeName?: string
+    glCode?: string
+    glName?: string
+  } => {
+    const populatedData = {
+      ...formData,
+      chargeName: "",
+      glCode: "",
+      glName: "",
+    }
+
+    // Populate charge name if chargeId is set
+    if (populatedData.chargeId && populatedData.chargeId > 0) {
+      const chargeData = charges?.find(
+        (charge: IChargeLookup) => charge.chargeId === populatedData.chargeId
+      )
+      if (chargeData) {
+        populatedData.chargeName = chargeData.chargeName || ""
+      }
+    }
+
+    // Populate GL code/name if glId is set
+    if (populatedData.glId && populatedData.glId > 0) {
+      const glData = chartOfAccounts?.find(
+        (gl: IChartOfAccountLookup) => gl.glId === populatedData.glId
+      )
+      if (glData) {
+        populatedData.glCode = glData.glCode || ""
+        populatedData.glName = glData.glName || ""
+      }
+    }
+
+    return populatedData
+  }
+
   const onSubmit = (data: ChargeGLMappingSchemaType) => {
-    submitAction(data)
+    const populatedData = populateData(data)
+    // Submit with populated data (chargeName, glCode, glName will be included)
+    // The submitAction accepts the base schema type, but backend may use the additional fields
+    submitAction(populatedData as ChargeGLMappingSchemaType)
   }
 
   return (
@@ -97,9 +146,9 @@ export function ChargeGLMappingForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
+                taskId={0 as number}
                 isRequired={true}
                 isDisabled={isReadOnly}
-                companyId={Number(companyId)}
               />
               <ChartOfAccountAutocomplete
                 form={form}

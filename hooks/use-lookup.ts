@@ -1295,9 +1295,10 @@ export const useChargeLookup = (taskId: number) => {
         return data?.data || []
       } catch (error) {
         handleApiError(error)
+        return []
       }
     },
-    enabled: taskId !== 0,
+    enabled: true,
   })
 }
 export const useCustomerLookup = () => {

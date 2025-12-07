@@ -1,9 +1,8 @@
 export interface IVATServiceCategory {
-  vatServiceCategoryId: number
-  companyId: number
-  vatServiceCategoryCode: string
-  vatServiceCategoryName: string
   serviceCategoryId: number
+  companyId: number
+  serviceCategoryCode: string
+  serviceCategoryName: string
   seqNo: number
   createById: number
   editById: number
@@ -20,4 +19,3 @@ export interface IVATServiceCategoryFilter {
   search?: string
   sortOrder?: "asc" | "desc"
 }
-

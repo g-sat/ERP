@@ -51,6 +51,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
   onChangeEvent?: (selectedOption: IChargeLookup | null) => void
   companyId?: number
 }) {
+  console.log("taskId", taskId)
   const {
     data: allCharges = [],
     isLoading: isLoadingAll,
