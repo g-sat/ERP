@@ -3,7 +3,7 @@ import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
-import { X } from "lucide-react"
+import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArInvoice } from "@/lib/api-routes"
@@ -343,10 +343,20 @@ export default function InvoiceTable({
         </div>
       ),
     },
-
     {
       accessorKey: "remarks",
       header: "Remarks",
+      size: 200,
+      minSize: 150,
+      maxSize: 220,
+      cell: ({ row }) => {
+        const remarks = row.original.remarks ?? ""
+        return (
+          <div className="max-w-[200px] truncate" title={remarks}>
+            {remarks || "-"}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "status",
@@ -547,7 +557,6 @@ export default function InvoiceTable({
         onRefreshAction={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
-        // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         currentPage={currentPage}
@@ -555,6 +564,28 @@ export default function InvoiceTable({
         totalRecords={totalRecords}
         serverSidePagination={true}
       />
+
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage <= 1 || isLoading}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={isLoading || currentPage * pageSize >= totalRecords}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }

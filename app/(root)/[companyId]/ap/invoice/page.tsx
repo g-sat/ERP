@@ -1483,7 +1483,6 @@ export default function InvoicePage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
-              onCloseAction={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>
