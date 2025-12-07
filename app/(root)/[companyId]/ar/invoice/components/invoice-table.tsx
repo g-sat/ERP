@@ -24,6 +24,8 @@ export interface InvoiceTableProps {
   onClose?: () => void
 }
 
+const DEFAULT_PAGE_SIZE = 15
+
 export default function InvoiceTable({
   onInvoiceSelect,
   onFilterChange,
@@ -60,7 +62,9 @@ export default function InvoiceTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(_pageSize)
+  const [pageSize, setPageSize] = useState<number>(
+    typeof _pageSize === "number" && _pageSize > 0 ? _pageSize : DEFAULT_PAGE_SIZE
+  )
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -76,12 +80,19 @@ export default function InvoiceTable({
   useEffect(() => {
     form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
-
     setSearchStartDate(
       initialFilters?.startDate?.toString() || defaultStartDate
     )
     setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
-  }, [initialFilters, form, defaultStartDate, defaultEndDate])
+
+    const sizeFromFilters =
+      typeof initialFilters?.pageSize === "number" && initialFilters.pageSize > 0
+        ? initialFilters.pageSize
+        : typeof _pageSize === "number" && _pageSize > 0
+          ? _pageSize
+          : DEFAULT_PAGE_SIZE
+    setPageSize(sizeFromFilters)
+  }, [initialFilters, form, defaultStartDate, defaultEndDate, _pageSize])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
@@ -423,7 +434,9 @@ export default function InvoiceTable({
   }
 
   const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
+    const nextSize =
+      typeof size === "number" && size > 0 ? size : DEFAULT_PAGE_SIZE
+    setPageSize(nextSize)
     setCurrentPage(1) // Reset to first page when changing page size
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
@@ -434,7 +447,7 @@ export default function InvoiceTable({
         sortBy: "invoiceNo",
         sortOrder: "asc",
         pageNumber: 1,
-        pageSize: size,
+        pageSize: nextSize,
       }
       onFilterChange(newFilters)
     }
@@ -452,7 +465,7 @@ export default function InvoiceTable({
         sortBy: "invoiceNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
-        pageSize: pageSize,
+        pageSize,
       }
       onFilterChange(newFilters)
     }
