@@ -1477,7 +1477,7 @@ export const useGenderLookup = () => {
 }
 export const useVisaLookup = () => {
   return useQuery<IVisaLookup[]>({
-    queryKey: ["visatype-lookUp"],
+    queryKey: ["visa-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
@@ -1490,6 +1490,7 @@ export const useVisaLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
 export const usePassTypeLookup = () => {
   return useQuery<IPassTypeLookup[]>({
     queryKey: ["passtype-lookUp"],

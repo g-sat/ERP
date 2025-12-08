@@ -98,8 +98,7 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -133,8 +132,7 @@ export function LandingItemsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,

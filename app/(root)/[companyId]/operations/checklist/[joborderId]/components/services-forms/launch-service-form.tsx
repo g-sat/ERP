@@ -127,8 +127,7 @@ export function LaunchServiceForm({
       annexure: initialData?.annexure ?? "",
       invoiceNo: initialData?.invoiceNo ?? "",
       bargeId: initialData?.bargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
@@ -180,8 +179,7 @@ export function LaunchServiceForm({
       invoiceNo: initialData?.invoiceNo ?? "",
       bargeId: initialData?.bargeId ?? 0,
       remarks: initialData?.remarks ?? "",
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -314,7 +312,7 @@ export function LaunchServiceForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div className="grid gap-3">
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               <CustomDateNew
                 form={form}
                 name="date"
@@ -343,13 +341,6 @@ export function LaunchServiceForm({
                 form={form}
                 name="bargeId"
                 label="Barge"
-                isRequired={true}
-                isDisabled={isConfirmed}
-              />
-              <TaskStatusAutocomplete
-                form={form}
-                name="taskStatusId"
-                label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
@@ -383,6 +374,13 @@ export function LaunchServiceForm({
                 form={form}
                 name="invoiceNo"
                 label="Invoice Number"
+                isDisabled={isConfirmed}
+              />
+              <TaskStatusAutocomplete
+                form={form}
+                name="taskStatusId"
+                label="Status"
+                isRequired={true}
                 isDisabled={isConfirmed}
               />
             </div>

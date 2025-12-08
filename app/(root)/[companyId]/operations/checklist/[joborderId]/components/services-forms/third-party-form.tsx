@@ -89,8 +89,7 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       supplierId: initialData?.supplierId ?? 0,
       name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -117,8 +116,7 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       supplierId: initialData?.supplierId ?? 0,
       name: initialData?.name ?? "",
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,

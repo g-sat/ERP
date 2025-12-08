@@ -92,8 +92,7 @@ export function ConsignmentImportForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
       awbNo: initialData?.awbNo ?? "",
-      carrierTypeId:
-        initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
+      carrierId: initialData?.carrierId ?? taskDefaults.carrierId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       serviceModeId:
         initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
@@ -129,8 +128,7 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -147,8 +145,7 @@ export function ConsignmentImportForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
       awbNo: initialData?.awbNo ?? "",
-      carrierTypeId:
-        initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
+      carrierId: initialData?.carrierId ?? taskDefaults.carrierId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       serviceModeId:
         initialData?.serviceModeId ?? taskDefaults.serviceModeId ?? 0,
@@ -184,8 +181,7 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -221,7 +217,7 @@ export function ConsignmentImportForm({
 
               <CarrierTypeAutocomplete
                 form={form}
-                name="carrierTypeId"
+                name="carrierId"
                 label="Carrier Type"
                 isRequired={true}
                 isDisabled={isConfirmed}

@@ -87,8 +87,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
       rankId: initialData?.rankId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -122,8 +121,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
       rankId: initialData?.rankId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",

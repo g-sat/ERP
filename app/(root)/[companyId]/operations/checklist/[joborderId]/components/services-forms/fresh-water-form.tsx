@@ -93,8 +93,7 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -123,8 +122,7 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,

@@ -111,7 +111,7 @@ export const AgencyRemunerationSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   chargeId: z.number().min(1, "Charge is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
@@ -134,9 +134,9 @@ export const ConsignmentExportSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   awbNo: z.string().min(1, "AWB Number is required"),
-  carrierTypeId: z.number().min(1, "Cargo Type is required"),
+  carrierId: z.number().min(1, "Cargo Type is required"),
   uomId: z.number().min(1, "UOM is required"),
   serviceModeId: z.number(),
   consignmentTypeId: z.number().min(1, "Type is required"),
@@ -176,9 +176,9 @@ export const ConsignmentImportSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   awbNo: z.string().min(1, "AWB Number is required"),
-  carrierTypeId: z.number().min(1, "Cargo Type is required"),
+  carrierId: z.number().min(1, "Cargo Type is required"),
   uomId: z.number().min(1, "UOM is required"),
   serviceModeId: z.number(),
   consignmentTypeId: z.number().min(1, "Type is required"),
@@ -242,7 +242,7 @@ export const CrewSignOffSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().optional(),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   visaId: z.number().min(1, "Visa Type is required"),
   crewName: z.string().min(1, "Crew Name is required"),
   nationality: z.string().min(1, "Nationality is required"),
@@ -274,7 +274,7 @@ export const CrewSignOnSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order is required"),
   taskId: z.number().optional(),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   visaId: z.number().min(1, "Visa Type is required"),
   crewName: z
     .string()
@@ -368,7 +368,7 @@ export const LandingItemsSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   chargeId: z.number().min(1, "Charge is required"),
   name: z.string().min(1, "Name is required"),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
@@ -396,7 +396,7 @@ export const MedicalAssistanceSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   crewName: z.string().min(1, "Crew Name is required"),
   nationality: z.string().min(1, "Nationality is required"),
   rankId: z.number().optional(),
@@ -426,7 +426,7 @@ export const OtherServiceSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   serviceProvider: z.string().min(1, "Service Provider is required"),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
   amount: z.number().min(0, "Amount must be 0 or greater"),
@@ -455,7 +455,7 @@ export const PortExpensesSchema = z.object({
   taskStatusId: z.number().min(1, "Status is required"),
   uomId: z.number().min(1, "UOM is required"),
   deliverDate: z.string().min(1, "Deliver Date is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   debitNoteId: z.number().optional(),
   remarks: z
     .string()
@@ -473,7 +473,7 @@ export const LaunchServiceSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   chargeId: z.number().min(1, "Charge is required"),
   uomId: z.number().min(1, "UOM is required"),
   ameTally: z.string().min(1, "AME Tally is required"),
@@ -509,7 +509,7 @@ export const EquipmentUsedSchema = z.object({
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   mafi: z.string().optional(),
   others: z.string().optional(),
   forkliftChargeId: z.number().optional(),
@@ -543,7 +543,7 @@ export const TechnicianSurveyorSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  glId: z.number().min(1, "GL Account is required"),
+
   chargeId: z.number().min(1, "Charge is required"),
   name: z.string().min(1, "Name is required"),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
@@ -586,7 +586,7 @@ export const ThirdPartySchema = z.object({
     .optional()
     .optional(),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
-  glId: z.number().min(1, "GL Account is required"),
+
   chargeId: z.number().min(1, "Charge is required"),
   taskStatusId: z.number().min(1, "Status is required"),
   supplierId: z.number().optional(),
@@ -655,7 +655,7 @@ export const debitNoteHdSchema = z.object({
   totAmt: z.number().min(0, "Total amount must be 0 or greater"),
   gstAmt: z.number().min(0, "GST amount must be 0 or greater"),
   totAmtAftGst: z.number().min(0, "Total after GST must be 0 or greater"),
-  glId: z.number().min(1, "GL Account is required"),
+
   taxableAmt: z.number().min(0, "Taxable amount must be 0 or greater"),
   nonTaxableAmt: z.number().min(0, "Non-taxable amount must be 0 or greater"),
   isLocked: z.boolean(),

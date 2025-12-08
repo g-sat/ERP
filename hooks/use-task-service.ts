@@ -37,7 +37,7 @@ export const useTaskServiceDefaults = (taskId: number) => {
     return {
       chargeId: taskSettings.chargeId || 0,
       uomId: taskSettings.uomId || 0,
-      taskStatusId: taskSettings.taskStatusId || 802, // Default status
+      taskStatusId: taskSettings.taskStatusId || 2, // Default status
       carrierId: taskSettings.carrierId || 0,
       serviceModeId: taskSettings.serviceModeId || 0,
       consignmentTypeId: taskSettings.consignmentTypeId || 0,

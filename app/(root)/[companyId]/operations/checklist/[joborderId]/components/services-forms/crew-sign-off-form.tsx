@@ -69,7 +69,7 @@ export function CrewSignOffForm({
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
       taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
+        initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -96,7 +96,7 @@ export function CrewSignOffForm({
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
       taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
+        initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",

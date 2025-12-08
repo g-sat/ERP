@@ -62,7 +62,7 @@ export function CrewMiscellaneousForm({
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
       taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
+        initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 807,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -78,8 +78,7 @@ export function CrewMiscellaneousForm({
       taskId: Task.CrewMiscellaneous, // Crew Miscellaneous task ID
       description: initialData?.description ?? "",
       quantity: initialData?.quantity ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",

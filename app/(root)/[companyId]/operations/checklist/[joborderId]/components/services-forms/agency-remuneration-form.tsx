@@ -90,8 +90,7 @@ export function AgencyRemunerationForm({
         : format(new Date(), dateFormat),
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
@@ -111,8 +110,7 @@ export function AgencyRemunerationForm({
         : format(new Date(), dateFormat),
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })

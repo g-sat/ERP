@@ -88,8 +88,7 @@ export function PortExpensesForm({
       supplierId: initialData?.supplierId ?? 0,
       // Use task defaults when no initial data
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
 
       deliverDate: initialData?.deliverDate
@@ -116,7 +115,7 @@ export function PortExpensesForm({
         // Use task defaults when no initial data
         chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
         taskStatusId:
-          initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+          initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
         uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
         deliverDate: initialData?.deliverDate
           ? format(

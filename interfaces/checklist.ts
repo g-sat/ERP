@@ -63,12 +63,6 @@ export interface IJobOrderDt {
   taskId: number
   taskItemNo: number
   serviceId: number
-  totAmt: number
-  totLocalAmt: number
-  gstAmt: number
-  gstLocalAmt: number
-  totAftAmt: number
-  totLocalAftAmt: number
 }
 
 export interface IAgencyRemuneration {
@@ -79,14 +73,10 @@ export interface IAgencyRemuneration {
   jobOrderNo: string
   taskId: number
   taskName?: string
-
   chargeId: number
   chargeName?: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   taskStatusId: number
   taskStatusName?: string
   remarks?: string
@@ -108,9 +98,8 @@ export interface IConsignmentExport {
   taskName?: string
   chargeId: number
   chargeName?: string
-
   awbNo: string
-  carrierTypeId: number
+  carrierId: number
   carrierTypeName?: string
   uomId: number
   uomName?: string
@@ -138,9 +127,6 @@ export interface IConsignmentExport {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -161,7 +147,7 @@ export interface IConsignmentImport {
   chargeName?: string
 
   awbNo: string
-  carrierTypeId: number
+  carrierId: number
   carrierTypeName?: string
   uomId: number
   uomName?: string
@@ -209,9 +195,6 @@ export interface ICrewMiscellaneous {
   taskId: number
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   description: string
 
   quantity: number
@@ -255,9 +238,6 @@ export interface ICrewSignOff {
   overStayRemark?: string
   modificationRemark?: string
   cidClearance?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks: string
   createById: number
   createDate: Date
@@ -342,9 +322,6 @@ export interface IEquipmentUsed {
   notes?: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -378,9 +355,6 @@ export interface IFreshWater {
   remarks: string
   debitNoteId?: number | null
   debitNoteNo?: string | null
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -415,9 +389,6 @@ export interface ILandingItems {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -460,9 +431,6 @@ export interface ILaunchService {
   taskStatusId: number
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks: string
   createById: number
   createDate: Date
@@ -687,9 +655,6 @@ export interface ITechnicianSurveyor {
   debitNoteNo?: string
   isTransport: boolean
   isHotel: boolean
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -710,9 +675,6 @@ export interface IThirdParty {
   debitNoteNo?: string
   description?: string
   name?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks?: string
   createById: number
   createDate: Date
@@ -800,7 +762,6 @@ export interface ITaskDetails {
   landingItems: number
   otherService: number
   agencyRemuneration: number
-  visaService: number
 }
 
 export interface IDebitNoteData {
@@ -814,7 +775,6 @@ export interface IBulkChargeData {
   chargeId: number
   chargeName: string
   remarks: string
-
   taskId?: number
   taskName?: string
   basicRate: number

@@ -49,7 +49,7 @@ export default function CarrierTypeAutocomplete<
   const options: FieldOption[] = React.useMemo(
     () =>
       carrierTypes.map((carrierType: ICarrierTypeLookup) => ({
-        value: carrierType.carrierTypeId.toString(),
+        value: carrierType.carrierId.toString(),
         label: carrierType.carrierTypeName,
       })),
     [carrierTypes]
@@ -192,7 +192,7 @@ export default function CarrierTypeAutocomplete<
         const selectedCarrierType = selectedOption
           ? carrierTypes.find(
               (u: ICarrierTypeLookup) =>
-                u.carrierTypeId.toString() === selectedOption.value
+                u.carrierId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedCarrierType)

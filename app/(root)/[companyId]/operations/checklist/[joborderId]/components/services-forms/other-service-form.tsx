@@ -93,8 +93,7 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -143,8 +142,7 @@ export function OtherServiceForm({
         : format(new Date(), dateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
 
-      taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",

@@ -25,7 +25,6 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface CrewSignOnFormProps {
   jobData: IJobOrderHd
@@ -69,7 +68,7 @@ export function CrewSignOnForm({
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
       taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
+        initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
@@ -96,7 +95,7 @@ export function CrewSignOnForm({
       transportName: initialData?.transportName ?? "",
       clearing: initialData?.clearing ?? "",
       taskStatusId:
-        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 807,
+        initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 807,
       remarks: initialData?.remarks ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
