@@ -122,10 +122,10 @@ export function LaunchServiceTable({
         minSize: 130,
       },
       {
-        accessorKey: "statusName",
+        accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => {
-          const status = row.getValue("statusName") as string
+          const status = row.getValue("taskStatusName") as string
           return (
             <div className="text-center">
               <Badge

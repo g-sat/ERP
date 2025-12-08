@@ -13,7 +13,6 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -25,7 +24,6 @@ import {
 import {
   BargeAutocomplete,
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -39,7 +37,6 @@ import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picke
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface LaunchServiceFormProps {
   jobData: IJobOrderHd
@@ -87,11 +84,6 @@ export function LaunchServiceForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<LaunchServiceSchemaType>({
     resolver: zodResolver(LaunchServiceSchema),
     defaultValues: {
@@ -105,7 +97,7 @@ export function LaunchServiceForm({
             dateFormat
           )
         : format(new Date(), dateFormat),
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       ameTally: initialData?.ameTally ?? "",
@@ -146,62 +138,58 @@ export function LaunchServiceForm({
 
   useEffect(() => {
     // Only reset form when data is loaded to prevent race conditions
-    if (!isChartOfAccountLoading) {
-      form.reset({
-        launchServiceId: initialData?.launchServiceId ?? 0,
-        jobOrderId: jobData.jobOrderId,
-        jobOrderNo: jobData.jobOrderNo,
-        taskId: Task.LaunchServices,
-        date: initialData?.date
-          ? format(
-              parseWithFallback(initialData.date as string) || new Date(),
-              dateFormat
-            )
-          : format(new Date(), dateFormat),
-        glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-        chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-        uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-        ameTally: initialData?.ameTally ?? "",
-        boatopTally: initialData?.boatopTally ?? "",
-        distance: initialData?.distance ?? 0,
-        loadingTime: initialData?.loadingTime
-          ? parseWithFallback(initialData.loadingTime as string) || undefined
-          : undefined,
-        leftJetty: initialData?.leftJetty
-          ? parseWithFallback(initialData.leftJetty as string) || undefined
-          : undefined,
-        alongsideVessel: initialData?.alongsideVessel
-          ? parseWithFallback(initialData.alongsideVessel as string) ||
-            undefined
-          : undefined,
-        departedFromVessel: initialData?.departedFromVessel
-          ? parseWithFallback(initialData.departedFromVessel as string) ||
-            undefined
-          : undefined,
-        arrivedAtJetty: initialData?.arrivedAtJetty
-          ? parseWithFallback(initialData.arrivedAtJetty as string) || undefined
-          : undefined,
-        waitingTime: initialData?.waitingTime ?? 0,
-        timeDiff: initialData?.timeDiff ?? 0,
-        deliveredWeight: initialData?.deliveredWeight ?? 0,
-        landedWeight: initialData?.landedWeight ?? 0,
-        boatOperator: initialData?.boatOperator ?? "",
-        annexure: initialData?.annexure ?? "",
-        invoiceNo: initialData?.invoiceNo ?? "",
-        bargeId: initialData?.bargeId ?? 0,
-        remarks: initialData?.remarks ?? "",
-        taskStatusId:
-          initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
-        debitNoteId: initialData?.debitNoteId ?? 0,
-        debitNoteNo: initialData?.debitNoteNo ?? "",
-        editVersion: initialData?.editVersion ?? 0,
-      })
-    }
+    form.reset({
+      launchServiceId: initialData?.launchServiceId ?? 0,
+      jobOrderId: jobData.jobOrderId,
+      jobOrderNo: jobData.jobOrderNo,
+      taskId: Task.LaunchServices,
+      date: initialData?.date
+        ? format(
+            parseWithFallback(initialData.date as string) || new Date(),
+            dateFormat
+          )
+        : format(new Date(), dateFormat),
+
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+      ameTally: initialData?.ameTally ?? "",
+      boatopTally: initialData?.boatopTally ?? "",
+      distance: initialData?.distance ?? 0,
+      loadingTime: initialData?.loadingTime
+        ? parseWithFallback(initialData.loadingTime as string) || undefined
+        : undefined,
+      leftJetty: initialData?.leftJetty
+        ? parseWithFallback(initialData.leftJetty as string) || undefined
+        : undefined,
+      alongsideVessel: initialData?.alongsideVessel
+        ? parseWithFallback(initialData.alongsideVessel as string) || undefined
+        : undefined,
+      departedFromVessel: initialData?.departedFromVessel
+        ? parseWithFallback(initialData.departedFromVessel as string) ||
+          undefined
+        : undefined,
+      arrivedAtJetty: initialData?.arrivedAtJetty
+        ? parseWithFallback(initialData.arrivedAtJetty as string) || undefined
+        : undefined,
+      waitingTime: initialData?.waitingTime ?? 0,
+      timeDiff: initialData?.timeDiff ?? 0,
+      deliveredWeight: initialData?.deliveredWeight ?? 0,
+      landedWeight: initialData?.landedWeight ?? 0,
+      boatOperator: initialData?.boatOperator ?? "",
+      annexure: initialData?.annexure ?? "",
+      invoiceNo: initialData?.invoiceNo ?? "",
+      bargeId: initialData?.bargeId ?? 0,
+      remarks: initialData?.remarks ?? "",
+      taskStatusId:
+        initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
+      debitNoteId: initialData?.debitNoteId ?? 0,
+      debitNoteNo: initialData?.debitNoteNo ?? "",
+      editVersion: initialData?.editVersion ?? 0,
+    })
   }, [
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
@@ -220,7 +208,7 @@ export function LaunchServiceForm({
 
   // Calculate waiting time and time diff when form data is loaded
   useEffect(() => {
-    if (!isChartOfAccountLoading && initialData) {
+    if (initialData) {
       setTimeout(() => {
         // Waiting Time
         const loadingTime = form.getValues("loadingTime")
@@ -253,7 +241,7 @@ export function LaunchServiceForm({
         }
       }, 100)
     }
-  }, [isChartOfAccountLoading, initialData, form])
+  }, [initialData, form])
 
   const calculateWaitingTime = () => {
     const loadingTime = form.getValues("loadingTime")
@@ -321,15 +309,6 @@ export function LaunchServiceForm({
     submitAction(formData)
   }
 
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
-
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
@@ -352,14 +331,7 @@ export function LaunchServiceForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
-              />
+
               <UomAutocomplete
                 form={form}
                 name="uomId"

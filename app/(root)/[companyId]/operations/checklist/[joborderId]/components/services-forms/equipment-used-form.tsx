@@ -13,13 +13,11 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   TaskStatusAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -80,11 +78,6 @@ export function EquipmentUsedForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<EquipmentUsedSchemaType>({
     resolver: zodResolver(EquipmentUsedSchema),
     defaultValues: {
@@ -99,7 +92,7 @@ export function EquipmentUsedForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.EquipmentUsed,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
@@ -142,7 +135,7 @@ export function EquipmentUsedForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.EquipmentUsed,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
@@ -171,7 +164,6 @@ export function EquipmentUsedForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
@@ -180,15 +172,6 @@ export function EquipmentUsedForm({
 
   const onSubmit = (data: EquipmentUsedSchemaType) => {
     submitAction(data)
-  }
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
   }
 
   return (
@@ -220,14 +203,7 @@ export function EquipmentUsedForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
-              />
+
               <CustomInput
                 form={form}
                 name="mafi"

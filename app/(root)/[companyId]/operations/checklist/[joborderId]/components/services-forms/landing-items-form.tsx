@@ -10,13 +10,11 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   PurposeOfLandingTypeAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
@@ -30,7 +28,6 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface LandingItemsFormProps {
   jobData: IJobOrderHd
@@ -78,11 +75,6 @@ export function LandingItemsForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<LandingItemsSchemaType>({
     resolver: zodResolver(LandingItemsSchema),
     defaultValues: {
@@ -102,7 +94,7 @@ export function LandingItemsForm({
             dateFormat
           )
         : "",
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -137,7 +129,7 @@ export function LandingItemsForm({
             dateFormat
           )
         : "",
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
@@ -156,21 +148,11 @@ export function LandingItemsForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
     taskDefaults,
   ])
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   const onSubmit = (data: LandingItemsSchemaType) => {
     submitAction(data)
@@ -220,14 +202,7 @@ export function LandingItemsForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
-              />
+
               <CustomInput
                 form={form}
                 name="locationName"

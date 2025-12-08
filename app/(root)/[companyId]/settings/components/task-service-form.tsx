@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import { ITaskService } from "@/interfaces/task-service"
 import {
@@ -13,7 +12,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -21,11 +19,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   CarrierTypeAutocomplete,
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
   ServiceModeAutocomplete,
-  StatusTaskAutocomplete,
+  TaskStatusAutocomplete,
   UomAutocomplete,
   VisaAutocomplete,
 } from "@/components/autocomplete"
@@ -50,12 +47,9 @@ const DEFAULT_TASK_SERVICES = [
   { taskId: 13, taskName: "Landing Items" },
   { taskId: 14, taskName: "Other Service" },
   { taskId: 15, taskName: "Agency Remuneration" },
-  { taskId: 16, taskName: "Visa Service" },
 ]
 
 export function TaskServiceForm() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const [savingService, setSavingService] = useState<string | null>(null)
   const [recentlySaved, setRecentlySaved] = useState<string | null>(null)
   const {
@@ -64,10 +58,6 @@ export function TaskServiceForm() {
     isError,
     refetch,
   } = useTaskServiceGet()
-
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
-    useChartOfAccountLookup(Number(companyId))
 
   const { mutate: saveTaskServiceSettings, isPending } = useTaskServiceSave()
 
@@ -79,14 +69,13 @@ export function TaskServiceForm() {
           acc[`service_${service.taskId}`] = {
             taskId: service.taskId,
             chargeId: 0,
-            glId: 0,
             uomId: 0,
-            carrierTypeId: 0,
+            carrierId: 0,
             serviceModeId: 0,
             consignmentTypeId: 0,
             visaId: 0,
             landingTypeId: 0,
-            statusTypeId: 0,
+            taskStatusId: 0,
           }
           return acc
         },
@@ -95,27 +84,22 @@ export function TaskServiceForm() {
           {
             taskId: number
             chargeId: number
-            glId: number
             uomId: number
-            carrierTypeId: number
+            carrierId: number
             serviceModeId: number
             consignmentTypeId: number
             visaId: number
             landingTypeId: number
-            statusTypeId: number
+            taskStatusId: number
           }
         >
       ),
     },
   })
 
-  // Update form values when both task service data and chart of account data are loaded
+  // Update form values when task service data is loaded
   useEffect(() => {
-    if (
-      taskServiceResponse &&
-      !isLoadingChartOfAccounts &&
-      chartOfAccounts.length > 0
-    ) {
+    if (taskServiceResponse) {
       const { result, message, data } =
         taskServiceResponse as TaskServiceResponse
 
@@ -134,14 +118,13 @@ export function TaskServiceForm() {
           {
             taskId: number
             chargeId: number
-            glId: number
             uomId: number
-            carrierTypeId: number
+            carrierId: number
             serviceModeId: number
             consignmentTypeId: number
             visaId: number
             landingTypeId: number
-            statusTypeId: number
+            taskStatusId: number
           }
         > = {}
 
@@ -152,21 +135,20 @@ export function TaskServiceForm() {
           servicesData[serviceKey] = {
             taskId: service.taskId || 0,
             chargeId: service.chargeId || 0,
-            glId: service.glId || 0,
             uomId: service.uomId || 0,
-            carrierTypeId: service.carrierTypeId || 0,
+            carrierId: service.carrierId || 0,
             serviceModeId: service.serviceModeId || 0,
             consignmentTypeId: service.consignmentTypeId || 0,
             visaId: service.visaId || 0,
             landingTypeId: service.landingTypeId || 0,
-            statusTypeId: service.statusTypeId || 0,
+            taskStatusId: service.taskStatusId || 0,
           }
         })
 
         form.reset({ services: servicesData })
       }
     }
-  }, [taskServiceResponse, form, isLoadingChartOfAccounts, chartOfAccounts])
+  }, [taskServiceResponse, form])
 
   function handleSaveIndividualService(serviceKey: string) {
     setSavingService(serviceKey)
@@ -178,10 +160,6 @@ export function TaskServiceForm() {
 
     if (!serviceData.chargeId || serviceData.chargeId === 0) {
       errors.push("Charge is required")
-    }
-
-    if (!serviceData.glId || serviceData.glId === 0) {
-      errors.push("GL Account is required")
     }
 
     if (!serviceData.uomId || serviceData.uomId === 0) {
@@ -203,14 +181,13 @@ export function TaskServiceForm() {
     const individualPayload: ServiceFieldValues = {
       taskId: serviceData.taskId,
       chargeId: serviceData.chargeId,
-      glId: serviceData.glId,
       uomId: serviceData.uomId,
-      carrierTypeId: serviceData.carrierTypeId,
+      carrierId: serviceData.carrierId,
       serviceModeId: serviceData.serviceModeId,
       consignmentTypeId: serviceData.consignmentTypeId,
       visaId: serviceData.visaId,
       landingTypeId: serviceData.landingTypeId,
-      statusTypeId: serviceData.statusTypeId,
+      taskStatusId: serviceData.taskStatusId,
     }
 
     saveTaskServiceSettings(individualPayload, {
@@ -270,7 +247,7 @@ export function TaskServiceForm() {
     })
   }
 
-  if (isLoading || isLoadingChartOfAccounts) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -303,14 +280,13 @@ export function TaskServiceForm() {
     serviceData: {
       taskId: number
       chargeId: number
-      glId: number
       uomId: number
-      carrierTypeId: number
+      carrierId: number
       serviceModeId: number
       consignmentTypeId: number
       visaId: number
       landingTypeId: number
-      statusTypeId: number
+      taskStatusId: number
     }
   }) => {
     const isSaving = savingService === serviceKey
@@ -375,13 +351,7 @@ export function TaskServiceForm() {
               taskId={serviceData.taskId}
               isRequired={true}
             />
-            <ChartOfAccountAutocomplete
-              form={form}
-              name={`services.${serviceKey}.glId`}
-              label="GL Account"
-              isRequired={true}
-              companyId={Number(companyId)}
-            />
+
             <UomAutocomplete
               form={form}
               name={`services.${serviceKey}.uomId`}
@@ -407,7 +377,7 @@ export function TaskServiceForm() {
             <>
               <CarrierTypeAutocomplete
                 form={form}
-                name={`services.${serviceKey}.carrierTypeId`}
+                name={`services.${serviceKey}.carrierId`}
                 label="Carrier Type"
                 isRequired={false}
               />
@@ -436,9 +406,9 @@ export function TaskServiceForm() {
           )}
 
           {/* Status Type - Show for all services */}
-          <StatusTaskAutocomplete
+          <TaskStatusAutocomplete
             form={form}
-            name={`services.${serviceKey}.statusTypeId`}
+            name={`services.${serviceKey}.taskStatusId`}
             label="Status Type"
             isRequired={false}
           />
@@ -462,17 +432,27 @@ export function TaskServiceForm() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {DEFAULT_TASK_SERVICES.map((service) => {
               const serviceKey = `service_${service.taskId}`
-              const serviceData = form.getValues().services[serviceKey] || {
-                taskId: service.taskId,
-                chargeId: 0,
-                glId: 0,
-                uomId: 0,
-                carrierTypeId: 0,
-                serviceModeId: 0,
-                consignmentTypeId: 0,
-                landingTypeId: 0,
-                visaId: 0,
-                statusTypeId: 0,
+              const formServiceData = form.getValues().services[serviceKey]
+              const serviceData: {
+                taskId: number
+                chargeId: number
+                uomId: number
+                carrierId: number
+                serviceModeId: number
+                consignmentTypeId: number
+                visaId: number
+                landingTypeId: number
+                taskStatusId: number
+              } = {
+                taskId: formServiceData?.taskId ?? service.taskId,
+                chargeId: formServiceData?.chargeId ?? 0,
+                uomId: formServiceData?.uomId ?? 0,
+                carrierId: formServiceData?.carrierId ?? 0,
+                serviceModeId: formServiceData?.serviceModeId ?? 0,
+                consignmentTypeId: formServiceData?.consignmentTypeId ?? 0,
+                landingTypeId: formServiceData?.landingTypeId ?? 0,
+                visaId: formServiceData?.visaId ?? 0,
+                taskStatusId: formServiceData?.taskStatusId ?? 0,
               }
               return (
                 <ServiceCard

@@ -216,7 +216,7 @@ export default function JobOrderDetailsPage() {
                           Status:
                         </span>
                         <span className="text-gray-800">
-                          {jobOrderResponse?.data?.statusName || "N/A"}
+                          {jobOrderResponse?.data?.jobStatusName || "N/A"}
                         </span>
                       </div>
                     </div>
@@ -225,12 +225,12 @@ export default function JobOrderDetailsPage() {
               </Tooltip>
             </TooltipProvider>
           )}
-          {jobOrderResponse?.data?.statusName && (
+          {jobOrderResponse?.data?.jobStatusName && (
             <Badge
-              className={`flex h-8 items-center border-2 px-4 text-sm font-semibold shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${statusColors[jobOrderResponse.data.statusName as keyof typeof statusColors] || "border-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300"}`}
+              className={`flex h-8 items-center border-2 px-4 text-sm font-semibold shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${statusColors[jobOrderResponse.data.jobStatusName as keyof typeof statusColors] || "border-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300"}`}
             >
               <span className="mr-1">⚡</span>
-              {jobOrderResponse.data.statusName}
+              {jobOrderResponse.data.jobStatusName}
             </Badge>
           )}
         </div>

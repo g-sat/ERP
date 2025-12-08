@@ -119,11 +119,13 @@ export function AgencyRemunerationTable({
         minSize: 130,
       },
       {
-        accessorKey: "statusName",
+        accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => (
           <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+            <Badge variant="default">
+              {row.getValue("taskStatusName") || "-"}
+            </Badge>
           </div>
         ),
         size: 120,

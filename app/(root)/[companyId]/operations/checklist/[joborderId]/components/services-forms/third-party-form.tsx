@@ -10,13 +10,11 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   SupplierAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
@@ -30,7 +28,6 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface ThirdPartyFormProps {
   jobData: IJobOrderHd
@@ -78,11 +75,6 @@ export function ThirdPartyForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<ThirdPartySchemaType>({
     resolver: zodResolver(ThirdPartySchema),
     defaultValues: {
@@ -95,7 +87,7 @@ export function ThirdPartyForm({
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -123,7 +115,7 @@ export function ThirdPartyForm({
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -142,21 +134,11 @@ export function ThirdPartyForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
     taskDefaults,
   ])
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   const onSubmit = (data: ThirdPartySchemaType) => {
     submitAction(data)
@@ -218,15 +200,6 @@ export function ThirdPartyForm({
                 name="deliverDate"
                 label="Deliver Date"
                 isDisabled={isConfirmed}
-              />
-
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">

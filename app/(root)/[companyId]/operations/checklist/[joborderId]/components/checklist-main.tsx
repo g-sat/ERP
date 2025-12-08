@@ -746,11 +746,10 @@ export function ChecklistMain({
                   isRequired={false}
                   isDisabled={isConfirmed}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="vesselDistance"
                   label="Vessel Distance (NM)"
-                  type="number"
                   isRequired={true}
                   isDisabled={isConfirmed}
                 />

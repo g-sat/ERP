@@ -10,14 +10,12 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   BargeAutocomplete,
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -30,7 +28,6 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface FreshWaterFormProps {
   jobData: IJobOrderHd
@@ -78,11 +75,6 @@ export function FreshWaterForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<FreshWaterSchemaType>({
     resolver: zodResolver(FreshWaterSchema),
     defaultValues: {
@@ -99,7 +91,7 @@ export function FreshWaterForm({
       quantity: initialData?.quantity ?? 0,
       receiptNo: initialData?.receiptNo ?? "",
       distance: initialData?.distance ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -129,7 +121,7 @@ export function FreshWaterForm({
       quantity: initialData?.quantity ?? 0,
       receiptNo: initialData?.receiptNo ?? "",
       distance: initialData?.distance ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -146,21 +138,11 @@ export function FreshWaterForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
     taskDefaults,
   ])
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   const onSubmit = (data: FreshWaterSchemaType) => {
     submitAction(data)
@@ -188,14 +170,7 @@ export function FreshWaterForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
-              />
+
               <BargeAutocomplete
                 form={form}
                 name="bargeId"

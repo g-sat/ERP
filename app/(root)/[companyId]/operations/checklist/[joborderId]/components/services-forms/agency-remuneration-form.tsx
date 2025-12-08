@@ -13,13 +13,11 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   TaskStatusAutocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
@@ -77,11 +75,6 @@ export function AgencyRemunerationForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<AgencyRemunerationSchemaType>({
     resolver: zodResolver(AgencyRemunerationSchema),
     defaultValues: {
@@ -95,7 +88,7 @@ export function AgencyRemunerationForm({
             dateFormat
           )
         : format(new Date(), dateFormat),
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -116,7 +109,7 @@ export function AgencyRemunerationForm({
             dateFormat
           )
         : format(new Date(), dateFormat),
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
@@ -127,7 +120,6 @@ export function AgencyRemunerationForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
@@ -139,13 +131,6 @@ export function AgencyRemunerationForm({
   }
 
   // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   return (
     <div className="max-w flex flex-col gap-2">
@@ -167,14 +152,6 @@ export function AgencyRemunerationForm({
                 taskId={Task.AgencyRemuneration}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
                 companyId={jobData.companyId}
               />
 

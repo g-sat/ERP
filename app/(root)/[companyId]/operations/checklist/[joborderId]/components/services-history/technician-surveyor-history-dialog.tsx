@@ -169,11 +169,13 @@ export function TechnicianSurveyorHistoryDialog({
       minSize: 110,
     },
     {
-      accessorKey: "statusName",
+      accessorKey: "taskStatusName",
       header: "Status",
       cell: ({ row }) => (
         <div className="text-center">
-          <Badge variant="outline">{row.getValue("statusName") || "-"}</Badge>
+          <Badge variant="outline">
+            {row.getValue("taskStatusName") || "-"}
+          </Badge>
         </div>
       ),
       size: 100,

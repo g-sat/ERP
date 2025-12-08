@@ -50,19 +50,19 @@ export function ChecklistTable({
     return data.filter((job: IJobOrderHd) => {
       switch (selectedStatus) {
         case "Pending":
-          return job.statusName === OperationsStatus.Pending.toString()
+          return job.jobStatusName === OperationsStatus.Pending.toString()
         case "Completed":
-          return job.statusName === OperationsStatus.Completed.toString()
+          return job.jobStatusName === OperationsStatus.Completed.toString()
         case "Cancelled":
-          return job.statusName === OperationsStatus.Cancelled.toString()
+          return job.jobStatusName === OperationsStatus.Cancelled.toString()
         case "Cancel With Service":
           return (
-            job.statusName === OperationsStatus.CancelWithService.toString()
+            job.jobStatusName === OperationsStatus.CancelWithService.toString()
           )
         case "Confirmed":
-          return job.statusName === OperationsStatus.Confirmed.toString()
+          return job.jobStatusName === OperationsStatus.Confirmed.toString()
         case "Posted":
-          return job.statusName === OperationsStatus.Post.toString()
+          return job.jobStatusName === OperationsStatus.Post.toString()
         default:
           return true
       }
@@ -171,10 +171,10 @@ export function ChecklistTable({
         minSize: 100,
       },
       {
-        accessorKey: "statusName",
+        accessorKey: "jobStatusName",
         header: "Status",
         cell: ({ row }) => {
-          const status = row.getValue("statusName") as string
+          const status = row.getValue("jobStatusName") as string
           const statusColors: Record<string, string> = {
             Pending: "bg-yellow-100 text-yellow-800",
             Completed: "bg-blue-100 text-blue-800",

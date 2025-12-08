@@ -9,13 +9,11 @@ import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   RankAutocomplete,
   TaskStatusAutocomplete,
   VisaAutocomplete,
@@ -51,11 +49,6 @@ export function CrewSignOnForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<CrewSignOnSchemaType>({
     mode: "onChange",
     resolver: zodResolver(CrewSignOnSchema),
@@ -65,7 +58,7 @@ export function CrewSignOnForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.CrewSignOn,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
@@ -92,7 +85,7 @@ export function CrewSignOnForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.CrewSignOn,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
@@ -110,26 +103,10 @@ export function CrewSignOnForm({
       cidClearance: initialData?.cidClearance ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
-  }, [
-    initialData,
-    taskDefaults,
-    form,
-    jobData.jobOrderId,
-    jobData.jobOrderNo,
-    isChartOfAccountLoading,
-  ])
+  }, [initialData, taskDefaults, form, jobData.jobOrderId, jobData.jobOrderNo])
 
   const onSubmit = (data: CrewSignOnSchemaType) => {
     submitAction(data)
-  }
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
   }
 
   return (
@@ -176,14 +153,6 @@ export function CrewSignOnForm({
                 label="Visa Type"
                 isRequired
                 isDisabled={isConfirmed}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
               />
 
               <TaskStatusAutocomplete

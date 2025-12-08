@@ -13,14 +13,12 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   CarrierTypeAutocomplete,
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
   ServiceModeAutocomplete,
@@ -84,11 +82,6 @@ export function ConsignmentImportForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   const form = useForm<ConsignmentImportSchemaType>({
     resolver: zodResolver(ConsignmentImportSchema),
     defaultValues: {
@@ -97,7 +90,7 @@ export function ConsignmentImportForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.ConsignmentImport,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
@@ -152,7 +145,7 @@ export function ConsignmentImportForm({
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.ConsignmentImport,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId:
         initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
@@ -202,21 +195,11 @@ export function ConsignmentImportForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
     parseWithFallback,
     taskDefaults,
   ])
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   const onSubmit = (data: ConsignmentImportSchemaType) => {
     submitAction(data)
@@ -310,14 +293,7 @@ export function ConsignmentImportForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
-              />
+
               <CustomInput
                 form={form}
                 name="referenceNo"

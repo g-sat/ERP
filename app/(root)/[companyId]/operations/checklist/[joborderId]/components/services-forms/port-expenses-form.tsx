@@ -10,13 +10,12 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartOfAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
+import { useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
   SupplierAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
@@ -29,7 +28,6 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface PortExpensesFormProps {
   jobData: IJobOrderHd
@@ -77,11 +75,6 @@ export function PortExpensesForm({
     [dateFormat]
   )
 
-  // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
-    Number(jobData.companyId)
-  )
-
   // Get supplier data to ensure it's loaded before setting form values
   const { isLoading: isSupplierLoading } = useSupplierLookup()
 
@@ -98,7 +91,7 @@ export function PortExpensesForm({
       taskStatusId:
         initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+
       deliverDate: initialData?.deliverDate
         ? format(
             parseWithFallback(initialData.deliverDate as string) || new Date(),
@@ -113,7 +106,7 @@ export function PortExpensesForm({
 
   useEffect(() => {
     // Only reset form when data is loaded to prevent race conditions
-    if (!isChartOfAccountLoading && !isSupplierLoading) {
+    if (!isSupplierLoading) {
       form.reset({
         portExpenseId: initialData?.portExpenseId ?? 0,
         jobOrderId: jobData.jobOrderId,
@@ -125,7 +118,6 @@ export function PortExpensesForm({
         taskStatusId:
           initialData?.taskStatusId ?? taskDefaults.statusTypeId ?? 802,
         uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-        glId: initialData?.glId ?? taskDefaults.glId ?? 0,
         deliverDate: initialData?.deliverDate
           ? format(
               parseWithFallback(initialData.deliverDate as string) ||
@@ -142,7 +134,6 @@ export function PortExpensesForm({
     dateFormat,
     form,
     initialData,
-    isChartOfAccountLoading,
     isSupplierLoading,
     jobData.jobOrderId,
     jobData.jobOrderNo,
@@ -154,14 +145,14 @@ export function PortExpensesForm({
     submitAction(data)
   }
 
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading || isSupplierLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
+  // // Show loading state while data is being fetched
+  // if (isSupplierLoading) {
+  //   return (
+  //     <div className="max-w flex flex-col gap-2">
+  //       <FormLoadingSpinner text="Loading form data..." />
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="max-w flex flex-col gap-2">
@@ -183,14 +174,6 @@ export function PortExpensesForm({
                 taskId={Task.PortExpenses}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
                 companyId={jobData.companyId}
               />
 

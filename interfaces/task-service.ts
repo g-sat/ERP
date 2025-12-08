@@ -2,14 +2,13 @@ export interface ITaskService {
   companyId: number
   taskId: number
   chargeId?: number | null
-  glId?: number | null
   uomId?: number | null
-  carrierTypeId?: number | null
+  carrierId?: number | null
   serviceModeId?: number | null
   consignmentTypeId?: number | null
   landingTypeId?: number | null
   visaId?: number | null
-  statusTypeId?: number | null
+  taskStatusId?: number | null
   createById: number
   createDate: string
   editById?: number | null

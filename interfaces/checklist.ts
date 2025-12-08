@@ -79,8 +79,7 @@ export interface IAgencyRemuneration {
   jobOrderNo: string
   taskId: number
   taskName?: string
-  glId: number
-  glName?: string
+
   chargeId: number
   chargeName?: string
   debitNoteId?: number
@@ -109,8 +108,7 @@ export interface IConsignmentExport {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   awbNo: string
   carrierTypeId: number
   carrierTypeName?: string
@@ -161,8 +159,7 @@ export interface IConsignmentImport {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   awbNo: string
   carrierTypeId: number
   carrierTypeName?: string
@@ -216,8 +213,7 @@ export interface ICrewMiscellaneous {
   gstAmt: number
   totAmtAftGst: number
   description: string
-  glId: number
-  glName?: string
+
   quantity: number
   chargeId?: number
   chargeName?: string
@@ -241,8 +237,7 @@ export interface ICrewSignOff {
   taskId: number
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   visaId: number
   crewName: string
   nationality: string
@@ -281,8 +276,7 @@ export interface ICrewSignOn {
   taskId: number
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   visaId: number
   crewName: string
   nationality: string
@@ -324,8 +318,7 @@ export interface IEquipmentUsed {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   mafi?: string
   others?: string
   craneChargeId?: number
@@ -368,9 +361,7 @@ export interface IFreshWater {
   jobOrderId: number
   jobOrderNo: string
   taskId: number
-  taskName?: string | null
-  glId: number
-  glName?: string | null
+  taskName?: string | null | null
   chargeId: number
   chargeName?: string | null
   bargeId: number
@@ -407,8 +398,7 @@ export interface ILandingItems {
   jobOrderNo: string
   taskId: number
   taskName?: string
-  glId: number
-  glName?: string
+
   chargeId: number
   chargeName?: string
   name: string
@@ -447,8 +437,7 @@ export interface ILaunchService {
   taskName?: string
   uomId: number
   uomName?: string
-  glId: number
-  glName?: string
+
   chargeId: number
   chargeName?: string
   bargeId?: number
@@ -575,8 +564,7 @@ export interface IMedicalAssistance {
   taskId: number
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   crewName: string
   nationality: string
   rankId: number
@@ -609,8 +597,7 @@ export interface IOtherService {
   taskId: number
   chargeId: number
   chargeName?: string
-  glId: number
-  glName?: string
+
   serviceProvider: string
   quantity: number
   amount: number
@@ -651,8 +638,7 @@ export interface IPortExpenses {
   uomId: number
   uomName?: string
   deliverDate?: Date | string
-  glId: number
-  glName?: string
+
   debitNoteId?: number
   debitNoteNo?: string
   totAmt: number
@@ -681,8 +667,7 @@ export interface ITechnicianSurveyor {
   jobOrderNo: string
   taskId: number
   taskName?: string
-  glId: number
-  glName?: string
+
   chargeId: number
   chargeName?: string
   name: string
@@ -736,8 +721,7 @@ export interface IThirdParty {
   editVersion: number
   quantity: number
   supplierName?: string
-  glId: number
-  glName?: string
+
   chargeId: number
   chargeName?: string
   taskStatusId: number
@@ -769,8 +753,7 @@ export interface IDebitNoteHd {
   totAmt: number
   gstAmt: number
   totAmtAftGst: number
-  glId: number
-  glName?: string
+
   taxableAmt: number
   nonTaxableAmt: number
   isLocked: boolean
@@ -831,8 +814,7 @@ export interface IBulkChargeData {
   chargeId: number
   chargeName: string
   remarks: string
-  glId: number
-  glName?: string
+
   taskId?: number
   taskName?: string
   basicRate: number

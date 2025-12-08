@@ -170,27 +170,27 @@ export default function ChecklistPage() {
       All: apiData.length,
       Pending: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.Pending.toString()
+          job.jobStatusName === OperationsStatus.Pending.toString()
       ).length,
       Confirmed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.Confirmed.toString()
+          job.jobStatusName === OperationsStatus.Confirmed.toString()
       ).length,
       Completed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.Completed.toString()
+          job.jobStatusName === OperationsStatus.Completed.toString()
       ).length,
       Cancelled: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.Cancelled.toString()
+          job.jobStatusName === OperationsStatus.Cancelled.toString()
       ).length,
       "Cancel With Service": apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.CancelWithService.toString()
+          job.jobStatusName === OperationsStatus.CancelWithService.toString()
       ).length,
       Posted: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationsStatus.Post.toString()
+          job.jobStatusName === OperationsStatus.Post.toString()
       ).length,
     }
     return counts
