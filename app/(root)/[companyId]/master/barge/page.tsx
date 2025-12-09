@@ -1,14 +1,20 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ApiResponse } from "@/interfaces/auth"
-import { IBarge, IBargeFilter } from "@/interfaces/barge"
-import { BargeSchemaType } from "@/schemas/barge"
+import { useParams } from "next/navigation"
+import {
+  ApiResponse,
+  IBarge,
+  IBargeFilter,
+  IBargeGLMapping,
+  IBargeGLMappingFilter,
+} from "@/interfaces"
+import { BargeGLMappingSchemaType, BargeSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getById } from "@/lib/api-client"
-import { Barge } from "@/lib/api-routes"
+import { Barge, BargeGLMapping } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -20,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
@@ -28,29 +35,63 @@ import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { BargeForm } from "./components/barge-form"
 import { BargeTable } from "./components/barge-table"
+import { BargeGLMappingForm } from "./components/bargeglmapping-form"
+import { BargeGLMappingTable } from "./components/bargeglmapping-table"
 
 export default function BargePage() {
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.barge
+  const transactionIdGLMapping = MasterTransactionId.bargeGLMapping
 
-  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
-
   const { hasPermission } = usePermissionStore()
 
+  // Permissions for Barge
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  // Permissions for BargeGLMapping
+  const canViewGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isRead"
+  )
+  const canEditGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isEdit"
+  )
+  const canDeleteGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isDelete"
+  )
+  const canCreateGLMapping = hasPermission(
+    moduleId,
+    transactionIdGLMapping,
+    "isCreate"
+  )
+
   // Get user settings for default page size
   const { defaults } = useUserSettingDefaults()
 
-  // Fetch account groups from the API using useGet
+  // State for filters
   const [filters, setFilters] = useState<IBargeFilter>({})
-  const [isLocked, setIsLocked] = useState(false)
+  const [glMappingFilters, setGLMappingFilters] =
+    useState<IBargeGLMappingFilter>({})
+
+  // Separate pagination state for each tab
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [glMappingCurrentPage, setGLMappingCurrentPage] = useState(1)
+  const [glMappingPageSize, setGLMappingPageSize] = useState(
     defaults?.common?.masterGridTotalRecords || 50
   )
 
@@ -58,10 +99,11 @@ export default function BargePage() {
   useEffect(() => {
     if (defaults?.common?.masterGridTotalRecords) {
       setPageSize(defaults.common.masterGridTotalRecords)
+      setGLMappingPageSize(defaults.common.masterGridTotalRecords)
     }
   }, [defaults?.common?.masterGridTotalRecords])
 
-  // Filter handler wrapper
+  // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IBargeFilter)
@@ -70,21 +112,39 @@ export default function BargePage() {
     []
   )
 
-  // Page change handler
+  const handleGLMappingFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setGLMappingFilters(newFilters as IBargeGLMappingFilter)
+      setGLMappingCurrentPage(1) // Reset to first page when filtering
+    },
+    []
+  )
+
+  // Page change handlers for each tab
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page)
   }, [])
 
-  // Page size change handler
+  const handleGLMappingPageChange = useCallback((page: number) => {
+    setGLMappingCurrentPage(page)
+  }, [])
+
+  // Page size change handlers for each tab
   const handlePageSizeChange = useCallback((size: number) => {
     setPageSize(size)
     setCurrentPage(1) // Reset to first page when changing page size
   }, [])
 
+  const handleGLMappingPageSizeChange = useCallback((size: number) => {
+    setGLMappingPageSize(size)
+    setGLMappingCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  // Data fetching for Barge
   const {
     data: bargesResponse,
-    refetch,
-    isLoading,
+    refetch: refetchBarge,
+    isLoading: isLoadingBarge,
   } = useGetWithPagination<IBarge>(
     `${Barge.get}`,
     "barges",
@@ -93,11 +153,24 @@ export default function BargePage() {
     pageSize
   )
 
-  // Destructure with fallback values
+  // Data fetching for BargeGLMapping
+  const {
+    data: bargeGLMappingResponse,
+    refetch: refetchBargeGLMapping,
+    isLoading: isLoadingBargeGLMapping,
+  } = useGetWithPagination<IBargeGLMapping>(
+    `${BargeGLMapping.get}`,
+    "bargeglmappings",
+    glMappingFilters.search,
+    glMappingCurrentPage,
+    glMappingPageSize
+  )
+
+  // Extract data from responses with fallback values
   const {
     result: bargesResult,
     data: bargesData,
-    totalRecords,
+    totalRecords: bargesTotalRecords,
   } = (bargesResponse as ApiResponse<IBarge>) ?? {
     result: 0,
     message: "",
@@ -105,60 +178,76 @@ export default function BargePage() {
     totalRecords: 0,
   }
 
-  // Handle result = -1 and result = -2 cases
-  useEffect(() => {
-    if (!bargesResponse) return
+  const {
+    result: bargeGLMappingResult,
+    data: bargeGLMappingData,
+    totalRecords: bargeGLMappingTotalRecords,
+  } = (bargeGLMappingResponse as ApiResponse<IBargeGLMapping>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
-    if (bargesResponse.result === -1) {
-      setFilters({})
-    } else if (bargesResponse.result === -2 && !isLocked) {
-      setIsLocked(true)
-    } else if (bargesResponse.result !== -2) {
-      setIsLocked(false)
-    }
-  }, [bargesResponse, isLocked])
-
-  // Define mutations for CRUD operations
+  // Mutations for Barge
   const saveMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
   const updateMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
   const deleteMutation = useDelete(`${Barge.delete}`)
 
-  // State for modal and selected account group
-  const [selectedBarge, setSelectedBarge] = useState<IBarge | undefined>(
-    undefined
+  // Mutations for BargeGLMapping
+  const saveGLMappingMutation = usePersist<BargeGLMappingSchemaType>(
+    `${BargeGLMapping.add}`
   )
+  const updateGLMappingMutation = usePersist<BargeGLMappingSchemaType>(
+    `${BargeGLMapping.add}`
+  )
+  const deleteGLMappingMutation = useDelete(`${BargeGLMapping.delete}`)
+
+  // State management for Barge
+  const [selectedBarge, setSelectedBarge] = useState<IBarge | undefined>()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-  // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingBarge, setExistingBarge] = useState<IBarge | null>(null)
 
-  // State for delete confirmation
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    bargeId: string | null
-    bargeName: string | null
-  }>({
+  // State management for BargeGLMapping
+  const [selectedBargeGLMapping, setSelectedBargeGLMapping] = useState<
+    IBargeGLMapping | undefined
+  >()
+  const [isGLMappingModalOpen, setIsGLMappingModalOpen] = useState(false)
+  const [glMappingModalMode, setGLMappingModalMode] = useState<
+    "create" | "edit" | "view"
+  >("create")
+
+  // State for delete confirmations
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,
-    bargeId: null,
-    bargeName: null,
+    id: null as string | null,
+    name: null as string | null,
+    type: "barge" as "barge" | "bargeglmapping",
   })
 
-  // State for save confirmation
+  // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: BargeSchemaType | null
+    data: BargeSchemaType | BargeGLMappingSchemaType | null
+    type: "barge" | "bargeglmapping"
   }>({
     isOpen: false,
     data: null,
+    type: "barge",
   })
 
-  // Handler to Re-fetches data when called
-  const handleRefresh = () => {
-    refetch()
-  }
+  // Refetch when filters change
+  useEffect(() => {
+    if (filters.search !== undefined) refetchBarge()
+  }, [filters.search, refetchBarge])
+
+  useEffect(() => {
+    if (glMappingFilters.search !== undefined) refetchBargeGLMapping()
+  }, [glMappingFilters.search, refetchBargeGLMapping])
 
   // Handler to open modal for creating a new account group
   const handleCreateBarge = () => {
@@ -182,64 +271,175 @@ export default function BargePage() {
     setIsModalOpen(true)
   }
 
+  // Action handlers for BargeGLMapping
+  const handleCreateBargeGLMapping = () => {
+    setGLMappingModalMode("create")
+    setSelectedBargeGLMapping(undefined)
+    setIsGLMappingModalOpen(true)
+  }
+
+  const handleEditBargeGLMapping = (bargeGLMapping: IBargeGLMapping) => {
+    setGLMappingModalMode("edit")
+    setSelectedBargeGLMapping(bargeGLMapping)
+    setIsGLMappingModalOpen(true)
+  }
+
+  const handleViewBargeGLMapping = (bargeGLMapping: IBargeGLMapping | null) => {
+    if (!bargeGLMapping) return
+    setGLMappingModalMode("view")
+    setSelectedBargeGLMapping(bargeGLMapping)
+    setIsGLMappingModalOpen(true)
+  }
+
+  // Helper function for API responses
+  const handleApiResponse = (
+    response: ApiResponse<IBarge | IBargeGLMapping>
+  ) => {
+    if (response.result === 1) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  // Form handlers for Barge
+  const handleBargeSubmit = async (data: BargeSchemaType) => {
+    try {
+      if (modalMode === "create") {
+        const response = (await saveMutation.mutateAsync(
+          data
+        )) as ApiResponse<IBarge>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["barges"] })
+        }
+      } else if (modalMode === "edit" && selectedBarge) {
+        const response = (await updateMutation.mutateAsync(
+          data
+        )) as ApiResponse<IBarge>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["barges"] })
+        }
+      }
+    } catch (error) {
+      console.error("Barge form submission error:", error)
+    }
+  }
+
+  // Form handlers for BargeGLMapping
+  const handleBargeGLMappingSubmit = async (data: BargeGLMappingSchemaType) => {
+    try {
+      if (glMappingModalMode === "create") {
+        const response = (await saveGLMappingMutation.mutateAsync(
+          data
+        )) as ApiResponse<IBargeGLMapping>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["bargeglmappings"] })
+        }
+      } else if (glMappingModalMode === "edit" && selectedBargeGLMapping) {
+        const response = (await updateGLMappingMutation.mutateAsync(
+          data
+        )) as ApiResponse<IBargeGLMapping>
+        if (handleApiResponse(response)) {
+          queryClient.invalidateQueries({ queryKey: ["bargeglmappings"] })
+        }
+      }
+    } catch (error) {
+      console.error("BargeGLMapping form submission error:", error)
+    }
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
+    data: BargeSchemaType | BargeGLMappingSchemaType
+  ) => {
+    try {
+      if (saveConfirmation.type === "bargeglmapping") {
+        await handleBargeGLMappingSubmit(data as BargeGLMappingSchemaType)
+        setIsGLMappingModalOpen(false)
+      } else {
+        await handleBargeSubmit(data as BargeSchemaType)
+        setIsModalOpen(false)
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+    }
+  }
+
   // Handler for form submission (create or edit) - shows confirmation first
   const handleFormSubmit = (data: BargeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
+      type: "barge",
     })
   }
 
-  // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: BargeSchemaType) => {
-    try {
-      if (modalMode === "create") {
-        const response = await saveMutation.mutateAsync(data)
-        if (response.result === 1) {
-          // Invalidate and refetch the barges query
-          queryClient.invalidateQueries({ queryKey: ["barges"] })
-          setIsModalOpen(false)
-        }
-      } else if (modalMode === "edit" && selectedBarge) {
-        const response = await updateMutation.mutateAsync(data)
-        if (response.result === 1) {
-          // Invalidate and refetch the barges query
-          queryClient.invalidateQueries({ queryKey: ["barges"] })
-          setIsModalOpen(false)
-        }
-      }
-    } catch (error) {
-      console.error("Error in form submission:", error)
-    }
+  const handleGLMappingFormSubmit = (data: BargeGLMappingSchemaType) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: "bargeglmapping",
+    })
   }
 
-  // Handler for deleting an account group
+  // Delete handlers
   const handleDeleteBarge = (bargeId: string) => {
     const bargeToDelete = bargesData?.find(
-      (ag) => ag.bargeId.toString() === bargeId
+      (b) => b.bargeId.toString() === bargeId
     )
     if (!bargeToDelete) return
-
-    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
-      bargeId,
-      bargeName: bargeToDelete.bargeName,
+      id: bargeId,
+      name: bargeToDelete.bargeName,
+      type: "barge",
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.bargeId) {
-      deleteMutation.mutateAsync(deleteConfirmation.bargeId).then(() => {
-        // Invalidate and refetch the barges query after successful deletion
-        queryClient.invalidateQueries({ queryKey: ["barges"] })
-      })
-      setDeleteConfirmation({
-        isOpen: false,
-        bargeId: null,
-        bargeName: null,
-      })
-    }
+  const handleDeleteBargeGLMapping = (id: string) => {
+    const bargeGLMappingToDelete = bargeGLMappingData?.find(
+      (b) => b.bargeId.toString() === id
+    )
+    if (!bargeGLMappingToDelete) return
+    setDeleteConfirmation({
+      isOpen: true,
+      id: id,
+      name: bargeGLMappingToDelete.bargeName,
+      type: "bargeglmapping",
+    })
+  }
+
+  // Individual deletion executors for each entity type
+  const executeDeleteBarge = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["barges"] })
+  }
+
+  const executeDeleteBargeGLMapping = async (id: string) => {
+    await deleteGLMappingMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["bargeglmappings"] })
+  }
+
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    barge: executeDeleteBarge,
+    bargeglmapping: executeDeleteBargeGLMapping,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
+
+    setDeleteConfirmation({
+      isOpen: false,
+      id: null,
+      name: null,
+      type: "barge",
+    })
   }
 
   // Handler for code availability check (memoized to prevent unnecessary re-renders)
@@ -322,82 +522,152 @@ export default function BargePage() {
         </div>
       </div>
 
-      {/* Barges Table */}
-      {isLoading ? (
-        <DataTableSkeleton
-          columnCount={7}
-          filterCount={2}
-          cellWidths={[
-            "10rem",
-            "30rem",
-            "10rem",
-            "10rem",
-            "6rem",
-            "6rem",
-            "6rem",
-          ]}
-          shrinkZero
-        />
-      ) : bargesResult === -2 ||
-        (!canView && !canEdit && !canDelete && !canCreate) ? (
-        <LockSkeleton locked={true}>
-          <BargeTable
-            data={[]}
-            isLoading={false}
-            onSelect={() => {}}
-            onDeleteAction={() => {}}
-            onEditAction={() => {}}
-            onCreateAction={() => {}}
-            onRefreshAction={() => {}}
-            onFilterChange={() => {}}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            canView={false}
-            canCreate={false}
-            canEdit={false}
-            canDelete={false}
-          />
-        </LockSkeleton>
-      ) : (
-        <BargeTable
-          data={bargesData || []}
-          isLoading={isLoading}
-          totalRecords={totalRecords}
-          onSelect={canView ? handleViewBarge : undefined}
-          onDeleteAction={canDelete ? handleDeleteBarge : undefined}
-          onEditAction={canEdit ? handleEditBarge : undefined}
-          onCreateAction={canCreate ? handleCreateBarge : undefined}
-          onRefreshAction={handleRefresh}
-          onFilterChange={handleFilterChange}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          serverSidePagination={true}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
-      )}
+      <Tabs defaultValue="barge" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="barge">Barge</TabsTrigger>
+          <TabsTrigger value="bargeglmapping">Barge GL Mapping</TabsTrigger>
+        </TabsList>
 
-      {/* Modal for Create, Edit, and View */}
-      <Dialog
-        open={isModalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsModalOpen(false)
-          }
-        }}
-      >
+        <TabsContent value="barge" className="space-y-4">
+          {isLoadingBarge ? (
+            <DataTableSkeleton
+              columnCount={7}
+              filterCount={2}
+              cellWidths={[
+                "10rem",
+                "30rem",
+                "10rem",
+                "10rem",
+                "6rem",
+                "6rem",
+                "6rem",
+              ]}
+              shrinkZero
+            />
+          ) : bargesResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
+            <LockSkeleton locked={true}>
+              <BargeTable
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
+                onFilterChange={() => {}}
+                moduleId={moduleId}
+                transactionId={transactionId}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
+              />
+            </LockSkeleton>
+          ) : (
+            <BargeTable
+              data={bargesData || []}
+              isLoading={isLoadingBarge}
+              totalRecords={bargesTotalRecords}
+              onSelect={canView ? handleViewBarge : undefined}
+              onDeleteAction={canDelete ? handleDeleteBarge : undefined}
+              onEditAction={canEdit ? handleEditBarge : undefined}
+              onCreateAction={canCreate ? handleCreateBarge : undefined}
+              onRefreshAction={refetchBarge}
+              onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
+              moduleId={moduleId}
+              transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="bargeglmapping" className="space-y-4">
+          {isLoadingBargeGLMapping ? (
+            <DataTableSkeleton
+              columnCount={8}
+              filterCount={2}
+              cellWidths={[
+                "10rem",
+                "30rem",
+                "10rem",
+                "10rem",
+                "10rem",
+                "6rem",
+                "6rem",
+                "6rem",
+              ]}
+              shrinkZero
+            />
+          ) : bargeGLMappingResult === -2 ||
+            (!canViewGLMapping &&
+              !canEditGLMapping &&
+              !canDeleteGLMapping &&
+              !canCreateGLMapping) ? (
+            <LockSkeleton locked={true}>
+              <BargeGLMappingTable
+                data={[]}
+                isLoading={false}
+                totalRecords={bargeGLMappingTotalRecords}
+                onSelect={() => {}}
+                onDeleteAction={() => {}}
+                onEditAction={() => {}}
+                onCreateAction={() => {}}
+                onRefreshAction={() => {}}
+                onFilterChange={() => {}}
+                moduleId={moduleId}
+                transactionId={transactionIdGLMapping}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
+              />
+            </LockSkeleton>
+          ) : (
+            <BargeGLMappingTable
+              data={bargeGLMappingData || []}
+              totalRecords={bargeGLMappingTotalRecords}
+              onSelect={canViewGLMapping ? handleViewBargeGLMapping : undefined}
+              onDeleteAction={
+                canDeleteGLMapping ? handleDeleteBargeGLMapping : undefined
+              }
+              onEditAction={
+                canEditGLMapping ? handleEditBargeGLMapping : undefined
+              }
+              onCreateAction={
+                canCreateGLMapping ? handleCreateBargeGLMapping : undefined
+              }
+              onRefreshAction={refetchBargeGLMapping}
+              onFilterChange={handleGLMappingFilterChange}
+              onPageChange={handleGLMappingPageChange}
+              onPageSizeChange={handleGLMappingPageSizeChange}
+              currentPage={glMappingCurrentPage}
+              pageSize={glMappingPageSize}
+              serverSidePagination={true}
+              moduleId={moduleId}
+              transactionId={transactionIdGLMapping}
+              canEdit={canEditGLMapping}
+              canDelete={canDeleteGLMapping}
+              canView={canViewGLMapping}
+              canCreate={canCreateGLMapping}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Barge Form Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
+          onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>
@@ -415,25 +685,59 @@ export default function BargePage() {
           </DialogHeader>
           <Separator />
           <BargeForm
-            initialData={
-              modalMode === "edit" || modalMode === "view"
-                ? selectedBarge
-                : undefined
-            }
+            initialData={modalMode !== "create" ? selectedBarge : undefined}
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={
-              modalMode === "view" ||
-              (modalMode === "create" && !canCreate) ||
-              (modalMode === "edit" && !canEdit)
-            }
+            isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Account Group Dialog */}
+      {/* BargeGLMapping Form Dialog */}
+      <Dialog
+        open={isGLMappingModalOpen}
+        onOpenChange={setIsGLMappingModalOpen}
+      >
+        <DialogContent
+          className="sm:max-w-2xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {glMappingModalMode === "create" && "Create Barge GL Mapping"}
+              {glMappingModalMode === "edit" && "Update Barge GL Mapping"}
+              {glMappingModalMode === "view" && "View Barge GL Mapping"}
+            </DialogTitle>
+            <DialogDescription>
+              {glMappingModalMode === "create"
+                ? "Add a new barge GL mapping to the system database."
+                : glMappingModalMode === "edit"
+                  ? "Update barge GL mapping information."
+                  : "View barge GL mapping details."}
+            </DialogDescription>
+          </DialogHeader>
+          <Separator />
+          <BargeGLMappingForm
+            initialData={
+              glMappingModalMode !== "create"
+                ? selectedBargeGLMapping
+                : undefined
+            }
+            submitAction={handleGLMappingFormSubmit}
+            onCancelAction={() => setIsGLMappingModalOpen(false)}
+            isSubmitting={
+              saveGLMappingMutation.isPending ||
+              updateGLMappingMutation.isPending
+            }
+            isReadOnly={glMappingModalMode === "view"}
+            companyId={companyId}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Record Dialogs */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
@@ -445,24 +749,29 @@ export default function BargePage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete Barge"
-        description="This action cannot be undone. This will permanently delete the barge from our servers."
-        itemName={deleteConfirmation.bargeName || ""}
+        title={`Delete ${deleteConfirmation.type.toUpperCase()}`}
+        description={`This action cannot be undone. This will permanently delete the ${deleteConfirmation.type} from our servers.`}
+        itemName={deleteConfirmation.name || ""}
         onConfirm={handleConfirmDelete}
         onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
-            bargeId: null,
-            bargeName: null,
+            id: null,
+            name: null,
+            type: "barge",
           })
         }
-        isDeleting={deleteMutation.isPending}
+        isDeleting={
+          deleteConfirmation.type === "barge"
+            ? deleteMutation.isPending
+            : deleteGLMappingMutation.isPending
+        }
       />
 
       {/* Save Confirmation Dialog */}
@@ -471,9 +780,35 @@ export default function BargePage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Barge" : "Update Barge"}
-        itemName={saveConfirmation.data?.bargeName || ""}
-        operationType={modalMode === "create" ? "create" : "update"}
+        title={
+          (
+            saveConfirmation.type === "barge"
+              ? modalMode === "create"
+              : glMappingModalMode === "create"
+          )
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "barge"
+            ? (saveConfirmation.data as BargeSchemaType)?.bargeName || ""
+            : (saveConfirmation.data as BargeGLMappingSchemaType)
+              ? bargeGLMappingData?.find(
+                  (b) =>
+                    b.bargeId ===
+                    (saveConfirmation.data as BargeGLMappingSchemaType).bargeId
+                )?.bargeName || ""
+              : ""
+        }
+        operationType={
+          (
+            saveConfirmation.type === "barge"
+              ? modalMode === "create"
+              : glMappingModalMode === "create"
+          )
+            ? "create"
+            : "update"
+        }
         onConfirm={() => {
           if (saveConfirmation.data) {
             handleConfirmedFormSubmit(saveConfirmation.data)
@@ -481,15 +816,22 @@ export default function BargePage() {
           setSaveConfirmation({
             isOpen: false,
             data: null,
+            type: "barge",
           })
         }}
         onCancelAction={() =>
           setSaveConfirmation({
             isOpen: false,
             data: null,
+            type: "barge",
           })
         }
-        isSaving={saveMutation.isPending || updateMutation.isPending}
+        isSaving={
+          saveConfirmation.type === "barge"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveGLMappingMutation.isPending ||
+              updateGLMappingMutation.isPending
+        }
       />
     </div>
   )

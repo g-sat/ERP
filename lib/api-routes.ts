@@ -582,6 +582,13 @@ export const Barge = {
   delete: "/master/deletebarge",
 }
 
+// BargeGLMapping Endpoints
+export const BargeGLMapping = {
+  get: "/master/getbargeglmapping",
+  add: "/master/savebargeglmapping",
+  delete: "/master/deletebargeglmapping",
+}
+
 // Category Endpoints
 export const Category = {
   get: "/master/getcategory",

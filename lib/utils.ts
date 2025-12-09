@@ -155,6 +155,7 @@ export enum MasterTransactionId {
   consignmentType = 62,
   jobStatus = 63,
   vatServiceCategory = 64,
+  bargeGLMapping = 65,
 }
 
 export enum AdminTransactionId {
@@ -376,6 +377,7 @@ export enum TableName {
   bankAddress = "M_BankAddress",
   bankContact = "M_BankContact",
   barge = "M_Barge",
+  bargeGLMapping = "M_BargeGLMapping",
   category = "M_Category",
   charge = "M_Charge",
   chargeGLMapping = "M_ChargeGLMapping",
