@@ -74,21 +74,15 @@ export function ChargeTable({
     {
       accessorKey: "chargeName",
       header: "Name",
-      size: 200,
-      minSize: 50,
+      size: 450,
+      minSize: 250,
       enableColumnFilter: true,
     },
     {
       accessorKey: "taskName",
       header: "Task Name",
-      size: 120,
-      minSize: 50,
-    },
-    {
-      accessorKey: "glName",
-      header: "GL Name",
-      size: 120,
-      minSize: 50,
+      size: 150,
+      minSize: 100,
     },
     {
       accessorKey: "chargeOrder",

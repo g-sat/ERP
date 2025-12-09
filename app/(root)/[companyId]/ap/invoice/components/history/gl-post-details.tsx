@@ -266,15 +266,6 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
       header: "Supplier Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
-    },
-    {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
-    },
-
-    {
       accessorKey: "createBy",
       header: "Created By",
     },

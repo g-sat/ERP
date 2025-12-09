@@ -270,11 +270,6 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
       header: "Customer Name",
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-
-    {
       accessorKey: "createBy",
       header: "Created By",
     },

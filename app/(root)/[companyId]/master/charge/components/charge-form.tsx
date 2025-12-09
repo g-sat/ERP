@@ -121,7 +121,7 @@ export function ChargeForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-2">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <TaskAutocomplete
                 form={form}
                 name="taskId"
@@ -137,15 +137,15 @@ export function ChargeForm({
                 isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
-              <CustomInput
-                form={form}
-                name="chargeName"
-                label="Charge Name"
-                isRequired
-                isDisabled={isReadOnly}
-              />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <CustomTextarea
+              form={form}
+              name="chargeName"
+              label="Charge Name"
+              isRequired
+              isDisabled={isReadOnly}
+            />
+            <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
                 name="chargeOrder"

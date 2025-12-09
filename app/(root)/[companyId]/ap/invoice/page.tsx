@@ -260,7 +260,7 @@ export default function InvoicePage() {
           purchaseOrderId: invoice.purchaseOrderId ?? 0,
           purchaseOrderNo: invoice.purchaseOrderNo ?? "",
 
-          serviceTypeId: invoice.serviceTypeId ?? 0,
+          serviceCategoryId: invoice.serviceCategoryId ?? 0,
 
           data_details:
             invoice.data_details?.map((detail) => ({
@@ -890,7 +890,7 @@ export default function InvoicePage() {
         editVersion: apiInvoice.editVersion ?? 0,
         purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
         purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
-        serviceTypeId: apiInvoice.serviceTypeId ?? 0,
+        serviceCategoryId: apiInvoice.serviceCategoryId ?? 0,
         createBy: apiInvoice.createBy ?? "",
         editBy: apiInvoice.editBy ?? "",
         cancelBy: apiInvoice.cancelBy ?? "",

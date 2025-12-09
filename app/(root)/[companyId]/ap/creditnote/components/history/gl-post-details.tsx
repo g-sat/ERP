@@ -270,11 +270,6 @@ export default function GLPostDetails({ creditNoteId }: GLPostDetailsProps) {
       header: "Supplier Name",
     },
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
-    },
-
-    {
       accessorKey: "createBy",
       header: "Created By",
     },
