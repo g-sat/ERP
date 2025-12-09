@@ -409,7 +409,7 @@ export function TaskServiceForm() {
           <TaskStatusAutocomplete
             form={form}
             name={`services.${serviceKey}.taskStatusId`}
-            label="Status Type"
+            label="Task Status"
             isRequired={false}
           />
         </div>

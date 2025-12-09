@@ -464,7 +464,7 @@ export interface IConsignmentTypeLookup {
   consignmentTypeName: string
 }
 
-export interface ICarrierTypeLookup {
+export interface ICarrierLookup {
   carrierId: number
   carrierTypeCode: string
   carrierTypeName: string

@@ -264,7 +264,7 @@ export default function CbGenReceiptTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("gstAmt"), amtDec)}

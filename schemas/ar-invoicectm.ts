@@ -126,11 +126,6 @@ export const ArInvoiceCtmHdSchema = (
     // Port Fields
     portId: z.number().optional(),
 
-    // Service Type Fields
-    serviceTypeId: visible?.m_ServiceTypeId
-      ? z.number().min(1, "Service Type is required")
-      : z.number().optional(),
-
     // Nested Details
     data_details: z
       .array(ArInvoiceCtmDtSchema(required, visible))

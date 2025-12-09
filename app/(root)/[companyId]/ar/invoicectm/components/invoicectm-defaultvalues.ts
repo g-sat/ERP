@@ -137,7 +137,6 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   jobOrderNo: "",
   vesselId: 0,
   portId: 0,
-  serviceTypeId: 0,
   data_details: [],
 })
 

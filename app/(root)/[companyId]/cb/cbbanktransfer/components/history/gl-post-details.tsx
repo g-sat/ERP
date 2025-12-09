@@ -152,7 +152,7 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) =>
         row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-",
     },

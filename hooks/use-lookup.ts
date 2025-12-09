@@ -10,7 +10,7 @@ import {
   ICOACategory1Lookup,
   ICOACategory2Lookup,
   ICOACategory3Lookup,
-  ICarrierTypeLookup,
+  ICarrierLookup,
   ICategoryLookup,
   IChargeLookup,
   IChartOfAccountLookup,
@@ -1567,13 +1567,13 @@ export const useConsignmentTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useCarrierTypeLookup = () => {
-  return useQuery<ICarrierTypeLookup[]>({
-    queryKey: ["carriertype-lookUp"],
+export const useCarrierLookup = () => {
+  return useQuery<ICarrierLookup[]>({
+    queryKey: ["carrier-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getCarrierType)
+        const data = await getData(Lookup.getCarrier)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

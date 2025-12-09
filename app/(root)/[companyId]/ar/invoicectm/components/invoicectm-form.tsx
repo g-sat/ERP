@@ -40,7 +40,6 @@ import {
   PortAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
-import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -754,16 +753,6 @@ export default function InvoiceCtmForm({
             <PortAutocomplete form={form} name="portId" label="Port" />
           )}
 
-          {/* Service Type */}
-          {visible?.m_ServiceTypeId && (
-            <ServiceCategoryAutocomplete
-              form={form}
-              name="serviceTypeId"
-              label="Service Type"
-              isRequired={true}
-            />
-          )}
-
           {/* Remarks */}
           <CustomTextarea
             form={form}
@@ -827,7 +816,7 @@ export default function InvoiceCtmForm({
               {/* Column 2: Labels */}
               <div className="space-y-1 text-center">
                 <div className="font-medium text-blue-600">Amt</div>
-                <div className="font-medium text-blue-600">Gst</div>
+                <div className="font-medium text-blue-600">VAT</div>
                 <div></div>
                 <div className="font-bold text-blue-800">Total</div>
                 <div className="font-bold text-blue-800">Payment</div>

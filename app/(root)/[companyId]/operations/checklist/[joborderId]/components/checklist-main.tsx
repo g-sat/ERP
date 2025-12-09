@@ -891,7 +891,7 @@ export function ChecklistMain({
                   <GSTAutocomplete
                     form={form}
                     name="gstId"
-                    label="GST"
+                    label="VAT"
                     isRequired={true}
                     isDisabled={isConfirmed}
                   />

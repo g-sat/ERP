@@ -127,7 +127,7 @@ export default function GLJournalDetailsTable({
 
     {
       accessorKey: "gstPercentage",
-      header: "GST %",
+      header: "VAT %",
       size: 50,
       cell: ({ row }) => (
         <div className="text-right">
@@ -137,7 +137,7 @@ export default function GLJournalDetailsTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">

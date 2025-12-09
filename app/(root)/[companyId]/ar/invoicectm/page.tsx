@@ -271,7 +271,6 @@ export default function InvoiceCtmPage() {
           jobOrderNo: invoice.jobOrderNo ?? "",
           vesselId: invoice.vesselId ?? 0,
           portId: invoice.portId ?? 0,
-          serviceTypeId: invoice.serviceTypeId ?? 0,
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
@@ -912,7 +911,6 @@ export default function InvoiceCtmPage() {
         jobOrderNo: apiInvoice.jobOrderNo ?? "",
         vesselId: apiInvoice.vesselId ?? 0,
         portId: apiInvoice.portId ?? 0,
-        serviceTypeId: apiInvoice.serviceTypeId ?? 0,
         createBy: apiInvoice.createBy ?? "",
         editBy: apiInvoice.editBy ?? "",
         cancelBy: apiInvoice.cancelBy ?? "",
@@ -1234,8 +1232,8 @@ export default function InvoiceCtmPage() {
 
   // Compose title text
   const titleText = isEdit
-    ? `Invoice (Edit)- v[${invoice?.editVersion}] - ${invoiceNo}`
-    : "Invoice (New)"
+    ? `Invoice CTM (Edit)- v[${invoice?.editVersion}] - ${invoiceNo}`
+    : "Invoice CTM (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1243,7 +1241,9 @@ export default function InvoiceCtmPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading invoice form...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading invoice CTM form...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -1496,11 +1496,11 @@ export default function InvoiceCtmPage() {
           {/* Header */}
           <div className="bg-background flex flex-col gap-1 border-b p-2">
             <DialogTitle className="text-2xl font-bold tracking-tight">
-              Invoice List
+              Invoice CTM List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing invoices from the list below. Use
-              search to filter records or create new invoices.
+              Manage and select existing invoices CTM from the list below. Use
+              search to filter records or create new invoices CTM.
             </p>
           </div>
 
@@ -1537,7 +1537,7 @@ export default function InvoiceCtmPage() {
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
         itemName={invoice?.invoiceNo}
-        title="Delete Invoice"
+        title="Delete Invoice CTM"
         description="Are you sure you want to delete this invoice? You will be asked to provide a reason."
         isDeleting={false}
       />
@@ -1548,7 +1548,7 @@ export default function InvoiceCtmPage() {
         onOpenChange={setShowCancelConfirm}
         onConfirmAction={handleInvoiceDelete}
         itemName={invoice?.invoiceNo}
-        title="Cancel Invoice"
+        title="Cancel Invoice CTM "
         description="Please provide a reason for cancelling this invoice."
         isCancelling={deleteMutation.isPending}
       />

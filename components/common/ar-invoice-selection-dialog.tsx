@@ -142,7 +142,7 @@ export default function InvoiceSelectionDialog({
       },
       {
         accessorKey: "gstAmt",
-        header: "GST Amount",
+        header: "VAT Amount",
         cell: ({ row }) => (
           <div className="text-right">
             {formatNumber(row.original.gstAmt ?? 0, amtDec)}

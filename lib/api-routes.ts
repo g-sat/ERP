@@ -283,7 +283,7 @@ export const Lookup = {
   getPurposeOfLandingType: "/master/getpurposeoflandingtypelookup",
   getServiceMode: "/master/getservicemodelookup",
   getConsignmentType: "/master/getconsignmenttypelookup",
-  getCarrierType: "/master/getcarriertypelookup",
+  getCarrier: "/master/getcarrierlookup",
   getCompany: "/master/getcompanylookup",
   getComponent: "/master/getcomponentlookup",
   getComponentGroup: "/master/getcomponentgrouplookup",

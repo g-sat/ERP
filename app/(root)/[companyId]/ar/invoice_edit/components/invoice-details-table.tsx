@@ -1220,7 +1220,7 @@ export default function InvoiceDetailsTable({
     },
     {
       accessorKey: "gstPercentage",
-      header: "GST %",
+      header: "VAT %",
       size: 100,
       cell: ({ row }: { row: { original: InvoiceDetailRow } }) => (
         <CustomNumberInputCellRefs
@@ -1243,7 +1243,7 @@ export default function InvoiceDetailsTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       size: 120,
       cell: ({ row }: { row: { original: InvoiceDetailRow } }) => (
         <CustomNumberInputCellRefs

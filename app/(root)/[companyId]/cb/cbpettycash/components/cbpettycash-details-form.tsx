@@ -1337,7 +1337,7 @@ export default function CbPettyCashDetailsForm({
             <GSTAutocomplete
               form={form}
               name="gstId"
-              label="GST"
+              label="VAT"
               isRequired={required?.m_GstId}
               onChangeEvent={handleGSTChange}
             />
@@ -1347,7 +1347,7 @@ export default function CbPettyCashDetailsForm({
           <CustomNumberInput
             form={form}
             name="gstPercentage"
-            label="GST Percentage"
+            label="VAT Percentage"
             round={amtDec}
             className="text-right"
             onFocusEvent={handleGstPercentageFocus}
@@ -1358,7 +1358,7 @@ export default function CbPettyCashDetailsForm({
           <CustomNumberInput
             form={form}
             name="gstAmt"
-            label="GST Amount"
+            label="VAT Amount"
             round={amtDec}
             isDisabled={false}
             className="text-right"
@@ -1369,7 +1369,7 @@ export default function CbPettyCashDetailsForm({
           <CustomNumberInput
             form={form}
             name="gstLocalAmt"
-            label="GST Local Amount"
+            label="VAT Local Amount"
             round={locAmtDec}
             className="text-right"
             isDisabled={true}

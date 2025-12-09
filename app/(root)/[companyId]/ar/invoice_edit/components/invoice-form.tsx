@@ -449,7 +449,7 @@ export default function InvoiceForm({
         <CustomNumberInput
           form={form}
           name="gstAmt"
-          label="GST Amount"
+          label="VAT Amount"
           round={amtDec}
           isDisabled={true}
           className="text-right"
@@ -479,7 +479,7 @@ export default function InvoiceForm({
         <CustomNumberInput
           form={form}
           name="gstLocalAmt"
-          label="GST Local Amount"
+          label="VAT Local Amount"
           round={locAmtDec}
           isDisabled={true}
           className="text-right"

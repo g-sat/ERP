@@ -232,7 +232,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstAmt

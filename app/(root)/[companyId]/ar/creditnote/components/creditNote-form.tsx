@@ -954,7 +954,7 @@ export default function CreditNoteForm({
               {/* Column 2: Labels */}
               <div className="space-y-1 text-center">
                 <div className="font-medium text-blue-600">Amt</div>
-                <div className="font-medium text-blue-600">Gst</div>
+                <div className="font-medium text-blue-600">VAT</div>
                 <div></div>
                 <div className="font-bold text-blue-800">Total</div>
                 <div className="font-bold text-blue-800">Payment</div>

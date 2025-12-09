@@ -312,7 +312,7 @@ export default function InvoiceCtmTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("gstAmt"), amtDec)}
@@ -556,7 +556,7 @@ export default function InvoiceCtmTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.arInvoiceCtm}
-        emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
+        emptyMessage="No invoices CTM found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}

@@ -676,7 +676,7 @@ export default function NewChecklistPage() {
                     <GSTAutocomplete
                       form={form}
                       name="gstId"
-                      label="GST"
+                      label="VAT"
                       isRequired={true}
                     />
                   )}

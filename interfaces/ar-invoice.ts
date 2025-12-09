@@ -92,8 +92,8 @@ export interface IArInvoiceHd {
   portId: number
   portCode: string
   portName: string
-  serviceTypeId: number
-  serviceTypeName: string
+  serviceCategoryId: number
+  serviceCategoryName: string
   otherRemarks: string
   advRecAmt: number
   data_details: IArInvoiceDt[]

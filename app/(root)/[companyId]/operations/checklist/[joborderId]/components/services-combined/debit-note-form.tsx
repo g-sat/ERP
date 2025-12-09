@@ -844,7 +844,7 @@ export default function DebitNoteForm({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-blue-600">Gst</span>
+                <span className="font-medium text-blue-600">VAT</span>
                 <span className="font-medium text-gray-700">
                   {(summaryTotals?.vatAmount || 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,

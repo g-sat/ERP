@@ -172,7 +172,7 @@ export default function AdjustmentDetailsTable({
 
     {
       accessorKey: "gstPercentage",
-      header: "GST %",
+      header: "VAT %",
       size: 50,
       cell: ({ row }) => (
         <div className="text-right">
@@ -182,7 +182,7 @@ export default function AdjustmentDetailsTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       size: 100,
       cell: ({ row }) => (
         <div className="text-right">

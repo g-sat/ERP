@@ -267,7 +267,7 @@ export default function InvoicePage() {
           jobOrderNo: invoice.jobOrderNo ?? "",
           vesselId: invoice.vesselId ?? 0,
           portId: invoice.portId ?? 0,
-          serviceTypeId: invoice.serviceTypeId ?? 0,
+          serviceCategoryId: invoice.serviceCategoryId ?? 0,
           otherRemarks: invoice.otherRemarks ?? "",
           advRecAmt: invoice.advRecAmt ?? 0,
           data_details:
@@ -903,7 +903,7 @@ export default function InvoicePage() {
         jobOrderNo: apiInvoice.jobOrderNo ?? "",
         vesselId: apiInvoice.vesselId ?? 0,
         portId: apiInvoice.portId ?? 0,
-        serviceTypeId: apiInvoice.serviceTypeId ?? 0,
+        serviceCategoryId: apiInvoice.serviceCategoryId ?? 0,
         otherRemarks: apiInvoice.otherRemarks ?? "",
         advRecAmt: apiInvoice.advRecAmt ?? 0,
         createBy: apiInvoice.createBy ?? "",

@@ -171,7 +171,7 @@ export default function GLPostDetails({ refundId }: GLPostDetailsProps) {
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstAmt

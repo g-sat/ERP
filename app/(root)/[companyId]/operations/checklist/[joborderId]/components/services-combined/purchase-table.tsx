@@ -134,7 +134,7 @@ export function PurchaseTable({
       },
       {
         accessorKey: "gstAmt",
-        header: "GST Amount",
+        header: "VAT Amount",
         cell: ({ row }) => {
           const value = row.getValue("gstAmt") as number
           return (

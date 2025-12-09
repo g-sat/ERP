@@ -92,8 +92,7 @@ export interface IArInvoiceCtmHd {
   portId: number
   portCode: string
   portName: string
-  serviceTypeId: number
-  serviceTypeName: string
+
   data_details: IArInvoiceCtmDt[]
 }
 

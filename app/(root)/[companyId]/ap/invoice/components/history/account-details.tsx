@@ -39,30 +39,8 @@ export default function AccountDetails({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const safeFormatDate = (
-    dateValue: string | Date | null | undefined,
-    formatStr = "yyyy-MM-dd HH:mm"
-  ) => {
-    if (!dateValue) return "" // if null, undefined, or empty
-
-    // If it's already a Date object, use it directly
-    if (dateValue instanceof Date) {
-      return isNaN(dateValue.getTime()) ? "" : format(dateValue, formatStr)
-    }
-
-    // Handle ISO datetime strings (e.g., "2025-11-04T08:29:51.19")
-    // Native Date constructor can parse ISO strings correctly
-    if (typeof dateValue === "string" && dateValue.includes("T")) {
-      const isoDate = new Date(dateValue)
-      if (!isNaN(isoDate.getTime())) {
-        return format(isoDate, formatStr)
-      }
-    }
-
-    // Parse the date string using parseDate which handles multiple formats correctly
-    const date = parseDate(dateValue as string)
-    return date ? format(date, formatStr) : ""
-  }
+  console.log(createDate, editDate, cancelDate)
+  console.log(format(createDate, datetimeFormat))
 
   return (
     <Card>
@@ -87,7 +65,7 @@ export default function AccountDetails({
                         {createBy}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(createDate, datetimeFormat)}
+                        {format(createDate, datetimeFormat)}
                       </span>
                     </div>
                   </div>
@@ -101,7 +79,7 @@ export default function AccountDetails({
                         {editBy || "-"}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(editDate, datetimeFormat)}
+                        {editDate ? format(editDate, datetimeFormat) : "-"}
                       </span>
                     </div>
                   </div>
@@ -115,7 +93,7 @@ export default function AccountDetails({
                         {cancelBy || "-"}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(cancelDate, datetimeFormat)}
+                        {cancelDate ? format(cancelDate, datetimeFormat) : "-"}
                       </span>
                     </div>
                   </div>

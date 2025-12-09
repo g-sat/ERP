@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ICarrierTypeLookup } from "@/interfaces/lookup"
+import { ICarrierLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useCarrierTypeLookup } from "@/hooks/use-lookup"
+import { useCarrierLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -42,13 +42,13 @@ export default function CarrierTypeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ICarrierTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: ICarrierLookup | null) => void
 }) {
-  const { data: carrierTypes = [], isLoading } = useCarrierTypeLookup()
+  const { data: carrierTypes = [], isLoading } = useCarrierLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      carrierTypes.map((carrierType: ICarrierTypeLookup) => ({
+      carrierTypes.map((carrierType: ICarrierLookup) => ({
         value: carrierType.carrierId.toString(),
         label: carrierType.carrierTypeName,
       })),
@@ -191,7 +191,7 @@ export default function CarrierTypeAutocomplete<
       if (onChangeEvent) {
         const selectedCarrierType = selectedOption
           ? carrierTypes.find(
-              (u: ICarrierTypeLookup) =>
+              (u: ICarrierLookup) =>
                 u.carrierId.toString() === selectedOption.value
             ) || null
           : null

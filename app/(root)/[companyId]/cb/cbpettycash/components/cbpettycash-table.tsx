@@ -262,7 +262,7 @@ export default function CbPettyCashTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("gstAmt"), amtDec)}

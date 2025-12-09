@@ -3,7 +3,7 @@ import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArInvoice } from "@/lib/api-routes"
@@ -63,7 +63,9 @@ export default function InvoiceTable({
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(
-    typeof _pageSize === "number" && _pageSize > 0 ? _pageSize : DEFAULT_PAGE_SIZE
+    typeof _pageSize === "number" && _pageSize > 0
+      ? _pageSize
+      : DEFAULT_PAGE_SIZE
   )
 
   // State to track if search has been clicked
@@ -86,7 +88,8 @@ export default function InvoiceTable({
     setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
 
     const sizeFromFilters =
-      typeof initialFilters?.pageSize === "number" && initialFilters.pageSize > 0
+      typeof initialFilters?.pageSize === "number" &&
+      initialFilters.pageSize > 0
         ? initialFilters.pageSize
         : typeof _pageSize === "number" && _pageSize > 0
           ? _pageSize
@@ -309,7 +312,7 @@ export default function InvoiceTable({
     },
     {
       accessorKey: "gstAmt",
-      header: "GST Amount",
+      header: "VAT Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("gstAmt"), amtDec)}
@@ -574,7 +577,7 @@ export default function InvoiceTable({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-muted-foreground text-sm">
           Page {currentPage}
         </span>
         <Button
