@@ -1,0 +1,343 @@
+import React, { useEffect, useState } from "react"
+import { IArInvoiceCtmDt } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
+import { ColumnDef } from "@tanstack/react-table"
+
+import { formatNumber } from "@/lib/format-utils"
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { AccountBaseTable } from "@/components/table/table-account"
+
+// Use flexible data type that can work with form data
+interface InvoiceCtmDetailsTableProps {
+  data: IArInvoiceCtmDt[]
+  onDeleteAction?: (itemNo: number) => void
+  onBulkDeleteAction?: (selectedItemNos: number[]) => void
+  onEditAction?: (template: IArInvoiceCtmDt) => void
+  onRefreshAction?: () => void
+  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onDataReorder?: (newData: IArInvoiceCtmDt[]) => void
+  visible: IVisibleFields
+  isCancelled?: boolean
+}
+
+export default function InvoiceCtmDetailsTable({
+  data,
+  onDeleteAction,
+  onBulkDeleteAction,
+  onEditAction,
+  onRefreshAction,
+  onFilterChange,
+  onDataReorder,
+  visible,
+  isCancelled = false,
+}: InvoiceCtmDetailsTableProps) {
+  const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Wrapper functions to convert string to number
+  const handleDelete = (itemId: string) => {
+    if (onDeleteAction) {
+      onDeleteAction(Number(itemId))
+    }
+  }
+
+  const handleBulkDelete = (selectedIds: string[]) => {
+    if (onBulkDeleteAction) {
+      onBulkDeleteAction(selectedIds.map((id) => Number(id)))
+    }
+  }
+
+  // Define columns with visible prop checks
+  const columns: ColumnDef<IArInvoiceCtmDt>[] = [
+    {
+      accessorKey: "itemNo",
+      header: "Item No",
+      size: 60,
+      cell: ({ row }: { row: { original: IArInvoiceCtmDt } }) => (
+        <div className="text-right">{row.original.itemNo}</div>
+      ),
+    },
+    {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 60,
+      cell: ({ row }: { row: { original: IArInvoiceCtmDt } }) => (
+        <div className="text-right">{row.original.seqNo}</div>
+      ),
+    },
+    ...(visible?.m_ProductId
+      ? [
+          {
+            accessorKey: "productName",
+            header: "Product",
+            size: 100,
+          },
+        ]
+      : []),
+    {
+      accessorKey: "glCode",
+      header: "Code",
+      size: 100,
+    },
+    {
+      accessorKey: "glName",
+      header: "Account",
+      size: 100,
+    },
+    ...(visible?.m_DepartmentId
+      ? [
+          {
+            accessorKey: "departmentName",
+            header: "Department",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_QTY
+      ? [
+          {
+            accessorKey: "qty",
+            header: "Qty",
+            size: 60,
+            cell: ({ row }: { row: { original: IArInvoiceCtmDt } }) => (
+              <div className="text-right">{row.original.qty}</div>
+            ),
+          },
+        ]
+      : []),
+
+    ...(visible?.m_UomId
+      ? [
+          {
+            accessorKey: "uomName",
+            header: "UOM",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_UnitPrice
+      ? [
+          {
+            accessorKey: "unitPrice",
+            header: "Price",
+            size: 100,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("unitPrice"), amtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceCtmDt>,
+        ]
+      : []),
+    {
+      accessorKey: "totAmt",
+      header: "Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: "gstPercentage",
+      header: "GST %",
+      size: 50,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstAmt",
+      header: "GST Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
+      ),
+    },
+    ...(visible?.m_BillQTY
+      ? [
+          {
+            accessorKey: "billQTY",
+            header: "Bill Qty",
+            size: 60,
+            cell: ({ row }: { row: { original: IArInvoiceCtmDt } }) => (
+              <div className="text-right">{row.original.billQTY}</div>
+            ),
+          },
+        ]
+      : []),
+    {
+      accessorKey: "totLocalAmt",
+      header: "Local Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmt",
+            header: "Country Amount",
+            size: 100,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceCtmDt>,
+        ]
+      : []),
+    ...(visible?.m_GstId
+      ? [
+          {
+            accessorKey: "gstName",
+            header: "Gst",
+            size: 100,
+          },
+        ]
+      : []),
+    {
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
+      size: 100,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "gstCtyAmt",
+            header: "GST Country Amount",
+            size: 100,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceCtmDt>,
+        ]
+      : []),
+
+    ...(visible?.m_EmployeeId
+      ? [
+          {
+            accessorKey: "employeeName",
+            header: "Employee",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_PortId
+      ? [
+          {
+            accessorKey: "portName",
+            header: "Port",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_VesselId
+      ? [
+          {
+            accessorKey: "vesselName",
+            header: "Vessel",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_BargeId
+      ? [
+          {
+            accessorKey: "bargeName",
+            header: "Barge",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_VoyageId
+      ? [
+          {
+            accessorKey: "voyageName",
+            header: "Voyage",
+            size: 200,
+          },
+        ]
+      : []),
+    {
+      accessorKey: "docItemNo",
+      header: "Doc Item No",
+      size: 80,
+      cell: ({ row }: { row: { original: IArInvoiceCtmDt } }) => (
+        <div className="text-right">{row.original.docItemNo}</div>
+      ),
+    },
+    ...(visible?.m_DebitNoteNo
+      ? [
+          {
+            accessorKey: "debitNoteNo",
+            header: "Debit Note No",
+            size: 100,
+          },
+        ]
+      : []),
+  ]
+
+  if (!mounted) {
+    return null
+  }
+
+  return (
+    <div className="w-full px-2 pt-1 pb-2">
+      <AccountBaseTable
+        data={data}
+        columns={columns}
+        moduleId={ModuleId.ar}
+        transactionId={ARTransactionId.invoicectm}
+        tableName={TableName.arInvoiceCtmDt}
+        emptyMessage="No invoice details found."
+        accessorId="itemNo"
+        onRefreshAction={onRefreshAction}
+        onFilterChange={onFilterChange}
+        onBulkDeleteAction={handleBulkDelete}
+        onBulkSelectionChange={() => {}}
+        onDataReorder={onDataReorder}
+        onEditAction={onEditAction}
+        onDeleteAction={handleDelete}
+        showHeader={true}
+        showActions={true}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
+        disableOnAccountExists={false}
+      />
+    </div>
+  )
+}

@@ -77,6 +77,7 @@ export * from "./ar-customer-invoice"
 export * from "./ap-supplier-invoice"
 
 export * from "./ar-invoice"
+export * from "./ar-invoicectm"
 export * from "./ar-creditNote"
 export * from "./ar-debitNote"
 export * from "./ar-adjustment"

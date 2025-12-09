@@ -880,6 +880,16 @@ export const ArInvoice = {
   historyDetails: "/account/gethistoryarinvoicedetailsbyid",
 }
 
+// Accounts Receivable Invoice CTM Endpoints
+export const ArInvoiceCtm = {
+  get: "/account/getarinvoicectm",
+  getByIdNo: "/account/getarinvoicectmbyidno",
+  add: "/account/savearinvoicectm",
+  delete: "/account/deletearinvoicectm",
+  history: "/account/gethistoryarinvoicectmbyid",
+  historyDetails: "/account/gethistoryarinvoicectmdetailsbyid",
+}
+
 // Accounts Receivable Credit Note Endpoints
 export const ArCreditNote = {
   get: "/account/getarcreditnote",
