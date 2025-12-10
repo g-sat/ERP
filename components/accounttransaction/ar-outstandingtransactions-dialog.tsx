@@ -1,16 +1,14 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
 import { IArOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { format, isValid, parse } from "date-fns"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { getByBody } from "@/lib/api-client"
-import { Account } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { CustomNumberInput } from "@/components/custom"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,7 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { CustomNumberInput } from "@/components/custom"
+import { getByBody } from "@/lib/api-client"
+import { Account } from "@/lib/api-routes"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 
 import ArOutStandingTransactionsTable from "./ar-outstandingtransactions-table"
 
@@ -145,7 +145,7 @@ export default function ArOutStandingTransactionsDialog({
         }
 
         const response = await getByBody(
-          Account.getApOutstandTransaction,
+          Account.getArOutstandTransaction,
           payload
         )
 
