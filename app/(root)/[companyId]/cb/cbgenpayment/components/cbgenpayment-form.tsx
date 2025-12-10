@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  calculateMultiplierAmount,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
@@ -27,8 +28,10 @@ import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
+import { parseNumberWithCommas } from "@/lib/utils"
 import {
   BankAutocomplete,
+  BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
@@ -78,6 +81,7 @@ export default function CbGenPaymentForm({
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
   const originalCtyExhRateRef = React.useRef<number>(0)
+  const originalBankChgAmtRef = React.useRef<number>(0)
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -474,6 +478,53 @@ export default function CbGenPaymentForm({
     [form]
   )
 
+  // Handle bank charges amount focus - capture original value
+  const handleBankChgAmtFocus = React.useCallback(() => {
+    originalBankChgAmtRef.current = form.getValues("bankChgAmt") || 0
+    console.log(
+      "handleBankChgAmtFocus - original value:",
+      originalBankChgAmtRef.current
+    )
+  }, [form])
+
+  // Handle bank charges amount change
+  const handleBankChgAmtChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const bankChgAmt = parseNumberWithCommas(e.target.value)
+      const originalBankChgAmt = originalBankChgAmtRef.current
+
+      console.log("handleBankChgAmtChange", {
+        newValue: bankChgAmt,
+        originalValue: originalBankChgAmt,
+        isDifferent: bankChgAmt !== originalBankChgAmt,
+      })
+
+      // Only recalculate if value is different from original
+      if (bankChgAmt !== originalBankChgAmt) {
+        console.log("Bank Charges Amount changed - recalculating local amount")
+        form.setValue("bankChgAmt", bankChgAmt, { shouldDirty: true })
+
+        // Calculate bank charges local amount: bankChgAmt * exhRate
+        const exhRate = form.getValues("exhRate") || 0
+        if (exhRate > 0) {
+          const bankChgLocalAmt = calculateMultiplierAmount(
+            bankChgAmt,
+            exhRate,
+            locAmtDec
+          )
+          form.setValue("bankChgLocalAmt", bankChgLocalAmt, {
+            shouldDirty: true,
+          })
+        } else {
+          form.setValue("bankChgLocalAmt", 0, { shouldDirty: true })
+        }
+      } else {
+        console.log("Bank Charges Amount unchanged - skipping recalculation")
+      }
+    },
+    [form, locAmtDec]
+  )
+
   return (
     <FormProvider {...form}>
       <form
@@ -641,6 +692,33 @@ export default function CbGenPaymentForm({
               />
             </>
           )}
+
+          {/* Bank Charge GL */}
+          {visible?.m_BankChgGLId && (
+            <BankChartOfAccountAutocomplete
+              form={form}
+              name="bankChgGLId"
+              label="Bank Charges GL"
+              companyId={_companyId}
+            />
+          )}
+
+          {/* Bank Charges Amount */}
+          <CustomNumberInput
+            form={form}
+            name="bankChgAmt"
+            label="Bank Charges Amount"
+            onFocusEvent={handleBankChgAmtFocus}
+            onBlurEvent={handleBankChgAmtChange}
+          />
+
+          {/* Bank Charges Local Amount */}
+          <CustomNumberInput
+            form={form}
+            name="bankChgLocalAmt"
+            label="Bank Charges Local Amount"
+            isDisabled={true}
+          />
 
           {/* Remarks */}
           {visible?.m_Remarks && (
