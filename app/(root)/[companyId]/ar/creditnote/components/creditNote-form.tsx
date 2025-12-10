@@ -699,14 +699,6 @@ export default function CreditNoteForm({
             />
           )}
 
-          {/* customerCreditNoteNo */}
-          <CustomInput
-            form={form}
-            name="suppCreditNoteNo"
-            label="Customer CreditNote No."
-            isRequired={required?.m_SuppInvoiceNo}
-          />
-
           {/* Reference No */}
           <CustomInput
             form={form}

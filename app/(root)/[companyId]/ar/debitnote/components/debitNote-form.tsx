@@ -699,14 +699,6 @@ export default function DebitNoteForm({
             />
           )}
 
-          {/* customerDebitNoteNo */}
-          <CustomInput
-            form={form}
-            name="suppDebitNoteNo"
-            label="Customer DebitNote No."
-            isRequired={required?.m_SuppInvoiceNo}
-          />
-
           {/* Reference No */}
           <CustomInput
             form={form}

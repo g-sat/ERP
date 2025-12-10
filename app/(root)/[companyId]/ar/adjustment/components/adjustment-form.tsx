@@ -587,14 +587,6 @@ export default function AdjustmentForm({
             />
           )}
 
-          {/* customerAdjustmentNo */}
-          <CustomInput
-            form={form}
-            name="suppAdjustmentNo"
-            label="Customer Adjustment No."
-            isRequired={required?.m_SuppInvoiceNo}
-          />
-
           {/* Reference No */}
           <CustomInput
             form={form}

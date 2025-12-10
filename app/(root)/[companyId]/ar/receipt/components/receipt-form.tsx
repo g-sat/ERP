@@ -804,16 +804,6 @@ export default function ReceiptForm({
           isFutureShow={false}
         />
 
-        {/* Customer by company*/}
-        {/* <CompanyCustomerAutocomplete
-            form={form}
-            name="customerId"
-            label="Customer"
-            isRequired={true}
-            onChangeEvent={handleCustomerChange}
-            companyId={_companyId}
-          /> */}
-
         {/* Customer */}
         {isDynamicCustomer ? (
           <DynamicCustomerAutocomplete
@@ -844,24 +834,6 @@ export default function ReceiptForm({
           label="Reference No."
           isRequired={required?.m_ReferenceNo}
         />
-
-        {/* Job Order */}
-        {visible?.m_JobOrderIdHd &&
-          (isDynamicJobOrder ? (
-            <DynamicJobOrderAutocomplete
-              form={form}
-              name="jobOrderId"
-              label="Job Order-D"
-              onChangeEvent={handleJobOrderChange}
-            />
-          ) : (
-            <JobOrderAutocomplete
-              form={form}
-              name="jobOrderId"
-              label="Job Order-S"
-              onChangeEvent={handleJobOrderChange}
-            />
-          ))}
 
         {/* Bank */}
         {visible?.m_BankId && (
@@ -1022,6 +994,24 @@ export default function ReceiptForm({
           name="exhGainLoss"
           label="Exchange Gain/Loss"
         />
+
+        {/* Job Order */}
+        {visible?.m_JobOrderIdHd &&
+          (isDynamicJobOrder ? (
+            <DynamicJobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order-D"
+              onChangeEvent={handleJobOrderChange}
+            />
+          ) : (
+            <JobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order-S"
+              onChangeEvent={handleJobOrderChange}
+            />
+          ))}
 
         {/* Remarks */}
         <CustomTextarea
