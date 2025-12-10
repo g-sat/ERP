@@ -16,7 +16,9 @@ export const ArAdjustmentHdSchema = (
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
-    trnDate: z.union([z.date(), z.string()]),
+    trnDate: visible?.m_TrnDate
+      ? z.union([z.date(), z.string()])
+      : z.union([z.date(), z.string()]).optional(),
     accountDate: z.union([z.date(), z.string()]),
     deliveryDate:
       required?.m_DeliveryDate && visible?.m_DeliveryDate
@@ -47,7 +49,9 @@ export const ArAdjustmentHdSchema = (
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
-    gstClaimDate: z.union([z.date(), z.string()]).optional(),
+    gstClaimDate: visible?.m_GstClaimDate
+      ? z.union([z.date(), z.string()])
+      : z.union([z.date(), z.string()]).optional(),
     gstAmt: z.number().optional(),
     gstLocalAmt: z.number().optional(),
     gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -96,10 +100,14 @@ export const ArAdjustmentHdSchema = (
       ? z.string().min(9, "Phone No must be at least 9 characters")
       : z.string().optional(),
     faxNo: z.string().optional(),
-    contactName: z.string().optional(),
-    mobileNo: z.string().optional(),
+    contactName: required?.m_ContactName
+      ? z.string().min(1, "Contact Name is required")
+      : z.string().optional(),
+    mobileNo: required?.m_MobileNo
+      ? z.string().min(9, "Mobile No must be at least 9 characters")
+      : z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().optional()
+      ? z.string().email("Invalid email address").optional()
       : z.string().optional(),
 
     // Customer Details
@@ -132,6 +140,11 @@ export const ArAdjustmentHdSchema = (
     serviceCategoryId: visible?.m_ServiceTypeId
       ? z.number().min(1, "Service Type is required")
       : z.number().optional(),
+
+    // Other Remarks Fields
+    otherRemarks: visible?.m_OtherRemarks
+      ? z.string()
+      : z.string().optional(),
 
     // Nested Details
     data_details: z
@@ -205,9 +218,10 @@ export const ArAdjustmentDtSchema = (
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // Remarks
-    remarks: required?.m_Remarks
-      ? z.string().min(1, "Remarks is required")
-      : z.string().optional(),
+    remarks:
+      required?.m_Remarks && visible?.m_Remarks
+        ? z.string().min(1, "Remarks is required")
+        : z.string().optional(),
 
     // GST Fields
     gstId:

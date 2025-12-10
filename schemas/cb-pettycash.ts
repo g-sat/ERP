@@ -13,7 +13,9 @@ export const CbPettyCashHdSchema = (
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
-    trnDate: z.union([z.date(), z.string()]),
+    trnDate: visible?.m_TrnDate
+      ? z.union([z.date(), z.string()])
+      : z.union([z.date(), z.string()]).optional(),
     accountDate: z.union([z.date(), z.string()]),
 
     // Currency Fields
@@ -46,7 +48,9 @@ export const CbPettyCashHdSchema = (
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
-    gstClaimDate: z.union([z.date(), z.string()]).optional(),
+    gstClaimDate: visible?.m_GstClaimDate
+      ? z.union([z.date(), z.string()])
+      : z.union([z.date(), z.string()]).optional(),
     gstAmt: z.number().optional(),
     gstLocalAmt: z.number().optional(),
     gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -129,9 +133,10 @@ export const CbPettyCashDtSchema = (
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // Remarks
-    remarks: required?.m_Remarks
-      ? z.string().min(1, "Remarks is required")
-      : z.string().optional(),
+    remarks:
+      required?.m_Remarks && visible?.m_Remarks
+        ? z.string().min(1, "Remarks is required")
+        : z.string().optional(),
 
     // GST Fields
     gstId:

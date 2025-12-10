@@ -13,7 +13,9 @@ export const ArRefundHdSchema = (
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
-    trnDate: z.union([z.date(), z.string()]),
+    trnDate: visible?.m_TrnDate
+      ? z.union([z.date(), z.string()])
+      : z.union([z.date(), z.string()]).optional(),
     accountDate: z.union([z.date(), z.string()]),
     customerId: z.number().min(1, "Customer is required"),
     // Bank Fields
