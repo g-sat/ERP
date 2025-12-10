@@ -833,7 +833,7 @@ export default function CreditNoteForm({
           {visible?.m_ServiceTypeId && (
             <ServiceCategoryAutocomplete
               form={form}
-              name="serviceTypeId"
+              name="serviceCategoryId"
               label="Service Type"
               isRequired={true}
             />

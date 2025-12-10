@@ -130,7 +130,7 @@ export const ArCreditNoteHdSchema = (
     portId: z.number().optional(),
 
     // Service Type Fields
-    serviceTypeId: visible?.m_ServiceTypeId
+    serviceCategoryId: visible?.m_ServiceTypeId
       ? z.number().min(1, "Service Type is required")
       : z.number().optional(),
 

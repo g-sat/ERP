@@ -24,11 +24,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
   BankAutocomplete,
   BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
+  DynamicJobOrderAutocomplete,
   JobOrderAutocomplete,
   JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
@@ -70,6 +72,9 @@ export default function BankTransferCtmDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -568,13 +573,22 @@ export default function BankTransferCtmDetailsForm({
 
         {visible?.m_JobOrderId && (
           <>
-            <JobOrderAutocomplete
-              form={form}
-              name="jobOrderId"
-              label="Job Order"
-              isRequired={required?.m_JobOrderId}
-              onChangeEvent={handleJobOrderChange}
-            />
+            {isDynamicJobOrder ? (
+              <DynamicJobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-D"
+                onChangeEvent={handleJobOrderChange}
+              />
+            ) : (
+              <JobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-S"
+                isRequired={required?.m_JobOrderId}
+                onChangeEvent={handleJobOrderChange}
+              />
+            )}
 
             <JobOrderTaskAutocomplete
               key={`task-${watchedJobOrderId}`}

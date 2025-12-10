@@ -1313,6 +1313,7 @@ export default function ArapcontraPage() {
               initialFilters={filters}
               pageSize={pageSize || 50}
               onCloseAction={() => setShowListDialog(false)}
+              visible={visible}
             />
           </div>
         </DialogContent>

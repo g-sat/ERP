@@ -142,7 +142,7 @@ const buildDefaultDebitNote = (dateFormat: string) => ({
   portId: 0,
   portCode: "",
   portName: "",
-  serviceTypeId: 0,
+  serviceCategoryId: 0,
   serviceTypeName: "",
   data_details: [],
 })

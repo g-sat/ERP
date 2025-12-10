@@ -30,7 +30,11 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { clientDateFormat } from "@/lib/date-utils"
-import { useChartOfAccountLookup, useGstLookup } from "@/hooks/use-lookup"
+import {
+  useChartOfAccountLookup,
+  useGetDynamicLookup,
+  useGstLookup,
+} from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +47,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -86,6 +91,9 @@ export default function CbGenReceiptDetailsForm({
     () => getDefaultValues(dateFormat).defaultCbGenReceiptDetails,
     [dateFormat]
   )
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
 
   // Track if submit was attempted to show errors only after submit
   const [submitAttempted, setSubmitAttempted] = useState(false)
@@ -856,16 +864,24 @@ export default function CbGenReceiptDetailsForm({
             />
           )}
 
-          {/* Barge */}
-          {visible?.m_VesselId && (
-            <VesselAutocomplete
-              form={form}
-              name="vesselId"
-              label="Vessel"
-              isRequired={required?.m_VesselId}
-              onChangeEvent={handleVesselChange}
-            />
-          )}
+          {/* Vessel */}
+          {visible?.m_VesselId &&
+            (isDynamicVessel ? (
+              <DynamicVesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-D"
+                onChangeEvent={handleVesselChange}
+              />
+            ) : (
+              <VesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-S"
+                isRequired={required?.m_VesselId}
+                onChangeEvent={handleVesselChange}
+              />
+            ))}
 
           {/* Voyage */}
           {visible?.m_VoyageId && (

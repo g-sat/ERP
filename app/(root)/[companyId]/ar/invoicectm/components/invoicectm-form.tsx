@@ -36,8 +36,10 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
+  DynamicJobOrderAutocomplete,
   JobOrderAutocomplete,
   PortAutocomplete,
+  VesselAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -75,6 +77,8 @@ export default function InvoiceCtmForm({
 
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -730,23 +734,38 @@ export default function InvoiceCtmForm({
           )}
 
           {/* Job Order */}
-          {visible?.m_JobOrderIdHd && (
-            <JobOrderAutocomplete
-              form={form}
-              name="jobOrderId"
-              label="Job Order"
-              onChangeEvent={handleJobOrderChange}
-            />
-          )}
+          {visible?.m_JobOrderIdHd &&
+            (isDynamicJobOrder ? (
+              <DynamicJobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-D"
+                onChangeEvent={handleJobOrderChange}
+              />
+            ) : (
+              <JobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-S"
+                onChangeEvent={handleJobOrderChange}
+              />
+            ))}
 
           {/* Vessel */}
-          {visible?.m_VesselIdHd && (
-            <DynamicVesselAutocomplete
-              form={form}
-              name="vesselId"
-              label="Vessel"
-            />
-          )}
+          {visible?.m_VesselIdHd &&
+            (isDynamicVessel ? (
+              <DynamicVesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-D"
+              />
+            ) : (
+              <VesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-S"
+              />
+            ))}
 
           {/* Port */}
           {visible?.m_PortIdHd && (

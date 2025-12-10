@@ -643,13 +643,15 @@ export default function CbGenReceiptForm({
           )}
 
           {/* Remarks */}
-          <CustomTextarea
-            form={form}
-            name="remarks"
-            label="Remarks"
-            isRequired={required?.m_Remarks_Hd}
-            className="col-span-2"
-          />
+          {visible?.m_Remarks && (
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isRequired={required?.m_Remarks_Hd}
+              className="col-span-2"
+            />
+          )}
         </div>
 
         {/* {form.watch("receiptId") != "0" && (

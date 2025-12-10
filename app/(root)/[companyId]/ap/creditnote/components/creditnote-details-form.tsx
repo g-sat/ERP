@@ -70,6 +70,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -133,6 +134,7 @@ const CreditNoteDetailsForm = React.forwardRef<
 
     const { data: dynamicLookup } = useGetDynamicLookup()
     const isDynamicLookup = dynamicLookup?.isJobOrder ?? false
+    const isDynamicVessel = dynamicLookup?.isVessel ?? false
     // State to manage job-specific vs department-specific rendering
     const [isJobSpecific, setIsJobSpecific] = useState(false)
 
@@ -1278,7 +1280,7 @@ const CreditNoteDetailsForm = React.forwardRef<
                   <JobOrderAutocomplete
                     form={form}
                     name="jobOrderId"
-                    label="Job Order"
+                    label="Job Order-S"
                     isRequired={required?.m_JobOrderId && isJobSpecific}
                     onChangeEvent={handleJobOrderChange}
                   />
@@ -1288,7 +1290,7 @@ const CreditNoteDetailsForm = React.forwardRef<
                   <DynamicJobOrderAutocomplete
                     form={form}
                     name="jobOrderId"
-                    label="Job Order"
+                    label="Job Order-D"
                     onChangeEvent={handleJobOrderChange}
                   />
                 )}
@@ -1366,16 +1368,24 @@ const CreditNoteDetailsForm = React.forwardRef<
               />
             )}
 
-            {/* Barge */}
-            {visible?.m_VesselId && (
-              <VesselAutocomplete
-                form={form}
-                name="vesselId"
-                label="Vessel"
-                isRequired={required?.m_VesselId}
-                onChangeEvent={handleVesselChange}
-              />
-            )}
+            {/* Vessel */}
+            {visible?.m_VesselId &&
+              (isDynamicVessel ? (
+                <DynamicVesselAutocomplete
+                  form={form}
+                  name="vesselId"
+                  label="Vessel-D"
+                  onChangeEvent={handleVesselChange}
+                />
+              ) : (
+                <VesselAutocomplete
+                  form={form}
+                  name="vesselId"
+                  label="Vessel-S"
+                  isRequired={required?.m_VesselId}
+                  onChangeEvent={handleVesselChange}
+                />
+              ))}
 
             {/* Voyage */}
             {visible?.m_VoyageId && (

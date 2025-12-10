@@ -269,7 +269,7 @@ export default function AdjustmentPage() {
           jobOrderNo: adjustment.jobOrderNo ?? "",
           vesselId: adjustment.vesselId ?? 0,
           portId: adjustment.portId ?? 0,
-          serviceTypeId: adjustment.serviceTypeId ?? 0,
+          serviceCategoryId: adjustment.serviceCategoryId ?? 0,
           data_details:
             adjustment.data_details?.map((detail) => ({
               ...detail,
@@ -922,7 +922,7 @@ export default function AdjustmentPage() {
         jobOrderNo: apiAdjustment.jobOrderNo ?? "",
         vesselId: apiAdjustment.vesselId ?? 0,
         portId: apiAdjustment.portId ?? 0,
-        serviceTypeId: apiAdjustment.serviceTypeId ?? 0,
+        serviceCategoryId: apiAdjustment.serviceCategoryId ?? 0,
         createBy: apiAdjustment.createBy ?? "",
         editBy: apiAdjustment.editBy ?? "",
         cancelBy: apiAdjustment.cancelBy ?? "",

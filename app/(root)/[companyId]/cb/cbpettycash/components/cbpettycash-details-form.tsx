@@ -36,13 +36,18 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { useChartOfAccountLookup, useGstLookup } from "@/hooks/use-lookup"
+import {
+  useChartOfAccountLookup,
+  useGetDynamicLookup,
+  useGstLookup,
+} from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   BargeAutocomplete,
   ChartOfAccountAutocomplete,
   DepartmentAutocomplete,
+  DynamicJobOrderAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
   JobOrderAutocomplete,
@@ -53,6 +58,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import { DuplicateConfirmation } from "@/components/confirmation/duplicate-confirmation"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
@@ -99,6 +105,10 @@ export default function CbPettyCashDetailsForm({
     () => getDefaultValues(dateFormat).defaultCbPettyCashDetails,
     [dateFormat]
   )
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
 
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
@@ -196,7 +206,7 @@ export default function CbPettyCashDetailsForm({
           taskName: editingDetail.taskName ?? "",
           serviceId: editingDetail.serviceId ?? 0,
           serviceName: editingDetail.serviceName ?? "",
-          serviceTypeId: editingDetail.serviceTypeId ?? 0,
+          serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
           serviceTypeName: editingDetail.serviceTypeName ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
@@ -502,7 +512,7 @@ export default function CbPettyCashDetailsForm({
         taskName: editingDetail.taskName ?? "",
         serviceId: editingDetail.serviceId ?? 0,
         serviceName: editingDetail.serviceName ?? "",
-        serviceTypeId: editingDetail.serviceTypeId ?? 0,
+        serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
         serviceTypeName: editingDetail.serviceTypeName ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
@@ -627,7 +637,7 @@ export default function CbPettyCashDetailsForm({
         taskName: data.taskName ?? "",
         serviceId: data.serviceId ?? 0,
         serviceName: data.serviceName ?? "",
-        serviceTypeId: data.serviceTypeId ?? 0,
+        serviceCategoryId: data.serviceCategoryId ?? 0,
         serviceTypeName: data.serviceTypeName ?? "",
         editVersion: data.editVersion ?? 0,
       }
@@ -936,12 +946,12 @@ export default function CbPettyCashDetailsForm({
     selectedOption: IServiceTypeLookup | null
   ) => {
     if (selectedOption) {
-      form.setValue("serviceTypeId", selectedOption.serviceTypeId, {
+      form.setValue("serviceCategoryId", selectedOption.serviceCategoryId, {
         shouldValidate: true,
         shouldDirty: true,
       })
     } else {
-      form.setValue("serviceTypeId", 0, { shouldValidate: true })
+      form.setValue("serviceCategoryId", 0, { shouldValidate: true })
     }
   }
 
@@ -1193,15 +1203,23 @@ export default function CbPettyCashDetailsForm({
           {isJobSpecific ? (
             <>
               {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-              {visible?.m_JobOrderId && (
-                <JobOrderAutocomplete
-                  form={form}
-                  name="jobOrderId"
-                  label="Job Order"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
-                  onChangeEvent={handleJobOrderChange}
-                />
-              )}
+              {visible?.m_JobOrderId &&
+                (isDynamicJobOrder ? (
+                  <DynamicJobOrderAutocomplete
+                    form={form}
+                    name="jobOrderId"
+                    label="Job Order-D"
+                    onChangeEvent={handleJobOrderChange}
+                  />
+                ) : (
+                  <JobOrderAutocomplete
+                    form={form}
+                    name="jobOrderId"
+                    label="Job Order-S"
+                    isRequired={required?.m_JobOrderId && isJobSpecific}
+                    onChangeEvent={handleJobOrderChange}
+                  />
+                ))}
 
               {visible?.m_JobOrderId && (
                 <JobOrderTaskAutocomplete
@@ -1276,16 +1294,24 @@ export default function CbPettyCashDetailsForm({
             />
           )}
 
-          {/* Barge */}
-          {visible?.m_VesselId && (
-            <VesselAutocomplete
-              form={form}
-              name="vesselId"
-              label="Vessel"
-              isRequired={required?.m_VesselId}
-              onChangeEvent={handleVesselChange}
-            />
-          )}
+          {/* Vessel */}
+          {visible?.m_VesselId &&
+            (isDynamicVessel ? (
+              <DynamicVesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-D"
+                onChangeEvent={handleVesselChange}
+              />
+            ) : (
+              <VesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-S"
+                isRequired={required?.m_VesselId}
+                onChangeEvent={handleVesselChange}
+              />
+            ))}
 
           {/* Voyage */}
           {visible?.m_VoyageId && (
@@ -1401,7 +1427,7 @@ export default function CbPettyCashDetailsForm({
           {visible?.m_ServiceTypeId && (
             <ServiceCategoryAutocomplete
               form={form}
-              name="serviceTypeId"
+              name="serviceCategoryId"
               label="Service Type"
               isRequired={isServiceTypeRequired()}
               onChangeEvent={handleServiceTypeChange}

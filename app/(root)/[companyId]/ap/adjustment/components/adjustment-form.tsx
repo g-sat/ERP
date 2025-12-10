@@ -71,7 +71,7 @@ export default function AdjustmentForm({
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
-  const isDynamicSupplier = dynamicLookup?.isCustomer ?? false
+  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -706,7 +706,7 @@ export default function AdjustmentForm({
           {visible?.m_ServiceTypeId && (
             <ServiceCategoryAutocomplete
               form={form}
-              name="serviceTypeId"
+              name="serviceCategoryId"
               label="Service Type"
               isRequired={true}
             />

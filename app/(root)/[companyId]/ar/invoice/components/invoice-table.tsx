@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
@@ -22,6 +23,7 @@ export interface InvoiceTableProps {
   initialFilters?: IArInvoiceFilter
   pageSize: number
   onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
 const DEFAULT_PAGE_SIZE = 15
@@ -32,6 +34,7 @@ export default function InvoiceTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
+  visible,
 }: InvoiceTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -202,16 +205,20 @@ export default function InvoiceTable({
       accessorKey: "referenceNo",
       header: "Reference No",
     },
-    {
-      accessorKey: "trnDate",
-      header: "Transaction Date",
-      cell: ({ row }) => {
-        const date = row.original.trnDate
-          ? new Date(row.original.trnDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_TrnDate
+      ? [
+          {
+            accessorKey: "trnDate",
+            header: "Transaction Date",
+            cell: ({ row }) => {
+              const date = row.original.trnDate
+                ? new Date(row.original.trnDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "accountDate",
       header: "Account Date",
@@ -222,16 +229,20 @@ export default function InvoiceTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "deliveryDate",
-      header: "Delivery Date",
-      cell: ({ row }) => {
-        const date = row.original.deliveryDate
-          ? new Date(row.original.deliveryDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_DeliveryDate
+      ? [
+          {
+            accessorKey: "deliveryDate",
+            header: "Delivery Date",
+            cell: ({ row }) => {
+              const date = row.original.deliveryDate
+                ? new Date(row.original.deliveryDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "dueDate",
       header: "Due Date",
@@ -267,15 +278,19 @@ export default function InvoiceTable({
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
-        </div>
-      ),
-    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "ctyExhRate",
+            header: "Country Exchange Rate",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "creditTermCode",
       header: "Credit Term Code",
@@ -310,6 +325,19 @@ export default function InvoiceTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmt",
+            header: "Total Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "gstAmt",
       header: "VAT Amount",
@@ -328,6 +356,19 @@ export default function InvoiceTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "gstCtyAmt",
+            header: "GST Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "totAmtAftGst",
       header: "Total After GST",
@@ -346,21 +387,39 @@ export default function InvoiceTable({
         </div>
       ),
     },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      size: 200,
-      minSize: 150,
-      maxSize: 220,
-      cell: ({ row }) => {
-        const remarks = row.original.remarks ?? ""
-        return (
-          <div className="max-w-[200px] truncate" title={remarks}>
-            {remarks || "-"}
-          </div>
-        )
-      },
-    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmtAftGst",
+            header: "Total Country After GST",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmtAftGst"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
+
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+            size: 200,
+            minSize: 150,
+            maxSize: 220,
+            cell: ({ row }) => {
+              const remarks = row.original.remarks ?? ""
+              return (
+                <div className="max-w-[200px] truncate" title={remarks}>
+                  {remarks || "-"}
+                </div>
+              )
+            },
+          } as ColumnDef<IArInvoiceHd>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: "Status",

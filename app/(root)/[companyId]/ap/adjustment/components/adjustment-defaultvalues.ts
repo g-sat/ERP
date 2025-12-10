@@ -143,7 +143,7 @@ const buildDefaultAdjustment = (dateFormat: string) => ({
   appStatusId: "",
   appById: "",
   appDate: "",
-  serviceTypeId: 0,
+  serviceCategoryId: 0,
   serviceTypeName: "",
   data_details: [],
 })

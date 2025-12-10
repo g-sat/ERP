@@ -266,7 +266,7 @@ export default function AdjustmentPage() {
           purchaseOrderId: adjustment.purchaseOrderId ?? 0,
           purchaseOrderNo: adjustment.purchaseOrderNo ?? "",
 
-          serviceTypeId: adjustment.serviceTypeId ?? 0,
+          serviceCategoryId: adjustment.serviceCategoryId ?? 0,
 
           data_details:
             adjustment.data_details?.map((detail) => ({
@@ -922,7 +922,7 @@ export default function AdjustmentPage() {
         editVersion: apiAdjustment.editVersion ?? 0,
         purchaseOrderId: apiAdjustment.purchaseOrderId ?? 0,
         purchaseOrderNo: apiAdjustment.purchaseOrderNo ?? "",
-        serviceTypeId: apiAdjustment.serviceTypeId ?? 0,
+        serviceCategoryId: apiAdjustment.serviceCategoryId ?? 0,
         createBy: apiAdjustment.createBy ?? "",
         editBy: apiAdjustment.editBy ?? "",
         cancelBy: apiAdjustment.cancelBy ?? "",

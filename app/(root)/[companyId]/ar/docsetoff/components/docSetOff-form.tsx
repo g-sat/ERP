@@ -322,7 +322,7 @@ export default function DocSetOffForm({
           <DynamicCustomerAutocomplete
             form={form}
             name="customerId"
-            label="Customer"
+            label="Customer-D"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             className="col-span-2"
@@ -332,7 +332,7 @@ export default function DocSetOffForm({
           <CustomerAutocomplete
             form={form}
             name="customerId"
-            label="Customer"
+            label="Customer-S"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             className="col-span-2"

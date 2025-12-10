@@ -1221,6 +1221,7 @@ export default function PaymentPage() {
               initialFilters={filters}
               pageSize={pageSize || 50}
               onCloseAction={() => setShowListDialog(false)}
+              visible={visible}
             />
           </div>
         </DialogContent>

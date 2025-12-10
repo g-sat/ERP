@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { ICbPettyCashFilter, ICbPettyCashHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
@@ -22,6 +23,7 @@ export interface CbPettyCashTableProps {
   initialFilters?: ICbPettyCashFilter
   pageSize: number
   onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
 export default function CbPettyCashTable({
@@ -30,6 +32,7 @@ export default function CbPettyCashTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
+  visible,
 }: CbPettyCashTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -188,16 +191,20 @@ export default function CbPettyCashTable({
       accessorKey: "referenceNo",
       header: "Reference No",
     },
-    {
-      accessorKey: "trnDate",
-      header: "Transaction Date",
-      cell: ({ row }) => {
-        const date = row.original.trnDate
-          ? new Date(row.original.trnDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_TrnDate
+      ? [
+          {
+            accessorKey: "trnDate",
+            header: "Transaction Date",
+            cell: ({ row }) => {
+              const date = row.original.trnDate
+                ? new Date(row.original.trnDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
     {
       accessorKey: "accountDate",
       header: "Account Date",
@@ -225,15 +232,19 @@ export default function CbPettyCashTable({
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
-        </div>
-      ),
-    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "ctyExhRate",
+            header: "Country Exchange Rate",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+              </div>
+            ),
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -260,6 +271,19 @@ export default function CbPettyCashTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmt",
+            header: "Total Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
     {
       accessorKey: "gstAmt",
       header: "VAT Amount",
@@ -278,6 +302,19 @@ export default function CbPettyCashTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "gstCtyAmt",
+            header: "GST Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
     {
       accessorKey: "totAmtAftGst",
       header: "Total After GST",
@@ -296,11 +333,28 @@ export default function CbPettyCashTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmtAftGst",
+            header: "Total Country After GST",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmtAftGst"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
 
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-    },
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+          } as ColumnDef<ICbPettyCashHd>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: "Status",

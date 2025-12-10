@@ -242,6 +242,8 @@ export default function ArGLContraDetailsTable({
   )
 
   // Define columns with visible prop checks - DocSetOff specific fields
+  // Note: visible prop is part of the API for consistency with other detail tables
+  // but IGLContraDt doesn't have fields that require conditional visibility
   const columns: ExtendedColumnDef<IGLContraDt>[] = [
     {
       accessorKey: "itemNo",

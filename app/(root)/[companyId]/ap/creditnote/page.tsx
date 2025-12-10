@@ -266,7 +266,7 @@ export default function CreditNotePage() {
           purchaseOrderId: creditNote.purchaseOrderId ?? 0,
           purchaseOrderNo: creditNote.purchaseOrderNo ?? "",
 
-          serviceTypeId: creditNote.serviceTypeId ?? 0,
+          serviceCategoryId: creditNote.serviceCategoryId ?? 0,
 
           data_details:
             creditNote.data_details?.map((detail) => ({
@@ -917,7 +917,7 @@ export default function CreditNotePage() {
         editVersion: apiCreditNote.editVersion ?? 0,
         purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
         purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
-        serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
+        serviceCategoryId: apiCreditNote.serviceCategoryId ?? 0,
         createBy: apiCreditNote.createBy ?? "",
         editBy: apiCreditNote.editBy ?? "",
         cancelBy: apiCreditNote.cancelBy ?? "",

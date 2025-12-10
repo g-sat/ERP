@@ -38,8 +38,10 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
+  DynamicJobOrderAutocomplete,
   JobOrderAutocomplete,
   PortAutocomplete,
+  VesselAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
@@ -80,6 +82,8 @@ export default function DebitNoteForm({
 
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const [showInvoiceDialog, setShowInvoiceDialog] = React.useState(false)
 
@@ -858,23 +862,38 @@ export default function DebitNoteForm({
           )}
 
           {/* Job Order */}
-          {visible?.m_JobOrderIdHd && (
-            <JobOrderAutocomplete
-              form={form}
-              name="jobOrderId"
-              label="Job Order"
-              onChangeEvent={handleJobOrderChange}
-            />
-          )}
+          {visible?.m_JobOrderIdHd &&
+            (isDynamicJobOrder ? (
+              <DynamicJobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-D"
+                onChangeEvent={handleJobOrderChange}
+              />
+            ) : (
+              <JobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order-S"
+                onChangeEvent={handleJobOrderChange}
+              />
+            ))}
 
           {/* Vessel */}
-          {visible?.m_VesselIdHd && (
-            <DynamicVesselAutocomplete
-              form={form}
-              name="vesselId"
-              label="Vessel"
-            />
-          )}
+          {visible?.m_VesselIdHd &&
+            (isDynamicVessel ? (
+              <DynamicVesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-D"
+              />
+            ) : (
+              <VesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-S"
+              />
+            ))}
 
           {/* Port */}
           {visible?.m_PortIdHd && (
@@ -885,7 +904,7 @@ export default function DebitNoteForm({
           {visible?.m_ServiceTypeId && (
             <ServiceCategoryAutocomplete
               form={form}
-              name="serviceTypeId"
+              name="serviceCategoryId"
               label="Service Type"
               isRequired={true}
             />

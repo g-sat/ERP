@@ -19,6 +19,7 @@ import {
   IBankLookup,
   ICurrencyLookup,
   ICustomerLookup,
+  IJobOrderLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -36,6 +37,8 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
+  DynamicJobOrderAutocomplete,
+  JobOrderAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -71,6 +74,7 @@ export default function ReceiptForm({
 
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
 
@@ -448,6 +452,14 @@ export default function ReceiptForm({
     [exhRateDec, form, updateCurrencyComparison]
   )
 
+  // Handle job order selection
+  const handleJobOrderChange = React.useCallback(
+    (_selectedJobOrder: IJobOrderLookup | null) => {
+      // Additional logic when job order changes can be added here if needed
+    },
+    []
+  )
+
   // Handle receipt type change
   const handlePaymentTypeChange = React.useCallback(
     (selectedPaymentType: IPaymentTypeLookup | null) => {
@@ -807,7 +819,7 @@ export default function ReceiptForm({
           <DynamicCustomerAutocomplete
             form={form}
             name="customerId"
-            label="Customer"
+            label="Customer-D"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             className="col-span-2"
@@ -817,7 +829,7 @@ export default function ReceiptForm({
           <CustomerAutocomplete
             form={form}
             name="customerId"
-            label="Customer"
+            label="Customer-S"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             className="col-span-2"
@@ -832,6 +844,24 @@ export default function ReceiptForm({
           label="Reference No."
           isRequired={required?.m_ReferenceNo}
         />
+
+        {/* Job Order */}
+        {visible?.m_JobOrderIdHd &&
+          (isDynamicJobOrder ? (
+            <DynamicJobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order-D"
+              onChangeEvent={handleJobOrderChange}
+            />
+          ) : (
+            <JobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order-S"
+              onChangeEvent={handleJobOrderChange}
+            />
+          ))}
 
         {/* Bank */}
         {visible?.m_BankId && (

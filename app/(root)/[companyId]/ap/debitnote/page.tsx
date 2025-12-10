@@ -266,7 +266,7 @@ export default function DebitNotePage() {
           purchaseOrderId: debitNote.purchaseOrderId ?? 0,
           purchaseOrderNo: debitNote.purchaseOrderNo ?? "",
 
-          serviceTypeId: debitNote.serviceTypeId ?? 0,
+          serviceCategoryId: debitNote.serviceCategoryId ?? 0,
 
           data_details:
             debitNote.data_details?.map((detail) => ({
@@ -909,7 +909,7 @@ export default function DebitNotePage() {
         editVersion: apiDebitNote.editVersion ?? 0,
         purchaseOrderId: apiDebitNote.purchaseOrderId ?? 0,
         purchaseOrderNo: apiDebitNote.purchaseOrderNo ?? "",
-        serviceTypeId: apiDebitNote.serviceTypeId ?? 0,
+        serviceCategoryId: apiDebitNote.serviceCategoryId ?? 0,
         createBy: apiDebitNote.createBy ?? "",
         editBy: apiDebitNote.editBy ?? "",
         cancelBy: apiDebitNote.cancelBy ?? "",

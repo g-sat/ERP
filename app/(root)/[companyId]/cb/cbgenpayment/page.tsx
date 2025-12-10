@@ -1568,6 +1568,7 @@ export default function CbGenPaymentPage() {
               initialFilters={filters}
               pageSize={pageSize || 50}
               onCloseAction={() => setShowListDialog(false)}
+              visible={visible}
             />
           </div>
         </DialogContent>

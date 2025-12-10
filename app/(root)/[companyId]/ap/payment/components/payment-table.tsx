@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { IApPaymentFilter, IApPaymentHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
@@ -22,6 +23,7 @@ export interface PaymentTableProps {
   initialFilters?: IApPaymentFilter
   pageSize: number
   onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
 export default function PaymentTable({
@@ -30,6 +32,7 @@ export default function PaymentTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
+  visible,
 }: PaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -188,16 +191,20 @@ export default function PaymentTable({
       accessorKey: "referenceNo",
       header: "Reference No",
     },
-    {
-      accessorKey: "trnDate",
-      header: "Transaction Date",
-      cell: ({ row }) => {
-        const date = row.original.trnDate
-          ? new Date(row.original.trnDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_TrnDate
+      ? [
+          {
+            accessorKey: "trnDate",
+            header: "Transaction Date",
+            cell: ({ row }) => {
+              const date = row.original.trnDate
+                ? new Date(row.original.trnDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IApPaymentHd>,
+        ]
+      : []),
     {
       accessorKey: "accountDate",
       header: "Account Date",
@@ -346,10 +353,14 @@ export default function PaymentTable({
         </div>
       ),
     },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-    },
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+          } as ColumnDef<IApPaymentHd>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: "Status",

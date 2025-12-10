@@ -269,7 +269,7 @@ export default function CreditNotePage() {
           jobOrderNo: creditNote.jobOrderNo ?? "",
           vesselId: creditNote.vesselId ?? 0,
           portId: creditNote.portId ?? 0,
-          serviceTypeId: creditNote.serviceTypeId ?? 0,
+          serviceCategoryId: creditNote.serviceCategoryId ?? 0,
           data_details:
             creditNote.data_details?.map((detail) => ({
               ...detail,
@@ -917,7 +917,7 @@ export default function CreditNotePage() {
         jobOrderNo: apiCreditNote.jobOrderNo ?? "",
         vesselId: apiCreditNote.vesselId ?? 0,
         portId: apiCreditNote.portId ?? 0,
-        serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
+        serviceCategoryId: apiCreditNote.serviceCategoryId ?? 0,
         createBy: apiCreditNote.createBy ?? "",
         editBy: apiCreditNote.editBy ?? "",
         cancelBy: apiCreditNote.cancelBy ?? "",

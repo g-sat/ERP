@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { IArCreditNoteFilter, IArCreditNoteHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
@@ -22,6 +23,7 @@ export interface CreditNoteTableProps {
   initialFilters?: IArCreditNoteFilter
   pageSize: number
   onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
 export default function CreditNoteTable({
@@ -30,6 +32,7 @@ export default function CreditNoteTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
+  visible,
 }: CreditNoteTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -188,16 +191,20 @@ export default function CreditNoteTable({
       accessorKey: "referenceNo",
       header: "Reference No",
     },
-    {
-      accessorKey: "trnDate",
-      header: "Transaction Date",
-      cell: ({ row }) => {
-        const date = row.original.trnDate
-          ? new Date(row.original.trnDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_TrnDate
+      ? [
+          {
+            accessorKey: "trnDate",
+            header: "Transaction Date",
+            cell: ({ row }) => {
+              const date = row.original.trnDate
+                ? new Date(row.original.trnDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "accountDate",
       header: "Account Date",
@@ -208,16 +215,20 @@ export default function CreditNoteTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "deliveryDate",
-      header: "Delivery Date",
-      cell: ({ row }) => {
-        const date = row.original.deliveryDate
-          ? new Date(row.original.deliveryDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_DeliveryDate
+      ? [
+          {
+            accessorKey: "deliveryDate",
+            header: "Delivery Date",
+            cell: ({ row }) => {
+              const date = row.original.deliveryDate
+                ? new Date(row.original.deliveryDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "dueDate",
       header: "Due Date",
@@ -253,15 +264,19 @@ export default function CreditNoteTable({
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
-        </div>
-      ),
-    },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "ctyExhRate",
+            header: "Country Exchange Rate",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+              </div>
+            ),
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "creditTermCode",
       header: "Credit Term Code",
@@ -296,6 +311,19 @@ export default function CreditNoteTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmt",
+            header: "Total Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "gstAmt",
       header: "VAT Amount",
@@ -314,6 +342,19 @@ export default function CreditNoteTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "gstCtyAmt",
+            header: "GST Country Amount",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "totAmtAftGst",
       header: "Total After GST",
@@ -332,11 +373,28 @@ export default function CreditNoteTable({
         </div>
       ),
     },
+    ...(visible?.m_CtyCurr
+      ? [
+          {
+            accessorKey: "totCtyAmtAftGst",
+            header: "Total Country After GST",
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmtAftGst"), locAmtDec)}
+              </div>
+            ),
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
 
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-    },
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+          } as ColumnDef<IArCreditNoteHd>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: "Status",

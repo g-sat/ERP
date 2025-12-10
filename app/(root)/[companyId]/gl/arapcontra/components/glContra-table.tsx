@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { IGLContraFilter, IGLContraHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
@@ -22,6 +23,7 @@ export interface ContraTableProps {
   initialFilters?: IGLContraFilter
   pageSize: number
   onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
 export default function ContraTable({
@@ -30,6 +32,7 @@ export default function ContraTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
+  visible,
 }: ContraTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -160,16 +163,20 @@ export default function ContraTable({
       accessorKey: "referenceNo",
       header: "Reference No",
     },
-    {
-      accessorKey: "trnDate",
-      header: "Transaction Date",
-      cell: ({ row }) => {
-        const date = row.original.trnDate
-          ? new Date(row.original.trnDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+    ...(visible?.m_TrnDate
+      ? [
+          {
+            accessorKey: "trnDate",
+            header: "Transaction Date",
+            cell: ({ row }) => {
+              const date = row.original.trnDate
+                ? new Date(row.original.trnDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IGLContraHd>,
+        ]
+      : []),
     {
       accessorKey: "accountDate",
       header: "Account Date",
@@ -247,10 +254,14 @@ export default function ContraTable({
         </div>
       ),
     },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-    },
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+          } as ColumnDef<IGLContraHd>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: "Status",

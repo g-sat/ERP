@@ -71,7 +71,7 @@ export default function InvoiceForm({
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
-  const isDynamicSupplier = dynamicLookup?.isCustomer ?? false
+  const isDynamicSupplier = dynamicLookup?.isSupplier ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,

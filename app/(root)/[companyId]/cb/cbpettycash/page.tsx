@@ -903,7 +903,7 @@ export default function CbPettyCashPage() {
               taskName: detail.taskName ?? "",
               serviceId: detail.serviceId ?? 0,
               serviceName: detail.serviceName ?? "",
-              serviceTypeId: detail.serviceTypeId ?? 0,
+              serviceCategoryId: detail.serviceCategoryId ?? 0,
               serviceTypeName: detail.serviceTypeName ?? "",
               editVersion: detail.editVersion ?? 0,
             }) as unknown as CbPettyCashDtSchemaType
@@ -1071,7 +1071,7 @@ export default function CbPettyCashPage() {
                   taskName: detail.taskName ?? "",
                   serviceId: detail.serviceId ?? 0,
                   serviceName: detail.serviceName ?? "",
-                  serviceTypeId: detail.serviceTypeId ?? 0,
+                  serviceCategoryId: detail.serviceCategoryId ?? 0,
                   serviceTypeName: detail.serviceTypeName ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
@@ -1302,7 +1302,7 @@ export default function CbPettyCashPage() {
                   taskName: detail.taskName ?? "",
                   serviceId: detail.serviceId ?? 0,
                   serviceName: detail.serviceName ?? "",
-                  serviceTypeId: detail.serviceTypeId ?? 0,
+                  serviceCategoryId: detail.serviceCategoryId ?? 0,
                   serviceTypeName: detail.serviceTypeName ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
@@ -1616,6 +1616,7 @@ export default function CbPettyCashPage() {
               initialFilters={filters}
               pageSize={pageSize || 50}
               onCloseAction={() => setShowListDialog(false)}
+              visible={visible}
             />
           </div>
         </DialogContent>

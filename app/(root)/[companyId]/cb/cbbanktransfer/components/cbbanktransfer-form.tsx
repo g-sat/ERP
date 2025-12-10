@@ -21,11 +21,12 @@ import { useAuthStore } from "@/stores/auth-store"
 import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { useGetDynamicLookup, usePaymentTypeLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
   BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
+  DynamicJobOrderAutocomplete,
   JobOrderAutocomplete,
   JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
@@ -59,6 +60,9 @@ export default function BankTransferForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
 
@@ -807,14 +811,22 @@ export default function BankTransferForm({
             )}
 
             {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-            {visible?.m_JobOrderId && (
-              <JobOrderAutocomplete
-                form={form}
-                name="jobOrderId"
-                label="Job Order"
-                onChangeEvent={handleJobOrderChange}
-              />
-            )}
+            {visible?.m_JobOrderId &&
+              (isDynamicJobOrder ? (
+                <DynamicJobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order-D"
+                  onChangeEvent={handleJobOrderChange}
+                />
+              ) : (
+                <JobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order-S"
+                  onChangeEvent={handleJobOrderChange}
+                />
+              ))}
 
             {visible?.m_JobOrderId && (
               <JobOrderTaskAutocomplete

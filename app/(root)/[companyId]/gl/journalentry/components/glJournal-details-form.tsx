@@ -35,7 +35,11 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { clientDateFormat } from "@/lib/date-utils"
-import { useChartOfAccountLookup, useGstLookup } from "@/hooks/use-lookup"
+import {
+  useChartOfAccountLookup,
+  useGetDynamicLookup,
+  useGstLookup,
+} from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +48,7 @@ import {
   DepartmentAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
+  DynamicJobOrderAutocomplete,
   JobOrderAutocomplete,
   JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
@@ -52,6 +57,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import { CustomCheckbox } from "@/components/custom"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
@@ -96,6 +102,11 @@ export default function GLJournalDetailsForm({
     () => getDefaultValues(dateFormat).defaultGLJournalDetails,
     [dateFormat]
   )
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
+
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
 
@@ -1096,15 +1107,23 @@ export default function GLJournalDetailsForm({
           {isJobSpecific ? (
             <>
               {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-              {visible?.m_JobOrderId && (
-                <JobOrderAutocomplete
-                  form={form}
-                  name="jobOrderId"
-                  label="Job Order"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
-                  onChangeEvent={handleJobOrderChange}
-                />
-              )}
+              {visible?.m_JobOrderId &&
+                (isDynamicJobOrder ? (
+                  <DynamicJobOrderAutocomplete
+                    form={form}
+                    name="jobOrderId"
+                    label="Job Order-D"
+                    onChangeEvent={handleJobOrderChange}
+                  />
+                ) : (
+                  <JobOrderAutocomplete
+                    form={form}
+                    name="jobOrderId"
+                    label="Job Order-S"
+                    isRequired={required?.m_JobOrderId && isJobSpecific}
+                    onChangeEvent={handleJobOrderChange}
+                  />
+                ))}
 
               {visible?.m_JobOrderId && (
                 <JobOrderTaskAutocomplete
@@ -1179,16 +1198,24 @@ export default function GLJournalDetailsForm({
             />
           )}
 
-          {/* Barge */}
-          {visible?.m_VesselId && (
-            <VesselAutocomplete
-              form={form}
-              name="vesselId"
-              label="Vessel"
-              isRequired={required?.m_VesselId}
-              onChangeEvent={handleVesselChange}
-            />
-          )}
+          {/* Vessel */}
+          {visible?.m_VesselId &&
+            (isDynamicVessel ? (
+              <DynamicVesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-D"
+                onChangeEvent={handleVesselChange}
+              />
+            ) : (
+              <VesselAutocomplete
+                form={form}
+                name="vesselId"
+                label="Vessel-S"
+                isRequired={required?.m_VesselId}
+                onChangeEvent={handleVesselChange}
+              />
+            ))}
 
           {/* Voyage */}
           {visible?.m_VoyageId && (
