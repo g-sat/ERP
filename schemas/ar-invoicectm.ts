@@ -10,9 +10,6 @@ export const ArInvoiceCtmHdSchema = (
 
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
-      : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -112,6 +109,9 @@ export const ArInvoiceCtmHdSchema = (
     moduleFrom: z.string().optional(),
 
     supplierName: z.string().optional(),
+    suppInvoiceNo: required?.m_SuppInvoiceNo
+      ? z.string().min(1, "Supplier Invoice No is required")
+      : z.string().optional(),
     apInvoiceId: z.string().optional(),
     apInvoiceNo: z.string().optional(),
     editVersion: z.number().optional(),

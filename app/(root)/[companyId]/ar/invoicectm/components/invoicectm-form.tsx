@@ -586,14 +586,6 @@ export default function InvoiceCtmForm({
             />
           )}
 
-          {/* customerInvoiceNo */}
-          <CustomInput
-            form={form}
-            name="suppInvoiceNo"
-            label="Customer Invoice No."
-            isRequired={required?.m_SuppInvoiceNo}
-          />
-
           {/* Reference No */}
           <CustomInput
             form={form}

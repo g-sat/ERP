@@ -214,7 +214,6 @@ export default function InvoicePage() {
           invoiceId: invoice.invoiceId?.toString() ?? "0",
           invoiceNo: invoice.invoiceNo ?? "",
           referenceNo: invoice.referenceNo ?? "",
-          suppInvoiceNo: invoice.suppInvoiceNo ?? "",
           trnDate: invoice.trnDate ?? new Date(),
           accountDate: invoice.accountDate ?? new Date(),
           dueDate: invoice.dueDate ?? new Date(),
@@ -256,6 +255,7 @@ export default function InvoicePage() {
           emailAdd: invoice.emailAdd ?? "",
           moduleFrom: invoice.moduleFrom ?? "",
           supplierName: invoice.supplierName ?? "",
+          suppInvoiceNo: invoice.suppInvoiceNo ?? "",
           addressId: invoice.addressId ?? 0,
           contactId: invoice.contactId ?? 0,
           apInvoiceId: invoice.apInvoiceId ?? "",
@@ -824,7 +824,7 @@ export default function InvoicePage() {
         invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
         invoiceNo: apiInvoice.invoiceNo ?? "",
         referenceNo: apiInvoice.referenceNo ?? "",
-        suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
+
         trnDate: apiInvoice.trnDate
           ? format(
               parseDate(apiInvoice.trnDate as string) || new Date(),
@@ -894,6 +894,7 @@ export default function InvoicePage() {
         emailAdd: apiInvoice.emailAdd ?? "",
         moduleFrom: apiInvoice.moduleFrom ?? "",
         supplierName: apiInvoice.supplierName ?? "",
+        suppInvoiceNo: apiInvoice.suppInvoiceNo ?? "",
         apInvoiceId: apiInvoice.apInvoiceId ?? "",
         apInvoiceNo: apiInvoice.apInvoiceNo ?? "",
         editVersion: apiInvoice.editVersion ?? 0,

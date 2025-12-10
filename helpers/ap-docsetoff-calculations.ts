@@ -247,8 +247,8 @@ export const calauteLocalAmtandGainLoss = (
   // Note: Preserve the sign (positive or negative) - do not use Math.abs()
   // Positive = gain, Negative = loss
   const exhGainLoss = calculateSubtractionAmount(
-    allocLocalAmt,
     docAllocLocalAmt,
+    allocLocalAmt,
     decimals.locAmtDec
   )
   // centDiff is always set to 0

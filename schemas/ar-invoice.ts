@@ -10,9 +10,7 @@ export const ArInvoiceHdSchema = (
 
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
-      : z.string().optional(),
+
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
@@ -112,6 +110,9 @@ export const ArInvoiceHdSchema = (
     moduleFrom: z.string().optional(),
 
     supplierName: z.string().optional(),
+    suppInvoiceNo: required?.m_SuppInvoiceNo
+      ? z.string().min(1, "Supplier Invoice No is required")
+      : z.string().optional(),
     apInvoiceId: z.string().optional(),
     apInvoiceNo: z.string().optional(),
     editVersion: z.number().optional(),
@@ -140,12 +141,8 @@ export const ArInvoiceHdSchema = (
       : z.number().optional(),
 
     // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks
-      ? z.string()
-      : z.string().optional(),
-    advRecAmt: visible?.m_AdvRecAmt
-      ? z.number()
-      : z.number().optional(),
+    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
+    advRecAmt: visible?.m_AdvRecAmt ? z.number() : z.number().optional(),
 
     // Nested Details
     data_details: z

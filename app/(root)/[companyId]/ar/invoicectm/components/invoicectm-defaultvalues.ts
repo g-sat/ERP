@@ -67,7 +67,7 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   invoiceId: "0",
   invoiceNo: "",
   referenceNo: "",
-  suppInvoiceNo: "",
+
   trnDate: format(new Date(), dateFormat),
   accountDate: format(new Date(), dateFormat),
   deliveryDate: format(new Date(), dateFormat),
@@ -113,6 +113,7 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   emailAdd: "",
   moduleFrom: "",
   supplierName: "",
+  suppInvoiceNo: "",
   apInvoiceId: "0",
   apInvoiceNo: "",
   createById: 0,
