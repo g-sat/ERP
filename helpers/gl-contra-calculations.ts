@@ -271,8 +271,8 @@ export const calauteLocalAmtandGainLoss = (
     decimals.locAmtDec
   )
   const exhGainLoss = calculateSubtractionAmount(
-    docAllocLocalAmt,
     allocLocalAmt,
+    docAllocLocalAmt,
     decimals.locAmtDec
   )
   // centDiff is always set to 0
