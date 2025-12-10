@@ -144,7 +144,7 @@ const buildDefaultCreditNote = (dateFormat: string) => ({
   appById: "",
   appDate: "",
   serviceCategoryId: 0,
-  serviceTypeName: "",
+  serviceCategoryName: "",
   data_details: [],
 })
 

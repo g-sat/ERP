@@ -892,12 +892,12 @@ export default function CreditNoteForm({
             <PortAutocomplete form={form} name="portId" label="Port" />
           )}
 
-          {/* Service Type */}
-          {visible?.m_ServiceTypeId && (
+          {/* Service Category */}
+          {visible?.m_ServiceCategoryId && (
             <ServiceCategoryAutocomplete
               form={form}
               name="serviceCategoryId"
-              label="Service Type"
+              label="Service Category"
               isRequired={true}
             />
           )}

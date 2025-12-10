@@ -829,12 +829,12 @@ export default function CreditNoteForm({
             </>
           )}
 
-          {/* Service Type */}
-          {visible?.m_ServiceTypeId && (
+          {/* Service Category */}
+          {visible?.m_ServiceCategoryId && (
             <ServiceCategoryAutocomplete
               form={form}
               name="serviceCategoryId"
-              label="Service Type"
+              label="Service Category"
               isRequired={true}
             />
           )}

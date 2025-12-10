@@ -132,15 +132,11 @@ export default function CbGenReceiptPage() {
     useState<CbGenReceiptHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
-  const [pendingDocNo, setPendingDocNo] = useState("")
+  const [pendingDocId, setPendingDocId] = useState("")
 
-  const handleCbGenReceiptSearchRef = useRef<
-    ((value: string) => Promise<void> | void) | null
-  >(null)
-
-  const documentNoFromQuery = useMemo(() => {
+  const documentIdFromQuery = useMemo(() => {
     const value =
-      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
@@ -150,9 +146,8 @@ export default function CbGenReceiptPage() {
   )
 
   useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
       return
     }
 
@@ -162,12 +157,11 @@ export default function CbGenReceiptPage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
-          setPendingDocNo(trimmed)
-          setSearchNo(trimmed)
+          setPendingDocId(trimmed)
         }
       }
     }
-  }, [autoLoadStorageKey, documentNoFromQuery])
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -773,9 +767,8 @@ export default function CbGenReceiptPage() {
   }
 
   // Helper function to transform ICbGenReceiptHd to CbGenReceiptHdSchemaType
-  const transformToSchemaType = (
-    apiCbGenReceipt: ICbGenReceiptHd
-  ): CbGenReceiptHdSchemaType => {
+  const transformToSchemaType = useCallback(
+    (apiCbGenReceipt: ICbGenReceiptHd): CbGenReceiptHdSchemaType => {
     return {
       receiptId: apiCbGenReceipt.receiptId?.toString() ?? "0",
       receiptNo: apiCbGenReceipt.receiptNo ?? "",
@@ -895,179 +888,104 @@ export default function CbGenReceiptPage() {
             }) as unknown as CbGenReceiptDtSchemaType
         ) || [],
     }
-  }
+    },
+    [dateFormat, decimals]
+  )
 
-  const handleCbGenReceiptSelect = async (
-    selectedCbGenReceipt: ICbGenReceiptHd | undefined
-  ) => {
-    if (!selectedCbGenReceipt) return
+  const loadCbGenReceipt = useCallback(
+    async ({
+      receiptId,
+      receiptNo,
+      showLoader = false,
+    }: {
+      receiptId?: string | number | null
+      receiptNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("receiptId", receiptId)
+      console.log("receiptNo", receiptNo)
+      const trimmedReceiptNo = receiptNo?.trim() ?? ""
+      const trimmedReceiptId =
+        typeof receiptId === "number"
+          ? receiptId.toString()
+          : (receiptId?.toString().trim() ?? "")
 
-    try {
-      // Fetch cbGenReceipt details directly using selected cbGenReceipt's values
-      const response = await getById(
-        `${CbGenReceipt.getByIdNo}/${selectedCbGenReceipt.receiptId}/${selectedCbGenReceipt.receiptNo}`
-      )
+      if (!trimmedReceiptNo && !trimmedReceiptId) return null
 
-      if (response?.result === 1) {
-        const detailedCbGenReceipt = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      if (showLoader) {
+        setIsLoadingCbGenReceipt(true)
+      }
 
-        if (detailedCbGenReceipt) {
-          {
+      const requestReceiptId = trimmedReceiptId || "0"
+      const requestReceiptNo = trimmedReceiptNo || ""
+
+      try {
+        const response = await getById(
+          `${CbGenReceipt.getByIdNo}/${requestReceiptId}/${requestReceiptNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedCbGenReceipt = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedCbGenReceipt) {
             const parsed = parseDate(detailedCbGenReceipt.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
                 : (detailedCbGenReceipt.accountDate as string)
             )
+
+            const updatedCbGenReceipt = transformToSchemaType(detailedCbGenReceipt)
+
+            setCbGenReceipt(updatedCbGenReceipt)
+            form.reset(updatedCbGenReceipt)
+            form.trigger()
+
+            const resolvedReceiptNo =
+              updatedCbGenReceipt.receiptNo || trimmedReceiptNo || trimmedReceiptId
+            setSearchNo(resolvedReceiptNo)
+
+            return resolvedReceiptNo
           }
-          // Parse dates properly
-          const updatedCbGenReceipt = {
-            ...detailedCbGenReceipt,
-            receiptId: detailedCbGenReceipt.receiptId?.toString() ?? "0",
-            receiptNo: detailedCbGenReceipt.receiptNo ?? "",
-            referenceNo: detailedCbGenReceipt.referenceNo ?? "",
-            trnDate: detailedCbGenReceipt.trnDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.trnDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCbGenReceipt.accountDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedCbGenReceipt.gstClaimDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            currencyId: detailedCbGenReceipt.currencyId ?? 0,
-            exhRate: detailedCbGenReceipt.exhRate ?? 0,
-            ctyExhRate: detailedCbGenReceipt.ctyExhRate ?? 0,
-            bankId: detailedCbGenReceipt.bankId ?? 0,
-            paymentTypeId: detailedCbGenReceipt.paymentTypeId ?? 0,
-            chequeNo: detailedCbGenReceipt.chequeNo ?? "",
-            chequeDate: detailedCbGenReceipt.chequeDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.chequeDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            bankChgGLId: detailedCbGenReceipt.bankChgGLId ?? 0,
-            bankChgAmt: detailedCbGenReceipt.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedCbGenReceipt.bankChgLocalAmt ?? 0,
-            payeeTo: detailedCbGenReceipt.payeeTo ?? "",
-            totAmt: detailedCbGenReceipt.totAmt ?? 0,
-            totLocalAmt: detailedCbGenReceipt.totLocalAmt ?? 0,
-            totCtyAmt: detailedCbGenReceipt.totCtyAmt ?? 0,
-            gstAmt: detailedCbGenReceipt.gstAmt ?? 0,
-            gstLocalAmt: detailedCbGenReceipt.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCbGenReceipt.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCbGenReceipt.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCbGenReceipt.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCbGenReceipt.totCtyAmtAftGst ?? 0,
-            remarks: detailedCbGenReceipt.remarks ?? "",
-            moduleFrom: detailedCbGenReceipt.moduleFrom ?? "",
-            editVersion: detailedCbGenReceipt.editVersion ?? 0,
-            createBy: detailedCbGenReceipt.createBy ?? "",
-            createDate: detailedCbGenReceipt.createDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.createDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            editBy: detailedCbGenReceipt.editBy ?? "",
-            editDate: detailedCbGenReceipt.editDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.editDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            cancelBy: detailedCbGenReceipt.cancelBy ?? "",
-            cancelDate: detailedCbGenReceipt.cancelDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.cancelDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            isCancel: detailedCbGenReceipt.isCancel ?? false,
-            cancelRemarks: detailedCbGenReceipt.cancelRemarks ?? "",
-            data_details:
-              detailedCbGenReceipt.data_details?.map(
-                (detail: ICbGenReceiptDt) => ({
-                  receiptId: detail.receiptId?.toString() ?? "0",
-                  receiptNo: detail.receiptNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCbGenReceipt(updatedCbGenReceipt as CbGenReceiptHdSchemaType)
-          setCbGenReceipt(transformToSchemaType(updatedCbGenReceipt))
-          form.reset(updatedCbGenReceipt)
-          form.trigger()
-
-          // Set the cbGenReceipt number in search input
-          setSearchNo(updatedCbGenReceipt.receiptNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
+        } else {
+          toast.error(response?.message || "Failed to fetch cbGenReceipt details")
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch cbGenReceipt details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching cbGenReceipt details:", error)
+        toast.error("Error loading cbGenReceipt. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingCbGenReceipt(false)
+        }
       }
-    } catch (error) {
-      console.error("Error fetching cbGenReceipt details:", error)
-      toast.error("Error loading cbGenReceipt. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setCbGenReceipt,
+      setIsLoadingCbGenReceipt,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleCbGenReceiptSelect = async (
+    selectedCbGenReceipt: ICbGenReceiptHd | undefined
+  ) => {
+    if (!selectedCbGenReceipt) return
+
+    const loadedReceiptNo = await loadCbGenReceipt({
+      receiptId: selectedCbGenReceipt.receiptId ?? "0",
+      receiptNo: selectedCbGenReceipt.receiptNo ?? "",
+    })
+
+    if (loadedReceiptNo) {
+      setShowListDialog(false)
     }
   }
 
@@ -1137,181 +1055,92 @@ export default function CbGenReceiptPage() {
   }, [activeTab, form])
 
   const handleCbGenReceiptSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingCbGenReceipt(true)
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(`${CbGenReceipt.getByIdNo}/0/${value}`)
+      const loadedReceiptNo = await loadCbGenReceipt({
+        receiptId: "0",
+        receiptNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedCbGenReceipt = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedCbGenReceipt) {
-          {
-            const parsed = parseDate(detailedCbGenReceipt.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedCbGenReceipt.accountDate as string)
-            )
-          }
-          // Parse dates properly
-          const updatedCbGenReceipt = {
-            ...detailedCbGenReceipt,
-            receiptId: detailedCbGenReceipt.receiptId?.toString() ?? "0",
-            receiptNo: detailedCbGenReceipt.receiptNo ?? "",
-            referenceNo: detailedCbGenReceipt.referenceNo ?? "",
-            trnDate: detailedCbGenReceipt.trnDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.trnDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCbGenReceipt.accountDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            gstClaimDate: detailedCbGenReceipt.gstClaimDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            currencyId: detailedCbGenReceipt.currencyId ?? 0,
-            exhRate: detailedCbGenReceipt.exhRate ?? 0,
-            ctyExhRate: detailedCbGenReceipt.ctyExhRate ?? 0,
-            bankId: detailedCbGenReceipt.bankId ?? 0,
-            paymentTypeId: detailedCbGenReceipt.paymentTypeId ?? 0,
-            chequeNo: detailedCbGenReceipt.chequeNo ?? "",
-            chequeDate: detailedCbGenReceipt.chequeDate
-              ? format(
-                  parseDate(detailedCbGenReceipt.chequeDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            bankChgGLId: detailedCbGenReceipt.bankChgGLId ?? 0,
-            bankChgAmt: detailedCbGenReceipt.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedCbGenReceipt.bankChgLocalAmt ?? 0,
-            payeeTo: detailedCbGenReceipt.payeeTo ?? "",
-            totAmt: detailedCbGenReceipt.totAmt ?? 0,
-            totLocalAmt: detailedCbGenReceipt.totLocalAmt ?? 0,
-            totCtyAmt: detailedCbGenReceipt.totCtyAmt ?? 0,
-            gstAmt: detailedCbGenReceipt.gstAmt ?? 0,
-            gstLocalAmt: detailedCbGenReceipt.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCbGenReceipt.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCbGenReceipt.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCbGenReceipt.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCbGenReceipt.totCtyAmtAftGst ?? 0,
-            remarks: detailedCbGenReceipt.remarks ?? "",
-            moduleFrom: detailedCbGenReceipt.moduleFrom ?? "",
-            editVersion: detailedCbGenReceipt.editVersion ?? 0,
-            isCancel: detailedCbGenReceipt.isCancel ?? false,
-            cancelRemarks: detailedCbGenReceipt.cancelRemarks ?? "",
-
-            data_details:
-              detailedCbGenReceipt.data_details?.map(
-                (detail: ICbGenReceiptDt) => ({
-                  receiptId: detail.receiptId?.toString() ?? "0",
-                  receiptNo: detail.receiptNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCbGenReceipt(updatedCbGenReceipt as CbGenReceiptHdSchemaType)
-          setCbGenReceipt(transformToSchemaType(updatedCbGenReceipt))
-          form.reset(updatedCbGenReceipt)
-          form.trigger()
-
-          // Set the cbGenReceipt number in search input to the actual cbGenReceipt number from database
-          setSearchNo(updatedCbGenReceipt.receiptNo || "")
-
-          // Show success message
-          toast.success(
-            `CbGenReceipt ${updatedCbGenReceipt.receiptNo || value} loaded successfully`
-          )
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        // Close the load confirmation dialog on success
-        setShowLoadConfirm(false)
-        toast.error(
-          response?.message || "Failed to fetch cbGenReceipt details (direct)"
-        )
+      if (loadedReceiptNo) {
+        toast.success(`CbGenReceipt ${loadedReceiptNo} loaded successfully`)
       }
-    } catch {
-      toast.error("Error searching for cbGenReceipt")
     } finally {
-      setIsLoadingCbGenReceipt(false)
+      setShowLoadConfirm(false)
     }
   }
 
-  handleCbGenReceiptSearchRef.current = handleCbGenReceiptSearch
-
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleCbGenReceiptSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadCbGenReceipt({
+        receiptId: trimmedId,
+        receiptNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadCbGenReceipt, pendingDocId])
 
   // Determine mode and cbGenReceipt ID from URL
   const receiptNo = form.getValues("receiptNo")
   const isEdit = Boolean(receiptNo)
   const isCancelled = cbGenReceipt?.isCancel === true
+
+  // Generic function to copy text to clipboard
+  const copyToClipboard = useCallback(async (textToCopy: string) => {
+    if (!textToCopy || textToCopy.trim() === "") {
+      toast.error("No text available to copy")
+      return
+    }
+
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(textToCopy)
+        toast.success("Copying to clipboard was successful!")
+        return
+      } catch (error) {
+        console.error("Clipboard API failed, trying fallback:", error)
+      }
+    }
+
+    // Fallback method for older browsers or when Clipboard API fails
+    try {
+      const textArea = document.createElement("textarea")
+      textArea.value = textToCopy
+      textArea.style.position = "fixed"
+      textArea.style.left = "-999999px"
+      textArea.style.top = "-999999px"
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      
+      const successful = document.execCommand("copy")
+      document.body.removeChild(textArea)
+      
+      if (successful) {
+        toast.success("Copying to clipboard was successful!")
+      } else {
+        throw new Error("execCommand failed")
+      }
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error)
+      toast.error("Failed to copy to clipboard")
+    }
+  }, [])
+
+  // Handle double-click to copy searchNo to clipboard
+  const handleCopySearchNo = useCallback(async () => {
+    await copyToClipboard(searchNo)
+  }, [searchNo, copyToClipboard])
 
   // Compose title text
   const titleText = isEdit
@@ -1405,20 +1234,26 @@ export default function CbGenReceiptPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Input
-              value={searchNo}
-              onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={handleSearchNoBlur}
-              onKeyDown={handleSearchNoKeyDown}
-              placeholder="Search CbGenReceipt No"
-              className="h-8 text-sm"
-              readOnly={
-                !!cbGenReceipt?.receiptId && cbGenReceipt.receiptId !== "0"
-              }
-              disabled={
-                !!cbGenReceipt?.receiptId && cbGenReceipt.receiptId !== "0"
-              }
-            />
+            <div
+              onDoubleClick={handleCopySearchNo}
+              className="flex-1"
+              title="Double-click to copy to clipboard"
+            >
+              <Input
+                value={searchNo}
+                onChange={(e) => setSearchNo(e.target.value)}
+                onBlur={handleSearchNoBlur}
+                onKeyDown={handleSearchNoKeyDown}
+                placeholder="Search CbGenReceipt No"
+                className="h-8 text-sm cursor-pointer"
+                readOnly={
+                  !!cbGenReceipt?.receiptId && cbGenReceipt.receiptId !== "0"
+                }
+                disabled={
+                  !!cbGenReceipt?.receiptId && cbGenReceipt.receiptId !== "0"
+                }
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"

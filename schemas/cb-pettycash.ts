@@ -32,7 +32,7 @@ export const CbPettyCashHdSchema = (
         : z.number().optional(),
 
     // Payment Type Fields
-    paymentTypeId: z.number().min(1, "Payment Type is required"),
+    paymentTypeId: z.number().optional(),
     // Cheque Fields
     chequeNo: z.string().optional(),
     chequeDate: z.union([z.date(), z.string()]),
@@ -227,11 +227,11 @@ export const CbPettyCashDtSchema = (
         : z.number().optional(),
     serviceName: z.string().optional(),
 
-    // Service Type Fields
-    serviceCategoryId: visible?.m_ServiceTypeId
+    // Service Category Fields
+    serviceCategoryId: visible?.m_ServiceCategoryId
       ? z.number().optional()
       : z.number().optional(),
-    serviceTypeName: z.string().optional(),
+    serviceCategoryName: z.string().optional(),
 
     editVersion: z.number().optional(),
   })

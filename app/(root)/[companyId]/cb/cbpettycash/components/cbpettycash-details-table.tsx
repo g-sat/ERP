@@ -302,11 +302,11 @@ export default function CbPettyCashDetailsTable({
         ]
       : []),
 
-    ...(visible?.m_ServiceTypeId
+    ...(visible?.m_ServiceCategoryId
       ? [
           {
-            accessorKey: "serviceTypeName",
-            header: "Service Type",
+            accessorKey: "serviceCategoryName",
+            header: "Service Category",
             size: 200,
           },
         ]

@@ -48,7 +48,7 @@ const buildDefaultCbPettyCashDetails = (dateFormat: string) => ({
   serviceId: 0,
   serviceName: "",
   serviceCategoryId: 0,
-  serviceTypeName: "",
+  serviceCategoryName: "",
   editVersion: 0,
 })
 

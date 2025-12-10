@@ -474,18 +474,18 @@ export function VisibleTable() {
     },
 
     {
-      accessorKey: "m_ServiceTypeId",
+      accessorKey: "m_ServiceCategoryId",
       header: () => (
         <div className="text-center font-medium text-wrap">Service Type</div>
       ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
-            checked={row.original.m_ServiceTypeId}
+            checked={row.original.m_ServiceCategoryId}
             onCheckedChange={(checked) =>
               handleFieldChange(
                 row.original,
-                "m_ServiceTypeId",
+                "m_ServiceCategoryId",
                 checked as boolean
               )
             }

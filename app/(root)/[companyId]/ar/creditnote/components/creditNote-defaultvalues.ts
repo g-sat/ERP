@@ -144,7 +144,7 @@ const buildDefaultCreditNote = (dateFormat: string) => ({
   portCode: "",
   portName: "",
   serviceCategoryId: 0,
-  serviceTypeName: "",
+  serviceCategoryName: "",
   data_details: [],
 })
 

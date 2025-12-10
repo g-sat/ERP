@@ -132,15 +132,11 @@ export default function CbPettyCashPage() {
     useState<CbPettyCashHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
-  const [pendingDocNo, setPendingDocNo] = useState("")
+  const [pendingDocId, setPendingDocId] = useState("")
 
-  const handleCbPettyCashSearchRef = useRef<
-    ((value: string) => Promise<void> | void) | null
-  >(null)
-
-  const documentNoFromQuery = useMemo(() => {
+  const documentIdFromQuery = useMemo(() => {
     const value =
-      searchParams?.get("docNo") ?? searchParams?.get("documentNo") ?? ""
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
     return value ? value.trim() : ""
   }, [searchParams])
 
@@ -150,9 +146,8 @@ export default function CbPettyCashPage() {
   )
 
   useEffect(() => {
-    if (documentNoFromQuery) {
-      setPendingDocNo(documentNoFromQuery)
-      setSearchNo(documentNoFromQuery)
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
       return
     }
 
@@ -162,12 +157,11 @@ export default function CbPettyCashPage() {
         window.localStorage.removeItem(autoLoadStorageKey)
         const trimmed = stored.trim()
         if (trimmed) {
-          setPendingDocNo(trimmed)
-          setSearchNo(trimmed)
+          setPendingDocId(trimmed)
         }
       }
     }
-  }, [autoLoadStorageKey, documentNoFromQuery])
+  }, [autoLoadStorageKey, documentIdFromQuery])
 
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
@@ -770,9 +764,8 @@ export default function CbPettyCashPage() {
   }
 
   // Helper function to transform ICbPettyCashHd to CbPettyCashHdSchemaType
-  const transformToSchemaType = (
-    apiCbPettyCash: ICbPettyCashHd
-  ): CbPettyCashHdSchemaType => {
+  const transformToSchemaType = useCallback(
+    (apiCbPettyCash: ICbPettyCashHd): CbPettyCashHdSchemaType => {
     return {
       paymentId: apiCbPettyCash.paymentId?.toString() ?? "0",
       paymentNo: apiCbPettyCash.paymentNo ?? "",
@@ -904,201 +897,109 @@ export default function CbPettyCashPage() {
               serviceId: detail.serviceId ?? 0,
               serviceName: detail.serviceName ?? "",
               serviceCategoryId: detail.serviceCategoryId ?? 0,
-              serviceTypeName: detail.serviceTypeName ?? "",
+                serviceCategoryName: detail.serviceCategoryName ?? "",
               editVersion: detail.editVersion ?? 0,
             }) as unknown as CbPettyCashDtSchemaType
         ) || [],
     }
-  }
+    },
+    [dateFormat, decimals]
+  )
 
-  const handleCbPettyCashSelect = async (
-    selectedCbPettyCash: ICbPettyCashHd | undefined
-  ) => {
-    if (!selectedCbPettyCash) return
+  const loadCbPettyCash = useCallback(
+    async ({
+      paymentId,
+      paymentNo,
+      showLoader = false,
+    }: {
+      paymentId?: string | number | null
+      paymentNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("paymentId", paymentId)
+      console.log("paymentNo", paymentNo)
+      const trimmedPaymentNo = paymentNo?.trim() ?? ""
+      const trimmedPaymentId =
+        typeof paymentId === "number"
+          ? paymentId.toString()
+          : (paymentId?.toString().trim() ?? "")
 
-    try {
-      // Fetch cbPettyCash details directly using selected cbPettyCash's values
-      const response = await getById(
-        `${CbPettyCash.getByIdNo}/${selectedCbPettyCash.paymentId}/${selectedCbPettyCash.paymentNo}`
-      )
+      if (!trimmedPaymentNo && !trimmedPaymentId) return null
 
-      if (response?.result === 1) {
-        const detailedCbPettyCash = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+      if (showLoader) {
+        setIsLoadingCbPettyCash(true)
+      }
 
-        if (detailedCbPettyCash) {
-          {
+      const requestPaymentId = trimmedPaymentId || "0"
+      const requestPaymentNo = trimmedPaymentNo || ""
+
+      try {
+        const response = await getById(
+          `${CbPettyCash.getByIdNo}/${requestPaymentId}/${requestPaymentNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedCbPettyCash = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedCbPettyCash) {
             const parsed = parseDate(detailedCbPettyCash.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
                 : (detailedCbPettyCash.accountDate as string)
             )
+
+            const updatedCbPettyCash = transformToSchemaType(detailedCbPettyCash)
+
+            setCbPettyCash(updatedCbPettyCash)
+            form.reset(updatedCbPettyCash)
+            form.trigger()
+
+            const resolvedPaymentNo =
+              updatedCbPettyCash.paymentNo || trimmedPaymentNo || trimmedPaymentId
+            setSearchNo(resolvedPaymentNo)
+
+            return resolvedPaymentNo
           }
-          // Parse dates properly
-          const updatedCbPettyCash = {
-            ...detailedCbPettyCash,
-            paymentId: detailedCbPettyCash.paymentId?.toString() ?? "0",
-            paymentNo: detailedCbPettyCash.paymentNo ?? "",
-            referenceNo: detailedCbPettyCash.referenceNo ?? "",
-            trnDate: detailedCbPettyCash.trnDate
-              ? format(
-                  parseDate(detailedCbPettyCash.trnDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCbPettyCash.accountDate
-              ? format(
-                  parseDate(detailedCbPettyCash.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            gstClaimDate: detailedCbPettyCash.gstClaimDate
-              ? format(
-                  parseDate(detailedCbPettyCash.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            currencyId: detailedCbPettyCash.currencyId ?? 0,
-            exhRate: detailedCbPettyCash.exhRate ?? 0,
-            ctyExhRate: detailedCbPettyCash.ctyExhRate ?? 0,
-            bankId: detailedCbPettyCash.bankId ?? 0,
-            paymentTypeId: detailedCbPettyCash.paymentTypeId ?? 0,
-            chequeNo: detailedCbPettyCash.chequeNo ?? "",
-            chequeDate: detailedCbPettyCash.chequeDate
-              ? format(
-                  parseDate(detailedCbPettyCash.chequeDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            bankChgGLId: detailedCbPettyCash.bankChgGLId ?? 0,
-            bankChgAmt: detailedCbPettyCash.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedCbPettyCash.bankChgLocalAmt ?? 0,
-            payeeTo: detailedCbPettyCash.payeeTo ?? "",
-            totAmt: detailedCbPettyCash.totAmt ?? 0,
-            totLocalAmt: detailedCbPettyCash.totLocalAmt ?? 0,
-            totCtyAmt: detailedCbPettyCash.totCtyAmt ?? 0,
-            gstAmt: detailedCbPettyCash.gstAmt ?? 0,
-            gstLocalAmt: detailedCbPettyCash.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCbPettyCash.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCbPettyCash.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCbPettyCash.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCbPettyCash.totCtyAmtAftGst ?? 0,
-            remarks: detailedCbPettyCash.remarks ?? "",
-            moduleFrom: detailedCbPettyCash.moduleFrom ?? "",
-            editVersion: detailedCbPettyCash.editVersion ?? 0,
-            createBy: detailedCbPettyCash.createBy ?? "",
-            createDate: detailedCbPettyCash.createDate
-              ? format(
-                  parseDate(detailedCbPettyCash.createDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            editBy: detailedCbPettyCash.editBy ?? "",
-            editDate: detailedCbPettyCash.editDate
-              ? format(
-                  parseDate(detailedCbPettyCash.editDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            cancelBy: detailedCbPettyCash.cancelBy ?? "",
-            cancelDate: detailedCbPettyCash.cancelDate
-              ? format(
-                  parseDate(detailedCbPettyCash.cancelDate as string) ||
-                    new Date(),
-                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-                )
-              : "",
-            isCancel: detailedCbPettyCash.isCancel ?? false,
-            cancelRemarks: detailedCbPettyCash.cancelRemarks ?? "",
-            data_details:
-              detailedCbPettyCash.data_details?.map(
-                (detail: ICbPettyCashDt) => ({
-                  paymentId: detail.paymentId?.toString() ?? "0",
-                  paymentNo: detail.paymentNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  invoiceDate: detail.invoiceDate
-                    ? format(
-                        parseDate(detail.invoiceDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : dateFormat,
-                  invoiceNo: detail.invoiceNo ?? "",
-                  supplierName: detail.supplierName ?? "",
-                  gstNo: detail.gstNo ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
-                  serviceCategoryId: detail.serviceCategoryId ?? 0,
-                  serviceTypeName: detail.serviceTypeName ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCbPettyCash(updatedCbPettyCash as CbPettyCashHdSchemaType)
-          setCbPettyCash(transformToSchemaType(updatedCbPettyCash))
-          form.reset(updatedCbPettyCash)
-          form.trigger()
-
-          // Set the cbPettyCash number in search input
-          setSearchNo(updatedCbPettyCash.paymentNo || "")
-
-          // Close dialog only on success
-          setShowListDialog(false)
+        } else {
+          toast.error(response?.message || "Failed to fetch cbPettyCash details")
         }
-      } else {
-        toast.error(response?.message || "Failed to fetch cbPettyCash details")
-        // Keep dialog open on failure so user can try again
+      } catch (error) {
+        console.error("Error fetching cbPettyCash details:", error)
+        toast.error("Error loading cbPettyCash. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingCbPettyCash(false)
+        }
       }
-    } catch (error) {
-      console.error("Error fetching cbPettyCash details:", error)
-      toast.error("Error loading cbPettyCash. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      // Selection completed
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setCbPettyCash,
+      setIsLoadingCbPettyCash,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleCbPettyCashSelect = async (
+    selectedCbPettyCash: ICbPettyCashHd | undefined
+  ) => {
+    if (!selectedCbPettyCash) return
+
+    const loadedPaymentNo = await loadCbPettyCash({
+      paymentId: selectedCbPettyCash.paymentId ?? "0",
+      paymentNo: selectedCbPettyCash.paymentNo ?? "",
+    })
+
+    if (loadedPaymentNo) {
+      setShowListDialog(false)
     }
   }
 
@@ -1168,193 +1069,39 @@ export default function CbPettyCashPage() {
   }, [activeTab, form])
 
   const handleCbPettyCashSearch = async (value: string) => {
-    if (!value) return
-
-    setIsLoadingCbPettyCash(true)
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(`${CbPettyCash.getByIdNo}/0/${value}`)
+      const loadedPaymentNo = await loadCbPettyCash({
+        paymentId: "0",
+        paymentNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedCbPettyCash = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedCbPettyCash) {
-          {
-            const parsed = parseDate(detailedCbPettyCash.accountDate as string)
-            setPreviousAccountDate(
-              parsed
-                ? format(parsed, dateFormat)
-                : (detailedCbPettyCash.accountDate as string)
-            )
-          }
-          // Parse dates properly
-          const updatedCbPettyCash = {
-            ...detailedCbPettyCash,
-            paymentId: detailedCbPettyCash.paymentId?.toString() ?? "0",
-            paymentNo: detailedCbPettyCash.paymentNo ?? "",
-            referenceNo: detailedCbPettyCash.referenceNo ?? "",
-            trnDate: detailedCbPettyCash.trnDate
-              ? format(
-                  parseDate(detailedCbPettyCash.trnDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            accountDate: detailedCbPettyCash.accountDate
-              ? format(
-                  parseDate(detailedCbPettyCash.accountDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            gstClaimDate: detailedCbPettyCash.gstClaimDate
-              ? format(
-                  parseDate(detailedCbPettyCash.gstClaimDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-
-            currencyId: detailedCbPettyCash.currencyId ?? 0,
-            exhRate: detailedCbPettyCash.exhRate ?? 0,
-            ctyExhRate: detailedCbPettyCash.ctyExhRate ?? 0,
-            bankId: detailedCbPettyCash.bankId ?? 0,
-            paymentTypeId: detailedCbPettyCash.paymentTypeId ?? 0,
-            chequeNo: detailedCbPettyCash.chequeNo ?? "",
-            chequeDate: detailedCbPettyCash.chequeDate
-              ? format(
-                  parseDate(detailedCbPettyCash.chequeDate as string) ||
-                    new Date(),
-                  dateFormat
-                )
-              : dateFormat,
-            bankChgGLId: detailedCbPettyCash.bankChgGLId ?? 0,
-            bankChgAmt: detailedCbPettyCash.bankChgAmt ?? 0,
-            bankChgLocalAmt: detailedCbPettyCash.bankChgLocalAmt ?? 0,
-            payeeTo: detailedCbPettyCash.payeeTo ?? "",
-            totAmt: detailedCbPettyCash.totAmt ?? 0,
-            totLocalAmt: detailedCbPettyCash.totLocalAmt ?? 0,
-            totCtyAmt: detailedCbPettyCash.totCtyAmt ?? 0,
-            gstAmt: detailedCbPettyCash.gstAmt ?? 0,
-            gstLocalAmt: detailedCbPettyCash.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCbPettyCash.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCbPettyCash.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCbPettyCash.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCbPettyCash.totCtyAmtAftGst ?? 0,
-            remarks: detailedCbPettyCash.remarks ?? "",
-            moduleFrom: detailedCbPettyCash.moduleFrom ?? "",
-            editVersion: detailedCbPettyCash.editVersion ?? 0,
-            isCancel: detailedCbPettyCash.isCancel ?? false,
-            cancelRemarks: detailedCbPettyCash.cancelRemarks ?? "",
-
-            data_details:
-              detailedCbPettyCash.data_details?.map(
-                (detail: ICbPettyCashDt) => ({
-                  paymentId: detail.paymentId?.toString() ?? "0",
-                  paymentNo: detail.paymentNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  invoiceDate: detail.invoiceDate
-                    ? format(
-                        parseDate(detail.invoiceDate as string) || new Date(),
-                        dateFormat
-                      )
-                    : dateFormat,
-                  invoiceNo: detail.invoiceNo ?? "",
-                  supplierName: detail.supplierName ?? "",
-                  gstNo: detail.gstNo ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
-                  serviceCategoryId: detail.serviceCategoryId ?? 0,
-                  serviceTypeName: detail.serviceTypeName ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })
-              ) || [],
-          }
-
-          //setCbPettyCash(updatedCbPettyCash as CbPettyCashHdSchemaType)
-          setCbPettyCash(transformToSchemaType(updatedCbPettyCash))
-          form.reset(updatedCbPettyCash)
-          form.trigger()
-
-          // Set the cbPettyCash number in search input to the actual cbPettyCash number from database
-          setSearchNo(updatedCbPettyCash.paymentNo || "")
-
-          // Show success message
-          toast.success(
-            `CbPettyCash ${updatedCbPettyCash.paymentNo || value} loaded successfully`
-          )
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        // Close the load confirmation dialog on success
-        setShowLoadConfirm(false)
-        toast.error(
-          response?.message || "Failed to fetch cbPettyCash details (direct)"
-        )
+      if (loadedPaymentNo) {
+        toast.success(`CbPettyCash ${loadedPaymentNo} loaded successfully`)
       }
-    } catch {
-      toast.error("Error searching for cbPettyCash")
     } finally {
-      setIsLoadingCbPettyCash(false)
+      setShowLoadConfirm(false)
     }
   }
 
-  handleCbPettyCashSearchRef.current = handleCbPettyCashSearch
-
   useEffect(() => {
-    const trimmed = pendingDocNo.trim()
-    if (!trimmed) return
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
 
-    const executeSearch = async () => {
-      const searchFn = handleCbPettyCashSearchRef.current
-      if (searchFn) {
-        await searchFn(trimmed)
-      }
+    const executeLoad = async () => {
+      await loadCbPettyCash({
+        paymentId: trimmedId,
+        paymentNo: "0",
+        showLoader: true,
+      })
     }
 
-    void executeSearch()
-    setPendingDocNo("")
-  }, [pendingDocNo])
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadCbPettyCash, pendingDocId])
 
   // Determine mode and cbPettyCash ID from URL
   const paymentNo = form.getValues("paymentNo")
@@ -1365,6 +1112,63 @@ export default function CbPettyCashPage() {
   const titleText = isEdit
     ? `CbPettyCash (Edit)- v[${cbPettyCash?.editVersion}] - ${paymentNo}`
     : "CbPettyCash (New)"
+
+  // Generic function to copy text to clipboard
+  const copyToClipboard = useCallback(async (textToCopy: string) => {
+    if (!textToCopy || textToCopy.trim() === "") {
+      toast.error("No text available to copy")
+      return
+    }
+
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(textToCopy)
+        toast.success("Copying to clipboard was successful!")
+        return
+      } catch (error) {
+        console.error("Clipboard API failed, trying fallback:", error)
+      }
+    }
+
+    // Fallback method for older browsers or when Clipboard API fails
+    try {
+      const textArea = document.createElement("textarea")
+      textArea.value = textToCopy
+      textArea.style.position = "fixed"
+      textArea.style.left = "-999999px"
+      textArea.style.top = "-999999px"
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      
+      const successful = document.execCommand("copy")
+      document.body.removeChild(textArea)
+      
+      if (successful) {
+        toast.success("Copying to clipboard was successful!")
+      } else {
+        throw new Error("execCommand failed")
+      }
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error)
+      toast.error("Failed to copy to clipboard")
+    }
+  }, [])
+
+  // Handle double-click to copy invoiceNo (paymentNo) to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const invoiceNoToCopy = isEdit
+      ? cbPettyCash?.paymentNo || form.getValues("paymentNo") || ""
+      : form.getValues("paymentNo") || ""
+
+    await copyToClipboard(invoiceNoToCopy)
+  }, [isEdit, cbPettyCash?.paymentNo, form, copyToClipboard])
+
+  // Handle double-click to copy searchNo to clipboard
+  const handleCopySearchNo = useCallback(async () => {
+    await copyToClipboard(searchNo)
+  }, [searchNo, copyToClipboard])
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1427,7 +1231,9 @@ export default function CbPettyCashPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium cursor-pointer select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy invoice number"
                 >
                   {titleText}
                 </span>
@@ -1453,20 +1259,26 @@ export default function CbPettyCashPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Input
-              value={searchNo}
-              onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={handleSearchNoBlur}
-              onKeyDown={handleSearchNoKeyDown}
-              placeholder="Search CbPettyCash No"
-              className="h-8 text-sm"
-              readOnly={
-                !!cbPettyCash?.paymentId && cbPettyCash.paymentId !== "0"
-              }
-              disabled={
-                !!cbPettyCash?.paymentId && cbPettyCash.paymentId !== "0"
-              }
-            />
+            <div
+              onDoubleClick={handleCopySearchNo}
+              className="flex-1"
+              title="Double-click to copy to clipboard"
+            >
+              <Input
+                value={searchNo}
+                onChange={(e) => setSearchNo(e.target.value)}
+                onBlur={handleSearchNoBlur}
+                onKeyDown={handleSearchNoKeyDown}
+                placeholder="Search CbPettyCash No"
+                className="h-8 text-sm cursor-pointer"
+                readOnly={
+                  !!cbPettyCash?.paymentId && cbPettyCash.paymentId !== "0"
+                }
+                disabled={
+                  !!cbPettyCash?.paymentId && cbPettyCash.paymentId !== "0"
+                }
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"

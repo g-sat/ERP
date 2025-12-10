@@ -542,7 +542,7 @@ export default function CbPettyCashForm({
             form={form}
             name="paymentTypeId"
             label="Pay"
-            isRequired={true}
+            isRequired={false}
             onChangeEvent={handlePaymentTypeChange}
           />
           <CustomInput form={form} name="chequeNo" label="Pay No" />

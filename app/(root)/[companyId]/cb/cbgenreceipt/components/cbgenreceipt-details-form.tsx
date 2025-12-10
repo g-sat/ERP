@@ -824,15 +824,28 @@ export default function CbGenReceiptDetailsForm({
             </div>
           </div>
 
-          {/* Item No */}
-          <CustomNumberInput
-            form={form}
-            name="itemNo"
-            label="Item No"
-            round={0}
-            className="text-right"
-            isDisabled={true}
-          />
+          {/* Item No / Seq No */}
+          <div className="col-span-1 flex flex-row gap-1">
+            <div className="flex-1">
+              <CustomNumberInput
+                form={form}
+                name="itemNo"
+                label="Item No"
+                round={0}
+                className="text-right"
+                isDisabled={true}
+              />
+            </div>
+            <div className="flex-1">
+              <CustomNumberInput
+                form={form}
+                name="seqNo"
+                label="Seq No"
+                round={0}
+                className="text-right"
+              />
+            </div>
+          </div>
 
           {/* Chart Of Account */}
           <ChartOfAccountAutocomplete

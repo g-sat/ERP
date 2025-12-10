@@ -157,7 +157,7 @@ export interface IVisibleFields {
   m_BankId: boolean
   m_CtyCurr: boolean
   m_PayeeTo: boolean
-  m_ServiceTypeId: boolean
+  m_ServiceCategoryId: boolean
   m_OtherRemarks: boolean
   m_JobOrderIdHd: boolean
   m_PortIdHd: boolean

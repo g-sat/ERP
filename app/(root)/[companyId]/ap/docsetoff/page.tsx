@@ -967,6 +967,54 @@ export default function DocSetOffPage() {
   const isEdit = Boolean(setoffNo)
   const isCancelled = docSetOff?.isCancel === true
 
+  // Generic function to copy text to clipboard
+  const copyToClipboard = useCallback(async (textToCopy: string) => {
+    if (!textToCopy || textToCopy.trim() === "") {
+      toast.error("No text available to copy")
+      return
+    }
+
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(textToCopy)
+        toast.success("Copying to clipboard was successful!")
+        return
+      } catch (error) {
+        console.error("Clipboard API failed, trying fallback:", error)
+      }
+    }
+
+    // Fallback method for older browsers or when Clipboard API fails
+    try {
+      const textArea = document.createElement("textarea")
+      textArea.value = textToCopy
+      textArea.style.position = "fixed"
+      textArea.style.left = "-999999px"
+      textArea.style.top = "-999999px"
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      
+      const successful = document.execCommand("copy")
+      document.body.removeChild(textArea)
+      
+      if (successful) {
+        toast.success("Copying to clipboard was successful!")
+      } else {
+        throw new Error("execCommand failed")
+      }
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error)
+      toast.error("Failed to copy to clipboard")
+    }
+  }, [])
+
+  // Handle double-click to copy searchNo to clipboard
+  const handleCopySearchNo = useCallback(async () => {
+    await copyToClipboard(searchNo)
+  }, [searchNo, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `DocSetOff (Edit)- v[${docSetOff?.editVersion}] - ${setoffNo}`
@@ -1059,16 +1107,22 @@ export default function DocSetOffPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Input
-              value={searchNo}
-              onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={handleSearchNoBlur}
-              onKeyDown={handleSearchNoKeyDown}
-              placeholder="Search DocSetOff No"
-              className="h-8 text-sm"
-              readOnly={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
-              disabled={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
-            />
+            <div
+              onDoubleClick={handleCopySearchNo}
+              className="flex-1"
+              title="Double-click to copy to clipboard"
+            >
+              <Input
+                value={searchNo}
+                onChange={(e) => setSearchNo(e.target.value)}
+                onBlur={handleSearchNoBlur}
+                onKeyDown={handleSearchNoKeyDown}
+                placeholder="Search DocSetOff No"
+                className="h-8 text-sm cursor-pointer"
+                readOnly={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
+                disabled={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"

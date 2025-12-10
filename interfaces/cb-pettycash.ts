@@ -116,7 +116,7 @@ export interface ICbPettyCashDt {
   taskName: string
   serviceId: number
   serviceName: string
-  serviceTypeId: number
-  serviceTypeName: string
+  serviceCategoryId: number
+  serviceCategoryName: string
   editVersion: number
 }

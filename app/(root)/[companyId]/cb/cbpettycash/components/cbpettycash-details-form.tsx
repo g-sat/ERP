@@ -1,12 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   calculateMultiplierAmount,
   handleGstPercentageChange,
-  handleQtyChange,
   handleTotalamountChange,
-  setGSTPercentage,
+  setGSTPercentage
 } from "@/helpers/account"
 import { ICbPettyCashDt } from "@/interfaces"
 import {
@@ -17,11 +15,11 @@ import {
   IGstLookup,
   IJobOrderLookup,
   IPortLookup,
+  IServiceCategoryLookup,
   IServiceLookup,
-  IServiceTypeLookup,
   ITaskLookup,
   IVesselLookup,
-  IVoyageLookup,
+  IVoyageLookup
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -32,17 +30,10 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import {
-  useChartOfAccountLookup,
-  useGetDynamicLookup,
-  useGstLookup,
-} from "@/hooks/use-lookup"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   BargeAutocomplete,
   ChartOfAccountAutocomplete,
@@ -64,6 +55,14 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  useChartOfAccountLookup,
+  useGetDynamicLookup,
+  useGstLookup,
+} from "@/hooks/use-lookup"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 
 import { getDefaultValues } from "./cbPettyCash-defaultvalues"
 
@@ -148,12 +147,22 @@ export default function CbPettyCashDetailsForm({
         ? defaultGstId
         : defaultCbPettyCashDetails.gstId
 
+    // Get account date from header form, fallback to default if not available
+    const accountDate = Hdform.getValues("accountDate")
+    const invoiceDate =
+      accountDate && typeof accountDate === "string"
+        ? accountDate
+        : accountDate instanceof Date
+          ? format(accountDate, dateFormat)
+          : defaultCbPettyCashDetails.invoiceDate
+
     return {
       ...defaultCbPettyCashDetails,
       itemNo,
       seqNo: itemNo,
       glId,
       gstId,
+      invoiceDate,
     }
   }
 
@@ -207,7 +216,7 @@ export default function CbPettyCashDetailsForm({
           serviceId: editingDetail.serviceId ?? 0,
           serviceName: editingDetail.serviceName ?? "",
           serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
-          serviceTypeName: editingDetail.serviceTypeName ?? "",
+          serviceCategoryName: editingDetail.serviceCategoryName ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -300,6 +309,7 @@ export default function CbPettyCashDetailsForm({
   const watchedTaskId = form.watch("taskId")
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCountryExchangeRate = Hdform.watch("ctyExhRate")
+  const watchedAccountDate = Hdform.watch("accountDate")
 
   // Initialize exchange rate refs with current values on mount
   useEffect(() => {
@@ -373,6 +383,27 @@ export default function CbPettyCashDetailsForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartOfAccounts, gsts, editingDetail, defaultGlId, defaultGstId])
+
+  // Update invoiceDate when accountDate changes (only for new records)
+  useEffect(() => {
+    if (editingDetail) return // Skip for edit mode
+    if (!visible?.m_InvoiceDate) return // Skip if invoice date field is not visible
+
+    const accountDate = watchedAccountDate
+    if (accountDate) {
+      const invoiceDate =
+        typeof accountDate === "string"
+          ? accountDate
+          : accountDate instanceof Date
+            ? format(accountDate, dateFormat)
+            : null
+
+      if (invoiceDate) {
+        form.setValue("invoiceDate", invoiceDate, { shouldValidate: false })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAccountDate, editingDetail, visible?.m_InvoiceDate])
 
   // Recalculate local amounts when exchange rate changes (only on actual change, works in edit mode too)
   useEffect(() => {
@@ -513,7 +544,7 @@ export default function CbPettyCashDetailsForm({
         serviceId: editingDetail.serviceId ?? 0,
         serviceName: editingDetail.serviceName ?? "",
         serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
-        serviceTypeName: editingDetail.serviceTypeName ?? "",
+        serviceCategoryName: editingDetail.serviceCategoryName ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
@@ -638,7 +669,7 @@ export default function CbPettyCashDetailsForm({
         serviceId: data.serviceId ?? 0,
         serviceName: data.serviceName ?? "",
         serviceCategoryId: data.serviceCategoryId ?? 0,
-        serviceTypeName: data.serviceTypeName ?? "",
+        serviceCategoryName: data.serviceCategoryName ?? "",
         editVersion: data.editVersion ?? 0,
       }
 
@@ -941,9 +972,9 @@ export default function CbPettyCashDetailsForm({
     }
   }
 
-  // Handle Service Type change
-  const handleServiceTypeChange = (
-    selectedOption: IServiceTypeLookup | null
+  // Handle Service Category change
+  const handleServiceCategoryChange = (
+    selectedOption: IServiceCategoryLookup | null
   ) => {
     if (selectedOption) {
       form.setValue("serviceCategoryId", selectedOption.serviceCategoryId, {
@@ -1081,7 +1112,7 @@ export default function CbPettyCashDetailsForm({
 
   const gstPercentage = form.watch("gstPercentage")
 
-  const isServiceTypeRequired = useCallback(() => {
+  const isServiceCategoryRequired = useCallback(() => {
     const value = Number(gstPercentage ?? 0)
     return value > 0
   }, [gstPercentage])
@@ -1132,7 +1163,7 @@ export default function CbPettyCashDetailsForm({
           <input type="hidden" {...form.register("jobOrderNo")} />
           <input type="hidden" {...form.register("taskName")} />
           <input type="hidden" {...form.register("serviceName")} />
-          <input type="hidden" {...form.register("serviceTypeName")} />
+          <input type="hidden" {...form.register("serviceCategoryName")} />
 
           {/* Section Header */}
           <div className="col-span-8 mb-1">
@@ -1156,15 +1187,28 @@ export default function CbPettyCashDetailsForm({
             </div>
           </div>
 
-          {/* Item No */}
-          <CustomNumberInput
-            form={form}
-            name="itemNo"
-            label="Item No"
-            round={0}
-            className="text-right"
-            isDisabled={true}
-          />
+          {/* Item No / Seq No */}
+          <div className="col-span-1 flex flex-row gap-1">
+            <div className="flex-1">
+              <CustomNumberInput
+                form={form}
+                name="itemNo"
+                label="Item No"
+                round={0}
+                className="text-right"
+                isDisabled={true}
+              />
+            </div>
+            <div className="flex-1">
+              <CustomNumberInput
+                form={form}
+                name="seqNo"
+                label="Seq No"
+                round={0}
+                className="text-right"
+              />
+            </div>
+          </div>
 
           {/* Invoice Date */}
           {visible?.m_InvoiceDate && (
@@ -1449,18 +1493,18 @@ export default function CbPettyCashDetailsForm({
               form={form}
               name="gstNo"
               label="GST No"
-              isRequired={isServiceTypeRequired()}
+              isRequired={isServiceCategoryRequired()}
             />
           )}
 
-          {/* Service Type */}
-          {visible?.m_ServiceTypeId && (
+          {/* Service Category */}
+          {visible?.m_ServiceCategoryId && (
             <ServiceCategoryAutocomplete
               form={form}
               name="serviceCategoryId"
-              label="Service Type"
-              isRequired={isServiceTypeRequired()}
-              onChangeEvent={handleServiceTypeChange}
+              label="Service Category"
+              isRequired={isServiceCategoryRequired()}
+              onChangeEvent={handleServiceCategoryChange}
             />
           )}
 
