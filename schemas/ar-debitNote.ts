@@ -137,15 +137,8 @@ export const ArDebitNoteHdSchema = (
     // Port Fields
     portId: z.number().optional(),
 
-    // Service Type Fields
-    serviceCategoryId: visible?.m_ServiceTypeId
-      ? z.number().min(1, "Service Type is required")
-      : z.number().optional(),
-
     // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks
-      ? z.string()
-      : z.string().optional(),
+    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
 
     // Nested Details
     data_details: z
@@ -229,10 +222,15 @@ export const ArDebitNoteDtSchema = (
         ? z.number().min(1, "GST is required")
         : z.number().optional(),
     gstName: z.string().optional(),
-    gstPercentage: z.number().min(0),
-    gstAmt: z.number().min(0),
-    gstLocalAmt: z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
+    gstPercentage: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstAmt: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
 
     // Delivery Date
     deliveryDate:

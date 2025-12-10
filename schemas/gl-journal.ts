@@ -32,9 +32,9 @@ export const GLJournalHdSchema = (
     gstClaimDate: visible?.m_GstClaimDate
       ? z.union([z.date(), z.string()])
       : z.union([z.date(), z.string()]).optional(),
-    gstAmt: z.number().optional(),
-    gstLocalAmt: z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
+    gstAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
+    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
     totAmtAftGst: z.number().optional(),
     totLocalAmtAftGst: z.number().optional(),
     totCtyAmtAftGst: visible?.m_CtyCurr
@@ -119,10 +119,10 @@ export const GLJournalDtSchema = (
         ? z.number().min(1, "GST is required")
         : z.number().optional(),
     gstName: z.string().optional(),
-    gstPercentage: z.number().min(0),
-    gstAmt: z.number().min(0),
-    gstLocalAmt: z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
+    gstPercentage: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstAmt: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
+    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
 
     // Department Fields
     departmentId:

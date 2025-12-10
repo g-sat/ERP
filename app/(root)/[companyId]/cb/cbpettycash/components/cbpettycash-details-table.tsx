@@ -132,26 +132,30 @@ export default function CbPettyCashDetailsTable({
       ),
     },
 
-    {
-      accessorKey: "gstPercentage",
-      header: "VAT %",
-      size: 50,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("gstPercentage"), 2)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstAmt",
-      header: "VAT Amount",
-      size: 100,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("gstAmt"), amtDec)}
-        </div>
-      ),
-    },
+    ...(visible?.m_GstId
+      ? [
+          {
+            accessorKey: "gstPercentage",
+            header: "VAT %",
+            size: 50,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstPercentage"), 2)}
+              </div>
+            ),
+          },
+          {
+            accessorKey: "gstAmt",
+            header: "VAT Amount",
+            size: 100,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstAmt"), amtDec)}
+              </div>
+            ),
+          },
+        ]
+      : []),
 
     {
       accessorKey: "totLocalAmt",
@@ -214,17 +218,21 @@ export default function CbPettyCashDetailsTable({
           },
         ]
       : []),
-    {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
-      size: 100,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
-    ...(visible?.m_CtyCurr
+    ...(visible?.m_GstId
+      ? [
+          {
+            accessorKey: "gstLocalAmt",
+            header: "GST Local Amount",
+            size: 100,
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(visible?.m_CtyCurr && visible?.m_GstId
       ? [
           {
             accessorKey: "gstCtyAmt",

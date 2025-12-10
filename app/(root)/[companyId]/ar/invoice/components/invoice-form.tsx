@@ -698,7 +698,7 @@ export default function InvoiceForm({
             </>
           )}
 
-          {visible?.m_CtyCurr && (
+          {visible?.m_CtyCurr && visible?.m_GstId && (
             <>
               {/* GST Country Amount */}
               <CustomNumberInput
@@ -808,12 +808,14 @@ export default function InvoiceForm({
                     maximumFractionDigits: amtDec,
                   })}
                 </div>
-                <div className="font-medium text-gray-700">
-                  {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: amtDec,
-                    maximumFractionDigits: amtDec,
-                  })}
-                </div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-gray-700">
+                    {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
+                      minimumFractionDigits: amtDec,
+                      maximumFractionDigits: amtDec,
+                    })}
+                  </div>
+                )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
                   {(form.watch("totAmtAftGst") || 0).toLocaleString(undefined, {
@@ -838,7 +840,9 @@ export default function InvoiceForm({
               {/* Column 2: Labels */}
               <div className="space-y-1 text-center">
                 <div className="font-medium text-blue-600">Amt</div>
-                <div className="font-medium text-blue-600">VAT</div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-blue-600">VAT</div>
+                )}
                 <div></div>
                 <div className="font-bold text-blue-800">Total</div>
                 <div className="font-bold text-blue-800">Payment</div>
@@ -853,12 +857,17 @@ export default function InvoiceForm({
                     maximumFractionDigits: locAmtDec,
                   })}
                 </div>
-                <div className="font-medium text-gray-700">
-                  {(form.watch("gstLocalAmt") || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: locAmtDec,
-                    maximumFractionDigits: locAmtDec,
-                  })}
-                </div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-gray-700">
+                    {(form.watch("gstLocalAmt") || 0).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: locAmtDec,
+                        maximumFractionDigits: locAmtDec,
+                      }
+                    )}
+                  </div>
+                )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
                   {(form.watch("totLocalAmtAftGst") || 0).toLocaleString(

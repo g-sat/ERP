@@ -263,6 +263,14 @@ export const handleGstPercentageChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
+  // Only calculate GST if visible?.m_GstId is true
+  if (!visible?.m_GstId) {
+    rowData.gstAmt = 0
+    rowData.gstLocalAmt = 0
+    rowData.gstCtyAmt = 0
+    return
+  }
+
   const totAmt = rowData?.totAmt ?? 0
   const gstRate = rowData?.gstPercentage ?? 0
   const exchangeRate = hdForm.getValues()?.exhRate ?? 0
@@ -317,6 +325,12 @@ export const handleGstCountryPercentageChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
+  // Only calculate GST if visible?.m_GstId is true
+  if (!visible?.m_GstId) {
+    rowData.gstCtyAmt = 0
+    return
+  }
+
   const gstAmt = rowData?.gstAmt ?? 0
   const exchangeRate = hdForm.getValues()?.exhRate ?? 0
   const countryExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0

@@ -335,6 +335,14 @@ export const calculateGstLocalAndCtyAmounts = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
+  // Only calculate GST if visible?.m_GstId is true
+  if (!visible?.m_GstId) {
+    return {
+      gstLocalAmt: 0,
+      gstCtyAmt: 0,
+    }
+  }
+
   // Calculate GST local amount
   const gstLocalAmt = calculateMultiplierAmount(
     gstAmt,

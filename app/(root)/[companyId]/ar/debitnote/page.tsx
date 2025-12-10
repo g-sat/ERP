@@ -269,7 +269,6 @@ export default function DebitNotePage() {
           jobOrderNo: debitNote.jobOrderNo ?? "",
           vesselId: debitNote.vesselId ?? 0,
           portId: debitNote.portId ?? 0,
-          serviceCategoryId: debitNote.serviceCategoryId ?? 0,
           data_details:
             debitNote.data_details?.map((detail) => ({
               ...detail,
@@ -909,7 +908,6 @@ export default function DebitNotePage() {
         jobOrderNo: apiDebitNote.jobOrderNo ?? "",
         vesselId: apiDebitNote.vesselId ?? 0,
         portId: apiDebitNote.portId ?? 0,
-        serviceCategoryId: apiDebitNote.serviceCategoryId ?? 0,
         createBy: apiDebitNote.createBy ?? "",
         editBy: apiDebitNote.editBy ?? "",
         cancelBy: apiDebitNote.cancelBy ?? "",

@@ -871,6 +871,14 @@ const DebitNoteDetailsForm = React.forwardRef<
     }
 
     const triggerGstCalculation = () => {
+      // Only calculate GST if visible?.m_GstId is true
+      if (!visible?.m_GstId) {
+        form.setValue("gstAmt", 0)
+        form.setValue("gstLocalAmt", 0)
+        form.setValue("gstCtyAmt", 0)
+        return
+      }
+
       const rowData = form.getValues()
 
       // Sync city exchange rate with exchange rate if needed
@@ -907,6 +915,15 @@ const DebitNoteDetailsForm = React.forwardRef<
     }
 
     const handleGstPercentageManualChange = (value: number) => {
+      // Only calculate GST if visible?.m_GstId is true
+      if (!visible?.m_GstId) {
+        form.setValue("gstPercentage", 0)
+        form.setValue("gstAmt", 0)
+        form.setValue("gstLocalAmt", 0)
+        form.setValue("gstCtyAmt", 0)
+        return
+      }
+
       const originalGstPercentage = originalGstPercentageRef.current
 
       // Only recalculate if value is different from original
@@ -920,6 +937,13 @@ const DebitNoteDetailsForm = React.forwardRef<
 
     const handleGstAmountChange = (value: number) => {
       form.setValue("gstAmt", value)
+
+      // Only calculate GST if visible?.m_GstId is true
+      if (!visible?.m_GstId) {
+        form.setValue("gstLocalAmt", 0)
+        form.setValue("gstCtyAmt", 0)
+        return
+      }
 
       // Get form values after setting gstAmt
       const rowData = form.getValues()
@@ -1301,39 +1325,45 @@ const DebitNoteDetailsForm = React.forwardRef<
             )}
 
             {/* GST Percentage */}
-            <CustomNumberInput
-              form={form}
-              name="gstPercentage"
-              label="VAT Percentage"
-              round={amtDec}
-              className="text-right"
-              onFocusEvent={handleGstPercentageFocus}
-              onChangeEvent={handleGstPercentageManualChange}
-            />
+            {visible?.m_GstId && (
+              <CustomNumberInput
+                form={form}
+                name="gstPercentage"
+                label="VAT Percentage"
+                round={amtDec}
+                className="text-right"
+                onFocusEvent={handleGstPercentageFocus}
+                onChangeEvent={handleGstPercentageManualChange}
+              />
+            )}
 
             {/* GST Amount */}
-            <CustomNumberInput
-              form={form}
-              name="gstAmt"
-              label="VAT Amount"
-              round={amtDec}
-              isDisabled={false}
-              className="text-right"
-              onChangeEvent={handleGstAmountChange}
-            />
+            {visible?.m_GstId && (
+              <CustomNumberInput
+                form={form}
+                name="gstAmt"
+                label="VAT Amount"
+                round={amtDec}
+                isDisabled={false}
+                className="text-right"
+                onChangeEvent={handleGstAmountChange}
+              />
+            )}
 
             {/* GST Local Amount */}
-            <CustomNumberInput
-              form={form}
-              name="gstLocalAmt"
-              label="VAT Local Amount"
-              round={locAmtDec}
-              className="text-right"
-              isDisabled={true}
-            />
+            {visible?.m_GstId && (
+              <CustomNumberInput
+                form={form}
+                name="gstLocalAmt"
+                label="VAT Local Amount"
+                round={locAmtDec}
+                className="text-right"
+                isDisabled={true}
+              />
+            )}
 
             {/* GST Country Amount */}
-            {visible?.m_CtyCurr && (
+            {visible?.m_CtyCurr && visible?.m_GstId && (
               <CustomNumberInput
                 form={form}
                 name="gstCtyAmt"

@@ -44,7 +44,6 @@ import {
   VesselAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
-import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import InvoiceSelectionDialog from "@/components/common/ar-invoice-selection-dialog"
 import { CustomInputGroup } from "@/components/custom"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -825,7 +824,7 @@ export default function DebitNoteForm({
             </>
           )}
 
-          {visible?.m_CtyCurr && (
+          {visible?.m_CtyCurr && visible?.m_GstId && (
             <>
               {/* GST Country Amount */}
               <CustomNumberInput
@@ -892,16 +891,6 @@ export default function DebitNoteForm({
             <PortAutocomplete form={form} name="portId" label="Port" />
           )}
 
-          {/* Service Type */}
-          {visible?.m_ServiceTypeId && (
-            <ServiceCategoryAutocomplete
-              form={form}
-              name="serviceCategoryId"
-              label="Service Type"
-              isRequired={true}
-            />
-          )}
-
           {/* Remarks */}
           <CustomTextarea
             form={form}
@@ -935,12 +924,14 @@ export default function DebitNoteForm({
                     maximumFractionDigits: amtDec,
                   })}
                 </div>
-                <div className="font-medium text-gray-700">
-                  {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: amtDec,
-                    maximumFractionDigits: amtDec,
-                  })}
-                </div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-gray-700">
+                    {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
+                      minimumFractionDigits: amtDec,
+                      maximumFractionDigits: amtDec,
+                    })}
+                  </div>
+                )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
                   {(form.watch("totAmtAftGst") || 0).toLocaleString(undefined, {
@@ -965,7 +956,9 @@ export default function DebitNoteForm({
               {/* Column 2: Labels */}
               <div className="space-y-1 text-center">
                 <div className="font-medium text-blue-600">Amt</div>
-                <div className="font-medium text-blue-600">VAT</div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-blue-600">VAT</div>
+                )}
                 <div></div>
                 <div className="font-bold text-blue-800">Total</div>
                 <div className="font-bold text-blue-800">Payment</div>
@@ -980,12 +973,17 @@ export default function DebitNoteForm({
                     maximumFractionDigits: locAmtDec,
                   })}
                 </div>
-                <div className="font-medium text-gray-700">
-                  {(form.watch("gstLocalAmt") || 0).toLocaleString(undefined, {
-                    minimumFractionDigits: locAmtDec,
-                    maximumFractionDigits: locAmtDec,
-                  })}
-                </div>
+                {visible?.m_GstId && (
+                  <div className="font-medium text-gray-700">
+                    {(form.watch("gstLocalAmt") || 0).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: locAmtDec,
+                        maximumFractionDigits: locAmtDec,
+                      }
+                    )}
+                  </div>
+                )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
                   {(form.watch("totLocalAmtAftGst") || 0).toLocaleString(
