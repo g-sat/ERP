@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { ICbPettyCashDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
@@ -82,6 +82,7 @@ export default function CbPettyCashDetailsTable({
       header: "Account",
       size: 100,
     },
+
     ...(visible?.m_InvoiceDate
       ? [
           {
@@ -109,54 +110,6 @@ export default function CbPettyCashDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_GstNo
-      ? [
-          {
-            accessorKey: "gstNo",
-            header: "GST No",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_ServiceCategoryId
-      ? [
-          {
-            accessorKey: "serviceCategoryName",
-            header: "Service Category",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_DepartmentId
-      ? [
-          {
-            accessorKey: "departmentName",
-            header: "Department",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "Job Order",
-            size: 100,
-          },
-
-          {
-            accessorKey: "taskName",
-            header: "Task",
-            size: 100,
-          },
-
-          {
-            accessorKey: "serviceName",
-            header: "Service",
-            size: 100,
-          },
-        ]
-      : []),
 
     ...(visible?.m_Remarks
       ? [
@@ -172,7 +125,7 @@ export default function CbPettyCashDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
+      cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("totAmt"), amtDec)}
         </div>
@@ -208,19 +161,47 @@ export default function CbPettyCashDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
+      cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
         </div>
       ),
     },
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "Job Order No",
+            size: 100,
+          },
+          {
+            accessorKey: "taskName",
+            header: "Task Name",
+            size: 100,
+          },
+          {
+            accessorKey: "serviceName",
+            header: "Service Name",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_DepartmentId
+      ? [
+          {
+            accessorKey: "departmentName",
+            header: "Department",
+            size: 100,
+          },
+        ]
+      : []),
     ...(visible?.m_CtyCurr
       ? [
           {
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
+            cell: ({ row }) => (
               <div className="text-right">
                 {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
               </div>
@@ -257,7 +238,7 @@ export default function CbPettyCashDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
+            cell: ({ row }) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
               </div>
@@ -305,8 +286,27 @@ export default function CbPettyCashDetailsTable({
     ...(visible?.m_VoyageId
       ? [
           {
-            accessorKey: "voyageNo",
+            accessorKey: "voyageName",
             header: "Voyage",
+            size: 200,
+          },
+        ]
+      : []),
+    ...(visible?.m_GstNo
+      ? [
+          {
+            accessorKey: "gstNo",
+            header: "GST No",
+            size: 100,
+          },
+        ]
+      : []),
+
+    ...(visible?.m_ServiceCategoryId
+      ? [
+          {
+            accessorKey: "serviceCategoryName",
+            header: "Service Category",
             size: 200,
           },
         ]

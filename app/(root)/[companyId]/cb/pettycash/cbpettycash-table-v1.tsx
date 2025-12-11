@@ -4,7 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { CbPettyCash } from "@/lib/api-routes"
@@ -25,8 +25,6 @@ export interface CbPettyCashTableProps {
   onCloseAction?: () => void
   visible?: IVisibleFields
 }
-
-const DEFAULT_PAGE_SIZE = 15
 
 export default function CbPettyCashTable({
   onCbPettyCashSelect,
@@ -65,11 +63,7 @@ export default function CbPettyCashTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState<number>(
-    typeof _pageSize === "number" && _pageSize > 0
-      ? _pageSize
-      : DEFAULT_PAGE_SIZE
-  )
+  const [pageSize, setPageSize] = useState(_pageSize)
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -85,30 +79,22 @@ export default function CbPettyCashTable({
   useEffect(() => {
     form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
+
     setSearchStartDate(
       initialFilters?.startDate?.toString() || defaultStartDate
     )
     setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
-
-    const sizeFromFilters =
-      typeof initialFilters?.pageSize === "number" &&
-      initialFilters.pageSize > 0
-        ? initialFilters.pageSize
-        : typeof _pageSize === "number" && _pageSize > 0
-          ? _pageSize
-          : DEFAULT_PAGE_SIZE
-    setPageSize(sizeFromFilters)
-  }, [initialFilters, form, defaultStartDate, defaultEndDate, _pageSize])
+  }, [initialFilters, form, defaultStartDate, defaultEndDate])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
-    data: glJournalsResponse,
+    data: cbPettyCashsResponse,
     isLoading: isLoadingCbPettyCashs,
     isRefetching: isRefetchingCbPettyCashs,
     refetch: refetchCbPettyCashs,
   } = useGetWithDatesAndPagination<ICbPettyCashHd>(
     `${CbPettyCash.get}`,
-    TableName.glJournal,
+    TableName.cbPettyCash,
     searchQuery,
     searchStartDate,
     searchEndDate,
@@ -118,14 +104,28 @@ export default function CbPettyCashTable({
     hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
-  const data = glJournalsResponse?.data || []
-  const totalRecords = glJournalsResponse?.totalRecords || data.length
+  const data = cbPettyCashsResponse?.data || []
+  const totalRecords = cbPettyCashsResponse?.totalRecords || data.length
   const isLoading = isLoadingCbPettyCashs || isRefetchingCbPettyCashs
 
-  const getPaymentStatus = (isCancel: boolean) => {
+  const getPaymentStatus = (
+    balAmt: number,
+    payAmt: number,
+    isCancel: boolean
+  ) => {
     if (isCancel) {
       return "Cancelled"
     }
+    // if (balAmt === 0 && payAmt > 0) {
+    //   return "Fully Paid"
+    // } else if (balAmt > 0 && payAmt > 0) {
+    //   return "Partially Paid"
+    // } else if (balAmt > 0 && payAmt === 0) {
+    //   return "Not Paid"
+    // }
+    // else if (balAmt === 0 && payAmt === 0) {
+    //   return "Cancelled"
+    // }
     return ""
   }
 
@@ -138,11 +138,19 @@ export default function CbPettyCashTable({
       accessorKey: "paymentStatus",
       header: "Payment Status",
       cell: ({ row }) => {
+        const balAmt = row.original.balAmt ?? 0
+        const payAmt = row.original.payAmt ?? 0
         const isCancel = row.original.isCancel ?? false
-        const status = getPaymentStatus(isCancel)
+        const status = getPaymentStatus(balAmt, payAmt, isCancel)
 
         const getStatusStyle = (status: string) => {
           switch (status) {
+            // case "Fully Paid":
+            //   return "bg-green-100 text-green-800"
+            // case "Partially Paid":
+            //   return "bg-orange-100 text-orange-800"
+            // case "Not Paid":
+            //   return "bg-red-100 text-red-800"
             case "Cancelled":
               return "bg-gray-100 text-gray-800"
             default:
@@ -152,6 +160,12 @@ export default function CbPettyCashTable({
 
         const getStatusDot = (status: string) => {
           switch (status) {
+            // case "Fully Paid":
+            //   return "bg-green-400"
+            // case "Partially Paid":
+            //   return "bg-orange-400"
+            // case "Not Paid":
+            //   return "bg-red-400"
             case "Cancelled":
               return "bg-gray-400"
             default:
@@ -232,12 +246,12 @@ export default function CbPettyCashTable({
         ]
       : []),
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "bankCode",
+      header: "Bank Code",
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
+      accessorKey: "bankName",
+      header: "Bank Name",
     },
     {
       accessorKey: "totAmt",
@@ -338,17 +352,6 @@ export default function CbPettyCashTable({
           {
             accessorKey: "remarks",
             header: "Remarks",
-            size: 200,
-            minSize: 150,
-            maxSize: 220,
-            cell: ({ row }) => {
-              const remarks = row.original.remarks ?? ""
-              return (
-                <div className="max-w-[200px] truncate" title={remarks}>
-                  {remarks || "-"}
-                </div>
-              )
-            },
           } as ColumnDef<ICbPettyCashHd>,
         ]
       : []),
@@ -438,9 +441,7 @@ export default function CbPettyCashTable({
   }
 
   const handlePageSizeChange = (size: number) => {
-    const nextSize =
-      typeof size === "number" && size > 0 ? size : DEFAULT_PAGE_SIZE
-    setPageSize(nextSize)
+    setPageSize(size)
     setCurrentPage(1) // Reset to first page when changing page size
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
@@ -451,7 +452,7 @@ export default function CbPettyCashTable({
         sortBy: "paymentNo",
         sortOrder: "asc",
         pageNumber: 1,
-        pageSize: nextSize,
+        pageSize: size,
       }
       onFilterChange(newFilters)
     }
@@ -469,7 +470,7 @@ export default function CbPettyCashTable({
         sortBy: "paymentNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
-        pageSize,
+        pageSize: pageSize,
       }
       onFilterChange(newFilters)
     }
@@ -546,11 +547,12 @@ export default function CbPettyCashTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.glJournal}
-        emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
+        tableName={TableName.cbPettyCash}
+        emptyMessage="No cbPettyCashs found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchCbPettyCashs()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbPettyCashSelect(row || undefined)}
+        // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         currentPage={currentPage}
@@ -558,28 +560,6 @@ export default function CbPettyCashTable({
         totalRecords={totalRecords}
         serverSidePagination={true}
       />
-
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage <= 1 || isLoading}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-muted-foreground text-sm">
-          Page {currentPage}
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={isLoading || currentPage * pageSize >= totalRecords}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
     </div>
   )
 }

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
   mathRound,
-  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
 } from "@/helpers/account"
@@ -13,7 +12,7 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailsLocalAndCtyAmounts,
-} from "@/helpers/cb-genpayment-calculations"
+} from "@/helpers/cb-pettycash-calculations"
 import {
   ICbPettyCashDt,
   ICbPettyCashFilter,
@@ -57,6 +56,12 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -141,7 +146,7 @@ export default function CbPettyCashPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/cb/cbPettyCash`,
+    () => `history-doc:/${companyId}/cb/cbpettycash`,
     [companyId]
   )
 
@@ -220,6 +225,12 @@ export default function CbPettyCashPage() {
           exhRate: cbPettyCash.exhRate ?? 0,
           ctyExhRate: cbPettyCash.ctyExhRate ?? 0,
           bankId: cbPettyCash.bankId ?? 0,
+          paymentTypeId: cbPettyCash.paymentTypeId ?? 0,
+          chequeNo: cbPettyCash.chequeNo ?? "",
+          chequeDate: cbPettyCash.chequeDate ?? new Date(),
+          bankChgGLId: cbPettyCash.bankChgGLId ?? 0,
+          bankChgAmt: cbPettyCash.bankChgAmt ?? 0,
+          bankChgLocalAmt: cbPettyCash.bankChgLocalAmt ?? 0,
           totAmt: cbPettyCash.totAmt ?? 0,
           totLocalAmt: cbPettyCash.totLocalAmt ?? 0,
           totCtyAmt: cbPettyCash.totCtyAmt ?? 0,
@@ -230,13 +241,6 @@ export default function CbPettyCashPage() {
           totLocalAmtAftGst: cbPettyCash.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbPettyCash.totCtyAmtAftGst ?? 0,
           moduleFrom: cbPettyCash.moduleFrom ?? "",
-          paymentTypeId: cbPettyCash.paymentTypeId ?? 0,
-          chequeNo: cbPettyCash.chequeNo ?? "",
-          chequeDate: cbPettyCash.chequeDate ?? new Date(),
-          bankChgGLId: cbPettyCash.bankChgGLId ?? 0,
-          bankChgAmt: cbPettyCash.bankChgAmt ?? 0,
-          bankChgLocalAmt: cbPettyCash.bankChgLocalAmt ?? 0,
-          payeeTo: cbPettyCash.payeeTo ?? "",
           editVersion: cbPettyCash.editVersion ?? 0,
           data_details:
             cbPettyCash.data_details?.map((detail) => ({
@@ -244,6 +248,17 @@ export default function CbPettyCashPage() {
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo?.toString() ?? "",
               invoiceDate: detail.invoiceDate ?? new Date(),
+              invoiceNo: detail.invoiceNo ?? "",
+              supplierName: detail.supplierName ?? "",
+              gstNo: detail.gstNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
+              serviceCategoryId: detail.serviceCategoryId ?? 0,
+              serviceCategoryName: detail.serviceCategoryName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -278,10 +293,10 @@ export default function CbPettyCashPage() {
 
     if (isDirty) return
 
-    const currentCbPettyCashId = form.getValues("paymentId") || "0"
+    const currentGLpaymentId = form.getValues("paymentId") || "0"
     if (
       (cbPettyCash && cbPettyCash.paymentId && cbPettyCash.paymentId !== "0") ||
-      currentCbPettyCashId !== "0"
+      currentGLpaymentId !== "0"
     ) {
       return
     }
@@ -315,7 +330,7 @@ export default function CbPettyCashPage() {
   const deleteMutation = useDeleteWithRemarks(`${CbPettyCash.delete}`)
 
   // Remove the useGetCbPettyCashById hook for selection
-  // const { data: cbPettyCashByIdData, refetch: refetchCbPettyCashById } = ...
+  // const { data: invoiceByIdData, refetch: refetchCbPettyCashById } = ...
 
   // Handle Save
   const handleSaveCbPettyCash = async () => {
@@ -410,14 +425,14 @@ export default function CbPettyCashPage() {
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const cbPettyCashData = Array.isArray(response.data)
+          const invoiceData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (cbPettyCashData) {
+          if (invoiceData) {
             const updatedSchemaType = transformToSchemaType(
-              cbPettyCashData as unknown as ICbPettyCashHd
+              invoiceData as unknown as ICbPettyCashHd
             )
 
             setSearchNo(updatedSchemaType.paymentNo || "")
@@ -434,6 +449,17 @@ export default function CbPettyCashPage() {
 
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
+
+          // Check if this was a new cbPettyCash or update
+          const wasNewCbPettyCash = Number(formValues.paymentId) === 0
+
+          if (wasNewCbPettyCash) {
+            //toast.success(
+            // `CbPettyCash ${invoiceData?.paymentNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("CbPettyCash updated successfully")
+          }
 
           // Data refresh handled by CbPettyCashTable component
         } else {
@@ -470,13 +496,24 @@ export default function CbPettyCashPage() {
         createDate: "",
         editDate: "",
         cancelDate: "",
-        // Keep data details - do not remove
+        // Clear all balance and payment amounts
         data_details:
           cbPettyCash.data_details?.map((detail) => ({
             ...detail,
             paymentId: "0",
             paymentNo: "",
             invoiceDate: dateStr,
+            invoiceNo: "",
+            supplierName: "",
+            gstNo: "",
+            jobOrderId: 0,
+            jobOrderNo: "",
+            taskId: 0,
+            taskName: "",
+            serviceId: 0,
+            serviceName: "",
+            serviceCategoryId: 0,
+            serviceCategoryName: "",
             editVersion: 0,
           })) || [],
       }
@@ -603,15 +640,6 @@ export default function CbPettyCashPage() {
         }
       }
 
-      // Calculate due date based on accountDate and credit terms
-      if (clonedCbPettyCash.paymentId && clonedCbPettyCash.accountDate) {
-        try {
-          await setDueDate(form)
-        } catch (error) {
-          console.error("Error calculating due date:", error)
-        }
-      }
-
       // Clear search input
       setSearchNo("")
 
@@ -711,10 +739,12 @@ export default function CbPettyCashPage() {
     toast.success("CbPettyCash reset successfully")
   }
 
-  // Handle Print Cb Petty Cash Report
-  const handlePrintCbPettyCash = () => {
+  // Handle Print CbPettyCash Report
+  const handlePrintCbPettyCash = (
+    reportType: "direct" | "cbPettyCash" = "cbPettyCash"
+  ) => {
     if (!cbPettyCash || cbPettyCash.paymentId === "0") {
-      toast.error("Please select a CB petty cash to print")
+      toast.error("Please select an cbPettyCash to print")
       return
     }
 
@@ -730,9 +760,9 @@ export default function CbPettyCashPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      invoiceId: paymentId,
-      invoiceNo: paymentNo,
-      reportType: 1,
+      paymentId: paymentId,
+      paymentNo: paymentNo,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -740,9 +770,15 @@ export default function CbPettyCashPage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file based on type
+    const reportFile =
+      reportType === "direct"
+        ? "RPT_CbPettyCashDirect.trdp"
+        : "RPT_CbPettyCash.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_CbPettyCash.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -770,6 +806,7 @@ export default function CbPettyCashPage() {
         paymentId: apiCbPettyCash.paymentId?.toString() ?? "0",
         paymentNo: apiCbPettyCash.paymentNo ?? "",
         referenceNo: apiCbPettyCash.referenceNo ?? "",
+
         trnDate: apiCbPettyCash.trnDate
           ? format(
               parseDate(apiCbPettyCash.trnDate as string) || new Date(),
@@ -788,22 +825,17 @@ export default function CbPettyCashPage() {
               dateFormat
             )
           : dateFormat,
-        currencyId: apiCbPettyCash.currencyId ?? 0,
-        exhRate: apiCbPettyCash.exhRate ?? 0,
-        ctyExhRate: apiCbPettyCash.ctyExhRate ?? 0,
         bankId: apiCbPettyCash.bankId ?? 0,
         paymentTypeId: apiCbPettyCash.paymentTypeId ?? 0,
         chequeNo: apiCbPettyCash.chequeNo ?? "",
-        chequeDate: apiCbPettyCash.chequeDate
-          ? format(
-              parseDate(apiCbPettyCash.chequeDate as string) || new Date(),
-              dateFormat
-            )
-          : dateFormat,
+        chequeDate: apiCbPettyCash.chequeDate ?? new Date(),
         bankChgGLId: apiCbPettyCash.bankChgGLId ?? 0,
         bankChgAmt: apiCbPettyCash.bankChgAmt ?? 0,
         bankChgLocalAmt: apiCbPettyCash.bankChgLocalAmt ?? 0,
-        payeeTo: apiCbPettyCash.payeeTo ?? "",
+        currencyId: apiCbPettyCash.currencyId ?? 0,
+        exhRate: apiCbPettyCash.exhRate ?? 0,
+        ctyExhRate: apiCbPettyCash.ctyExhRate ?? 0,
+
         totAmt: apiCbPettyCash.totAmt ?? 0,
         totLocalAmt: apiCbPettyCash.totLocalAmt ?? 0,
         totCtyAmt: apiCbPettyCash.totCtyAmt ?? 0,
@@ -864,6 +896,12 @@ export default function CbPettyCashPage() {
                 gstAmt: detail.gstAmt ?? 0,
                 gstLocalAmt: detail.gstLocalAmt ?? 0,
                 gstCtyAmt: detail.gstCtyAmt ?? 0,
+                invoiceDate: detail.invoiceDate ?? "",
+                invoiceNo: detail.invoiceNo ?? "",
+                supplierName: detail.supplierName ?? "",
+                gstNo: detail.gstNo ?? "",
+                serviceCategoryId: detail.serviceCategoryId ?? 0,
+                serviceCategoryName: detail.serviceCategoryName ?? "",
                 departmentId: detail.departmentId ?? 0,
                 departmentCode: detail.departmentCode ?? "",
                 departmentName: detail.departmentName ?? "",
@@ -881,23 +919,12 @@ export default function CbPettyCashPage() {
                 bargeName: detail.bargeName ?? "",
                 voyageId: detail.voyageId ?? 0,
                 voyageNo: detail.voyageNo ?? "",
-                invoiceDate: detail.invoiceDate
-                  ? format(
-                      parseDate(detail.invoiceDate as string) || new Date(),
-                      dateFormat
-                    )
-                  : dateFormat,
-                invoiceNo: detail.invoiceNo ?? "",
-                supplierName: detail.supplierName ?? "",
-                gstNo: detail.gstNo ?? "",
                 jobOrderId: detail.jobOrderId ?? 0,
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
                 taskName: detail.taskName ?? "",
                 serviceId: detail.serviceId ?? 0,
                 serviceName: detail.serviceName ?? "",
-                serviceCategoryId: detail.serviceCategoryId ?? 0,
-                serviceCategoryName: detail.serviceCategoryName ?? "",
                 editVersion: detail.editVersion ?? 0,
               }) as unknown as CbPettyCashDtSchemaType
           ) || [],
@@ -918,24 +945,24 @@ export default function CbPettyCashPage() {
     }) => {
       console.log("paymentId", paymentId)
       console.log("paymentNo", paymentNo)
-      const trimmedPaymentNo = paymentNo?.trim() ?? ""
-      const trimmedPaymentId =
+      const trimmedCbPettyCashNo = paymentNo?.trim() ?? ""
+      const trimmedGLpaymentId =
         typeof paymentId === "number"
           ? paymentId.toString()
           : (paymentId?.toString().trim() ?? "")
 
-      if (!trimmedPaymentNo && !trimmedPaymentId) return null
+      if (!trimmedCbPettyCashNo && !trimmedGLpaymentId) return null
 
       if (showLoader) {
         setIsLoadingCbPettyCash(true)
       }
 
-      const requestPaymentId = trimmedPaymentId || "0"
-      const requestPaymentNo = trimmedPaymentNo || ""
+      const requestGLpaymentId = trimmedGLpaymentId || "0"
+      const requestCbPettyCashNo = trimmedCbPettyCashNo || ""
 
       try {
         const response = await getById(
-          `${CbPettyCash.getByIdNo}/${requestPaymentId}/${requestPaymentNo}`
+          `${CbPettyCash.getByIdNo}/${requestGLpaymentId}/${requestCbPettyCashNo}`
         )
 
         if (response?.result === 1) {
@@ -958,22 +985,22 @@ export default function CbPettyCashPage() {
             form.reset(updatedCbPettyCash)
             form.trigger()
 
-            const resolvedPaymentNo =
+            const resolvedCbPettyCashNo =
               updatedCbPettyCash.paymentNo ||
-              trimmedPaymentNo ||
-              trimmedPaymentId
-            setSearchNo(resolvedPaymentNo)
+              trimmedCbPettyCashNo ||
+              trimmedGLpaymentId
+            setSearchNo(resolvedCbPettyCashNo)
 
-            return resolvedPaymentNo
+            return resolvedCbPettyCashNo
           }
         } else {
           toast.error(
-            response?.message || "Failed to fetch cbPettyCash details"
+            response?.message || "Failed to fetch cbpettycash details"
           )
         }
       } catch (error) {
-        console.error("Error fetching cbPettyCash details:", error)
-        toast.error("Error loading cbPettyCash. Please try again.")
+        console.error("Error fetching cbpettycash details:", error)
+        toast.error("Error loading cbpettycash. Please try again.")
       } finally {
         if (showLoader) {
           setIsLoadingCbPettyCash(false)
@@ -998,12 +1025,12 @@ export default function CbPettyCashPage() {
   ) => {
     if (!selectedCbPettyCash) return
 
-    const loadedPaymentNo = await loadCbPettyCash({
+    const loadedCbPettyCashNo = await loadCbPettyCash({
       paymentId: selectedCbPettyCash.paymentId ?? "0",
       paymentNo: selectedCbPettyCash.paymentNo ?? "",
     })
 
-    if (loadedPaymentNo) {
+    if (loadedCbPettyCashNo) {
       setShowListDialog(false)
     }
   }
@@ -1016,14 +1043,14 @@ export default function CbPettyCashPage() {
 
   // Data refresh handled by CbPettyCashTable component
 
-  // Set createBy and createDate for new cbPettyCashs on page load/refresh
+  // Set createBy and createDate for new invoices on page load/refresh
   useEffect(() => {
     if (!cbPettyCash && user && decimals.length > 0) {
-      const currentCbPettyCashId = form.getValues("paymentId")
+      const currentGLpaymentId = form.getValues("paymentId")
       const currentCbPettyCashNo = form.getValues("paymentNo")
       const isNewCbPettyCash =
-        !currentCbPettyCashId ||
-        currentCbPettyCashId === "0" ||
+        !currentGLpaymentId ||
+        currentGLpaymentId === "0" ||
         !currentCbPettyCashNo
 
       if (isNewCbPettyCash) {
@@ -1078,14 +1105,14 @@ export default function CbPettyCashPage() {
     if (!trimmedValue) return
 
     try {
-      const loadedPaymentNo = await loadCbPettyCash({
+      const loadedCbPettyCashNo = await loadCbPettyCash({
         paymentId: "0",
         paymentNo: trimmedValue,
         showLoader: true,
       })
 
-      if (loadedPaymentNo) {
-        toast.success(`CbPettyCash ${loadedPaymentNo} loaded successfully`)
+      if (loadedCbPettyCashNo) {
+        toast.success(`CbPettyCash ${loadedCbPettyCashNo} loaded successfully`)
       }
     } finally {
       setShowLoadConfirm(false)
@@ -1112,11 +1139,6 @@ export default function CbPettyCashPage() {
   const paymentNo = form.getValues("paymentNo")
   const isEdit = Boolean(paymentNo)
   const isCancelled = cbPettyCash?.isCancel === true
-
-  // Compose title text
-  const titleText = isEdit
-    ? `CbPettyCash (Edit)- v[${cbPettyCash?.editVersion}] - ${paymentNo}`
-    : "CbPettyCash (New)"
 
   // Generic function to copy text to clipboard
   const copyToClipboard = useCallback(async (textToCopy: string) => {
@@ -1161,19 +1183,24 @@ export default function CbPettyCashPage() {
     }
   }, [])
 
-  // Handle double-click to copy invoiceNo (paymentNo) to clipboard
-  const handleCopyInvoiceNo = useCallback(async () => {
-    const invoiceNoToCopy = isEdit
-      ? cbPettyCash?.paymentNo || form.getValues("paymentNo") || ""
-      : form.getValues("paymentNo") || ""
-
-    await copyToClipboard(invoiceNoToCopy)
-  }, [isEdit, cbPettyCash?.paymentNo, form, copyToClipboard])
-
   // Handle double-click to copy searchNo to clipboard
   const handleCopySearchNo = useCallback(async () => {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
+
+  // Handle double-click to copy paymentNo to clipboard
+  const handleCopyCbPettyCashNo = useCallback(async () => {
+    const paymentNoToCopy = isEdit
+      ? cbPettyCash?.paymentNo || form.getValues("paymentNo") || ""
+      : form.getValues("paymentNo") || ""
+
+    await copyToClipboard(paymentNoToCopy)
+  }, [isEdit, cbPettyCash?.paymentNo, form, copyToClipboard])
+
+  // Compose title text
+  const titleText = isEdit
+    ? `CbPettyCash (Edit)- v[${cbPettyCash?.editVersion}] - ${paymentNo}`
+    : "CbPettyCash (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1237,8 +1264,8 @@ export default function CbPettyCashPage() {
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
                   className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
-                  onDoubleClick={handleCopyInvoiceNo}
-                  title="Double-click to copy invoice number"
+                  onDoubleClick={handleCopyCbPettyCashNo}
+                  title="Double-click to copy cbPettyCash number"
                 >
                   {titleText}
                 </span>
@@ -1325,15 +1352,30 @@ export default function CbPettyCashPage() {
                   : "Save"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!cbPettyCash || cbPettyCash.paymentId === "0"}
-              onClick={handlePrintCbPettyCash}
-            >
-              <Printer className="mr-1 h-4 w-4" />
-              Print
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!cbPettyCash || cbPettyCash.paymentId === "0"}
+                >
+                  <Printer className="mr-1 h-4 w-4" />
+                  Print
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => handlePrintCbPettyCash("direct")}
+                >
+                  1. Direct
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handlePrintCbPettyCash("cbPettyCash")}
+                >
+                  2. CbPettyCash
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
@@ -1420,8 +1462,8 @@ export default function CbPettyCashPage() {
               CbPettyCash List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing cbPettyCashs from the list below. Use
-              search to filter records or create new cbPettyCashs.
+              Manage and select existing CbPettyCashs from the list below. Use
+              search to filter records or create new invoices.
             </p>
           </div>
 

@@ -1,8 +1,12 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { recalculateAndSetHeaderTotals } from "@/helpers/cb-pettycash-calculations"
+import { useEffect, useRef, useState } from "react"
+import {
+  calculateCtyAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+} from "@/helpers/cb-genpayment-calculations"
 import { ICbPettyCashDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbPettyCashDtSchemaType, CbPettyCashHdSchemaType } from "@/schemas"
@@ -12,11 +16,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import CbPettyCashDetailsForm, {
-  CbPettyCashDetailsFormRef,
-} from "./cbpettycash-details-form"
-import CbPettyCashDetailsTable from "./cbpettycash-details-table"
-import CbPettyCashForm from "./cbpettycash-form"
+import CbPettyCashDetailsForm from "../cbpettycash/components/cbPettyCash-details-form"
+import CbPettyCashDetailsTable from "../cbpettycash/components/cbPettyCash-details-table"
+import CbPettyCashForm from "../cbpettycash/components/cbPettyCash-form"
 
 interface MainProps {
   form: UseFormReturn<CbPettyCashHdSchemaType>
@@ -38,6 +40,9 @@ export default function Main({
   isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   // Get user settings with defaults for all modules
   const { defaults } = useUserSettingDefaults()
@@ -53,19 +58,14 @@ export default function Main({
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousCbPettyCashKeyRef = useRef<string>("")
-  const detailsFormRef = useRef<CbPettyCashDetailsFormRef>(null)
 
   // Watch data_details for reactive updates
-  const watchedDataDetails = form.watch("data_details")
-  const dataDetails = useMemo(
-    () => watchedDataDetails || [],
-    [watchedDataDetails]
-  )
-  const currentGLpaymentId = form.watch("paymentId")
+  const dataDetails = form.watch("data_details") || []
+  const currentCbPettyCashId = form.watch("paymentId")
   const currentCbPettyCashNo = form.watch("paymentNo")
 
   useEffect(() => {
-    const currentKey = `${currentGLpaymentId ?? ""}::${currentCbPettyCashNo ?? ""}`
+    const currentKey = `${currentCbPettyCashId ?? ""}::${currentCbPettyCashNo ?? ""}`
     if (previousCbPettyCashKeyRef.current === currentKey) {
       return
     }
@@ -77,7 +77,7 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setShowSingleDeleteConfirmation(false)
     setTableKey((prev) => prev + 1)
-  }, [currentGLpaymentId, currentCbPettyCashNo])
+  }, [currentCbPettyCashId, currentCbPettyCashNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -93,13 +93,13 @@ export default function Main({
 
     const details = (dataDetails as unknown as ICbPettyCashDt[]) || []
     const editingExists = details.some((detail) => {
-      const detailGLpaymentId = `${detail.paymentId ?? ""}`
-      const editingGLpaymentId = `${editingDetail.paymentId ?? ""}`
+      const detailCbPettyCashId = `${detail.paymentId ?? ""}`
+      const editingCbPettyCashId = `${editingDetail.paymentId ?? ""}`
       const detailCbPettyCashNo = detail.paymentNo ?? ""
       const editingCbPettyCashNo = editingDetail.paymentNo ?? ""
       return (
         detail.itemNo === editingDetail.itemNo &&
-        detailGLpaymentId === editingGLpaymentId &&
+        detailCbPettyCashId === editingCbPettyCashId &&
         detailCbPettyCashNo === editingCbPettyCashNo
       )
     })
@@ -109,15 +109,49 @@ export default function Main({
     }
   }, [dataDetails, editingDetail])
 
-  // Helper function to recalculate header totals
-  const recalculateHeaderTotals = () => {
-    const currentDetails = form.getValues("data_details") || []
-    recalculateAndSetHeaderTotals(
-      form,
-      currentDetails as unknown as ICbPettyCashDt[],
-      decimals[0],
-      visible
+  // Recalculate header totals when details change
+  useEffect(() => {
+    if (dataDetails.length === 0) {
+      // Reset all amounts to 0 if no details
+      form.setValue("totAmt", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("totAmtAftGst", 0)
+      form.setValue("totLocalAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("totLocalAmtAftGst", 0)
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
+      return
+    }
+
+    // Calculate base currency totals
+    const totals = calculateTotalAmounts(
+      dataDetails as unknown as ICbPettyCashDt[],
+      amtDec
     )
+    form.setValue("totAmt", totals.totAmt)
+    form.setValue("gstAmt", totals.gstAmt)
+    form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+    // Calculate local currency totals (always calculate)
+    const localAmounts = calculateLocalAmounts(
+      dataDetails as unknown as ICbPettyCashDt[],
+      locAmtDec
+    )
+    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
+    const countryAmounts = calculateCtyAmounts(
+      dataDetails as unknown as ICbPettyCashDt[],
+      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+    )
+    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
 
     // Trigger form validation to update UI
     form.trigger([
@@ -131,7 +165,8 @@ export default function Main({
       "gstCtyAmt",
       "totCtyAmtAftGst",
     ])
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
   const handleAddRow = (rowData: ICbPettyCashDt) => {
     const currentData = form.getValues("data_details") || []
@@ -160,9 +195,6 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
-
-    // Recalculate header totals after adding/updating row
-    recalculateHeaderTotals()
   }
 
   const handleDelete = (itemNo: number) => {
@@ -181,9 +213,6 @@ export default function Main({
     form.trigger("data_details")
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
-
-    // Recalculate header totals after deleting row
-    recalculateHeaderTotals()
 
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
@@ -204,16 +233,15 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
 
-    // Recalculate header totals after bulk deleting rows
-    recalculateHeaderTotals()
-
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
 
   const handleEdit = (detail: ICbPettyCashDt) => {
+    // console.log("Editing detail:", detail)
     // Convert ICbPettyCashDt to CbPettyCashDtSchemaType and set for editing
     setEditingDetail(detail as unknown as CbPettyCashDtSchemaType)
+    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -230,9 +258,6 @@ export default function Main({
       "data_details",
       reorderedData as unknown as CbPettyCashDtSchemaType[]
     )
-
-    // Recalculate header totals after reordering (in case amounts were affected)
-    recalculateHeaderTotals()
   }
 
   return (
@@ -245,11 +270,9 @@ export default function Main({
         required={required}
         companyId={companyId}
         defaultCurrencyId={defaults.cb.currencyId}
-        detailsFormRef={detailsFormRef}
       />
 
       <CbPettyCashDetailsForm
-        ref={detailsFormRef}
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}

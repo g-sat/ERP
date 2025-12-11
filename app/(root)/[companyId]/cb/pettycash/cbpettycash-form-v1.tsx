@@ -2,16 +2,17 @@
 
 import * as React from "react"
 import {
-  calculateMultiplierAmount,
+  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
   setGSTPercentage,
 } from "@/helpers/account"
 import {
+  calculateCtyAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
   recalculateAllDetailsLocalAndCtyAmounts,
-  recalculateAndSetHeaderTotals,
-  syncCountryExchangeRate,
-} from "@/helpers/cb-pettycash-calculations"
+} from "@/helpers/cb-genpayment-calculations"
 import { ICbPettyCashDt } from "@/interfaces"
 import {
   IBankLookup,
@@ -26,10 +27,8 @@ import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
-import { parseNumberWithCommas } from "@/lib/utils"
 import {
   BankAutocomplete,
-  BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
@@ -40,8 +39,6 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { CbPettyCashDetailsFormRef } from "./cbpettycash-details-form"
-
 interface CbPettyCashFormProps {
   form: UseFormReturn<CbPettyCashHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
@@ -50,7 +47,6 @@ interface CbPettyCashFormProps {
   required: IMandatoryFields
   companyId: number
   defaultCurrencyId?: number
-  detailsFormRef?: React.RefObject<CbPettyCashDetailsFormRef | null>
 }
 
 export default function CbPettyCashForm({
@@ -61,25 +57,27 @@ export default function CbPettyCashForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
-  detailsFormRef,
 }: CbPettyCashFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
+  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  // State to track if receipt type is cheque
+  const [_isChequePayment, setIsChequePayment] = React.useState(false)
+
+  // State to control payee selection dialog
+  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
     [decimals]
   )
 
-  // State to control payee selection dialog
-  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
-
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
   const originalCtyExhRateRef = React.useRef<number>(0)
-  const originalBankChgAmtRef = React.useRef<number>(0)
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -100,7 +98,9 @@ export default function CbPettyCashForm({
       form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
       form.setValue("accountDate", trnDateStr)
+
       form?.trigger("accountDate")
+
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
@@ -111,6 +111,7 @@ export default function CbPettyCashForm({
         decimals[0],
         visible
       )
+      await setDueDate(form)
     },
     [decimals, exhRateDec, form, visible, dateFormat]
   )
@@ -154,12 +155,24 @@ export default function CbPettyCashForm({
     [exhRateDec, form, visible, dateFormat]
   )
 
+  // Handle add payee to button click
+  const handleAddPayeeTo = React.useCallback(() => {
+    setIsPayeeDialogOpen(true)
+  }, [])
+
+  // Handle bank selection
+  const handleBankChange = React.useCallback(
+    (_selectedBank: IBankLookup | null) => {
+      // Additional logic when bank changes
+    },
+    []
+  )
+
   // Set default currency when form is initialized (not in edit mode)
   React.useEffect(() => {
     // Only run when defaultCurrencyId is loaded and we're not in edit mode
     if (!isEdit && defaultCurrencyId > 0) {
       const currentCurrencyId = form.getValues("currencyId")
-
       // Only set default if no currency is set
       if (!currentCurrencyId || currentCurrencyId === 0) {
         form.setValue("currencyId", defaultCurrencyId)
@@ -174,16 +187,72 @@ export default function CbPettyCashForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultCurrencyId, isEdit])
 
+  const accountDate = form.watch("accountDate")
+  const chequeDate = form.watch("chequeDate")
+
+  React.useEffect(() => {
+    if (!accountDate || chequeDate) {
+      return
+    }
+
+    const accountDateStr =
+      typeof accountDate === "string"
+        ? accountDate
+        : format(accountDate, dateFormat)
+
+    form.setValue("chequeDate", accountDateStr, {
+      shouldDirty: true,
+    })
+  }, [accountDate, chequeDate, dateFormat, form])
+
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
     const formDetails = form.getValues("data_details") || []
-    recalculateAndSetHeaderTotals(
-      form,
+
+    if (formDetails.length === 0) {
+      // Reset all amounts to 0 if no details
+      form.setValue("totAmt", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("totAmtAftGst", 0)
+      form.setValue("totLocalAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("totLocalAmtAftGst", 0)
+      if (visible?.m_CtyCurr) {
+        form.setValue("totCtyAmt", 0)
+        form.setValue("gstCtyAmt", 0)
+        form.setValue("totCtyAmtAftGst", 0)
+      }
+      return
+    }
+
+    // Calculate base currency totals
+    const totals = calculateTotalAmounts(
       formDetails as unknown as ICbPettyCashDt[],
-      decimals[0],
-      visible
+      amtDec
     )
-  }, [decimals, form, visible])
+    form.setValue("totAmt", totals.totAmt)
+    form.setValue("gstAmt", totals.gstAmt)
+    form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+    // Calculate local currency totals (always calculate)
+    const localAmounts = calculateLocalAmounts(
+      formDetails as unknown as ICbPettyCashDt[],
+      locAmtDec
+    )
+    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
+    const countryAmounts = calculateCtyAmounts(
+      formDetails as unknown as ICbPettyCashDt[],
+      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+    )
+    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
@@ -235,6 +304,10 @@ export default function CbPettyCashForm({
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
   }, [form])
 
   // Handle exchange rate blur - recalculate amounts when user leaves the field
@@ -243,119 +316,62 @@ export default function CbPettyCashForm({
       const exchangeRate = form.getValues("exhRate") || 0
       const originalExhRate = originalExhRateRef.current
 
+      console.log("handleExchangeRateBlur", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
       // Only recalculate if value is different from original
       if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
         return
       }
 
+      console.log("Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
 
-      // Sync city exchange rate with exchange rate if needed
-      const countryExchangeRate = syncCountryExchangeRate(
-        form,
+      // If m_CtyCurr is false, set countryExchangeRate = exchangeRate
+      let countryExchangeRate = form.getValues("ctyExhRate") || 0
+      if (!visible?.m_CtyCurr) {
+        countryExchangeRate = exchangeRate
+        form.setValue("ctyExhRate", exchangeRate)
+      }
+
+      if (!formDetails || formDetails.length === 0) {
+        return
+      }
+
+      // Recalculate all details with new exchange rate
+      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
+        formDetails as unknown as ICbPettyCashDt[],
         exchangeRate,
-        visible
+        countryExchangeRate,
+        decimals[0],
+        !!visible?.m_CtyCurr
       )
 
-      // Recalculate all details in table if they exist
-      if (formDetails && formDetails.length > 0) {
-        // Recalculate all details with new exchange rate
-        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
-          formDetails as unknown as ICbPettyCashDt[],
-          exchangeRate,
-          countryExchangeRate,
-          decimals[0],
-          !!visible?.m_CtyCurr
-        )
+      // Update form with recalculated details
+      form.setValue(
+        "data_details",
+        updatedDetails as unknown as CbPettyCashDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
 
-        // Update form with recalculated details
-        form.setValue(
-          "data_details",
-          updatedDetails as unknown as CbPettyCashDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
-
-        // Recalculate header totals from updated details
-        recalculateHeaderTotals()
-      }
-
-      // Always trigger recalculation in details form (even if no table details exist)
-      // This ensures the form being edited gets updated with new exchange rate
-      // Pass exchange rate values directly to avoid timing issues with form state
-      if (detailsFormRef?.current) {
-        detailsFormRef.current.recalculateAmounts(
-          exchangeRate,
-          countryExchangeRate
-        )
-      }
+      // Recalculate header totals from updated details
+      recalculateHeaderTotals()
     },
-    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
-  )
-
-  // Handle add payee to button click
-  const handleAddPayeeTo = React.useCallback(() => {
-    setIsPayeeDialogOpen(true)
-  }, [])
-
-  // Handle bank selection
-  const handleBankChange = React.useCallback(
-    (_selectedBank: IBankLookup | null) => {
-      // Additional logic when bank changes
-    },
-    []
-  )
-
-  // Handle payment type change
-  const handlePaymentTypeChange = React.useCallback(
-    (selectedPaymentType: IPaymentTypeLookup | null) => {
-      if (selectedPaymentType) {
-        // Check if payment type is "Cheque"
-        const isCheque =
-          selectedPaymentType?.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        // Clear cheque fields if not cheque payment
-        if (!isCheque) {
-          form.setValue("chequeNo", "")
-          form.setValue("chequeDate", "")
-        } else {
-          const currentChequeDate = form.getValues("chequeDate")
-          const currentAccountDate = form.getValues("accountDate")
-
-          if (!currentChequeDate && currentAccountDate) {
-            const accountDateStr =
-              typeof currentAccountDate === "string"
-                ? currentAccountDate
-                : format(currentAccountDate, dateFormat)
-
-            form.setValue("chequeDate", accountDateStr, {
-              shouldDirty: true,
-            })
-          }
-        }
-      } else {
-        // No payment type selected, clear cheque fields
-        form.setValue("chequeNo", "")
-        form.setValue("chequeDate", "")
-      }
-    },
-    [dateFormat, form]
-  )
-
-  // Handle payee selection from dialog
-  const handlePayeeSelect = React.useCallback(
-    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
-      form.setValue("payeeTo", payeeName)
-      form.trigger("payeeTo")
-    },
-    [form]
+    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
   // Handle city exchange rate focus - capture original value
   const handleCountryExchangeRateFocus = React.useCallback(() => {
     originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCountryExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
   }, [form])
 
   // Handle city exchange rate blur - recalculate amounts when user leaves the field
@@ -364,10 +380,19 @@ export default function CbPettyCashForm({
       const countryExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
+      console.log("handleCountryExchangeRateBlur", {
+        newValue: countryExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: countryExchangeRate !== originalCtyExhRate,
+      })
+
       // Only recalculate if value is different from original
       if (countryExchangeRate === originalCtyExhRate) {
+        console.log("Country Exchange Rate unchanged - skipping recalculation")
         return
       }
+
+      console.log("Country Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
@@ -394,64 +419,59 @@ export default function CbPettyCashForm({
 
       // Recalculate header totals from updated details
       recalculateHeaderTotals()
-
-      // Trigger recalculation in details form if it exists
-      // Pass exchange rate values directly to avoid timing issues with form state
-      if (detailsFormRef?.current) {
-        detailsFormRef.current.recalculateAmounts(
-          exchangeRate,
-          countryExchangeRate
-        )
-      }
     },
-    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
+    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
-  // Handle bank charges amount focus - capture original value
-  const handleBankChgAmtFocus = React.useCallback(() => {
-    originalBankChgAmtRef.current = form.getValues("bankChgAmt") || 0
-    console.log(
-      "handleBankChgAmtFocus - original value:",
-      originalBankChgAmtRef.current
-    )
-  }, [form])
+  // Handle receipt type change
+  const handlePaymentTypeChange = React.useCallback(
+    (selectedReceiptType: IPaymentTypeLookup | null) => {
+      if (selectedReceiptType) {
+        // Check if receipt type is "Cheque"
+        const isCheque =
+          selectedReceiptType?.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedReceiptType?.paymentTypeCode?.toLowerCase().includes("cheque")
 
-  // Handle bank charges amount change
-  const handleBankChgAmtChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const bankChgAmt = parseNumberWithCommas(e.target.value)
-      const originalBankChgAmt = originalBankChgAmtRef.current
+        setIsChequePayment(isCheque)
 
-      console.log("handleBankChgAmtChange", {
-        newValue: bankChgAmt,
-        originalValue: originalBankChgAmt,
-        isDifferent: bankChgAmt !== originalBankChgAmt,
-      })
-
-      // Only recalculate if value is different from original
-      if (bankChgAmt !== originalBankChgAmt) {
-        console.log("Bank Charges Amount changed - recalculating local amount")
-        form.setValue("bankChgAmt", bankChgAmt, { shouldDirty: true })
-
-        // Calculate bank charges local amount: bankChgAmt * exhRate
-        const exhRate = form.getValues("exhRate") || 0
-        if (exhRate > 0) {
-          const bankChgLocalAmt = calculateMultiplierAmount(
-            bankChgAmt,
-            exhRate,
-            locAmtDec
-          )
-          form.setValue("bankChgLocalAmt", bankChgLocalAmt, {
-            shouldDirty: true,
-          })
+        // Clear cheque fields if not cheque receipt
+        if (!isCheque) {
+          form.setValue("chequeNo", "")
+          form.setValue("chequeDate", "")
         } else {
-          form.setValue("bankChgLocalAmt", 0, { shouldDirty: true })
+          const currentChequeDate = form.getValues("chequeDate")
+          const currentAccountDate = form.getValues("accountDate")
+
+          if (!currentChequeDate && currentAccountDate) {
+            const accountDateStr =
+              typeof currentAccountDate === "string"
+                ? currentAccountDate
+                : format(currentAccountDate, dateFormat)
+
+            form.setValue("chequeDate", accountDateStr, {
+              shouldDirty: true,
+            })
+          }
         }
       } else {
-        console.log("Bank Charges Amount unchanged - skipping recalculation")
+        // No receipt type selected, hide cheque fields
+        setIsChequePayment(false)
+        form.setValue("chequeNo", "")
+        form.setValue("chequeDate", "")
       }
     },
-    [form, locAmtDec]
+    [dateFormat, form]
+  )
+
+  // Handle payee selection from dialog
+  const handlePayeeSelect = React.useCallback(
+    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
+      form.setValue("payeeTo", payeeName)
+      form.trigger("payeeTo")
+    },
+    [form]
   )
 
   return (
@@ -484,21 +504,19 @@ export default function CbPettyCashForm({
           />
 
           {/* Payee To */}
-          {visible?.m_PayeeTo && (
-            <CustomInputGroup
-              form={form}
-              name="payeeTo"
-              label="Payee To"
-              isRequired={true}
-              className="col-span-2"
-              buttonText=""
-              buttonIcon={<PlusIcon className="h-4 w-4" />}
-              buttonPosition="right"
-              onButtonClick={handleAddPayeeTo}
-              buttonVariant="default"
-              buttonDisabled={false}
-            />
-          )}
+          <CustomInputGroup
+            form={form}
+            name="payeeTo"
+            label="Payee To"
+            isRequired={true}
+            className="col-span-2"
+            buttonText=""
+            buttonIcon={<PlusIcon className="h-4 w-4" />}
+            buttonPosition="right"
+            onButtonClick={handleAddPayeeTo}
+            buttonVariant="default"
+            buttonDisabled={false}
+          />
 
           {/* Reference No */}
           <CustomInput
@@ -596,7 +614,7 @@ export default function CbPettyCashForm({
             </>
           )}
 
-          {visible?.m_CtyCurr && visible?.m_GstId && (
+          {visible?.m_CtyCurr && (
             <>
               {/* GST Country Amount */}
               <CustomNumberInput
@@ -624,41 +642,16 @@ export default function CbPettyCashForm({
             </>
           )}
 
-          {/* Bank Charge GL */}
-          {visible?.m_BankChgGLId && (
-            <BankChartOfAccountAutocomplete
+          {/* Remarks */}
+          {visible?.m_Remarks && (
+            <CustomTextarea
               form={form}
-              name="bankChgGLId"
-              label="Bank Charges GL"
-              companyId={_companyId}
+              name="remarks"
+              label="Remarks"
+              isRequired={required?.m_Remarks_Hd}
+              className="col-span-2"
             />
           )}
-
-          {/* Bank Charges Amount */}
-          <CustomNumberInput
-            form={form}
-            name="bankChgAmt"
-            label="Bank Charges Amount"
-            onFocusEvent={handleBankChgAmtFocus}
-            onBlurEvent={handleBankChgAmtChange}
-          />
-
-          {/* Bank Charges Local Amount */}
-          <CustomNumberInput
-            form={form}
-            name="bankChgLocalAmt"
-            label="Bank Charges Local Amount"
-            isDisabled={true}
-          />
-
-          {/* Remarks */}
-          <CustomTextarea
-            form={form}
-            name="remarks"
-            label="Remarks"
-            isRequired={required?.m_Remarks_Hd}
-            className="col-span-2"
-          />
         </div>
 
         {/* {form.watch("paymentId") != "0" && (
@@ -668,14 +661,14 @@ export default function CbPettyCashForm({
         <div className="col-span-2 ml-2 flex flex-col justify-start">
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
             {/* Header Row */}
-            <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-xs">
+            <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-sm">
               <div className="text-right font-bold text-blue-800">Trns</div>
               <div className="text-center"></div>
               <div className="text-right font-bold text-blue-800">Local</div>
             </div>
 
             {/* 3-column grid: [Amt] [Label] [Local] */}
-            <div className="grid grid-cols-3 gap-x-4 text-xs">
+            <div className="grid grid-cols-3 gap-x-4 text-sm">
               {/* Column 1: Foreign Amounts (Amt) */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
