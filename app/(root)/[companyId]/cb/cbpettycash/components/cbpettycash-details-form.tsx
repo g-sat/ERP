@@ -183,7 +183,8 @@ const CbPettyCashDetailsForm = React.forwardRef<
             paymentNo: editingDetail.paymentNo ?? "",
             itemNo: editingDetail.itemNo ?? getNextItemNo(),
             seqNo: editingDetail.seqNo ?? getNextItemNo(),
-            invoiceDate: editingDetail.invoiceDate ?? new Date(),
+            invoiceDate:
+              editingDetail.invoiceDate ?? format(new Date(), dateFormat),
             invoiceNo: editingDetail.invoiceNo ?? "",
             supplierName: editingDetail.supplierName ?? "",
             gstNo: editingDetail.gstNo ?? "",
@@ -445,7 +446,8 @@ const CbPettyCashDetailsForm = React.forwardRef<
           paymentNo: editingDetail.paymentNo ?? "",
           itemNo: editingDetail.itemNo ?? nextItemNo,
           seqNo: editingDetail.seqNo ?? nextItemNo,
-          invoiceDate: editingDetail.invoiceDate ?? new Date(),
+          invoiceDate:
+            editingDetail.invoiceDate ?? format(new Date(), dateFormat),
           invoiceNo: editingDetail.invoiceNo ?? "",
           supplierName: editingDetail.supplierName ?? "",
           gstNo: editingDetail.gstNo ?? "",
@@ -595,7 +597,8 @@ const CbPettyCashDetailsForm = React.forwardRef<
           glId: populatedData.glId ?? 0,
           glCode: populatedData.glCode ?? "",
           glName: populatedData.glName ?? "",
-          invoiceDate: updatedData.invoiceDate ?? new Date(),
+          invoiceDate:
+            updatedData.invoiceDate ?? format(new Date(), dateFormat),
           invoiceNo: updatedData.invoiceNo ?? "",
           supplierName: updatedData.supplierName ?? "",
           gstNo: updatedData.gstNo ?? "",
@@ -923,8 +926,13 @@ const CbPettyCashDetailsForm = React.forwardRef<
           shouldValidate: true,
           shouldDirty: true,
         })
+        form.setValue(
+          "serviceCategoryName",
+          selectedOption.serviceCategoryName || ""
+        )
       } else {
         form.setValue("serviceCategoryId", 0, { shouldValidate: true })
+        form.setValue("serviceCategoryName", "")
       }
     }
 
