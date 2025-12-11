@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
   mathRound,
-  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
 } from "@/helpers/account"
@@ -53,6 +52,12 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -136,7 +141,7 @@ export default function GLJournalPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/gl/glJournal`,
+    () => `history-doc:/${companyId}/gl/journalentry`,
     [companyId]
   )
 
@@ -224,11 +229,6 @@ export default function GLJournalPage() {
           totLocalAmtAftGst: glJournal.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: glJournal.totCtyAmtAftGst ?? 0,
           moduleFrom: glJournal.moduleFrom ?? "",
-          remarks: glJournal.remarks ?? "",
-          isReverse: glJournal.isReverse ?? false,
-          isRecurrency: glJournal.isRecurrency ?? false,
-          revDate: glJournal.revDate ?? new Date(),
-          recurrenceUntil: glJournal.recurrenceUntil ?? new Date(),
           editVersion: glJournal.editVersion ?? 0,
           data_details:
             glJournal.data_details?.map((detail) => ({
@@ -269,10 +269,10 @@ export default function GLJournalPage() {
 
     if (isDirty) return
 
-    const currentGLJournalId = form.getValues("journalId") || "0"
+    const currentGLjournalId = form.getValues("journalId") || "0"
     if (
       (glJournal && glJournal.journalId && glJournal.journalId !== "0") ||
-      currentGLJournalId !== "0"
+      currentGLjournalId !== "0"
     ) {
       return
     }
@@ -304,7 +304,7 @@ export default function GLJournalPage() {
   const deleteMutation = useDeleteWithRemarks(`${GLJournal.delete}`)
 
   // Remove the useGetGLJournalById hook for selection
-  // const { data: glJournalByIdData, refetch: refetchGLJournalById } = ...
+  // const { data: invoiceByIdData, refetch: refetchGLJournalById } = ...
 
   // Handle Save
   const handleSaveGLJournal = async () => {
@@ -345,32 +345,6 @@ export default function GLJournalPage() {
       //check totamt and totlocalamt should be zero
       if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
-        return
-      }
-
-      const details = formValues.data_details || []
-      const amtDec = decimals[0]?.amtDec || 2
-      const debitTotal = mathRound(
-        details.reduce((sum, detail) => {
-          if (!detail.isDebit) {
-            return sum
-          }
-          return sum + (Number(detail.totAmt) || 0)
-        }, 0),
-        amtDec
-      )
-      const creditTotal = mathRound(
-        details.reduce((sum, detail) => {
-          if (detail.isDebit) {
-            return sum
-          }
-          return sum + (Number(detail.totAmt) || 0)
-        }, 0),
-        amtDec
-      )
-
-      if (debitTotal !== creditTotal) {
-        toast.error("Debit and Credit totals must be equal before saving")
         return
       }
 
@@ -423,14 +397,14 @@ export default function GLJournalPage() {
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const glJournalData = Array.isArray(response.data)
+          const invoiceData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (glJournalData) {
+          if (invoiceData) {
             const updatedSchemaType = transformToSchemaType(
-              glJournalData as unknown as IGLJournalHd
+              invoiceData as unknown as IGLJournalHd
             )
 
             setSearchNo(updatedSchemaType.journalNo || "")
@@ -447,6 +421,17 @@ export default function GLJournalPage() {
 
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
+
+          // Check if this was a new glJournal or update
+          const wasNewGLJournal = Number(formValues.journalId) === 0
+
+          if (wasNewGLJournal) {
+            //toast.success(
+            // `GLJournal ${invoiceData?.journalNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("GLJournal updated successfully")
+          }
 
           // Data refresh handled by GLJournalTable component
         } else {
@@ -476,14 +461,18 @@ export default function GLJournalPage() {
         trnDate: dateStr,
         accountDate: dateStr,
         gstClaimDate: dateStr,
+        isReverse: false,
+        isRecurrency: false,
+        revDate: dateStr,
+        recurrenceUntilDate: dateStr,
         // Clear all audit fields
         createBy: "",
         editBy: "",
         cancelBy: "",
-        createDate: dateStr,
+        createDate: "",
         editDate: "",
         cancelDate: "",
-        // Keep data details - do not remove
+        // Clear all balance and payment amounts
         data_details:
           glJournal.data_details?.map((detail) => ({
             ...detail,
@@ -500,30 +489,24 @@ export default function GLJournalPage() {
 
       const details = clonedGLJournal.data_details || []
       if (details.length > 0) {
-        const totAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.totAmt || 0)
-        }, 0)
-        const gstAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.gstAmt || 0)
-        }, 0)
-        const totLocalAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.totLocalAmt || 0)
-        }, 0)
-        const gstLocalAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.gstLocalAmt || 0)
-        }, 0)
-        const totCtyAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.totCtyAmt || 0)
-        }, 0)
-        const gstCtyAmt = details.reduce((sum, d) => {
-          if (!d.isDebit) return sum
-          return sum + (d.gstCtyAmt || 0)
-        }, 0)
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
 
         clonedGLJournal.totAmt = mathRound(totAmt, amtDec)
         clonedGLJournal.gstAmt = mathRound(gstAmt, amtDec)
@@ -618,15 +601,6 @@ export default function GLJournalPage() {
           }
         } catch (error) {
           console.error("Error updating exchange rates:", error)
-        }
-      }
-
-      // Calculate due date based on accountDate and credit terms
-      if (clonedGLJournal.journalId && clonedGLJournal.accountDate) {
-        try {
-          await setDueDate(form)
-        } catch (error) {
-          console.error("Error calculating due date:", error)
         }
       }
 
@@ -727,10 +701,12 @@ export default function GLJournalPage() {
     toast.success("GLJournal reset successfully")
   }
 
-  // Handle Print GL Journal Report
-  const handlePrintGLJournal = () => {
+  // Handle Print GLJournal Report
+  const handlePrintGLJournal = (
+    reportType: "direct" | "glJournal" = "glJournal"
+  ) => {
     if (!glJournal || glJournal.journalId === "0") {
-      toast.error("Please select a GL journal to print")
+      toast.error("Please select an glJournal to print")
       return
     }
 
@@ -746,9 +722,9 @@ export default function GLJournalPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      invoiceId: journalId,
-      invoiceNo: journalNo,
-      reportType: 1,
+      journalId: journalId,
+      journalNo: journalNo,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -756,9 +732,15 @@ export default function GLJournalPage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file based on type
+    const reportFile =
+      reportType === "direct"
+        ? "RPT_GLJournalDirect.trdp"
+        : "RPT_GLJournal.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_GLJournal.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -782,135 +764,138 @@ export default function GLJournalPage() {
   // Helper function to transform IGLJournalHd to GLJournalHdSchemaType
   const transformToSchemaType = useCallback(
     (apiGLJournal: IGLJournalHd): GLJournalHdSchemaType => {
-    return {
-      journalId: apiGLJournal.journalId?.toString() ?? "0",
-      journalNo: apiGLJournal.journalNo ?? "",
-      referenceNo: apiGLJournal.referenceNo ?? "",
-      trnDate: apiGLJournal.trnDate
-        ? format(
-            parseDate(apiGLJournal.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiGLJournal.accountDate
-        ? format(
-            parseDate(apiGLJournal.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiGLJournal.gstClaimDate
-        ? format(
-            parseDate(apiGLJournal.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      currencyId: apiGLJournal.currencyId ?? 0,
-      exhRate: apiGLJournal.exhRate ?? 0,
-      ctyExhRate: apiGLJournal.ctyExhRate ?? 0,
-      totAmt: apiGLJournal.totAmt ?? 0,
-      totLocalAmt: apiGLJournal.totLocalAmt ?? 0,
-      totCtyAmt: apiGLJournal.totCtyAmt ?? 0,
-      gstAmt: apiGLJournal.gstAmt ?? 0,
-      gstLocalAmt: apiGLJournal.gstLocalAmt ?? 0,
-      gstCtyAmt: apiGLJournal.gstCtyAmt ?? 0,
-      totAmtAftGst: apiGLJournal.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiGLJournal.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiGLJournal.totCtyAmtAftGst ?? 0,
-      remarks: apiGLJournal.remarks ?? "",
-      isReverse: apiGLJournal.isReverse ?? false,
-      isRecurrency: apiGLJournal.isRecurrency ?? false,
-      revDate: apiGLJournal.revDate
-        ? format(
-            parseDate(apiGLJournal.revDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      recurrenceUntil: apiGLJournal.recurrenceUntil
-        ? format(
-            parseDate(apiGLJournal.recurrenceUntil as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      moduleFrom: apiGLJournal.moduleFrom ?? "",
-      editVersion: apiGLJournal.editVersion ?? 0,
-      createBy: apiGLJournal.createBy ?? "",
-      editBy: apiGLJournal.editBy ?? "",
-      cancelBy: apiGLJournal.cancelBy ?? "",
-      createDate: apiGLJournal.createDate
-        ? format(
-            parseDate(apiGLJournal.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
+      return {
+        journalId: apiGLJournal.journalId?.toString() ?? "0",
+        journalNo: apiGLJournal.journalNo ?? "",
+        referenceNo: apiGLJournal.referenceNo ?? "",
 
-      editDate: apiGLJournal.editDate
-        ? format(
-            parseDate(apiGLJournal.editDate as unknown as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiGLJournal.cancelDate
-        ? format(
-            parseDate(apiGLJournal.cancelDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiGLJournal.isCancel ?? false,
-      cancelRemarks: apiGLJournal.cancelRemarks ?? "",
-      data_details:
-        apiGLJournal.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              journalId: detail.journalId?.toString() ?? "0",
-              journalNo: detail.journalNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              productId: detail.productId ?? 0,
-              productCode: detail.productCode ?? "",
-              productName: detail.productName ?? "",
-              isDebit: detail.isDebit ?? false,
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              taskId: detail.taskId ?? 0,
-              taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as GLJournalDtSchemaType
-        ) || [],
-    }
+        trnDate: apiGLJournal.trnDate
+          ? format(
+              parseDate(apiGLJournal.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiGLJournal.accountDate
+          ? format(
+              parseDate(apiGLJournal.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiGLJournal.gstClaimDate
+          ? format(
+              parseDate(apiGLJournal.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        currencyId: apiGLJournal.currencyId ?? 0,
+        exhRate: apiGLJournal.exhRate ?? 0,
+        ctyExhRate: apiGLJournal.ctyExhRate ?? 0,
+
+        totAmt: apiGLJournal.totAmt ?? 0,
+        totLocalAmt: apiGLJournal.totLocalAmt ?? 0,
+        totCtyAmt: apiGLJournal.totCtyAmt ?? 0,
+        gstAmt: apiGLJournal.gstAmt ?? 0,
+        gstLocalAmt: apiGLJournal.gstLocalAmt ?? 0,
+        gstCtyAmt: apiGLJournal.gstCtyAmt ?? 0,
+        totAmtAftGst: apiGLJournal.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiGLJournal.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiGLJournal.totCtyAmtAftGst ?? 0,
+        isReverse: apiGLJournal.isReverse ?? false,
+        isRecurrency: apiGLJournal.isRecurrency ?? false,
+        revDate: apiGLJournal.revDate
+          ? format(
+              parseDate(apiGLJournal.revDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        recurrenceUntilDate: apiGLJournal.recurrenceUntilDate
+          ? format(
+              parseDate(apiGLJournal.recurrenceUntilDate as string) ||
+                new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        remarks: apiGLJournal.remarks ?? "",
+        moduleFrom: apiGLJournal.moduleFrom ?? "",
+        editVersion: apiGLJournal.editVersion ?? 0,
+        createBy: apiGLJournal.createBy ?? "",
+        editBy: apiGLJournal.editBy ?? "",
+        cancelBy: apiGLJournal.cancelBy ?? "",
+        createDate: apiGLJournal.createDate
+          ? format(
+              parseDate(apiGLJournal.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+
+        editDate: apiGLJournal.editDate
+          ? format(
+              parseDate(apiGLJournal.editDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiGLJournal.cancelDate
+          ? format(
+              parseDate(apiGLJournal.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiGLJournal.isCancel ?? false,
+        cancelRemarks: apiGLJournal.cancelRemarks ?? "",
+        data_details:
+          apiGLJournal.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                journalId: detail.journalId?.toString() ?? "0",
+                journalNo: detail.journalNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as GLJournalDtSchemaType
+          ) || [],
+      }
     },
     [dateFormat, decimals]
   )
@@ -927,24 +912,24 @@ export default function GLJournalPage() {
     }) => {
       console.log("journalId", journalId)
       console.log("journalNo", journalNo)
-      const trimmedJournalNo = journalNo?.trim() ?? ""
-      const trimmedJournalId =
+      const trimmedGLJournalNo = journalNo?.trim() ?? ""
+      const trimmedGLjournalId =
         typeof journalId === "number"
           ? journalId.toString()
           : (journalId?.toString().trim() ?? "")
 
-      if (!trimmedJournalNo && !trimmedJournalId) return null
+      if (!trimmedGLJournalNo && !trimmedGLjournalId) return null
 
       if (showLoader) {
         setIsLoadingGLJournal(true)
       }
 
-      const requestJournalId = trimmedJournalId || "0"
-      const requestJournalNo = trimmedJournalNo || ""
+      const requestGLjournalId = trimmedGLjournalId || "0"
+      const requestGLJournalNo = trimmedGLJournalNo || ""
 
       try {
         const response = await getById(
-          `${GLJournal.getByIdNo}/${requestJournalId}/${requestJournalNo}`
+          `${GLJournal.getByIdNo}/${requestGLjournalId}/${requestGLJournalNo}`
         )
 
         if (response?.result === 1) {
@@ -966,11 +951,13 @@ export default function GLJournalPage() {
             form.reset(updatedGLJournal)
             form.trigger()
 
-            const resolvedJournalNo =
-              updatedGLJournal.journalNo || trimmedJournalNo || trimmedJournalId
-            setSearchNo(resolvedJournalNo)
+            const resolvedGLJournalNo =
+              updatedGLJournal.journalNo ||
+              trimmedGLJournalNo ||
+              trimmedGLjournalId
+            setSearchNo(resolvedGLJournalNo)
 
-            return resolvedJournalNo
+            return resolvedGLJournalNo
           }
         } else {
           toast.error(response?.message || "Failed to fetch glJournal details")
@@ -1002,12 +989,12 @@ export default function GLJournalPage() {
   ) => {
     if (!selectedGLJournal) return
 
-    const loadedJournalNo = await loadGLJournal({
+    const loadedGLJournalNo = await loadGLJournal({
       journalId: selectedGLJournal.journalId ?? "0",
       journalNo: selectedGLJournal.journalNo ?? "",
     })
 
-    if (loadedJournalNo) {
+    if (loadedGLJournalNo) {
       setShowListDialog(false)
     }
   }
@@ -1020,13 +1007,13 @@ export default function GLJournalPage() {
 
   // Data refresh handled by GLJournalTable component
 
-  // Set createBy and createDate for new glJournals on page load/refresh
+  // Set createBy and createDate for new invoices on page load/refresh
   useEffect(() => {
     if (!glJournal && user && decimals.length > 0) {
-      const currentGLJournalId = form.getValues("journalId")
+      const currentGLjournalId = form.getValues("journalId")
       const currentGLJournalNo = form.getValues("journalNo")
       const isNewGLJournal =
-        !currentGLJournalId || currentGLJournalId === "0" || !currentGLJournalNo
+        !currentGLjournalId || currentGLjournalId === "0" || !currentGLJournalNo
 
       if (isNewGLJournal) {
         const currentDateTime = decimals[0]?.longDateFormat
@@ -1080,14 +1067,14 @@ export default function GLJournalPage() {
     if (!trimmedValue) return
 
     try {
-      const loadedJournalNo = await loadGLJournal({
+      const loadedGLJournalNo = await loadGLJournal({
         journalId: "0",
         journalNo: trimmedValue,
         showLoader: true,
       })
 
-      if (loadedJournalNo) {
-        toast.success(`GLJournal ${loadedJournalNo} loaded successfully`)
+      if (loadedGLJournalNo) {
+        toast.success(`GLJournal ${loadedGLJournalNo} loaded successfully`)
       }
     } finally {
       setShowLoadConfirm(false)
@@ -1143,10 +1130,10 @@ export default function GLJournalPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1164,7 +1151,7 @@ export default function GLJournalPage() {
   }, [searchNo, copyToClipboard])
 
   // Handle double-click to copy journalNo to clipboard
-  const handleCopyInvoiceNo = useCallback(async () => {
+  const handleCopyGLJournalNo = useCallback(async () => {
     const journalNoToCopy = isEdit
       ? glJournal?.journalNo || form.getValues("journalNo") || ""
       : form.getValues("journalNo") || ""
@@ -1239,8 +1226,8 @@ export default function GLJournalPage() {
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
                   className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
-                  onDoubleClick={handleCopyInvoiceNo}
-                  title="Double-click to copy journal number"
+                  onDoubleClick={handleCopyGLJournalNo}
+                  title="Double-click to copy glJournal number"
                 >
                   {titleText}
                 </span>
@@ -1277,7 +1264,7 @@ export default function GLJournalPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search GLJournal No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!glJournal?.journalId && glJournal.journalId !== "0"}
                 disabled={!!glJournal?.journalId && glJournal.journalId !== "0"}
               />
@@ -1323,15 +1310,30 @@ export default function GLJournalPage() {
                   : "Save"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!glJournal || glJournal.journalId === "0"}
-              onClick={handlePrintGLJournal}
-            >
-              <Printer className="mr-1 h-4 w-4" />
-              Print
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!glJournal || glJournal.journalId === "0"}
+                >
+                  <Printer className="mr-1 h-4 w-4" />
+                  Print
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => handlePrintGLJournal("direct")}
+                >
+                  1. Direct
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handlePrintGLJournal("glJournal")}
+                >
+                  2. GLJournal
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
@@ -1418,8 +1420,8 @@ export default function GLJournalPage() {
               GLJournal List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing glJournals from the list below. Use
-              search to filter records or create new glJournals.
+              Manage and select existing GLJournals from the list below. Use
+              search to filter records or create new invoices.
             </p>
           </div>
 

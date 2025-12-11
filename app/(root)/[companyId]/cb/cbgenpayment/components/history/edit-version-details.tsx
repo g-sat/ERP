@@ -11,8 +11,8 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBCbGenPaymentHistoryDetails,
-  useGetCBCbGenPaymentHistoryList,
+  useGetCbGenPaymentHistoryDetails,
+  useGetCbGenPaymentHistoryList,
 } from "@/hooks/use-cb"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,10 +64,10 @@ export default function EditVersionDetails({
 
   const { data: cbGenPaymentHistoryData, refetch: refetchHistory } =
     //useGetARCbGenPaymentHistoryList<ICbGenPaymentHd[]>("14120250100024")
-    useGetCBCbGenPaymentHistoryList<ICbGenPaymentHd[]>(paymentId)
+    useGetCbGenPaymentHistoryList<ICbGenPaymentHd[]>(paymentId)
 
   const { data: cbGenPaymentDetailsData, refetch: refetchDetails } =
-    useGetCBCbGenPaymentHistoryDetails<ICbGenPaymentHd>(
+    useGetCbGenPaymentHistoryDetails<ICbGenPaymentHd>(
       selectedCbGenPayment?.paymentId || "",
       selectedCbGenPayment?.editVersion?.toString() || ""
     )

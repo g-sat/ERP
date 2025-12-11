@@ -52,8 +52,13 @@ export const CbGenReceiptHdSchema = (
       ? z.union([z.date(), z.string()])
       : z.union([z.date(), z.string()]).optional(),
     gstAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
     totAmtAftGst: z.number().optional(),
     totLocalAmtAftGst: z.number().optional(),
     totCtyAmtAftGst: visible?.m_CtyCurr
@@ -140,8 +145,13 @@ export const CbGenReceiptDtSchema = (
     gstName: z.string().optional(),
     gstPercentage: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
     gstAmt: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
 
     // Department Fields
     departmentId:
@@ -189,6 +199,27 @@ export const CbGenReceiptDtSchema = (
         ? z.number().min(1, "Voyage is required")
         : z.number().optional(),
     voyageNo: z.string().optional(),
+
+    // Job Order Fields
+    jobOrderId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Job Order is required")
+        : z.number().optional(),
+    jobOrderNo: z.string().optional(),
+
+    // Task Fields
+    taskId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Task is required")
+        : z.number().optional(),
+    taskName: z.string().optional(),
+
+    // Service Fields
+    serviceId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Service is required")
+        : z.number().optional(),
+    serviceName: z.string().optional(),
 
     editVersion: z.number().optional(),
   })

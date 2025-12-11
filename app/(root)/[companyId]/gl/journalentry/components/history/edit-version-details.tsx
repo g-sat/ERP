@@ -62,11 +62,11 @@ export default function EditVersionDetails({
     }
   }, [canViewGLJournalHistory])
 
-  const { data: glJournalHistoryData, refetch: refetchHistory } =
+  const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARGLJournalHistoryList<IGLJournalHd[]>("14120250100024")
     useGetGLJournalHistoryList<IGLJournalHd[]>(journalId)
 
-  const { data: glJournalDetailsData, refetch: refetchDetails } =
+  const { data: invoiceDetailsData, refetch: refetchDetails } =
     useGetGLJournalHistoryDetails<IGLJournalHd>(
       selectedGLJournal?.journalId || "",
       selectedGLJournal?.editVersion?.toString() || ""
@@ -82,24 +82,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: IGLJournalHd[] =
-    glJournalHistoryData?.result === 1 &&
-    isIGLJournalHdArray(glJournalHistoryData?.data)
-      ? glJournalHistoryData.data
+    invoiceHistoryData?.result === 1 &&
+    isIGLJournalHdArray(invoiceHistoryData?.data)
+      ? invoiceHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: IGLJournalHd | undefined =
-    glJournalDetailsData?.result === 1 &&
-    glJournalDetailsData?.data &&
-    typeof glJournalDetailsData.data === "object" &&
-    glJournalDetailsData.data !== null &&
-    !Array.isArray(glJournalDetailsData.data)
-      ? (glJournalDetailsData.data as IGLJournalHd)
+    invoiceDetailsData?.result === 1 &&
+    invoiceDetailsData?.data &&
+    typeof invoiceDetailsData.data === "object" &&
+    invoiceDetailsData.data !== null &&
+    !Array.isArray(invoiceDetailsData.data)
+      ? (invoiceDetailsData.data as IGLJournalHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = glJournalHistoryData?.result === -1
-  const hasDetailsError = glJournalDetailsData?.result === -1
+  const hasHistoryError = invoiceHistoryData?.result === -1
+  const hasDetailsError = invoiceDetailsData?.result === -1
 
   const columns: ColumnDef<IGLJournalHd>[] = [
     {
@@ -134,7 +134,6 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-
     {
       accessorKey: "currencyCode",
       header: "Currency Code",
@@ -164,22 +163,6 @@ export default function EditVersionDetails({
             : "-"}
         </div>
       ),
-    },
-    {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
     },
     {
       accessorKey: "totAmt",
@@ -298,13 +281,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        glJournalHistoryData?.message !== "Data does not exist"
+        invoiceHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        glJournalDetailsData?.message !== "Data does not exist"
+        invoiceDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -333,7 +316,7 @@ export default function EditVersionDetails({
             onRefreshAction={handleRefresh}
             onRowSelect={
               canViewGLJournalHistory
-                ? (glJournal) => setSelectedGLJournal(glJournal)
+                ? (invoice) => setSelectedGLJournal(invoice)
                 : undefined
             }
           />
@@ -375,8 +358,8 @@ export default function EditVersionDetails({
           ) : (
             <div className="text-muted-foreground py-8 text-center">
               {hasDetailsError
-                ? "Error loading glJournal details"
-                : "No glJournal details available"}
+                ? "Error loading invoice details"
+                : "No invoice details available"}
             </div>
           )}
         </DialogContent>

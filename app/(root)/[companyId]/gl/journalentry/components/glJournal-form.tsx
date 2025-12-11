@@ -2,37 +2,32 @@
 
 import * as React from "react"
 import {
-  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
   setGSTPercentage,
 } from "@/helpers/account"
 import {
-  calculateCtyAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
   recalculateAllDetailsLocalAndCtyAmounts,
+  recalculateAndSetHeaderTotals,
+  syncCountryExchangeRate,
 } from "@/helpers/gl-journal-calculations"
 import { IGLJournalDt } from "@/interfaces"
 import { ICurrencyLookup } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { GLJournalDtSchemaType, GLJournalHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
-import { PlusIcon } from "lucide-react"
-import { FormProvider, UseFormReturn } from "react-hook-form"
+import { format, isValid, parse } from "date-fns"
+import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/date-utils"
-import {
-  BankAutocomplete,
-  CurrencyAutocomplete,
-  PaymentTypeAutocomplete,
-} from "@/components/autocomplete"
-import { CustomCheckbox, CustomInputGroup } from "@/components/custom"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
+import { CurrencyAutocomplete } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+
+import { GLJournalDetailsFormRef } from "./glJournal-details-form"
 
 interface GLJournalFormProps {
   form: UseFormReturn<GLJournalHdSchemaType>
@@ -42,6 +37,7 @@ interface GLJournalFormProps {
   required: IMandatoryFields
   companyId: number
   defaultCurrencyId?: number
+  detailsFormRef?: React.RefObject<GLJournalDetailsFormRef | null>
 }
 
 export default function GLJournalForm({
@@ -52,17 +48,56 @@ export default function GLJournalForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
+  detailsFormRef,
 }: GLJournalFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+  const isDynamicVessel = dynamicLookup?.isVessel ?? false
+  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
     [decimals]
   )
+
+  const parseWithFallback = React.useCallback(
+    (value: string): Date | null => {
+      if (!value) return null
+
+      const parsedByDateFormat = parse(value, dateFormat, new Date())
+      if (isValid(parsedByDateFormat)) {
+        return parsedByDateFormat
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  // Watch account date to use as minDate for due date
+  const accountDateValue = useWatch({
+    control: form.control,
+    name: "accountDate",
+  })
+  const dueDateMinDate = React.useMemo(() => {
+    if (!accountDateValue) return new Date()
+
+    // Parse account date string to Date object if needed
+    const accountDateObj =
+      typeof accountDateValue === "string"
+        ? parseWithFallback(accountDateValue)
+        : accountDateValue
+
+    return accountDateObj && !isNaN(accountDateObj.getTime())
+      ? accountDateObj
+      : new Date()
+  }, [accountDateValue, parseWithFallback])
 
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
@@ -87,9 +122,11 @@ export default function GLJournalForm({
       form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
       form.setValue("accountDate", trnDateStr)
-
+      form.setValue("revDate", trnDateStr)
+      form.setValue("recurrenceUntilDate", trnDateStr)
       form?.trigger("accountDate")
-
+      form?.trigger("revDate")
+      form?.trigger("recurrenceUntilDate")
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
@@ -100,7 +137,6 @@ export default function GLJournalForm({
         decimals[0],
         visible
       )
-      await setDueDate(form)
     },
     [decimals, exhRateDec, form, visible, dateFormat]
   )
@@ -121,6 +157,11 @@ export default function GLJournalForm({
         // Set gstClaimDate and deliveryDate to the new account date (as strings)
         form.setValue("gstClaimDate", accountDateStr)
         form?.trigger("gstClaimDate")
+
+        form.setValue("revDate", accountDateStr)
+        form.setValue("recurrenceUntilDate", accountDateStr)
+        form?.trigger("revDate")
+        form?.trigger("recurrenceUntilDate")
 
         // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
         if (selectedAccountDate) {
@@ -149,6 +190,7 @@ export default function GLJournalForm({
     // Only run when defaultCurrencyId is loaded and we're not in edit mode
     if (!isEdit && defaultCurrencyId > 0) {
       const currentCurrencyId = form.getValues("currencyId")
+
       // Only set default if no currency is set
       if (!currentCurrencyId || currentCurrencyId === 0) {
         form.setValue("currencyId", defaultCurrencyId)
@@ -163,76 +205,16 @@ export default function GLJournalForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultCurrencyId, isEdit])
 
-  const accountDate = form.watch("accountDate")
-  const revDate = form.watch("revDate")
-  const recurrenceUntil = form.watch("recurrenceUntil")
-
-  React.useEffect(() => {
-    if (!accountDate || revDate || recurrenceUntil) {
-      return
-    }
-
-    const accountDateStr =
-      typeof accountDate === "string"
-        ? accountDate
-        : format(accountDate, dateFormat)
-
-    form.setValue("revDate", accountDateStr, {
-      shouldDirty: true,
-    })
-    form.setValue("recurrenceUntil", accountDateStr, {
-      shouldDirty: true,
-    })
-  }, [accountDate, revDate, recurrenceUntil, dateFormat, form])
-
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
     const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      if (visible?.m_CtyCurr) {
-        form.setValue("totCtyAmt", 0)
-        form.setValue("gstCtyAmt", 0)
-        form.setValue("totCtyAmtAftGst", 0)
-      }
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
+    recalculateAndSetHeaderTotals(
+      form,
       formDetails as unknown as IGLJournalDt[],
-      amtDec
+      decimals[0],
+      visible
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IGLJournalDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCtyAmounts(
-      formDetails as unknown as IGLJournalDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
+  }, [decimals, form, visible])
 
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
@@ -284,10 +266,6 @@ export default function GLJournalForm({
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0
-    console.log(
-      "handleExchangeRateFocus - original value:",
-      originalExhRateRef.current
-    )
   }, [form])
 
   // Handle exchange rate blur - recalculate amounts when user leaves the field
@@ -296,62 +274,58 @@ export default function GLJournalForm({
       const exchangeRate = form.getValues("exhRate") || 0
       const originalExhRate = originalExhRateRef.current
 
-      console.log("handleExchangeRateBlur", {
-        newValue: exchangeRate,
-        originalValue: originalExhRate,
-        isDifferent: exchangeRate !== originalExhRate,
-      })
-
       // Only recalculate if value is different from original
       if (exchangeRate === originalExhRate) {
-        console.log("Exchange Rate unchanged - skipping recalculation")
         return
       }
-
-      console.log("Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
 
-      // If m_CtyCurr is false, set countryExchangeRate = exchangeRate
-      let countryExchangeRate = form.getValues("ctyExhRate") || 0
-      if (!visible?.m_CtyCurr) {
-        countryExchangeRate = exchangeRate
-        form.setValue("ctyExhRate", exchangeRate)
-      }
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
-        formDetails as unknown as IGLJournalDt[],
+      // Sync city exchange rate with exchange rate if needed
+      const countryExchangeRate = syncCountryExchangeRate(
+        form,
         exchangeRate,
-        countryExchangeRate,
-        decimals[0],
-        !!visible?.m_CtyCurr
+        visible
       )
 
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as GLJournalDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
+      // Recalculate all details in table if they exist
+      if (formDetails && formDetails.length > 0) {
+        // Recalculate all details with new exchange rate
+        const updatedDetails = recalculateAllDetailsLocalAndCtyAmounts(
+          formDetails as unknown as IGLJournalDt[],
+          exchangeRate,
+          countryExchangeRate,
+          decimals[0],
+          !!visible?.m_CtyCurr
+        )
 
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
+        // Update form with recalculated details
+        form.setValue(
+          "data_details",
+          updatedDetails as unknown as GLJournalDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
+        )
+
+        // Recalculate header totals from updated details
+        recalculateHeaderTotals()
+      }
+
+      // Always trigger recalculation in details form (even if no table details exist)
+      // This ensures the form being edited gets updated with new exchange rate
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          countryExchangeRate
+        )
+      }
     },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
   // Handle city exchange rate focus - capture original value
   const handleCountryExchangeRateFocus = React.useCallback(() => {
     originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
-    console.log(
-      "handleCountryExchangeRateFocus - original value:",
-      originalCtyExhRateRef.current
-    )
   }, [form])
 
   // Handle city exchange rate blur - recalculate amounts when user leaves the field
@@ -360,19 +334,10 @@ export default function GLJournalForm({
       const countryExchangeRate = form.getValues("ctyExhRate") || 0
       const originalCtyExhRate = originalCtyExhRateRef.current
 
-      console.log("handleCountryExchangeRateBlur", {
-        newValue: countryExchangeRate,
-        originalValue: originalCtyExhRate,
-        isDifferent: countryExchangeRate !== originalCtyExhRate,
-      })
-
       // Only recalculate if value is different from original
       if (countryExchangeRate === originalCtyExhRate) {
-        console.log("Country Exchange Rate unchanged - skipping recalculation")
         return
       }
-
-      console.log("Country Exchange Rate changed - recalculating amounts")
 
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
@@ -399,8 +364,17 @@ export default function GLJournalForm({
 
       // Recalculate header totals from updated details
       recalculateHeaderTotals()
+
+      // Trigger recalculation in details form if it exists
+      // Pass exchange rate values directly to avoid timing issues with form state
+      if (detailsFormRef?.current) {
+        detailsFormRef.current.recalculateAmounts(
+          exchangeRate,
+          countryExchangeRate
+        )
+      }
     },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+    [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
   return (
@@ -501,7 +475,7 @@ export default function GLJournalForm({
             </>
           )}
 
-          {visible?.m_CtyCurr && (
+          {visible?.m_CtyCurr && visible?.m_GstId && (
             <>
               {/* GST Country Amount */}
               <CustomNumberInput
@@ -528,48 +502,15 @@ export default function GLJournalForm({
               />
             </>
           )}
-          {/* Is Reverse */}
-          <CustomCheckbox
-            form={form}
-            name="isReverse"
-            label="Is Reverse"
-            isRequired={false}
-          />
-          {/* Reverse Date */}
-          <CustomDateNew
-            form={form}
-            name="revDate"
-            label="Reverse Date"
-            isRequired={false}
-            isFutureShow={true}
-          />
-          {/* Is Recurrency */}
-          <CustomCheckbox
-            form={form}
-            name="isRecurrency"
-            label="Is Recurrency"
-            isRequired={false}
-          />
-
-          {/* Recurrence Until */}
-          <CustomDateNew
-            form={form}
-            name="recurrenceUntil"
-            label="Recurrence Until"
-            isRequired={false}
-            isFutureShow={true}
-          />
 
           {/* Remarks */}
-          {visible?.m_Remarks && (
-            <CustomTextarea
-              form={form}
-              name="remarks"
-              label="Remarks"
-              isRequired={required?.m_Remarks_Hd}
-              className="col-span-2"
-            />
-          )}
+          <CustomTextarea
+            form={form}
+            name="remarks"
+            label="Remarks"
+            isRequired={required?.m_Remarks_Hd}
+            className="col-span-2"
+          />
         </div>
 
         {/* {form.watch("journalId") != "0" && (
@@ -579,14 +520,14 @@ export default function GLJournalForm({
         <div className="col-span-2 ml-2 flex flex-col justify-start">
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
             {/* Header Row */}
-            <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-sm">
+            <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-xs">
               <div className="text-right font-bold text-blue-800">Trns</div>
               <div className="text-center"></div>
               <div className="text-right font-bold text-blue-800">Local</div>
             </div>
 
             {/* 3-column grid: [Amt] [Label] [Local] */}
-            <div className="grid grid-cols-3 gap-x-4 text-sm">
+            <div className="grid grid-cols-3 gap-x-4 text-xs">
               {/* Column 1: Foreign Amounts (Amt) */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
@@ -632,10 +573,13 @@ export default function GLJournalForm({
                 </div>
                 {visible?.m_GstId && (
                   <div className="font-medium text-gray-700">
-                    {(form.watch("gstLocalAmt") || 0).toLocaleString(undefined, {
-                      minimumFractionDigits: locAmtDec,
-                      maximumFractionDigits: locAmtDec,
-                    })}
+                    {(form.watch("gstLocalAmt") || 0).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: locAmtDec,
+                        maximumFractionDigits: locAmtDec,
+                      }
+                    )}
                   </div>
                 )}
                 <hr className="my-1 border-blue-300" />

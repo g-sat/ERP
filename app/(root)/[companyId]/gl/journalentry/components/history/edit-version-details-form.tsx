@@ -199,6 +199,8 @@ export function EditVersionDetailsForm({
               <div className="font-medium text-blue-600">VAT</div>
               <div></div>
               <div className="font-bold text-blue-800">Total</div>
+              <div className="font-bold text-blue-800">Payment</div>
+              <div className="font-bold text-blue-800">Balance</div>
             </div>
 
             {/* Column 3: Local Amounts */}

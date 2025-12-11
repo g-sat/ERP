@@ -51,7 +51,7 @@ export function useGetCbGenPaymentById<T>(
  * @param {object} options - Additional query options
  * @returns {object} Query object containing invoice history list
  */
-export function useGetCBCbGenPaymentHistoryList<T>(
+export function useGetCbGenPaymentHistoryList<T>(
   paymentId: string,
   options = {}
 ) {
@@ -78,7 +78,7 @@ export function useGetCBCbGenPaymentHistoryList<T>(
  * @param {object} options - Additional query options
  * @returns {object} Query object containing invoice history details
  */
-export function useGetCBCbGenPaymentHistoryDetails<T>(
+export function useGetCbGenPaymentHistoryDetails<T>(
   paymentId: string,
   editVersion: string,
   options = {}

@@ -13,7 +13,7 @@ interface OtherProps {
   visible?: IVisibleFields
 }
 
-export default function Other({ form, visible }: OtherProps) {
+export default function Other({ form }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 
@@ -21,8 +21,8 @@ export default function Other({ form, visible }: OtherProps) {
   const paymentNo = form.getValues("paymentNo") || ""
 
   return (
-    <div className="space-y-1">
-      {/* Document Upload Section - Only show after cbGenPayment is saved */}
+    <div className="space-y-4">
+      {/* Document Upload Section - Only show after journal is saved */}
       {paymentId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.cb}

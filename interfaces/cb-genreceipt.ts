@@ -102,5 +102,11 @@ export interface ICbGenReceiptDt {
   bargeName: string
   voyageId: number
   voyageNo: string
+  jobOrderId: number
+  jobOrderNo: string
+  taskId: number
+  taskName: string
+  serviceId: number
+  serviceName: string
   editVersion: number
 }

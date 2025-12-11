@@ -4,7 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
-import { X } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { CbGenReceipt } from "@/lib/api-routes"
@@ -27,6 +27,8 @@ export interface CbGenReceiptTableProps {
   onCloseAction?: () => void
   visible?: IVisibleFields
 }
+
+const DEFAULT_PAGE_SIZE = 15
 
 export default function CbGenReceiptTable({
   onCbGenReceiptSelect,
@@ -65,7 +67,11 @@ export default function CbGenReceiptTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(_pageSize)
+  const [pageSize, setPageSize] = useState<number>(
+    typeof _pageSize === "number" && _pageSize > 0
+      ? _pageSize
+      : DEFAULT_PAGE_SIZE
+  )
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -81,22 +87,30 @@ export default function CbGenReceiptTable({
   useEffect(() => {
     form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
-
     setSearchStartDate(
       initialFilters?.startDate?.toString() || defaultStartDate
     )
     setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
-  }, [initialFilters, form, defaultStartDate, defaultEndDate])
+
+    const sizeFromFilters =
+      typeof initialFilters?.pageSize === "number" &&
+      initialFilters.pageSize > 0
+        ? initialFilters.pageSize
+        : typeof _pageSize === "number" && _pageSize > 0
+          ? _pageSize
+          : DEFAULT_PAGE_SIZE
+    setPageSize(sizeFromFilters)
+  }, [initialFilters, form, defaultStartDate, defaultEndDate, _pageSize])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
-    data: cbGenReceiptsResponse,
+    data: glJournalsResponse,
     isLoading: isLoadingCbGenReceipts,
     isRefetching: isRefetchingCbGenReceipts,
     refetch: refetchCbGenReceipts,
   } = useGetWithDatesAndPagination<ICbGenReceiptHd>(
     `${CbGenReceipt.get}`,
-    TableName.cbGenReceipt,
+    TableName.glJournal,
     searchQuery,
     searchStartDate,
     searchEndDate,
@@ -106,28 +120,14 @@ export default function CbGenReceiptTable({
     hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
-  const data = cbGenReceiptsResponse?.data || []
-  const totalRecords = cbGenReceiptsResponse?.totalRecords || data.length
+  const data = glJournalsResponse?.data || []
+  const totalRecords = glJournalsResponse?.totalRecords || data.length
   const isLoading = isLoadingCbGenReceipts || isRefetchingCbGenReceipts
 
-  const getReceiptStatus = (
-    balAmt: number,
-    payAmt: number,
-    isCancel: boolean
-  ) => {
+  const getReceiptStatus = (isCancel: boolean) => {
     if (isCancel) {
       return "Cancelled"
     }
-    // if (balAmt === 0 && payAmt > 0) {
-    //   return "Fully Paid"
-    // } else if (balAmt > 0 && payAmt > 0) {
-    //   return "Partially Paid"
-    // } else if (balAmt > 0 && payAmt === 0) {
-    //   return "Not Paid"
-    // }
-    // else if (balAmt === 0 && payAmt === 0) {
-    //   return "Cancelled"
-    // }
     return ""
   }
 
@@ -140,19 +140,11 @@ export default function CbGenReceiptTable({
       accessorKey: "receiptStatus",
       header: "Receipt Status",
       cell: ({ row }) => {
-        const balAmt = row.original.balAmt ?? 0
-        const payAmt = row.original.payAmt ?? 0
         const isCancel = row.original.isCancel ?? false
-        const status = getReceiptStatus(balAmt, payAmt, isCancel)
+        const status = getReceiptStatus(isCancel)
 
         const getStatusStyle = (status: string) => {
           switch (status) {
-            // case "Fully Paid":
-            //   return "bg-green-100 text-green-800"
-            // case "Partially Paid":
-            //   return "bg-orange-100 text-orange-800"
-            // case "Not Paid":
-            //   return "bg-red-100 text-red-800"
             case "Cancelled":
               return "bg-gray-100 text-gray-800"
             default:
@@ -162,12 +154,6 @@ export default function CbGenReceiptTable({
 
         const getStatusDot = (status: string) => {
           switch (status) {
-            // case "Fully Paid":
-            //   return "bg-green-400"
-            // case "Partially Paid":
-            //   return "bg-orange-400"
-            // case "Not Paid":
-            //   return "bg-red-400"
             case "Cancelled":
               return "bg-gray-400"
             default:
@@ -248,12 +234,12 @@ export default function CbGenReceiptTable({
         ]
       : []),
     {
-      accessorKey: "bankCode",
-      header: "Bank Code",
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
     },
     {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
     },
     {
       accessorKey: "totAmt",
@@ -354,6 +340,17 @@ export default function CbGenReceiptTable({
           {
             accessorKey: "remarks",
             header: "Remarks",
+            size: 200,
+            minSize: 150,
+            maxSize: 220,
+            cell: ({ row }) => {
+              const remarks = row.original.remarks ?? ""
+              return (
+                <div className="max-w-[200px] truncate" title={remarks}>
+                  {remarks || "-"}
+                </div>
+              )
+            },
           } as ColumnDef<ICbGenReceiptHd>,
         ]
       : []),
@@ -443,7 +440,9 @@ export default function CbGenReceiptTable({
   }
 
   const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
+    const nextSize =
+      typeof size === "number" && size > 0 ? size : DEFAULT_PAGE_SIZE
+    setPageSize(nextSize)
     setCurrentPage(1) // Reset to first page when changing page size
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
@@ -454,7 +453,7 @@ export default function CbGenReceiptTable({
         sortBy: "receiptNo",
         sortOrder: "asc",
         pageNumber: 1,
-        pageSize: size,
+        pageSize: nextSize,
       }
       onFilterChange(newFilters)
     }
@@ -472,7 +471,7 @@ export default function CbGenReceiptTable({
         sortBy: "receiptNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
-        pageSize: pageSize,
+        pageSize,
       }
       onFilterChange(newFilters)
     }
@@ -549,12 +548,11 @@ export default function CbGenReceiptTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.cbGenReceipt}
-        emptyMessage="No cbGenReceipts found matching your criteria. Try adjusting the date range or search terms."
+        tableName={TableName.glJournal}
+        emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchCbGenReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCbGenReceiptSelect(row || undefined)}
-        // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         currentPage={currentPage}
@@ -562,6 +560,28 @@ export default function CbGenReceiptTable({
         totalRecords={totalRecords}
         serverSidePagination={true}
       />
+
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage <= 1 || isLoading}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-muted-foreground text-sm">
+          Page {currentPage}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={isLoading || currentPage * pageSize >= totalRecords}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }

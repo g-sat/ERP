@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { IGLJournalDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
-import { ColumnDef } from "@tanstack/react-table"
+import { CellContext, ColumnDef } from "@tanstack/react-table"
 
 import { formatNumber } from "@/lib/format-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
@@ -92,74 +92,6 @@ export default function GLJournalDetailsTable({
       header: "Account",
       size: 100,
     },
-    ...(visible?.m_Remarks
-      ? [
-          {
-            accessorKey: "remarks",
-            header: "Remarks",
-            size: 200,
-          },
-        ]
-      : []),
-    {
-      accessorKey: "isDebit",
-      header: "Type",
-      size: 100,
-      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="flex justify-center">
-          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
-            {row.original.isDebit ? "Debit" : "Credit"}
-          </Badge>
-        </div>
-      ),
-    },
-
-    {
-      accessorKey: "totAmt",
-      header: "Amount",
-      size: 100,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
-        </div>
-      ),
-    },
-
-    ...(visible?.m_GstId
-      ? [
-          {
-            accessorKey: "gstPercentage",
-            header: "VAT %",
-            size: 50,
-            cell: ({ row }) => (
-              <div className="text-right">
-                {formatNumber(row.getValue("gstPercentage"), 2)}
-              </div>
-            ),
-          },
-          {
-            accessorKey: "gstAmt",
-            header: "VAT Amount",
-            size: 100,
-            cell: ({ row }) => (
-              <div className="text-right">
-                {formatNumber(row.getValue("gstAmt"), amtDec)}
-              </div>
-            ),
-          },
-        ]
-      : []),
-
-    {
-      accessorKey: "totLocalAmt",
-      header: "Local Amount",
-      size: 100,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
     ...(visible?.m_DepartmentId
       ? [
           {
@@ -173,29 +105,95 @@ export default function GLJournalDetailsTable({
       ? [
           {
             accessorKey: "jobOrderNo",
-            header: "Job Order No",
+            header: "Job Order",
             size: 100,
           },
+
           {
             accessorKey: "taskName",
-            header: "Task Name",
+            header: "Task",
             size: 100,
           },
+
           {
             accessorKey: "serviceName",
-            header: "Service Name",
+            header: "Service",
             size: 100,
           },
         ]
       : []),
 
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+            size: 200,
+          },
+        ]
+      : []),
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      cell: ({ row }) => (
+        <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+          {row.original.isDebit ? "Debit" : "Credit"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "totAmt",
+      header: "Amount",
+      size: 100,
+      cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
+      ),
+    },
+
+    ...(visible?.m_GstId
+      ? [
+          {
+            accessorKey: "gstPercentage",
+            header: "VAT %",
+            size: 50,
+            cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstPercentage"), 2)}
+              </div>
+            ),
+          },
+          {
+            accessorKey: "gstAmt",
+            header: "VAT Amount",
+            size: 100,
+            cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstAmt"), amtDec)}
+              </div>
+            ),
+          },
+        ]
+      : []),
+
+    {
+      accessorKey: "totLocalAmt",
+      header: "Local Amount",
+      size: 100,
+      cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
     ...(visible?.m_CtyCurr
       ? [
           {
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
               </div>
@@ -218,7 +216,7 @@ export default function GLJournalDetailsTable({
             accessorKey: "gstLocalAmt",
             header: "GST Local Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
               </div>
@@ -232,7 +230,7 @@ export default function GLJournalDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
               </div>
@@ -300,7 +298,7 @@ export default function GLJournalDetailsTable({
         moduleId={ModuleId.gl}
         transactionId={GLTransactionId.journalentry}
         tableName={TableName.glJournalDt}
-        emptyMessage="No glJournal details found."
+        emptyMessage="No invoice details found."
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}
         onFilterChange={onFilterChange}

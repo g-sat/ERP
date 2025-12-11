@@ -4,7 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, lastDayOfMonth, startOfMonth, subMonths } from "date-fns"
-import { X } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { GLJournal } from "@/lib/api-routes"
@@ -25,6 +25,8 @@ export interface GLJournalTableProps {
   onCloseAction?: () => void
   visible?: IVisibleFields
 }
+
+const DEFAULT_PAGE_SIZE = 15
 
 export default function GLJournalTable({
   onGLJournalSelect,
@@ -63,7 +65,11 @@ export default function GLJournalTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(_pageSize)
+  const [pageSize, setPageSize] = useState<number>(
+    typeof _pageSize === "number" && _pageSize > 0
+      ? _pageSize
+      : DEFAULT_PAGE_SIZE
+  )
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -79,12 +85,20 @@ export default function GLJournalTable({
   useEffect(() => {
     form.setValue("startDate", initialFilters?.startDate || defaultStartDate)
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
-
     setSearchStartDate(
       initialFilters?.startDate?.toString() || defaultStartDate
     )
     setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
-  }, [initialFilters, form, defaultStartDate, defaultEndDate])
+
+    const sizeFromFilters =
+      typeof initialFilters?.pageSize === "number" &&
+      initialFilters.pageSize > 0
+        ? initialFilters.pageSize
+        : typeof _pageSize === "number" && _pageSize > 0
+          ? _pageSize
+          : DEFAULT_PAGE_SIZE
+    setPageSize(sizeFromFilters)
+  }, [initialFilters, form, defaultStartDate, defaultEndDate, _pageSize])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
@@ -121,8 +135,8 @@ export default function GLJournalTable({
       header: "GLJournal No",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "paymentStatus",
+      header: "Payment Status",
       cell: ({ row }) => {
         const isCancel = row.original.isCancel ?? false
         const status = getPaymentStatus(isCancel)
@@ -187,6 +201,30 @@ export default function GLJournalTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
+    ...(visible?.m_DeliveryDate
+      ? [
+          {
+            accessorKey: "revDate",
+            header: "Reverse Date",
+            cell: ({ row }) => {
+              const date = row.original.revDate
+                ? new Date(row.original.revDate)
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
+          } as ColumnDef<IGLJournalHd>,
+        ]
+      : []),
+    {
+      accessorKey: "recurrenceUntilDate",
+      header: "Recurrence Until Date",
+      cell: ({ row }) => {
+        const date = row.original.recurrenceUntilDate
+          ? new Date(row.original.recurrenceUntilDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
     {
       accessorKey: "currencyCode",
       header: "Currency Code",
@@ -217,7 +255,14 @@ export default function GLJournalTable({
           } as ColumnDef<IGLJournalHd>,
         ]
       : []),
-
+    {
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
+    },
+    {
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
+    },
     {
       accessorKey: "totAmt",
       header: "Total Amount",
@@ -317,6 +362,17 @@ export default function GLJournalTable({
           {
             accessorKey: "remarks",
             header: "Remarks",
+            size: 200,
+            minSize: 150,
+            maxSize: 220,
+            cell: ({ row }) => {
+              const remarks = row.original.remarks ?? ""
+              return (
+                <div className="max-w-[200px] truncate" title={remarks}>
+                  {remarks || "-"}
+                </div>
+              )
+            },
           } as ColumnDef<IGLJournalHd>,
         ]
       : []),
@@ -406,7 +462,9 @@ export default function GLJournalTable({
   }
 
   const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
+    const nextSize =
+      typeof size === "number" && size > 0 ? size : DEFAULT_PAGE_SIZE
+    setPageSize(nextSize)
     setCurrentPage(1) // Reset to first page when changing page size
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
@@ -417,7 +475,7 @@ export default function GLJournalTable({
         sortBy: "journalNo",
         sortOrder: "asc",
         pageNumber: 1,
-        pageSize: size,
+        pageSize: nextSize,
       }
       onFilterChange(newFilters)
     }
@@ -435,7 +493,7 @@ export default function GLJournalTable({
         sortBy: "journalNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
-        pageSize: pageSize,
+        pageSize,
       }
       onFilterChange(newFilters)
     }
@@ -513,11 +571,10 @@ export default function GLJournalTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.glJournal}
-        emptyMessage="No glJournals found matching your criteria. Try adjusting the date range or search terms."
+        emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchGLJournals()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onGLJournalSelect(row || undefined)}
-        // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         currentPage={currentPage}
@@ -525,6 +582,28 @@ export default function GLJournalTable({
         totalRecords={totalRecords}
         serverSidePagination={true}
       />
+
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage <= 1 || isLoading}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-muted-foreground text-sm">
+          Page {currentPage}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={isLoading || currentPage * pageSize >= totalRecords}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }

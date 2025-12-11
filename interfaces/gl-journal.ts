@@ -27,7 +27,7 @@ export interface IGLJournalHd {
   isReverse: boolean
   isRecurrency: boolean
   revDate: Date | string
-  recurrenceUntil: Date | string
+  recurrenceUntilDate: Date | string
 
   moduleFrom: string
   createById: number

@@ -33,8 +33,13 @@ export const GLJournalHdSchema = (
       ? z.union([z.date(), z.string()])
       : z.union([z.date(), z.string()]).optional(),
     gstAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
     totAmtAftGst: z.number().optional(),
     totLocalAmtAftGst: z.number().optional(),
     totCtyAmtAftGst: visible?.m_CtyCurr
@@ -49,7 +54,7 @@ export const GLJournalHdSchema = (
     isReverse: z.boolean().optional(),
     isRecurrency: z.boolean().optional(),
     revDate: z.union([z.date(), z.string()]).optional(),
-    recurrenceUntil: z.union([z.date(), z.string()]).optional(),
+    recurrenceUntilDate: z.union([z.date(), z.string()]).optional(),
 
     // Customer Details
     moduleFrom: z.string().optional(),
@@ -121,8 +126,13 @@ export const GLJournalDtSchema = (
     gstName: z.string().optional(),
     gstPercentage: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
     gstAmt: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
 
     // Department Fields
     departmentId:

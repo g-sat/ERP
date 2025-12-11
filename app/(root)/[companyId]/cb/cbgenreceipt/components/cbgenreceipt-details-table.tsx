@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { ICbGenReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
-import { ColumnDef } from "@tanstack/react-table"
+import { CellContext, ColumnDef } from "@tanstack/react-table"
 
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
@@ -72,15 +72,6 @@ export default function CbGenReceiptDetailsTable({
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
-    ...(visible?.m_ProductId
-      ? [
-          {
-            accessorKey: "productName",
-            header: "Product",
-            size: 100,
-          },
-        ]
-      : []),
     {
       accessorKey: "glCode",
       header: "Code",
@@ -100,6 +91,28 @@ export default function CbGenReceiptDetailsTable({
           },
         ]
       : []),
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "Job Order",
+            size: 100,
+          },
+
+          {
+            accessorKey: "taskName",
+            header: "Task",
+            size: 100,
+          },
+
+          {
+            accessorKey: "serviceName",
+            header: "Service",
+            size: 100,
+          },
+        ]
+      : []),
+
     ...(visible?.m_Remarks
       ? [
           {
@@ -114,7 +127,7 @@ export default function CbGenReceiptDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }) => (
+      cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
         <div className="text-right">
           {formatNumber(row.getValue("totAmt"), amtDec)}
         </div>
@@ -127,7 +140,7 @@ export default function CbGenReceiptDetailsTable({
             accessorKey: "gstPercentage",
             header: "VAT %",
             size: 50,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstPercentage"), 2)}
               </div>
@@ -137,7 +150,7 @@ export default function CbGenReceiptDetailsTable({
             accessorKey: "gstAmt",
             header: "VAT Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstAmt"), amtDec)}
               </div>
@@ -150,7 +163,7 @@ export default function CbGenReceiptDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }) => (
+      cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
         <div className="text-right">
           {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
         </div>
@@ -162,7 +175,7 @@ export default function CbGenReceiptDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
               </div>
@@ -185,7 +198,7 @@ export default function CbGenReceiptDetailsTable({
             accessorKey: "gstLocalAmt",
             header: "GST Local Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
               </div>
@@ -199,7 +212,7 @@ export default function CbGenReceiptDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbGenReceiptDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
               </div>
@@ -247,7 +260,7 @@ export default function CbGenReceiptDetailsTable({
     ...(visible?.m_VoyageId
       ? [
           {
-            accessorKey: "voyageName",
+            accessorKey: "voyageNo",
             header: "Voyage",
             size: 200,
           },

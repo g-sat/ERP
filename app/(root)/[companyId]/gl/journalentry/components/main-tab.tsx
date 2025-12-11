@@ -1,12 +1,8 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import {
-  calculateCtyAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/gl-journal-calculations"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { recalculateAndSetHeaderTotals } from "@/helpers/gl-journal-calculations"
 import { IGLJournalDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { GLJournalDtSchemaType, GLJournalHdSchemaType } from "@/schemas"
@@ -16,7 +12,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import GLJournalDetailsForm from "./glJournal-details-form"
+import GLJournalDetailsForm, {
+  GLJournalDetailsFormRef,
+} from "./glJournal-details-form"
 import GLJournalDetailsTable from "./glJournal-details-table"
 import GLJournalForm from "./glJournal-form"
 
@@ -40,9 +38,6 @@ export default function Main({
   isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   // Get user settings with defaults for all modules
   const { defaults } = useUserSettingDefaults()
@@ -58,14 +53,19 @@ export default function Main({
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const previousGLJournalKeyRef = useRef<string>("")
+  const detailsFormRef = useRef<GLJournalDetailsFormRef>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
-  const currentGLJournalId = form.watch("journalId")
+  const watchedDataDetails = form.watch("data_details")
+  const dataDetails = useMemo(
+    () => watchedDataDetails || [],
+    [watchedDataDetails]
+  )
+  const currentGLjournalId = form.watch("journalId")
   const currentGLJournalNo = form.watch("journalNo")
 
   useEffect(() => {
-    const currentKey = `${currentGLJournalId ?? ""}::${currentGLJournalNo ?? ""}`
+    const currentKey = `${currentGLjournalId ?? ""}::${currentGLJournalNo ?? ""}`
     if (previousGLJournalKeyRef.current === currentKey) {
       return
     }
@@ -77,7 +77,7 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setShowSingleDeleteConfirmation(false)
     setTableKey((prev) => prev + 1)
-  }, [currentGLJournalId, currentGLJournalNo])
+  }, [currentGLjournalId, currentGLJournalNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -93,13 +93,13 @@ export default function Main({
 
     const details = (dataDetails as unknown as IGLJournalDt[]) || []
     const editingExists = details.some((detail) => {
-      const detailGLJournalId = `${detail.journalId ?? ""}`
-      const editingGLJournalId = `${editingDetail.journalId ?? ""}`
+      const detailGLjournalId = `${detail.journalId ?? ""}`
+      const editingGLjournalId = `${editingDetail.journalId ?? ""}`
       const detailGLJournalNo = detail.journalNo ?? ""
       const editingGLJournalNo = editingDetail.journalNo ?? ""
       return (
         detail.itemNo === editingDetail.itemNo &&
-        detailGLJournalId === editingGLJournalId &&
+        detailGLjournalId === editingGLjournalId &&
         detailGLJournalNo === editingGLJournalNo
       )
     })
@@ -109,49 +109,15 @@ export default function Main({
     }
   }, [dataDetails, editingDetail])
 
-  // Recalculate header totals when details change
-  useEffect(() => {
-    if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      form.setValue("totCtyAmt", 0)
-      form.setValue("gstCtyAmt", 0)
-      form.setValue("totCtyAmtAftGst", 0)
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
-      dataDetails as unknown as IGLJournalDt[],
-      amtDec
+  // Helper function to recalculate header totals
+  const recalculateHeaderTotals = () => {
+    const currentDetails = form.getValues("data_details") || []
+    recalculateAndSetHeaderTotals(
+      form,
+      currentDetails as unknown as IGLJournalDt[],
+      decimals[0],
+      visible
     )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IGLJournalDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
-    const countryAmounts = calculateCtyAmounts(
-      dataDetails as unknown as IGLJournalDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
 
     // Trigger form validation to update UI
     form.trigger([
@@ -165,8 +131,7 @@ export default function Main({
       "gstCtyAmt",
       "totCtyAmtAftGst",
     ])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
+  }
 
   const handleAddRow = (rowData: IGLJournalDt) => {
     const currentData = form.getValues("data_details") || []
@@ -195,6 +160,9 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
+
+    // Recalculate header totals after adding/updating row
+    recalculateHeaderTotals()
   }
 
   const handleDelete = (itemNo: number) => {
@@ -213,6 +181,9 @@ export default function Main({
     form.trigger("data_details")
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
+
+    // Recalculate header totals after deleting row
+    recalculateHeaderTotals()
 
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
@@ -233,15 +204,16 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
 
+    // Recalculate header totals after bulk deleting rows
+    recalculateHeaderTotals()
+
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
 
   const handleEdit = (detail: IGLJournalDt) => {
-    // console.log("Editing detail:", detail)
     // Convert IGLJournalDt to GLJournalDtSchemaType and set for editing
     setEditingDetail(detail as unknown as GLJournalDtSchemaType)
-    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -258,6 +230,9 @@ export default function Main({
       "data_details",
       reorderedData as unknown as GLJournalDtSchemaType[]
     )
+
+    // Recalculate header totals after reordering (in case amounts were affected)
+    recalculateHeaderTotals()
   }
 
   return (
@@ -269,10 +244,12 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.cb.currencyId}
+        defaultCurrencyId={defaults.gl.currencyId}
+        detailsFormRef={detailsFormRef}
       />
 
       <GLJournalDetailsForm
+        ref={detailsFormRef}
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}

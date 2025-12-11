@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
   mathRound,
-  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
 } from "@/helpers/account"
@@ -57,6 +56,12 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -69,8 +74,8 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { getDefaultValues } from "./components/cbGenPayment-defaultvalues"
-import CbGenPaymentTable from "./components/cbGenPayment-table"
+import { getDefaultValues } from "./components/cbgenpayment-defaultvalues"
+import CbGenPaymentTable from "./components/cbgenpayment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
@@ -141,7 +146,7 @@ export default function CbGenPaymentPage() {
   }, [searchParams])
 
   const autoLoadStorageKey = useMemo(
-    () => `history-doc:/${companyId}/cb/cbGenPayment`,
+    () => `history-doc:/${companyId}/cb/cbgenpayment`,
     [companyId]
   )
 
@@ -220,6 +225,12 @@ export default function CbGenPaymentPage() {
           exhRate: cbGenPayment.exhRate ?? 0,
           ctyExhRate: cbGenPayment.ctyExhRate ?? 0,
           bankId: cbGenPayment.bankId ?? 0,
+          paymentTypeId: cbGenPayment.paymentTypeId ?? 0,
+          chequeNo: cbGenPayment.chequeNo ?? "",
+          chequeDate: cbGenPayment.chequeDate ?? new Date(),
+          bankChgGLId: cbGenPayment.bankChgGLId ?? 0,
+          bankChgAmt: cbGenPayment.bankChgAmt ?? 0,
+          bankChgLocalAmt: cbGenPayment.bankChgLocalAmt ?? 0,
           totAmt: cbGenPayment.totAmt ?? 0,
           totLocalAmt: cbGenPayment.totLocalAmt ?? 0,
           totCtyAmt: cbGenPayment.totCtyAmt ?? 0,
@@ -230,13 +241,6 @@ export default function CbGenPaymentPage() {
           totLocalAmtAftGst: cbGenPayment.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbGenPayment.totCtyAmtAftGst ?? 0,
           moduleFrom: cbGenPayment.moduleFrom ?? "",
-          paymentTypeId: cbGenPayment.paymentTypeId ?? 0,
-          chequeNo: cbGenPayment.chequeNo ?? "",
-          chequeDate: cbGenPayment.chequeDate ?? new Date(),
-          bankChgGLId: cbGenPayment.bankChgGLId ?? 0,
-          bankChgAmt: cbGenPayment.bankChgAmt ?? 0,
-          bankChgLocalAmt: cbGenPayment.bankChgLocalAmt ?? 0,
-          payeeTo: cbGenPayment.payeeTo ?? "",
           editVersion: cbGenPayment.editVersion ?? 0,
           data_details:
             cbGenPayment.data_details?.map((detail) => ({
@@ -277,12 +281,12 @@ export default function CbGenPaymentPage() {
 
     if (isDirty) return
 
-    const currentCbGenPaymentId = form.getValues("paymentId") || "0"
+    const currentGLpaymentId = form.getValues("paymentId") || "0"
     if (
       (cbGenPayment &&
         cbGenPayment.paymentId &&
         cbGenPayment.paymentId !== "0") ||
-      currentCbGenPaymentId !== "0"
+      currentGLpaymentId !== "0"
     ) {
       return
     }
@@ -318,7 +322,7 @@ export default function CbGenPaymentPage() {
   const deleteMutation = useDeleteWithRemarks(`${CbGenPayment.delete}`)
 
   // Remove the useGetCbGenPaymentById hook for selection
-  // const { data: cbGenPaymentByIdData, refetch: refetchCbGenPaymentById } = ...
+  // const { data: invoiceByIdData, refetch: refetchCbGenPaymentById } = ...
 
   // Handle Save
   const handleSaveCbGenPayment = async () => {
@@ -414,14 +418,14 @@ export default function CbGenPaymentPage() {
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const cbGenPaymentData = Array.isArray(response.data)
+          const invoiceData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (cbGenPaymentData) {
+          if (invoiceData) {
             const updatedSchemaType = transformToSchemaType(
-              cbGenPaymentData as unknown as ICbGenPaymentHd
+              invoiceData as unknown as ICbGenPaymentHd
             )
 
             setSearchNo(updatedSchemaType.paymentNo || "")
@@ -438,6 +442,17 @@ export default function CbGenPaymentPage() {
 
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
+
+          // Check if this was a new cbGenPayment or update
+          const wasNewCbGenPayment = Number(formValues.paymentId) === 0
+
+          if (wasNewCbGenPayment) {
+            //toast.success(
+            // `CbGenPayment ${invoiceData?.paymentNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("CbGenPayment updated successfully")
+          }
 
           // Data refresh handled by CbGenPaymentTable component
         } else {
@@ -471,10 +486,10 @@ export default function CbGenPaymentPage() {
         createBy: "",
         editBy: "",
         cancelBy: "",
-        createDate: dateStr,
+        createDate: "",
         editDate: "",
         cancelDate: "",
-        // Keep data details - do not remove
+        // Clear all balance and payment amounts
         data_details:
           cbGenPayment.data_details?.map((detail) => ({
             ...detail,
@@ -606,15 +621,6 @@ export default function CbGenPaymentPage() {
         }
       }
 
-      // Calculate due date based on accountDate and credit terms
-      if (clonedCbGenPayment.paymentId && clonedCbGenPayment.accountDate) {
-        try {
-          await setDueDate(form)
-        } catch (error) {
-          console.error("Error calculating due date:", error)
-        }
-      }
-
       // Clear search input
       setSearchNo("")
 
@@ -714,10 +720,12 @@ export default function CbGenPaymentPage() {
     toast.success("CbGenPayment reset successfully")
   }
 
-  // Handle Print Cb Gen Payment Report
-  const handlePrintCbGenPayment = () => {
+  // Handle Print CbGenPayment Report
+  const handlePrintCbGenPayment = (
+    reportType: "direct" | "cbGenPayment" = "cbGenPayment"
+  ) => {
     if (!cbGenPayment || cbGenPayment.paymentId === "0") {
-      toast.error("Please select a CB gen payment to print")
+      toast.error("Please select an cbGenPayment to print")
       return
     }
 
@@ -733,9 +741,9 @@ export default function CbGenPaymentPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      invoiceId: paymentId,
-      invoiceNo: paymentNo,
-      reportType: 1,
+      paymentId: paymentId,
+      paymentNo: paymentNo,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -743,9 +751,15 @@ export default function CbGenPaymentPage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file based on type
+    const reportFile =
+      reportType === "direct"
+        ? "RPT_CbGenPaymentDirect.trdp"
+        : "RPT_CbGenPayment.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_CbGenPayment.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -769,125 +783,127 @@ export default function CbGenPaymentPage() {
   // Helper function to transform ICbGenPaymentHd to CbGenPaymentHdSchemaType
   const transformToSchemaType = useCallback(
     (apiCbGenPayment: ICbGenPaymentHd): CbGenPaymentHdSchemaType => {
-    return {
-      paymentId: apiCbGenPayment.paymentId?.toString() ?? "0",
-      paymentNo: apiCbGenPayment.paymentNo ?? "",
-      referenceNo: apiCbGenPayment.referenceNo ?? "",
-      trnDate: apiCbGenPayment.trnDate
-        ? format(
-            parseDate(apiCbGenPayment.trnDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      accountDate: apiCbGenPayment.accountDate
-        ? format(
-            parseDate(apiCbGenPayment.accountDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      gstClaimDate: apiCbGenPayment.gstClaimDate
-        ? format(
-            parseDate(apiCbGenPayment.gstClaimDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      currencyId: apiCbGenPayment.currencyId ?? 0,
-      exhRate: apiCbGenPayment.exhRate ?? 0,
-      ctyExhRate: apiCbGenPayment.ctyExhRate ?? 0,
-      bankId: apiCbGenPayment.bankId ?? 0,
-      paymentTypeId: apiCbGenPayment.paymentTypeId ?? 0,
-      chequeNo: apiCbGenPayment.chequeNo ?? "",
-      chequeDate: apiCbGenPayment.chequeDate
-        ? format(
-            parseDate(apiCbGenPayment.chequeDate as string) || new Date(),
-            dateFormat
-          )
-        : dateFormat,
-      bankChgGLId: apiCbGenPayment.bankChgGLId ?? 0,
-      bankChgAmt: apiCbGenPayment.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiCbGenPayment.bankChgLocalAmt ?? 0,
-      payeeTo: apiCbGenPayment.payeeTo ?? "",
-      totAmt: apiCbGenPayment.totAmt ?? 0,
-      totLocalAmt: apiCbGenPayment.totLocalAmt ?? 0,
-      totCtyAmt: apiCbGenPayment.totCtyAmt ?? 0,
-      gstAmt: apiCbGenPayment.gstAmt ?? 0,
-      gstLocalAmt: apiCbGenPayment.gstLocalAmt ?? 0,
-      gstCtyAmt: apiCbGenPayment.gstCtyAmt ?? 0,
-      totAmtAftGst: apiCbGenPayment.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiCbGenPayment.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiCbGenPayment.totCtyAmtAftGst ?? 0,
-      remarks: apiCbGenPayment.remarks ?? "",
-      moduleFrom: apiCbGenPayment.moduleFrom ?? "",
-      editVersion: apiCbGenPayment.editVersion ?? 0,
-      createBy: apiCbGenPayment.createBy ?? "",
-      editBy: apiCbGenPayment.editBy ?? "",
-      cancelBy: apiCbGenPayment.cancelBy ?? "",
-      createDate: apiCbGenPayment.createDate
-        ? format(
-            parseDate(apiCbGenPayment.createDate as string) || new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
+      return {
+        paymentId: apiCbGenPayment.paymentId?.toString() ?? "0",
+        paymentNo: apiCbGenPayment.paymentNo ?? "",
+        referenceNo: apiCbGenPayment.referenceNo ?? "",
 
-      editDate: apiCbGenPayment.editDate
-        ? format(
-            parseDate(apiCbGenPayment.editDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      cancelDate: apiCbGenPayment.cancelDate
-        ? format(
-            parseDate(apiCbGenPayment.cancelDate as unknown as string) ||
-              new Date(),
-            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-          )
-        : "",
-      isCancel: apiCbGenPayment.isCancel ?? false,
-      cancelRemarks: apiCbGenPayment.cancelRemarks ?? "",
-      data_details:
-        apiCbGenPayment.data_details?.map(
-          (detail) =>
-            ({
-              ...detail,
-              paymentId: detail.paymentId?.toString() ?? "0",
-              paymentNo: detail.paymentNo ?? "",
-              itemNo: detail.itemNo ?? 0,
-              seqNo: detail.seqNo ?? 0,
-              glId: detail.glId ?? 0,
-              glCode: detail.glCode ?? "",
-              glName: detail.glName ?? "",
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
-              gstId: detail.gstId ?? 0,
-              gstName: detail.gstName ?? "",
-              gstPercentage: detail.gstPercentage ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              departmentId: detail.departmentId ?? 0,
-              departmentCode: detail.departmentCode ?? "",
-              departmentName: detail.departmentName ?? "",
-              employeeId: detail.employeeId ?? 0,
-              employeeCode: detail.employeeCode ?? "",
-              employeeName: detail.employeeName ?? "",
-              portId: detail.portId ?? 0,
-              portCode: detail.portCode ?? "",
-              portName: detail.portName ?? "",
-              vesselId: detail.vesselId ?? 0,
-              vesselCode: detail.vesselCode ?? "",
-              vesselName: detail.vesselName ?? "",
-              bargeId: detail.bargeId ?? 0,
-              bargeCode: detail.bargeCode ?? "",
-              bargeName: detail.bargeName ?? "",
-              voyageId: detail.voyageId ?? 0,
-              voyageNo: detail.voyageNo ?? "",
-              editVersion: detail.editVersion ?? 0,
-            }) as unknown as CbGenPaymentDtSchemaType
-        ) || [],
-    }
+        trnDate: apiCbGenPayment.trnDate
+          ? format(
+              parseDate(apiCbGenPayment.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiCbGenPayment.accountDate
+          ? format(
+              parseDate(apiCbGenPayment.accountDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        gstClaimDate: apiCbGenPayment.gstClaimDate
+          ? format(
+              parseDate(apiCbGenPayment.gstClaimDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        bankId: apiCbGenPayment.bankId ?? 0,
+        paymentTypeId: apiCbGenPayment.paymentTypeId ?? 0,
+        chequeNo: apiCbGenPayment.chequeNo ?? "",
+        chequeDate: apiCbGenPayment.chequeDate ?? new Date(),
+        bankChgGLId: apiCbGenPayment.bankChgGLId ?? 0,
+        bankChgAmt: apiCbGenPayment.bankChgAmt ?? 0,
+        bankChgLocalAmt: apiCbGenPayment.bankChgLocalAmt ?? 0,
+        currencyId: apiCbGenPayment.currencyId ?? 0,
+        exhRate: apiCbGenPayment.exhRate ?? 0,
+        ctyExhRate: apiCbGenPayment.ctyExhRate ?? 0,
+
+        totAmt: apiCbGenPayment.totAmt ?? 0,
+        totLocalAmt: apiCbGenPayment.totLocalAmt ?? 0,
+        totCtyAmt: apiCbGenPayment.totCtyAmt ?? 0,
+        gstAmt: apiCbGenPayment.gstAmt ?? 0,
+        gstLocalAmt: apiCbGenPayment.gstLocalAmt ?? 0,
+        gstCtyAmt: apiCbGenPayment.gstCtyAmt ?? 0,
+        totAmtAftGst: apiCbGenPayment.totAmtAftGst ?? 0,
+        totLocalAmtAftGst: apiCbGenPayment.totLocalAmtAftGst ?? 0,
+        totCtyAmtAftGst: apiCbGenPayment.totCtyAmtAftGst ?? 0,
+        remarks: apiCbGenPayment.remarks ?? "",
+        moduleFrom: apiCbGenPayment.moduleFrom ?? "",
+        editVersion: apiCbGenPayment.editVersion ?? 0,
+        createBy: apiCbGenPayment.createBy ?? "",
+        editBy: apiCbGenPayment.editBy ?? "",
+        cancelBy: apiCbGenPayment.cancelBy ?? "",
+        createDate: apiCbGenPayment.createDate
+          ? format(
+              parseDate(apiCbGenPayment.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+
+        editDate: apiCbGenPayment.editDate
+          ? format(
+              parseDate(apiCbGenPayment.editDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        cancelDate: apiCbGenPayment.cancelDate
+          ? format(
+              parseDate(apiCbGenPayment.cancelDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        isCancel: apiCbGenPayment.isCancel ?? false,
+        cancelRemarks: apiCbGenPayment.cancelRemarks ?? "",
+        data_details:
+          apiCbGenPayment.data_details?.map(
+            (detail) =>
+              ({
+                ...detail,
+                paymentId: detail.paymentId?.toString() ?? "0",
+                paymentNo: detail.paymentNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                editVersion: detail.editVersion ?? 0,
+              }) as unknown as CbGenPaymentDtSchemaType
+          ) || [],
+      }
     },
     [dateFormat, decimals]
   )
@@ -904,24 +920,24 @@ export default function CbGenPaymentPage() {
     }) => {
       console.log("paymentId", paymentId)
       console.log("paymentNo", paymentNo)
-      const trimmedPaymentNo = paymentNo?.trim() ?? ""
-      const trimmedPaymentId =
+      const trimmedCbGenPaymentNo = paymentNo?.trim() ?? ""
+      const trimmedGLpaymentId =
         typeof paymentId === "number"
           ? paymentId.toString()
           : (paymentId?.toString().trim() ?? "")
 
-      if (!trimmedPaymentNo && !trimmedPaymentId) return null
+      if (!trimmedCbGenPaymentNo && !trimmedGLpaymentId) return null
 
       if (showLoader) {
         setIsLoadingCbGenPayment(true)
       }
 
-      const requestPaymentId = trimmedPaymentId || "0"
-      const requestPaymentNo = trimmedPaymentNo || ""
+      const requestGLpaymentId = trimmedGLpaymentId || "0"
+      const requestCbGenPaymentNo = trimmedCbGenPaymentNo || ""
 
       try {
         const response = await getById(
-          `${CbGenPayment.getByIdNo}/${requestPaymentId}/${requestPaymentNo}`
+          `${CbGenPayment.getByIdNo}/${requestGLpaymentId}/${requestCbGenPaymentNo}`
         )
 
         if (response?.result === 1) {
@@ -937,24 +953,29 @@ export default function CbGenPaymentPage() {
                 : (detailedCbGenPayment.accountDate as string)
             )
 
-            const updatedCbGenPayment = transformToSchemaType(detailedCbGenPayment)
+            const updatedCbGenPayment =
+              transformToSchemaType(detailedCbGenPayment)
 
             setCbGenPayment(updatedCbGenPayment)
             form.reset(updatedCbGenPayment)
             form.trigger()
 
-            const resolvedPaymentNo =
-              updatedCbGenPayment.paymentNo || trimmedPaymentNo || trimmedPaymentId
-            setSearchNo(resolvedPaymentNo)
+            const resolvedCbGenPaymentNo =
+              updatedCbGenPayment.paymentNo ||
+              trimmedCbGenPaymentNo ||
+              trimmedGLpaymentId
+            setSearchNo(resolvedCbGenPaymentNo)
 
-            return resolvedPaymentNo
+            return resolvedCbGenPaymentNo
           }
         } else {
-          toast.error(response?.message || "Failed to fetch cbGenPayment details")
+          toast.error(
+            response?.message || "Failed to fetch cbgenpayment details"
+          )
         }
       } catch (error) {
-        console.error("Error fetching cbGenPayment details:", error)
-        toast.error("Error loading cbGenPayment. Please try again.")
+        console.error("Error fetching cbgenpayment details:", error)
+        toast.error("Error loading cbgenpayment. Please try again.")
       } finally {
         if (showLoader) {
           setIsLoadingCbGenPayment(false)
@@ -979,12 +1000,12 @@ export default function CbGenPaymentPage() {
   ) => {
     if (!selectedCbGenPayment) return
 
-    const loadedPaymentNo = await loadCbGenPayment({
+    const loadedCbGenPaymentNo = await loadCbGenPayment({
       paymentId: selectedCbGenPayment.paymentId ?? "0",
       paymentNo: selectedCbGenPayment.paymentNo ?? "",
     })
 
-    if (loadedPaymentNo) {
+    if (loadedCbGenPaymentNo) {
       setShowListDialog(false)
     }
   }
@@ -997,14 +1018,14 @@ export default function CbGenPaymentPage() {
 
   // Data refresh handled by CbGenPaymentTable component
 
-  // Set createBy and createDate for new cbGenPayments on page load/refresh
+  // Set createBy and createDate for new invoices on page load/refresh
   useEffect(() => {
     if (!cbGenPayment && user && decimals.length > 0) {
-      const currentCbGenPaymentId = form.getValues("paymentId")
+      const currentGLpaymentId = form.getValues("paymentId")
       const currentCbGenPaymentNo = form.getValues("paymentNo")
       const isNewCbGenPayment =
-        !currentCbGenPaymentId ||
-        currentCbGenPaymentId === "0" ||
+        !currentGLpaymentId ||
+        currentGLpaymentId === "0" ||
         !currentCbGenPaymentNo
 
       if (isNewCbGenPayment) {
@@ -1059,14 +1080,16 @@ export default function CbGenPaymentPage() {
     if (!trimmedValue) return
 
     try {
-      const loadedPaymentNo = await loadCbGenPayment({
+      const loadedCbGenPaymentNo = await loadCbGenPayment({
         paymentId: "0",
         paymentNo: trimmedValue,
         showLoader: true,
       })
 
-      if (loadedPaymentNo) {
-        toast.success(`CbGenPayment ${loadedPaymentNo} loaded successfully`)
+      if (loadedCbGenPaymentNo) {
+        toast.success(
+          `CbGenPayment ${loadedCbGenPaymentNo} loaded successfully`
+        )
       }
     } finally {
       setShowLoadConfirm(false)
@@ -1122,10 +1145,10 @@ export default function CbGenPaymentPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1143,7 +1166,7 @@ export default function CbGenPaymentPage() {
   }, [searchNo, copyToClipboard])
 
   // Handle double-click to copy paymentNo to clipboard
-  const handleCopyInvoiceNo = useCallback(async () => {
+  const handleCopyCbGenPaymentNo = useCallback(async () => {
     const paymentNoToCopy = isEdit
       ? cbGenPayment?.paymentNo || form.getValues("paymentNo") || ""
       : form.getValues("paymentNo") || ""
@@ -1218,8 +1241,8 @@ export default function CbGenPaymentPage() {
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
                   className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
-                  onDoubleClick={handleCopyInvoiceNo}
-                  title="Double-click to copy payment number"
+                  onDoubleClick={handleCopyCbGenPaymentNo}
+                  title="Double-click to copy cbGenPayment number"
                 >
                   {titleText}
                 </span>
@@ -1256,7 +1279,7 @@ export default function CbGenPaymentPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search CbGenPayment No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={
                   !!cbGenPayment?.paymentId && cbGenPayment.paymentId !== "0"
                 }
@@ -1306,15 +1329,30 @@ export default function CbGenPaymentPage() {
                   : "Save"}
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!cbGenPayment || cbGenPayment.paymentId === "0"}
-              onClick={handlePrintCbGenPayment}
-            >
-              <Printer className="mr-1 h-4 w-4" />
-              Print
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!cbGenPayment || cbGenPayment.paymentId === "0"}
+                >
+                  <Printer className="mr-1 h-4 w-4" />
+                  Print
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => handlePrintCbGenPayment("direct")}
+                >
+                  1. Direct
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handlePrintCbGenPayment("cbGenPayment")}
+                >
+                  2. CbGenPayment
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
@@ -1401,8 +1439,8 @@ export default function CbGenPaymentPage() {
               CbGenPayment List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing cbGenPayments from the list below. Use
-              search to filter records or create new cbGenPayments.
+              Manage and select existing CbGenPayments from the list below. Use
+              search to filter records or create new invoices.
             </p>
           </div>
 

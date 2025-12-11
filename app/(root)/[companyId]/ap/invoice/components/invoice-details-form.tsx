@@ -473,6 +473,28 @@ const InvoiceDetailsForm = React.forwardRef<
       defaultGstId,
     ])
 
+    // Watch glId to detect changes
+    const watchedGlId = form.watch("glId")
+
+    // Set isJobSpecific based on chart of account when editing detail is loaded or glId changes
+    useEffect(() => {
+      if (editingDetail && editingDetail.glId && editingDetail.glId > 0) {
+        const glData = chartOfAccounts?.find(
+          (gl: IChartOfAccountLookup) => gl.glId === editingDetail.glId
+        )
+        if (glData) {
+          setIsJobSpecific(glData.isJobSpecific || false)
+        }
+      } else if (watchedGlId && watchedGlId > 0 && chartOfAccounts) {
+        const glData = chartOfAccounts?.find(
+          (gl: IChartOfAccountLookup) => gl.glId === watchedGlId
+        )
+        if (glData) {
+          setIsJobSpecific(glData.isJobSpecific || false)
+        }
+      }
+    }, [editingDetail, chartOfAccounts, watchedGlId])
+
     // Reset form when editingDetail changes
     useEffect(() => {
       const nextItemNo =
