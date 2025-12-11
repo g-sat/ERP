@@ -1268,6 +1268,15 @@ export default function DebitNotePage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy debitNoteNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const debitNoteNoToCopy = isEdit
+      ? debitNote?.debitNoteNo || form.getValues("debitNoteNo") || ""
+      : form.getValues("debitNoteNo") || ""
+
+    await copyToClipboard(debitNoteNoToCopy)
+  }, [isEdit, debitNote?.debitNoteNo, form, copyToClipboard])
+
   // Calculate payment status only if not cancelled
   const balAmt = debitNote?.balAmt ?? 0
   const payAmt = debitNote?.payAmt ?? 0
@@ -1368,7 +1377,9 @@ export default function DebitNotePage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy debit note number"
                 >
                   {titleText}
                 </span>

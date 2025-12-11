@@ -131,9 +131,6 @@ export const ApAdjustmentHdSchema = (
     isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
 
-    // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
-
     // Nested Details
     data_details: z
       .array(ApAdjustmentDtSchema(required, visible))

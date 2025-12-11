@@ -1263,10 +1263,10 @@ export default function AdjustmentPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1282,6 +1282,15 @@ export default function AdjustmentPage() {
   const handleCopySearchNo = useCallback(async () => {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
+
+  // Handle double-click to copy adjustmentNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const adjustmentNoToCopy = isEdit
+      ? adjustment?.adjustmentNo || form.getValues("adjustmentNo") || ""
+      : form.getValues("adjustmentNo") || ""
+
+    await copyToClipboard(adjustmentNoToCopy)
+  }, [isEdit, adjustment?.adjustmentNo, form, copyToClipboard])
 
   // Calculate payment status only if not cancelled
   const balAmt = adjustment?.balAmt ?? 0
@@ -1383,7 +1392,9 @@ export default function AdjustmentPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy adjustment number"
                 >
                   {titleText}
                 </span>
@@ -1428,7 +1439,7 @@ export default function AdjustmentPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Adjustment No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={
                   !!adjustment?.adjustmentId && adjustment.adjustmentId !== "0"
                 }

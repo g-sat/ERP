@@ -1016,6 +1016,15 @@ export default function RefundPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy refundNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const refundNoToCopy = isEdit
+      ? refund?.refundNo || form.getValues("refundNo") || ""
+      : form.getValues("refundNo") || ""
+
+    await copyToClipboard(refundNoToCopy)
+  }, [isEdit, refund?.refundNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `Refund (Edit)- v[${refund?.editVersion}] - ${refundNo}`
@@ -1080,7 +1089,9 @@ export default function RefundPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy refund number"
                 >
                   {titleText}
                 </span>

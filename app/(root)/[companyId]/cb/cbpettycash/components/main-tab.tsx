@@ -16,9 +16,9 @@ import { UseFormReturn } from "react-hook-form"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import CbPettyCashDetailsForm from "./cbPettyCash-details-form"
-import CbPettyCashDetailsTable from "./cbPettyCash-details-table"
-import CbPettyCashForm from "./cbPettyCash-form"
+import CbPettyCashDetailsForm from "./cbpettycash-details-form"
+import CbPettyCashDetailsTable from "./cbpettycash-details-table"
+import CbPettyCashForm from "./cbpettycash-form"
 
 interface MainProps {
   form: UseFormReturn<CbPettyCashHdSchemaType>

@@ -671,6 +671,15 @@ export default function BankTransferCtmPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy transferNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const transferNoToCopy = isEdit
+      ? bankTransfer?.transferNo || form.getValues("transferNo") || ""
+      : form.getValues("transferNo") || ""
+
+    await copyToClipboard(transferNoToCopy)
+  }, [isEdit, bankTransfer?.transferNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `CB Bank Transfer CTM (Edit) - ${transferNo}`
@@ -719,7 +728,9 @@ export default function BankTransferCtmPage() {
             >
               {/* Inner pill: solid dark background + white text */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`text-l block cursor-pointer rounded-full px-6 font-semibold select-none ${isEdit ? "text-white" : "text-white"}`}
+                onDoubleClick={handleCopyInvoiceNo}
+                title="Double-click to copy transfer number"
               >
                 {titleText}
               </span>

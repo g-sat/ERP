@@ -1281,6 +1281,15 @@ export default function CreditNotePage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy creditNoteNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const creditNoteNoToCopy = isEdit
+      ? creditNote?.creditNoteNo || form.getValues("creditNoteNo") || ""
+      : form.getValues("creditNoteNo") || ""
+
+    await copyToClipboard(creditNoteNoToCopy)
+  }, [isEdit, creditNote?.creditNoteNo, form, copyToClipboard])
+
   // Calculate payment status only if not cancelled
   const balAmt = creditNote?.balAmt ?? 0
   const payAmt = creditNote?.payAmt ?? 0
@@ -1381,7 +1390,9 @@ export default function CreditNotePage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy credit note number"
                 >
                   {titleText}
                 </span>

@@ -1142,6 +1142,15 @@ export default function CbGenPaymentPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy paymentNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const paymentNoToCopy = isEdit
+      ? cbGenPayment?.paymentNo || form.getValues("paymentNo") || ""
+      : form.getValues("paymentNo") || ""
+
+    await copyToClipboard(paymentNoToCopy)
+  }, [isEdit, cbGenPayment?.paymentNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `CbGenPayment (Edit)- v[${cbGenPayment?.editVersion}] - ${paymentNo}`
@@ -1208,7 +1217,9 @@ export default function CbGenPaymentPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy payment number"
                 >
                   {titleText}
                 </span>

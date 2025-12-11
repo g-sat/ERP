@@ -633,6 +633,15 @@ export default function BankReconPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy reconNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const reconNoToCopy = isEdit
+      ? bankRecon?.reconNo || form.getValues("reconNo") || ""
+      : form.getValues("reconNo") || ""
+
+    await copyToClipboard(reconNoToCopy)
+  }, [isEdit, bankRecon?.reconNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `CB Bank Reconciliation (Edit) - ${reconNo}`
@@ -680,7 +689,9 @@ export default function BankReconPage() {
             >
               {/* Inner pill: solid dark background + white text */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`text-l block cursor-pointer rounded-full px-6 font-semibold select-none ${isEdit ? "text-white" : "text-white"}`}
+                onDoubleClick={handleCopyInvoiceNo}
+                title="Double-click to copy reconciliation number"
               >
                 {titleText}
               </span>

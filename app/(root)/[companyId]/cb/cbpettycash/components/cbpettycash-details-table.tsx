@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { ICbPettyCashDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
-import { ColumnDef } from "@tanstack/react-table"
+import { CellContext, ColumnDef } from "@tanstack/react-table"
 
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
@@ -138,7 +138,7 @@ export default function CbPettyCashDetailsTable({
             accessorKey: "gstPercentage",
             header: "VAT %",
             size: 50,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstPercentage"), 2)}
               </div>
@@ -148,7 +148,7 @@ export default function CbPettyCashDetailsTable({
             accessorKey: "gstAmt",
             header: "VAT Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstAmt"), amtDec)}
               </div>
@@ -224,7 +224,7 @@ export default function CbPettyCashDetailsTable({
             accessorKey: "gstLocalAmt",
             header: "GST Local Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
               </div>

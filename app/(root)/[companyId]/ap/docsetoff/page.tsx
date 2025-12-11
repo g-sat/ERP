@@ -1015,6 +1015,15 @@ export default function DocSetOffPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy setoffNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const setoffNoToCopy = isEdit
+      ? docSetOff?.setoffNo || form.getValues("setoffNo") || ""
+      : form.getValues("setoffNo") || ""
+
+    await copyToClipboard(setoffNoToCopy)
+  }, [isEdit, docSetOff?.setoffNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `DocSetOff (Edit)- v[${docSetOff?.editVersion}] - ${setoffNo}`
@@ -1081,7 +1090,9 @@ export default function DocSetOffPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy setoff number"
                 >
                   {titleText}
                 </span>

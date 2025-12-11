@@ -1264,6 +1264,15 @@ export default function InvoiceCtmPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy invoiceNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const invoiceNoToCopy = isEdit
+      ? invoice?.invoiceNo || form.getValues("invoiceNo") || ""
+      : form.getValues("invoiceNo") || ""
+
+    await copyToClipboard(invoiceNoToCopy)
+  }, [isEdit, invoice?.invoiceNo, form, copyToClipboard])
+
   // Calculate payment status only if not cancelled
   const balAmt = invoice?.balAmt ?? 0
   const payAmt = invoice?.payAmt ?? 0
@@ -1364,7 +1373,9 @@ export default function InvoiceCtmPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy invoice number"
                 >
                   {titleText}
                 </span>

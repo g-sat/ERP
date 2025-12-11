@@ -1106,6 +1106,15 @@ export default function ArapcontraPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy contraNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const contraNoToCopy = isEdit
+      ? contra?.contraNo || form.getValues("contraNo") || ""
+      : form.getValues("contraNo") || ""
+
+    await copyToClipboard(contraNoToCopy)
+  }, [isEdit, contra?.contraNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `Contra (Edit)- v[${contra?.editVersion}] - ${contraNo}`
@@ -1170,7 +1179,9 @@ export default function ArapcontraPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy contra number"
                 >
                   {titleText}
                 </span>

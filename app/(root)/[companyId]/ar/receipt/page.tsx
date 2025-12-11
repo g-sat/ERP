@@ -1026,6 +1026,15 @@ export default function ReceiptPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy receiptNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const receiptNoToCopy = isEdit
+      ? receipt?.receiptNo || form.getValues("receiptNo") || ""
+      : form.getValues("receiptNo") || ""
+
+    await copyToClipboard(receiptNoToCopy)
+  }, [isEdit, receipt?.receiptNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `Receipt (Edit)- v[${receipt?.editVersion}] - ${receiptNo}`
@@ -1090,7 +1099,9 @@ export default function ReceiptPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy receipt number"
                 >
                   {titleText}
                 </span>

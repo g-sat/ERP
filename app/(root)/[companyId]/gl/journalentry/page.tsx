@@ -1163,6 +1163,15 @@ export default function GLJournalPage() {
     await copyToClipboard(searchNo)
   }, [searchNo, copyToClipboard])
 
+  // Handle double-click to copy journalNo to clipboard
+  const handleCopyInvoiceNo = useCallback(async () => {
+    const journalNoToCopy = isEdit
+      ? glJournal?.journalNo || form.getValues("journalNo") || ""
+      : form.getValues("journalNo") || ""
+
+    await copyToClipboard(journalNoToCopy)
+  }, [isEdit, glJournal?.journalNo, form, copyToClipboard])
+
   // Compose title text
   const titleText = isEdit
     ? `GLJournal (Edit)- v[${glJournal?.editVersion}] - ${journalNo}`
@@ -1229,7 +1238,9 @@ export default function GLJournalPage() {
               >
                 {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy journal number"
                 >
                   {titleText}
                 </span>
