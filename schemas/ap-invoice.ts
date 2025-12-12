@@ -134,9 +134,6 @@ export const ApInvoiceHdSchema = (
       ? z.number().min(1, "Service Category is required")
       : z.number().optional(),
 
-    // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
-
     // Nested Details
     data_details: z
       .array(ApInvoiceDtSchema(required, visible))

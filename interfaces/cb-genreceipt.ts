@@ -16,7 +16,6 @@ export interface ICbGenReceiptHd {
   paymentTypeId: number
   chequeNo: string | null
   chequeDate: Date | string
-  bankChgGLId: number
   bankChgAmt: number
   bankChgLocalAmt: number
 

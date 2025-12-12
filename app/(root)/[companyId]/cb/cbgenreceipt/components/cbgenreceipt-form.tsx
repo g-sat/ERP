@@ -29,7 +29,6 @@ import { clientDateFormat } from "@/lib/date-utils"
 import { parseNumberWithCommas } from "@/lib/utils"
 import {
   BankAutocomplete,
-  BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
@@ -620,16 +619,6 @@ export default function CbGenReceiptForm({
                 className="text-right"
               />
             </>
-          )}
-
-          {/* Bank Charge GL */}
-          {visible?.m_BankChgGLId && (
-            <BankChartOfAccountAutocomplete
-              form={form}
-              name="bankChgGLId"
-              label="Bank Charges GL"
-              companyId={_companyId}
-            />
           )}
 
           {/* Bank Charges Amount */}

@@ -141,9 +141,6 @@ export const ArAdjustmentHdSchema = (
     // Port Fields
     portId: z.number().optional(),
 
-    // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
-
     // Nested Details
     data_details: z
       .array(ArAdjustmentDtSchema(required, visible))

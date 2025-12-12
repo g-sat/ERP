@@ -146,8 +146,12 @@ export const ArInvoiceHdSchema = (
       : z.number().optional(),
 
     // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
-    advRecAmt: visible?.m_AdvRecAmt ? z.number() : z.number().optional(),
+    otherRemarks: visible?.m_OtherRemarks
+      ? z.string().optional()
+      : z.string().optional(),
+    advRecAmt: visible?.m_AdvRecAmt
+      ? z.number().optional()
+      : z.number().optional(),
 
     // Nested Details
     data_details: z

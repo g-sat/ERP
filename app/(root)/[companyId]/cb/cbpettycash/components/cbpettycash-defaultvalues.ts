@@ -67,7 +67,6 @@ const buildDefaultCbPettyCash = (dateFormat: string) => ({
   paymentTypeId: 0,
   chequeNo: "",
   chequeDate: format(new Date(), dateFormat),
-  bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
   totAmt: 0,

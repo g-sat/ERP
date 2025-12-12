@@ -355,6 +355,7 @@ export default function InvoicePage() {
     setIsSaving(true)
 
     try {
+      debugger
       // Get form values and validate them
       const formValues = transformToSchemaType(
         form.getValues() as unknown as IArInvoiceHd
@@ -430,6 +431,7 @@ export default function InvoicePage() {
       }
 
       {
+        console.log("handleSaveInvoice formValues", formValues)
         const response =
           Number(formValues.invoiceId) === 0
             ? await saveMutation.mutateAsync(formValues)
@@ -1240,10 +1242,10 @@ export default function InvoicePage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1406,7 +1408,7 @@ export default function InvoicePage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Invoice No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
                 disabled={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
               />

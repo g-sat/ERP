@@ -38,9 +38,6 @@ export const CbPettyCashHdSchema = (
     chequeDate: z.union([z.date(), z.string()]),
 
     // Bank Charge GL Fields
-    bankChgGLId: visible?.m_BankChgGLId
-      ? z.number().min(0, "Bank Charge GL is required")
-      : z.number().optional(),
     bankChgAmt: z.number().min(0, "Bank Charges Amount is required"),
     bankChgLocalAmt: z.number().min(0, "Bank Charges Local Amount is required"),
 

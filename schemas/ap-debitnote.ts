@@ -54,8 +54,13 @@ export const ApDebitNoteHdSchema = (
       ? z.union([z.date(), z.string()])
       : z.union([z.date(), z.string()]).optional(),
     gstAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
     totAmtAftGst: z.number().optional(),
     totLocalAmtAftGst: z.number().optional(),
     totCtyAmtAftGst: visible?.m_CtyCurr
@@ -126,9 +131,6 @@ export const ApDebitNoteHdSchema = (
     cancelDate: z.string().optional(),
     isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
-
-    // Other Remarks Fields
-    otherRemarks: visible?.m_OtherRemarks ? z.string() : z.string().optional(),
 
     // Nested Details
     data_details: z
@@ -214,8 +216,13 @@ export const ApDebitNoteDtSchema = (
     gstName: z.string().optional(),
     gstPercentage: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
     gstAmt: visible?.m_GstId ? z.number().min(0) : z.number().optional(),
-    gstLocalAmt: visible?.m_GstId ? z.number().optional() : z.number().optional(),
-    gstCtyAmt: visible?.m_CtyCurr && visible?.m_GstId ? z.number().min(0) : z.number().optional(),
+    gstLocalAmt: visible?.m_GstId
+      ? z.number().optional()
+      : z.number().optional(),
+    gstCtyAmt:
+      visible?.m_CtyCurr && visible?.m_GstId
+        ? z.number().min(0)
+        : z.number().optional(),
 
     // Delivery Date
     deliveryDate:

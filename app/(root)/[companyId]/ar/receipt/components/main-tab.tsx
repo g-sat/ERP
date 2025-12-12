@@ -424,6 +424,7 @@ export default function Main({
     if (!validateAllocation(currentData)) return
 
     const totAmt = Number(form.getValues("totAmt")) || 0
+    console.log("totAmt", totAmt)
     const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
     const result = autoAllocateAmounts(
       currentData as unknown as IArReceiptDt[],
@@ -505,6 +506,14 @@ export default function Main({
       shouldTouch: true,
     })
     setDataDetails(updatedData)
+
+    console.log("totAmt", totAmt)
+    console.log("sumAllocAmt", sumAllocAmt)
+    console.log("sumAllocLocalAmt", sumAllocLocalAmt)
+    console.log("sumExhGainLoss", sumExhGainLoss)
+    console.log("sumCentDiff", sumCentDiff)
+    console.log("unAllocAmt", unAllocAmt)
+    console.log("unAllocLocalAmt", unAllocLocalAmt)
 
     // Update totAmt if it was 0
     if (totAmt === 0) {
