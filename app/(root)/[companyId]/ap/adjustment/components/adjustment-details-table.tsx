@@ -101,25 +101,6 @@ export default function AdjustmentDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "Job Order",
-            size: 100,
-          },
-          {
-            accessorKey: "taskName",
-            header: "Task",
-            size: 100,
-          },
-          {
-            accessorKey: "serviceName",
-            header: "Service",
-            size: 100,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {

@@ -62,7 +62,6 @@ export default function AccountSetupCategoryAutocomplete<
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === "Tab" && !event.shiftKey) {
-      debugger
       event.preventDefault()
       const form = event.currentTarget.closest("form")
       if (form) {

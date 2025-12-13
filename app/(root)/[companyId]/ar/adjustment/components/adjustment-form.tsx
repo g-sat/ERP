@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import {
-  EntityType,
-  setAddressContactDetails,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
@@ -20,7 +18,6 @@ import {
   ICreditTermLookup,
   ICurrencyLookup,
   ICustomerLookup,
-  IJobOrderLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
@@ -36,13 +33,10 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
-  DynamicJobOrderAutocomplete,
-  JobOrderAutocomplete,
   PortAutocomplete,
   VesselAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
-import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -79,7 +73,6 @@ export default function AdjustmentForm({
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
   const isDynamicVessel = dynamicLookup?.isVessel ?? false
-  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -243,7 +236,6 @@ export default function AdjustmentForm({
 
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
-        await setAddressContactDetails(form, EntityType.CUSTOMER)
 
         // Calculate and set due date after customer fields are set
         await calculateAndSetDueDate()
@@ -262,23 +254,6 @@ export default function AdjustmentForm({
 
         // Calculate and set due date (will use account date if available, otherwise today)
         await calculateAndSetDueDate()
-
-        // Clear address fields
-        form.setValue("addressId", 0)
-        form.setValue("address1", "")
-        form.setValue("address2", "")
-        form.setValue("address3", "")
-        form.setValue("address4", "")
-        form.setValue("pinCode", "")
-        form.setValue("countryId", 0)
-        form.setValue("phoneNo", "")
-
-        // Clear contact fields
-        form.setValue("contactId", 0)
-        form.setValue("contactName", "")
-        form.setValue("mobileNo", "")
-        form.setValue("emailAdd", "")
-        form.setValue("faxNo", "")
 
         // Trigger validation
         form.trigger()
@@ -315,30 +290,6 @@ export default function AdjustmentForm({
   const handleDeliveryDateChange = React.useCallback(
     async (_selectedDeliveryDate: Date | null) => {
       await setDueDate(form)
-    },
-    [form]
-  )
-
-  // Handle job order selection
-  const handleJobOrderChange = React.useCallback(
-    (selectedJobOrder: IJobOrderLookup | null) => {
-      if (selectedJobOrder) {
-        // Set vesselId and portId from selected job order
-        form.setValue("vesselId", selectedJobOrder.vesselId || 0)
-        form.setValue("portId", selectedJobOrder.portId || 0)
-
-        // Trigger validation for the updated fields
-        form.trigger("vesselId")
-        form.trigger("portId")
-      } else {
-        // Clear vesselId and portId when job order is cleared
-        form.setValue("vesselId", 0)
-        form.setValue("portId", 0)
-
-        // Trigger validation for the cleared fields
-        form.trigger("vesselId")
-        form.trigger("portId")
-      }
     },
     [form]
   )
@@ -725,24 +676,6 @@ export default function AdjustmentForm({
               />
             </>
           )}
-
-          {/* Job Order */}
-          {visible?.m_JobOrderIdHd &&
-            (isDynamicJobOrder ? (
-              <DynamicJobOrderAutocomplete
-                form={form}
-                name="jobOrderId"
-                label="Job Order-D"
-                onChangeEvent={handleJobOrderChange}
-              />
-            ) : (
-              <JobOrderAutocomplete
-                form={form}
-                name="jobOrderId"
-                label="Job Order-S"
-                onChangeEvent={handleJobOrderChange}
-              />
-            ))}
 
           {/* Vessel */}
           {visible?.m_VesselIdHd &&

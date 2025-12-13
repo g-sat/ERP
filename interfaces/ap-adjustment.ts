@@ -45,21 +45,6 @@ export interface IApAdjustmentHd {
   operationId: number
   operationNo: string
   remarks: string
-  address1: string
-  address2: string
-  address3: string
-  address4: string
-  addressId: number
-  contactId: number
-  pinCode: string
-  countryId: number
-  countryCode: null | number | string
-  countryName: null | string
-  phoneNo: string
-  faxNo: string
-  contactName: string
-  mobileNo: string
-  emailAdd: string
   moduleFrom: string
   customerName: string
 
@@ -133,13 +118,6 @@ export interface IApAdjustmentDt {
   departmentId: number
   departmentCode: string
   departmentName: string
-
-  jobOrderId: number
-  jobOrderNo: string
-  taskId: number
-  taskName: string
-  serviceId: number
-  serviceName: string
 
   employeeId: number
   employeeCode: string

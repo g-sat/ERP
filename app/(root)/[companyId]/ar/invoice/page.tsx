@@ -355,7 +355,6 @@ export default function InvoicePage() {
     setIsSaving(true)
 
     try {
-      debugger
       // Get form values and validate them
       const formValues = transformToSchemaType(
         form.getValues() as unknown as IArInvoiceHd

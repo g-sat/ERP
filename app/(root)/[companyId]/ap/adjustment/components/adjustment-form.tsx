@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import {
-  EntityType,
-  setAddressContactDetails,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
@@ -235,7 +233,6 @@ export default function AdjustmentForm({
 
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
-        await setAddressContactDetails(form, EntityType.SUPPLIER)
 
         // Calculate and set due date after supplier fields are set
         await calculateAndSetDueDate()
@@ -254,23 +251,6 @@ export default function AdjustmentForm({
 
         // Calculate and set due date (will use account date if available, otherwise today)
         await calculateAndSetDueDate()
-
-        // Clear address fields
-        form.setValue("addressId", 0)
-        form.setValue("address1", "")
-        form.setValue("address2", "")
-        form.setValue("address3", "")
-        form.setValue("address4", "")
-        form.setValue("pinCode", "")
-        form.setValue("countryId", 0)
-        form.setValue("phoneNo", "")
-
-        // Clear contact fields
-        form.setValue("contactId", 0)
-        form.setValue("contactName", "")
-        form.setValue("mobileNo", "")
-        form.setValue("emailAdd", "")
-        form.setValue("faxNo", "")
 
         // Trigger validation
         form.trigger()

@@ -80,41 +80,6 @@ export const ArAdjustmentHdSchema = (
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
 
-    // Address and Contact
-    addressId: z.number().optional(),
-    contactId: z.number().optional(),
-    address1: required?.m_Address1
-      ? z.string().min(1, "Address 1 is required")
-      : z.string().optional(),
-    address2: required?.m_Address2
-      ? z.string().min(1, "Address 2 is required")
-      : z.string().optional(),
-    address3: required?.m_Address3
-      ? z.string().min(1, "Address 3 is required")
-      : z.string().optional(),
-    address4: required?.m_Address4
-      ? z.string().min(1, "Address 4 is required")
-      : z.string().optional(),
-    pinCode: required?.m_PinCode
-      ? z.string().min(1, "Pin Code is required")
-      : z.string().optional(),
-    countryId: required?.m_Countryd
-      ? z.number().min(1, "Country is required")
-      : z.number().optional(),
-    phoneNo: required?.m_PhoneNo
-      ? z.string().min(9, "Phone No must be at least 9 characters")
-      : z.string().optional(),
-    faxNo: z.string().optional(),
-    contactName: required?.m_ContactName
-      ? z.string().min(1, "Contact Name is required")
-      : z.string().optional(),
-    mobileNo: required?.m_MobileNo
-      ? z.string().min(9, "Mobile No must be at least 9 characters")
-      : z.string().optional(),
-    emailAdd: required?.m_EmailAdd
-      ? z.string().email("Invalid email address").optional()
-      : z.string().optional(),
-
     // Customer Details
     moduleFrom: z.string().optional(),
 
@@ -130,10 +95,6 @@ export const ArAdjustmentHdSchema = (
     cancelDate: z.string().optional(),
     isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
-
-    // Job Order Fields
-    jobOrderId: z.number().optional(),
-    jobOrderNo: z.string().optional(),
 
     // Vessel Fields
     vesselId: z.number().optional(),

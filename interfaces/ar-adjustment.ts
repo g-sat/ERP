@@ -45,21 +45,6 @@ export interface IArAdjustmentHd {
   operationId: number
   operationNo: string
   remarks: string
-  address1: string
-  address2: string
-  address3: string
-  address4: string
-  addressId: number
-  contactId: number
-  pinCode: string
-  countryId: number
-  countryCode: null | number | string
-  countryName: null | string
-  phoneNo: string
-  faxNo: string
-  contactName: string
-  mobileNo: string
-  emailAdd: string
   moduleFrom: string
   supplierName: string
 
@@ -86,8 +71,6 @@ export interface IArAdjustmentHd {
 
   appBy: string
 
-  jobOrderId: number
-  jobOrderNo: string
   vesselId: number
   vesselCode: string
   vesselName: string

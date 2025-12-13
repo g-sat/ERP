@@ -25,11 +25,8 @@ import {
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
-  IJobOrderLookup,
   IPortLookup,
   IProductLookup,
-  IServiceLookup,
-  ITaskLookup,
   IUomLookup,
   IVesselLookup,
   IVoyageLookup,
@@ -58,12 +55,8 @@ import {
   BargeAutocomplete,
   ChartOfAccountAutocomplete,
   DepartmentAutocomplete,
-  DynamicJobOrderAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
-  JobOrderAutocomplete,
-  JobOrderServiceAutocomplete,
-  JobOrderTaskAutocomplete,
   PortAutocomplete,
   ProductAutocomplete,
   UomAutocomplete,
@@ -134,11 +127,7 @@ const AdjustmentDetailsForm = React.forwardRef<
     )
 
     const { data: dynamicLookup } = useGetDynamicLookup()
-    const isDynamicLookup = dynamicLookup?.isJobOrder ?? false
     const isDynamicVessel = dynamicLookup?.isVessel ?? false
-    // State to manage job-specific vs department-specific rendering
-    const [isJobSpecific, setIsJobSpecific] = useState(false)
-
     // Track if submit was attempted to show errors only after submit
     const [submitAttempted, setSubmitAttempted] = useState(false)
 
@@ -224,12 +213,6 @@ const AdjustmentDetailsForm = React.forwardRef<
             departmentId: editingDetail.departmentId ?? 0,
             departmentCode: editingDetail.departmentCode ?? "",
             departmentName: editingDetail.departmentName ?? "",
-            jobOrderId: editingDetail.jobOrderId ?? 0,
-            jobOrderNo: editingDetail.jobOrderNo ?? "",
-            taskId: editingDetail.taskId ?? 0,
-            taskName: editingDetail.taskName ?? "",
-            serviceId: editingDetail.serviceId ?? 0,
-            serviceName: editingDetail.serviceName ?? "",
             employeeId: editingDetail.employeeId ?? 0,
             employeeCode: editingDetail.employeeCode ?? "",
             employeeName: editingDetail.employeeName ?? "",
@@ -489,7 +472,6 @@ const AdjustmentDetailsForm = React.forwardRef<
         countryExchangeRateWhenLoadedRef.current =
           Hdform.getValues("ctyExhRate") || 0
 
-        // Determine if editing detail is job-specific or department-specific
         form.reset({
           adjustmentId: editingDetail.adjustmentId ?? "0",
           adjustmentNo: editingDetail.adjustmentNo ?? "",
@@ -523,12 +505,6 @@ const AdjustmentDetailsForm = React.forwardRef<
           departmentId: editingDetail.departmentId ?? 0,
           departmentCode: editingDetail.departmentCode ?? "",
           departmentName: editingDetail.departmentName ?? "",
-          jobOrderId: editingDetail.jobOrderId ?? 0,
-          jobOrderNo: editingDetail.jobOrderNo ?? "",
-          taskId: editingDetail.taskId ?? 0,
-          taskName: editingDetail.taskName ?? "",
-          serviceId: editingDetail.serviceId ?? 0,
-          serviceName: editingDetail.serviceName ?? "",
           employeeId: editingDetail.employeeId ?? 0,
           employeeCode: editingDetail.employeeCode ?? "",
           employeeName: editingDetail.employeeName ?? "",
@@ -686,12 +662,6 @@ const AdjustmentDetailsForm = React.forwardRef<
           departmentId: updatedData.departmentId ?? 0,
           departmentCode: updatedData.departmentCode ?? "",
           departmentName: updatedData.departmentName ?? "",
-          jobOrderId: updatedData.jobOrderId ?? 0,
-          jobOrderNo: updatedData.jobOrderNo ?? "",
-          taskId: updatedData.taskId ?? 0,
-          taskName: updatedData.taskName ?? "",
-          serviceId: updatedData.serviceId ?? 0,
-          serviceName: updatedData.serviceName ?? "",
           employeeId: updatedData.employeeId ?? 0,
           employeeCode: updatedData.employeeCode ?? "",
           employeeName: updatedData.employeeName ?? "",
@@ -747,10 +717,6 @@ const AdjustmentDetailsForm = React.forwardRef<
       }
     }
 
-    // Watch form values to trigger re-renders when they change
-    const watchedJobOrderId = form.watch("jobOrderId")
-    const watchedTaskId = form.watch("taskId")
-
     // ============================================================================
     // HANDLERS
     // ============================================================================
@@ -778,29 +744,6 @@ const AdjustmentDetailsForm = React.forwardRef<
         })
         form.setValue("glCode", selectedOption.glCode || "")
         form.setValue("glName", selectedOption.glName || "")
-
-        // CRITICAL: Use the actual isJobSpecific property from the chart of account data
-        // This determines which fields will be shown/required
-        const isJobSpecificAccount = selectedOption.isJobSpecific || false
-
-        setIsJobSpecific(isJobSpecificAccount)
-
-        // Reset dependent fields when switching between job-specific and department-specific
-        // This prevents invalid data from being submitted
-        if (!isJobSpecificAccount) {
-          // Department-Specific: Reset job-related fields
-          form.setValue("jobOrderId", 0, { shouldValidate: true })
-          form.setValue("jobOrderNo", "")
-          form.setValue("taskId", 0, { shouldValidate: true })
-          form.setValue("taskName", "")
-          form.setValue("serviceId", 0, { shouldValidate: true })
-          form.setValue("serviceName", "")
-        } else {
-          // Job-Specific: Reset department field
-          form.setValue("departmentId", 0, { shouldValidate: true })
-          form.setValue("departmentCode", "")
-          form.setValue("departmentName", "")
-        }
       }
     }
 
@@ -826,62 +769,6 @@ const AdjustmentDetailsForm = React.forwardRef<
         form.setValue("gstAmt", rowData.gstAmt)
         form.setValue("gstLocalAmt", rowData.gstLocalAmt)
         form.setValue("gstCtyAmt", rowData.gstCtyAmt)
-      }
-    }
-
-    // Handle job order selection
-    const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
-      if (selectedOption) {
-        form.setValue("jobOrderId", selectedOption.jobOrderId, {
-          shouldValidate: true,
-          shouldDirty: true,
-        })
-        form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
-        // Reset task and service when job order changes
-        form.setValue("taskId", 0, { shouldValidate: true })
-        form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
-      } else {
-        form.setValue("jobOrderId", 0, { shouldValidate: true })
-        form.setValue("jobOrderNo", "")
-        form.setValue("taskId", 0, { shouldValidate: true })
-        form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
-      }
-    }
-
-    // Handle task selection
-    const handleTaskChange = (selectedOption: ITaskLookup | null) => {
-      if (selectedOption) {
-        form.setValue("taskId", selectedOption.taskId, {
-          shouldValidate: true,
-          shouldDirty: true,
-        })
-        form.setValue("taskName", selectedOption.taskName || "")
-        // Reset service when task changes
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
-      } else {
-        form.setValue("taskId", 0, { shouldValidate: true })
-        form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
-      }
-    }
-
-    // Handle service selection
-    const handleServiceChange = (selectedOption: IServiceLookup | null) => {
-      if (selectedOption) {
-        form.setValue("serviceId", selectedOption.serviceId, {
-          shouldValidate: true,
-          shouldDirty: true,
-        })
-        form.setValue("serviceName", selectedOption.serviceName || "")
-      } else {
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
       }
     }
 
@@ -1216,9 +1103,6 @@ const AdjustmentDetailsForm = React.forwardRef<
             <input type="hidden" {...form.register("glName")} />
             <input type="hidden" {...form.register("departmentCode")} />
             <input type="hidden" {...form.register("departmentName")} />
-            <input type="hidden" {...form.register("jobOrderNo")} />
-            <input type="hidden" {...form.register("taskName")} />
-            <input type="hidden" {...form.register("serviceName")} />
             <input type="hidden" {...form.register("productCode")} />
             <input type="hidden" {...form.register("productName")} />
             <input type="hidden" {...form.register("uomCode")} />
@@ -1299,81 +1183,15 @@ const AdjustmentDetailsForm = React.forwardRef<
               onChangeEvent={handleChartOfAccountChange}
               companyId={companyId}
             />
-            {/* 
-            CONDITIONAL RENDERING BASED ON CHART OF ACCOUNT TYPE
-            =====================================================
-            If Chart of Account is Job-Specific (isJobSpecific = true):
-              - Shows: Job Order → Task → Service (cascading dropdowns)
-              - Hides: Department
-            
-            If Chart of Account is Department-Specific (isJobSpecific = false):
-              - Shows: Department
-              - Hides: Job Order, Task, Service
-            
-            The isJobSpecific state is set by:
-            1. Chart of Account selection (handleChartOfAccountChange)
-            2. Edit mode detection (useEffect checking existing jobOrderId/departmentId)
-          */}
-            {isJobSpecific ? (
-              <>
-                {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-                {visible?.m_JobOrderId && !isDynamicLookup && (
-                  <JobOrderAutocomplete
-                    form={form}
-                    name="jobOrderId"
-                    label="Job Order-S"
-                    isRequired={required?.m_JobOrderId && isJobSpecific}
-                    onChangeEvent={handleJobOrderChange}
-                  />
-                )}
-
-                {visible?.m_JobOrderId && isDynamicLookup && (
-                  <DynamicJobOrderAutocomplete
-                    form={form}
-                    name="jobOrderId"
-                    label="Job Order-D"
-                    onChangeEvent={handleJobOrderChange}
-                  />
-                )}
-
-                {visible?.m_JobOrderId && (
-                  <JobOrderTaskAutocomplete
-                    key={`task-${watchedJobOrderId}`}
-                    form={form}
-                    name="taskId"
-                    jobOrderId={watchedJobOrderId || 0}
-                    label="Task"
-                    //isRequired={required?.m_JobOrderId && isJobSpecific}
-                    onChangeEvent={handleTaskChange}
-                  />
-                )}
-
-                {visible?.m_JobOrderId && (
-                  <JobOrderServiceAutocomplete
-                    key={`service-${watchedJobOrderId}-${watchedTaskId}`}
-                    form={form}
-                    name="serviceId"
-                    jobOrderId={watchedJobOrderId || 0}
-                    taskId={watchedTaskId || 0}
-                    label="Service"
-                    //isRequired={required?.m_JobOrderId && isJobSpecific}
-                    onChangeEvent={handleServiceChange}
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                {/* DEPARTMENT-SPECIFIC MODE: Department only */}
-                {visible?.m_DepartmentId && (
-                  <DepartmentAutocomplete
-                    form={form}
-                    name="departmentId"
-                    label="Department"
-                    isRequired={required?.m_DepartmentId && !isJobSpecific}
-                    onChangeEvent={handleDepartmentChange}
-                  />
-                )}
-              </>
+            {/* Department */}
+            {visible?.m_DepartmentId && (
+              <DepartmentAutocomplete
+                form={form}
+                name="departmentId"
+                label="Department"
+                isRequired={required?.m_DepartmentId}
+                onChangeEvent={handleDepartmentChange}
+              />
             )}
 
             {/* Employee */}
