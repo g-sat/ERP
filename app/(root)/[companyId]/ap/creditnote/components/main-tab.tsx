@@ -14,9 +14,9 @@ import { DeleteConfirmation } from "@/components/confirmation"
 
 import CreditNoteDetailsForm, {
   CreditNoteDetailsFormRef,
-} from "./creditNote-details-form"
-import CreditNoteDetailsTable from "./creditNote-details-table"
-import CreditNoteForm from "./creditNote-form"
+} from "./creditnote-details-form"
+import CreditNoteDetailsTable from "./creditnote-details-table"
+import CreditNoteForm from "./creditnote-form"
 
 interface MainProps {
   form: UseFormReturn<ApCreditNoteHdSchemaType>

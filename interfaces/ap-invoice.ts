@@ -84,8 +84,8 @@ export interface IApInvoiceHd {
 
   appBy: string
 
-  serviceTypeId: number
-  serviceTypeName: string
+  serviceCategoryId: number
+  serviceCategoryName: string
 
   data_details: IApInvoiceDt[]
 }

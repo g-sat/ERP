@@ -39,7 +39,6 @@ import {
 import {
   Copy,
   ListFilter,
-  Printer,
   RefreshCw,
   RotateCcw,
   Save,
@@ -69,8 +68,8 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { getDefaultValues } from "./components/creditNote-defaultvalues"
-import CreditNoteTable from "./components/creditNote-table"
+import { getDefaultValues } from "./components/creditnote-defaultvalues"
+import CreditNoteTable from "./components/creditnote-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
@@ -1261,10 +1260,10 @@ export default function CreditNotePage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1429,7 +1428,7 @@ export default function CreditNotePage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search CreditNote No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={
                   !!creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
                 }
@@ -1480,7 +1479,7 @@ export default function CreditNotePage() {
                   : "Save"}
             </Button>
 
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               disabled={!creditNote || creditNote.creditNoteId === "0"}
@@ -1488,7 +1487,7 @@ export default function CreditNotePage() {
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
-            </Button>
+            </Button> */}
 
             <Button
               variant="outline"

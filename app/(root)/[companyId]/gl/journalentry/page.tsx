@@ -52,12 +52,6 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -1310,30 +1304,15 @@ export default function GLJournalPage() {
                   : "Save"}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!glJournal || glJournal.journalId === "0"}
-                >
-                  <Printer className="mr-1 h-4 w-4" />
-                  Print
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => handlePrintGLJournal("direct")}
-                >
-                  1. Direct
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handlePrintGLJournal("glJournal")}
-                >
-                  2. GLJournal
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePrintGLJournal("glJournal")}
+              disabled={!glJournal || glJournal.journalId === "0"}
+            >
+              <Printer className="mr-1 h-4 w-4" />
+              Print
+            </Button>
 
             <Button
               variant="outline"

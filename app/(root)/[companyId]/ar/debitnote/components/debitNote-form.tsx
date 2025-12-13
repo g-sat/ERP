@@ -51,7 +51,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { DebitNoteDetailsFormRef } from "./debitNote-details-form"
+import { DebitNoteDetailsFormRef } from "./debitnote-details-form"
 
 interface DebitNoteFormProps {
   form: UseFormReturn<ArDebitNoteHdSchemaType>

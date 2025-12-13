@@ -56,12 +56,6 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -740,8 +734,8 @@ export default function CbGenPaymentPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      paymentId: paymentId,
-      paymentNo: paymentNo,
+      invoiceId: paymentId,
+      invoiceNo: paymentNo,
       reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
@@ -1327,30 +1321,15 @@ export default function CbGenPaymentPage() {
                   : "Save"}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!cbGenPayment || cbGenPayment.paymentId === "0"}
-                >
-                  <Printer className="mr-1 h-4 w-4" />
-                  Print
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => handlePrintCbGenPayment("direct")}
-                >
-                  1. Direct
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handlePrintCbGenPayment("cbGenPayment")}
-                >
-                  2. CbGenPayment
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePrintCbGenPayment("cbGenPayment")}
+              disabled={!cbGenPayment || cbGenPayment.paymentId === "0"}
+            >
+              <Printer className="mr-1 h-4 w-4" />
+              Print
+            </Button>
 
             <Button
               variant="outline"

@@ -14,9 +14,9 @@ import { DeleteConfirmation } from "@/components/confirmation"
 
 import DebitNoteDetailsForm, {
   DebitNoteDetailsFormRef,
-} from "./debitNote-details-form"
-import DebitNoteDetailsTable from "./debitNote-details-table"
-import DebitNoteForm from "./debitNote-form"
+} from "./debitnote-details-form"
+import DebitNoteDetailsTable from "./debitnote-details-table"
+import DebitNoteForm from "./debitnote-form"
 
 interface MainProps {
   form: UseFormReturn<ApDebitNoteHdSchemaType>

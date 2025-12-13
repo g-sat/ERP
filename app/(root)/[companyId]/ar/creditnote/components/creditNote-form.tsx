@@ -52,7 +52,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { CreditNoteDetailsFormRef } from "./creditNote-details-form"
+import { CreditNoteDetailsFormRef } from "./creditnote-details-form"
 
 interface CreditNoteFormProps {
   form: UseFormReturn<ArCreditNoteHdSchemaType>
@@ -986,10 +986,13 @@ export default function CreditNoteForm({
                 </div>
                 {visible?.m_GstId && (
                   <div className="font-medium text-gray-700">
-                    {(form.watch("gstLocalAmt") || 0).toLocaleString(undefined, {
-                      minimumFractionDigits: locAmtDec,
-                      maximumFractionDigits: locAmtDec,
-                    })}
+                    {(form.watch("gstLocalAmt") || 0).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: locAmtDec,
+                        maximumFractionDigits: locAmtDec,
+                      }
+                    )}
                   </div>
                 )}
                 <hr className="my-1 border-blue-300" />

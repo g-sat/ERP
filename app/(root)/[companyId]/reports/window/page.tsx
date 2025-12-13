@@ -33,17 +33,21 @@ export default function ReportWindowViewerPage() {
       console.error("Error reading from sessionStorage:", error)
     }
 
-    // If no data found, show error
-    setReportData({
-      reportFile: "RPT_ARInvoice.trdp",
-      parameters: {},
-    })
+    // If no data found, set reportData to null to show error state
+    setReportData(null)
   }, [companyId])
 
   if (!reportData) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-muted-foreground">Loading report...</div>
+        <div className="text-center">
+          <div className="text-destructive text-lg font-semibold">
+            No Report Data Available
+          </div>
+          <div className="text-muted-foreground mt-2 text-sm">
+            Please open a report from the application to view it here.
+          </div>
+        </div>
       </div>
     )
   }

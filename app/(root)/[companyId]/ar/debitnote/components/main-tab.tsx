@@ -14,9 +14,9 @@ import { DeleteConfirmation } from "@/components/confirmation"
 
 import DebitNoteDetailsForm, {
   DebitNoteDetailsFormRef,
-} from "./debitNote-details-form"
-import DebitNoteDetailsTable from "./debitNote-details-table"
-import DebitNoteForm from "./debitNote-form"
+} from "./debitnote-details-form"
+import DebitNoteDetailsTable from "./debitnote-details-table"
+import DebitNoteForm from "./debitnote-form"
 
 interface MainProps {
   form: UseFormReturn<ArDebitNoteHdSchemaType>
@@ -160,7 +160,7 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
-    
+
     // Recalculate header totals after adding/updating row
     recalculateHeaderTotals()
   }
@@ -230,7 +230,7 @@ export default function Main({
       "data_details",
       reorderedData as unknown as ArDebitNoteDtSchemaType[]
     )
-    
+
     // Recalculate header totals after reordering (in case amounts were affected)
     recalculateHeaderTotals()
   }

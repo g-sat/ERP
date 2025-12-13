@@ -753,8 +753,8 @@ export default function CbPettyCashPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      paymentId: paymentId,
-      paymentNo: paymentNo,
+      invoiceId: paymentId,
+      invoiceNo: paymentNo,
       reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,

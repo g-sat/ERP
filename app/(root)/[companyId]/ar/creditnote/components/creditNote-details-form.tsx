@@ -65,7 +65,7 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { getDefaultValues } from "./creditNote-defaultvalues"
+import { getDefaultValues } from "./creditnote-defaultvalues"
 
 export interface CreditNoteDetailsFormRef {
   recalculateAmounts: (

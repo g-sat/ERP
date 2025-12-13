@@ -183,7 +183,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "gstPercentage",
             header: "VAT %",
             size: 50,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { getValue: (key: string) => number } }) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstPercentage"), 2)}
               </div>
@@ -193,7 +193,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "gstAmt",
             header: "VAT Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { getValue: (key: string) => number } }) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstAmt"), amtDec)}
               </div>
@@ -252,7 +252,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "gstLocalAmt",
             header: "GST Local Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { getValue: (key: string) => number } }) => (
               <div className="text-right">
                 {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
               </div>

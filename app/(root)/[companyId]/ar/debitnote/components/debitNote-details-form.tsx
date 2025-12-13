@@ -65,7 +65,7 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { getDefaultValues } from "./debitNote-defaultvalues"
+import { getDefaultValues } from "./debitnote-defaultvalues"
 
 export interface DebitNoteDetailsFormRef {
   recalculateAmounts: (
