@@ -716,8 +716,8 @@ export default function GLJournalPage() {
     // Build report parameters
     const reportParams = {
       companyId: companyId,
-      journalId: journalId,
-      journalNo: journalNo,
+      invoiceId: journalId,
+      invoiceNo: journalNo,
       reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
