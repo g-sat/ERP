@@ -95,8 +95,8 @@ export interface IArCreditNoteHd {
   portId: number
   portCode: string
   portName: string
-  serviceTypeId: number
-  serviceTypeName: string
+  serviceCategoryId: number
+  serviceCategoryName: string
   data_details: IArCreditNoteDt[]
 }
 

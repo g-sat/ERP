@@ -87,8 +87,8 @@ export interface IApDebitNoteHd {
 
   appBy: string
 
-  serviceTypeId: number
-  serviceTypeName: string
+  serviceCategoryId: number
+  serviceCategoryName: string
   data_details: IApDebitNoteDt[]
 }
 

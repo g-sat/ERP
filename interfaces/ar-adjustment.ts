@@ -77,8 +77,6 @@ export interface IArAdjustmentHd {
   portId: number
   portCode: string
   portName: string
-  serviceTypeId: number
-  serviceTypeName: string
   data_details: IArAdjustmentDt[]
 }
 
