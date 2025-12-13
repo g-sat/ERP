@@ -108,7 +108,7 @@ export interface ICbPettyCashDt {
   invoiceDate: Date | string
   invoiceNo: string
   supplierName: string
-  gstNo: string
+  supplierRegNo: string
   jobOrderId: number
   jobOrderNo: string
   taskId: number

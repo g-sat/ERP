@@ -44,12 +44,6 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
       data: [],
     }
 
-  // const {
-  //   result: glPostDetailsResult,
-  //   message: glPostDetailsMessage,
-  //   data: glPostDetailsData,
-  // } = glPostDetails ?? {}
-
   const columns: ExtendedColumnDef<IGlTransactionDetails>[] = [
     {
       accessorKey: "documentNo",
@@ -69,21 +63,14 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
-    },
-    {
-      accessorKey: "moduleFrom",
-      header: "Module",
-    },
+
     {
       accessorKey: "currencyCode",
-      header: "Currency Code",
+      header: "Currency",
     },
     {
       accessorKey: "exhRate",
-      header: "Exh. Rate",
+      header: "Exh.",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
@@ -92,32 +79,18 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.ctyExhRate
-            ? formatNumber(row.original.ctyExhRate, exhRateDec)
-            : "-"}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
       header: "Bank",
     },
     {
       accessorKey: "glCode",
-      header: "GL Code",
+      header: "Acc. Code",
     },
     {
       accessorKey: "glName",
-      header: "GL Name",
+      header: "Acc. Name",
     },
     {
       accessorKey: "isDebit",
@@ -160,6 +133,7 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
             : "-"}
         </div>
       ),
+      hidden: true,
     },
     {
       accessorKey: "gstCode",
@@ -212,23 +186,25 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
       header: "Department Code",
       hidden: true,
     },
-    {
-      accessorKey: "departmentName",
-      header: "Department Name",
-    },
+
     {
       accessorKey: "employeeCode",
       header: "Employee Code",
       hidden: true,
     },
     {
-      accessorKey: "employeeName",
-      header: "Employee Name",
-    },
-    {
       accessorKey: "portCode",
       header: "Port Code",
     },
+    {
+      accessorKey: "departmentName",
+      header: "Department Name",
+    },
+    {
+      accessorKey: "employeeName",
+      header: "Employee Name",
+    },
+
     {
       accessorKey: "portName",
       header: "Port Name",
@@ -273,10 +249,30 @@ export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
       accessorKey: "customerCode",
       header: "Customer Code",
     },
+    {
+      accessorKey: "customerName",
+      header: "Customer Name",
+    },
+    {
+      accessorKey: "moduleFrom",
+      header: "Module",
+    },
 
     {
       accessorKey: "createBy",
       header: "Created By",
+    },
+    {
+      accessorKey: "ctyExhRate",
+      header: "Country Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.ctyExhRate
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
+            : "-"}
+        </div>
+      ),
+      hidden: true,
     },
     {
       accessorKey: "createDate",

@@ -3,6 +3,7 @@ import { ICbPettyCashDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { CellContext, ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
 
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
@@ -36,6 +37,7 @@ export default function CbPettyCashDetailsTable({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   useEffect(() => {
     setMounted(true)
@@ -87,6 +89,12 @@ export default function CbPettyCashDetailsTable({
           {
             accessorKey: "invoiceDate",
             header: "Invoice Date",
+            cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => {
+              const date = row.getValue("invoiceDate")
+                ? new Date(row.getValue("invoiceDate"))
+                : null
+              return date ? format(date, dateFormat) : "-"
+            },
             size: 100,
           },
         ]
@@ -109,55 +117,6 @@ export default function CbPettyCashDetailsTable({
           },
         ]
       : []),
-    ...(visible?.m_GstNo
-      ? [
-          {
-            accessorKey: "gstNo",
-            header: "GST No",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_ServiceCategoryId
-      ? [
-          {
-            accessorKey: "serviceCategoryName",
-            header: "Service Category",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_DepartmentId
-      ? [
-          {
-            accessorKey: "departmentName",
-            header: "Department",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "Job Order",
-            size: 100,
-          },
-
-          {
-            accessorKey: "taskName",
-            header: "Task",
-            size: 100,
-          },
-
-          {
-            accessorKey: "serviceName",
-            header: "Service",
-            size: 100,
-          },
-        ]
-      : []),
-
     ...(visible?.m_Remarks
       ? [
           {
@@ -204,6 +163,45 @@ export default function CbPettyCashDetailsTable({
         ]
       : []),
 
+    ...(visible?.m_DepartmentId
+      ? [
+          {
+            accessorKey: "departmentName",
+            header: "Department",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "Job Order",
+            size: 100,
+          },
+
+          {
+            accessorKey: "taskName",
+            header: "Task",
+            size: 100,
+          },
+
+          {
+            accessorKey: "serviceName",
+            header: "Service",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_GstNo
+      ? [
+          {
+            accessorKey: "supplierRegNo",
+            header: "GST No",
+            size: 100,
+          },
+        ]
+      : []),
     {
       accessorKey: "totLocalAmt",
       header: "Local Amount",
@@ -214,6 +212,7 @@ export default function CbPettyCashDetailsTable({
         </div>
       ),
     },
+
     ...(visible?.m_CtyCurr
       ? [
           {
@@ -263,6 +262,16 @@ export default function CbPettyCashDetailsTable({
               </div>
             ),
           } as ColumnDef<ICbPettyCashDt>,
+        ]
+      : []),
+
+    ...(visible?.m_ServiceCategoryId
+      ? [
+          {
+            accessorKey: "serviceCategoryName",
+            header: "Service Category",
+            size: 100,
+          },
         ]
       : []),
 

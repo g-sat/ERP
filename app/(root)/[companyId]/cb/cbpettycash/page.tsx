@@ -56,12 +56,6 @@ import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -249,7 +243,7 @@ export default function CbPettyCashPage() {
               invoiceDate: detail.invoiceDate ?? new Date(),
               invoiceNo: detail.invoiceNo ?? "",
               supplierName: detail.supplierName ?? "",
-              gstNo: detail.gstNo ?? "",
+              supplierRegNo: detail.supplierRegNo ?? "",
               jobOrderId: detail.jobOrderId ?? 0,
               jobOrderNo: detail.jobOrderNo ?? "",
               taskId: detail.taskId ?? 0,
@@ -504,7 +498,7 @@ export default function CbPettyCashPage() {
             invoiceDate: dateStr,
             invoiceNo: "",
             supplierName: "",
-            gstNo: "",
+            supplierRegNo: "",
             jobOrderId: 0,
             jobOrderNo: "",
             taskId: 0,
@@ -897,7 +891,7 @@ export default function CbPettyCashPage() {
                 invoiceDate: detail.invoiceDate ?? "",
                 invoiceNo: detail.invoiceNo ?? "",
                 supplierName: detail.supplierName ?? "",
-                gstNo: detail.gstNo ?? "",
+                supplierRegNo: detail.supplierRegNo ?? "",
                 serviceCategoryId: detail.serviceCategoryId ?? 0,
                 serviceCategoryName: detail.serviceCategoryName ?? "",
                 departmentId: detail.departmentId ?? 0,
@@ -1350,30 +1344,15 @@ export default function CbPettyCashPage() {
                   : "Save"}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!cbPettyCash || cbPettyCash.paymentId === "0"}
-                >
-                  <Printer className="mr-1 h-4 w-4" />
-                  Print
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => handlePrintCbPettyCash("direct")}
-                >
-                  1. Direct
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handlePrintCbPettyCash("cbPettyCash")}
-                >
-                  2. CbPettyCash
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePrintCbPettyCash("cbPettyCash")}
+              disabled={!cbPettyCash || cbPettyCash.paymentId === "0"}
+            >
+              <Printer className="mr-1 h-4 w-4" />
+              Print
+            </Button>
 
             <Button
               variant="outline"

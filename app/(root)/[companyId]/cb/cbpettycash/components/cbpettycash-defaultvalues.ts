@@ -40,7 +40,7 @@ const buildDefaultCbPettyCashDetails = (dateFormat: string) => ({
   invoiceDate: format(new Date(), dateFormat),
   invoiceNo: "",
   supplierName: "",
-  gstNo: "",
+  supplierRegNo: "",
   jobOrderId: 0,
   jobOrderNo: "",
   taskId: 0,

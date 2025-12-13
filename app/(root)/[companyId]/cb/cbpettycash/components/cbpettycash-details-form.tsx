@@ -164,12 +164,22 @@ const CbPettyCashDetailsForm = React.forwardRef<
           ? defaultGstId
           : defaultCbPettyCashDetails.gstId
 
+      // Get account date from header form, fallback to current date
+      const accountDate = Hdform.getValues("accountDate")
+      const invoiceDate =
+        accountDate && typeof accountDate === "string"
+          ? accountDate
+          : accountDate instanceof Date
+            ? format(accountDate, dateFormat)
+            : format(new Date(), dateFormat)
+
       return {
         ...defaultCbPettyCashDetails,
         itemNo,
         seqNo: itemNo,
         glId,
         gstId,
+        invoiceDate,
       }
     }
 
@@ -187,7 +197,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
               editingDetail.invoiceDate ?? format(new Date(), dateFormat),
             invoiceNo: editingDetail.invoiceNo ?? "",
             supplierName: editingDetail.supplierName ?? "",
-            gstNo: editingDetail.gstNo ?? "",
+            supplierRegNo: editingDetail.supplierRegNo ?? "",
             serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
             serviceCategoryName: editingDetail.serviceCategoryName ?? "",
             glId: editingDetail.glId ?? 0,
@@ -450,7 +460,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
             editingDetail.invoiceDate ?? format(new Date(), dateFormat),
           invoiceNo: editingDetail.invoiceNo ?? "",
           supplierName: editingDetail.supplierName ?? "",
-          gstNo: editingDetail.gstNo ?? "",
+          supplierRegNo: editingDetail.supplierRegNo ?? "",
           serviceCategoryId: editingDetail.serviceCategoryId ?? 0,
           serviceCategoryName: editingDetail.serviceCategoryName ?? "",
           glId: editingDetail.glId ?? 0,
@@ -506,6 +516,32 @@ const CbPettyCashDetailsForm = React.forwardRef<
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editingDetail, existingDetails.length])
+
+    // Watch account date from header form
+    const watchedAccountDate = Hdform.watch("accountDate")
+
+    // Sync invoice date with account date when account date changes (only for new records, not editing)
+    useEffect(() => {
+      // Only sync if not editing an existing detail
+      if (editingDetail) return
+
+      if (watchedAccountDate) {
+        const accountDateStr =
+          typeof watchedAccountDate === "string"
+            ? watchedAccountDate
+            : watchedAccountDate instanceof Date
+              ? format(watchedAccountDate, dateFormat)
+              : null
+
+        if (accountDateStr) {
+          // Update invoice date to match account date
+          form.setValue("invoiceDate", accountDateStr, {
+            shouldValidate: false,
+          })
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedAccountDate, editingDetail, dateFormat])
 
     const onSubmit = async (_data: CbPettyCashDtSchemaType) => {
       try {
@@ -601,7 +637,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
             updatedData.invoiceDate ?? format(new Date(), dateFormat),
           invoiceNo: updatedData.invoiceNo ?? "",
           supplierName: updatedData.supplierName ?? "",
-          gstNo: updatedData.gstNo ?? "",
+          supplierRegNo: updatedData.supplierRegNo ?? "",
           serviceCategoryId: updatedData.serviceCategoryId ?? 0,
           serviceCategoryName: updatedData.serviceCategoryName ?? "",
           totAmt: updatedData.totAmt ?? 0,
@@ -1436,7 +1472,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
             {visible?.m_GstNo && (
               <CustomInput
                 form={form}
-                name="gstNo"
+                name="supplierRegNo"
                 label="GST No"
                 isRequired={isServiceCategoryRequired()}
               />

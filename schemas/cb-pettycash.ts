@@ -121,7 +121,7 @@ export const CbPettyCashDtSchema = (
     invoiceDate: z.union([z.date(), z.string()]).optional(),
     invoiceNo: z.string().optional(),
     supplierName: z.string().optional(),
-    gstNo: z.string().optional(),
+    supplierRegNo: z.string().optional(),
 
     // GL Fields
     glId: required?.m_GLId
