@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { ICbBankTransferCtmFilter, ICbBankTransferCtmHd } from "@/interfaces"
+import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -9,23 +10,28 @@ import { CbBankTransferCtm } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface BankTransferCtmTableProps {
-  onBankTransferCtmSelect: (
+export interface CbBankTransferCtmTableProps {
+  onCbBankTransferCtmSelect: (
     selectedBankTransferCtm: ICbBankTransferCtmHd | undefined
   ) => void
   onFilterChange: (filters: ICbBankTransferCtmFilter) => void
   initialFilters?: ICbBankTransferCtmFilter
+  pageSize?: number
+  onCloseAction?: () => void
+  visible?: IVisibleFields
 }
 
-export default function BankTransferCtmTable({
-  onBankTransferCtmSelect,
+export default function CbBankTransferCtmTable({
+  onCbBankTransferCtmSelect,
   onFilterChange,
   initialFilters,
-}: BankTransferCtmTableProps) {
+  pageSize: _pageSize,
+  onCloseAction,
+  visible,
+}: CbBankTransferCtmTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -45,8 +51,6 @@ export default function BankTransferCtmTable({
   })
 
   const [searchQuery] = useState("")
-  const [currentPage] = useState(1)
-  const [pageSize] = useState(10)
 
   // Data fetching - only when table is opened
   const {
@@ -198,13 +202,6 @@ export default function BankTransferCtmTable({
       ),
     },
     {
-      accessorKey: "isPost",
-      header: "Posted",
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.isPost ? "✓" : ""}</div>
-      ),
-    },
-    {
       accessorKey: "createBy",
       header: "Created By",
     },
@@ -234,15 +231,16 @@ export default function BankTransferCtmTable({
     },
   ]
 
-  const handleSearchInvoice = () => {
+  const handleSearchBankTransferCtm = () => {
+    const startDate = form.getValues("startDate")
+    const endDate = form.getValues("endDate")
+
     const newFilters: ICbBankTransferCtmFilter = {
-      startDate: form.getValues("startDate"),
-      endDate: form.getValues("endDate"),
+      startDate: startDate,
+      endDate: endDate,
       search: searchQuery,
-      sortBy: "invoiceNo",
+      sortBy: "transferNo",
       sortOrder: "asc",
-      pageNumber: currentPage,
-      pageSize: pageSize,
     }
     onFilterChange(newFilters)
   }
@@ -258,62 +256,67 @@ export default function BankTransferCtmTable({
         search: filters.search || "",
         sortBy: "transferNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
-        pageNumber: currentPage,
-        pageSize: pageSize,
       }
       onFilterChange(newFilters)
     }
   }
 
-  // Show loading spinner while data is loading
-  if (isLoadingBankTransferCtms) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">
-            Loading bank transfer CTMs...
-          </p>
-          <p className="mt-2 text-xs text-gray-500">
-            Please wait while we fetch the bank transfer CTM list
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="w-full overflow-auto">
-      <FormProvider {...form}>
-        <div className="mb-4 flex items-center gap-2">
-          {/* From Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">From Date:</span>
-            <CustomDateNew
-              form={form}
-              name="startDate"
-              isRequired={true}
-              size="sm"
-            />
-          </div>
+      {/* Compact Filter Section */}
+      <div className="bg-card mb-2 rounded-lg border p-3">
+        <FormProvider {...form}>
+          <div className="flex items-center gap-3">
+            {/* Date Filters */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  From:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="startDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  To:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="endDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+            </div>
 
-          {/* To Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">To Date:</span>
-            <CustomDateNew
-              form={form}
-              name="endDate"
-              isRequired={true}
+            {/* Search Button */}
+            <Button
+              variant="default"
               size="sm"
-            />
-          </div>
+              onClick={handleSearchBankTransferCtm}
+              disabled={isLoading}
+            >
+              Search
+            </Button>
 
-          <Button variant="outline" size="sm" onClick={handleSearchInvoice}>
-            Search Bank Transfer
-          </Button>
-        </div>
-      </FormProvider>
-      <Separator className="mb-4" />
+            {/* Close Button */}
+            {onCloseAction && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onCloseAction}
+                className="ml-auto"
+              >
+                Close
+              </Button>
+            )}
+          </div>
+        </FormProvider>
+      </div>
 
       <DialogDataTable
         data={data}
@@ -322,10 +325,10 @@ export default function BankTransferCtmTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.cbBankTransferCtm}
-        emptyMessage="No data found."
+        emptyMessage="No Bank Transfer CTMs found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchBankTransferCtms()}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onBankTransferCtmSelect(row || undefined)}
+        onRowSelect={(row) => onCbBankTransferCtmSelect(row || undefined)}
       />
     </div>
   )

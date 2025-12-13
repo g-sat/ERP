@@ -30,23 +30,27 @@ import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface BankTransferCtmFormProps {
+import { CbBankTransferCtmDetailsFormRef } from "./cbbanktransferctm-details-form"
+
+interface CbBankTransferCtmFormProps {
   form: UseFormReturn<CbBankTransferCtmHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  detailsFormRef?: React.RefObject<CbBankTransferCtmDetailsFormRef | null>
 }
 
-export default function BankTransferCtmForm({
+export default function CbBankTransferCtmForm({
   form,
   onSuccessAction,
   isEdit: _isEdit,
   visible,
   required,
   companyId: _companyId,
-}: BankTransferCtmFormProps) {
+  detailsFormRef: _detailsFormRef,
+}: CbBankTransferCtmFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -93,7 +97,7 @@ export default function BankTransferCtmForm({
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       const { trnDate } = form?.getValues()
-      form.setValue("accountDate", trnDate)
+      form.setValue("accountDate", trnDate as Date)
       form?.trigger("accountDate")
     },
     [form]
@@ -142,6 +146,11 @@ export default function BankTransferCtmForm({
     [form]
   )
 
+  // Handle add payee to button click
+  const handleAddPayeeTo = React.useCallback(() => {
+    setIsPayeeDialogOpen(true)
+  }, [])
+
   // Handle bank selection
   const handleBankChange = React.useCallback(
     (_selectedBank: IBankLookup | null) => {
@@ -149,11 +158,6 @@ export default function BankTransferCtmForm({
     },
     []
   )
-
-  // Handle add payee to button click
-  const handleAddPayeeTo = React.useCallback(() => {
-    setIsPayeeDialogOpen(true)
-  }, [])
 
   // Handle payee selection from dialog
   const handlePayeeSelect = React.useCallback(
@@ -190,6 +194,7 @@ export default function BankTransferCtmForm({
         locAmtDec
       )
       form.setValue("fromTotLocalAmt", fromTotLocalAmt)
+      form.trigger("fromTotLocalAmt") // Trigger validation to check against details sum
     },
     [form, locAmtDec]
   )
@@ -224,6 +229,7 @@ export default function BankTransferCtmForm({
         locAmtDec
       )
       form.setValue("fromTotLocalAmt", fromTotLocalAmt)
+      form.trigger("fromTotLocalAmt") // Trigger validation to check against details sum
 
       // Recalculate bank charge local amount using helper
       const fromBankChgAmt = form.getValues("fromBankChgAmt") || 0
@@ -406,7 +412,7 @@ export default function BankTransferCtmForm({
           form={form}
           name="remarks"
           label="Remarks"
-          isRequired={required?.m_Remarks}
+          isRequired={required?.m_Remarks_Hd}
           className="col-span-2"
         />
       </form>

@@ -1,20 +1,25 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
-import { ICbBankTransferCtmDt } from "@/interfaces/cb-banktransferctm"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { validateFromTotLocalAmt } from "@/helpers/cb-banktransferctm-calculations"
+import { ICbBankTransferCtmDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbBankTransferCtmDtSchemaType,
   CbBankTransferCtmHdSchemaType,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import BankTransferCtmDetailsForm from "./cbbanktransferctm-details-form"
-import BankTransferCtmDetailsTable from "./cbbanktransferctm-details-table"
-import BankTransferCtmForm from "./cbbanktransferctm-form"
+import CbBankTransferCtmDetailsForm, {
+  CbBankTransferCtmDetailsFormRef,
+} from "./cbbanktransferctm-details-form"
+import CbBankTransferCtmDetailsTable from "./cbbanktransferctm-details-table"
+import CbBankTransferCtmForm from "./cbbanktransferctm-form"
 
 interface MainProps {
   form: UseFormReturn<CbBankTransferCtmHdSchemaType>
@@ -23,6 +28,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -32,7 +38,13 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
+  const { decimals } = useAuthStore()
+
+  // Get user settings with defaults for all modules
+  const { defaults } = useUserSettingDefaults()
+
   const [editingDetail, setEditingDetail] =
     useState<CbBankTransferCtmDtSchemaType | null>(null)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
@@ -43,9 +55,50 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousBankTransferCtmKeyRef = useRef<string>("")
+  const detailsFormRef = useRef<CbBankTransferCtmDetailsFormRef>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const watchedDataDetails = form.watch("data_details")
+  const dataDetails = useMemo(
+    () => watchedDataDetails || [],
+    [watchedDataDetails]
+  )
+  const currentTransferId = form.watch("transferId")
+  const currentTransferNo = form.watch("transferNo")
+  const fromTotLocalAmt = form.watch("fromTotLocalAmt")
+
+  // Validate fromTotLocalAmt against details sum whenever details or fromTotLocalAmt changes
+  useEffect(() => {
+    if (dataDetails.length === 0) {
+      // Clear validation error if no details
+      form.clearErrors("fromTotLocalAmt")
+      return
+    }
+
+    // Validate after a short delay to allow form state to settle
+    const timeoutId = setTimeout(() => {
+      validateHeaderTotals()
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataDetails, fromTotLocalAmt])
+
+  useEffect(() => {
+    const currentKey = `${currentTransferId ?? ""}::${currentTransferNo ?? ""}`
+    if (previousBankTransferCtmKeyRef.current === currentKey) {
+      return
+    }
+
+    previousBankTransferCtmKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentTransferId, currentTransferNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -54,16 +107,71 @@ export default function Main({
     }
   }, [dataDetails.length, editingDetail])
 
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as ICbBankTransferCtmDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailTransferId = `${detail.transferId ?? ""}`
+      const editingTransferId = `${editingDetail.transferId ?? ""}`
+      const detailTransferNo = detail.transferNo ?? ""
+      const editingTransferNo = editingDetail.transferNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailTransferId === editingTransferId &&
+        detailTransferNo === editingTransferNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
+
+  // Helper function to validate header totals match details
+  // Note: FROM and TO are separate entities, so we only validate, not calculate
+  const validateHeaderTotals = () => {
+    const currentDetails = form.getValues("data_details") || []
+    const currentFromTotLocalAmt = form.getValues("fromTotLocalAmt") || 0
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    if (currentDetails.length === 0) {
+      form.clearErrors("fromTotLocalAmt")
+      return
+    }
+
+    const validation = validateFromTotLocalAmt(
+      currentFromTotLocalAmt,
+      currentDetails as unknown as ICbBankTransferCtmDt[],
+      locAmtDec
+    )
+
+    if (!validation.isValid) {
+      // Set error on fromTotLocalAmt field
+      form.setError("fromTotLocalAmt", {
+        type: "validation",
+        message: `Must equal sum of details: ${validation.expectedTotal.toFixed(
+          locAmtDec
+        )}`,
+      })
+    } else {
+      // Clear error if validation passes
+      form.clearErrors("fromTotLocalAmt")
+    }
+
+    // Trigger form validation to update UI
+    form.trigger(["fromTotLocalAmt"])
+  }
+
   const handleAddRow = (rowData: ICbBankTransferCtmDt) => {
     const currentData = form.getValues("data_details") || []
-
-    // Create a deep copy of rowData to avoid reference issues
-    const newRowData = { ...rowData }
 
     if (editingDetail) {
       // Update existing row by itemNo (unique identifier)
       const updatedData = currentData.map((item) =>
-        item.itemNo === editingDetail.itemNo ? newRowData : { ...item }
+        item.itemNo === editingDetail.itemNo ? rowData : item
       )
       form.setValue(
         "data_details",
@@ -73,9 +181,8 @@ export default function Main({
 
       setEditingDetail(null)
     } else {
-      // Add new row - create a copy of existing data to avoid mutations
-      const updatedData = currentData.map((item) => ({ ...item }))
-      updatedData.push(newRowData)
+      // Add new row
+      const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
         updatedData as unknown as CbBankTransferCtmDtSchemaType[],
@@ -85,6 +192,9 @@ export default function Main({
 
     // Trigger form validation
     form.trigger("data_details")
+
+    // Validate header totals match details after adding/updating row
+    validateHeaderTotals()
   }
 
   const handleDelete = (itemNo: number) => {
@@ -103,6 +213,9 @@ export default function Main({
     form.trigger("data_details")
     setShowSingleDeleteConfirmation(false)
     setItemToDelete(null)
+
+    // Validate header totals match details after deleting row
+    validateHeaderTotals()
 
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
@@ -123,15 +236,16 @@ export default function Main({
     setShowDeleteConfirmation(false)
     setSelectedItemsToDelete([])
 
+    // Validate header totals match details after bulk deleting rows
+    validateHeaderTotals()
+
     // Force table to re-render and clear selection by changing the key
     setTableKey((prev) => prev + 1)
   }
 
   const handleEdit = (detail: ICbBankTransferCtmDt) => {
-    // console.log("Editing detail:", detail)
     // Convert ICbBankTransferCtmDt to CbBankTransferCtmDtSchemaType and set for editing
     setEditingDetail(detail as unknown as CbBankTransferCtmDtSchemaType)
-    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -148,20 +262,25 @@ export default function Main({
       "data_details",
       reorderedData as unknown as CbBankTransferCtmDtSchemaType[]
     )
+
+    // Validate header totals match details after reordering
+    validateHeaderTotals()
   }
 
   return (
     <div className="w-full">
-      <BankTransferCtmForm
+      <CbBankTransferCtmForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
         visible={visible}
         required={required}
         companyId={companyId}
+        detailsFormRef={detailsFormRef}
       />
 
-      <BankTransferCtmDetailsForm
+      <CbBankTransferCtmDetailsForm
+        ref={detailsFormRef}
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -170,9 +289,10 @@ export default function Main({
         visible={visible}
         required={required}
         existingDetails={dataDetails as CbBankTransferCtmDtSchemaType[]}
+        isCancelled={isCancelled}
       />
 
-      <BankTransferCtmDetailsTable
+      <CbBankTransferCtmDetailsTable
         key={tableKey}
         data={(dataDetails as unknown as ICbBankTransferCtmDt[]) || []}
         visible={visible}
@@ -184,6 +304,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: ICbBankTransferCtmDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

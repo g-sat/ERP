@@ -1,7 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { CbBankTransferCtmHdSchemaType } from "@/schemas/cb-banktransferctm"
+import { IVisibleFields } from "@/interfaces/setting"
+import { CbBankTransferCtmHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { CBTransactionId, ModuleId } from "@/lib/utils"
@@ -9,6 +10,7 @@ import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<CbBankTransferCtmHdSchemaType>
+  visible?: IVisibleFields
 }
 
 export default function Other({ form }: OtherProps) {
@@ -20,7 +22,7 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      {/* Document Upload Section - Only show after bank transfer is saved */}
+      {/* Document Upload Section - Only show after journal is saved */}
       {transferId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.cb}

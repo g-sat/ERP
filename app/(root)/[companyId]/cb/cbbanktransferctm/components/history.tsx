@@ -1,7 +1,6 @@
 "use client"
 
 import { CbBankTransferCtmHdSchemaType } from "@/schemas"
-import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import AccountDetails from "./history/account-details"
@@ -14,26 +13,35 @@ interface HistoryProps {
 }
 
 export default function History({ form, isEdit: _isEdit }: HistoryProps) {
-  const { decimals } = useAuthStore()
-  const _dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
-
   const formValues = form.getValues()
+
+  // Convert dates to strings if they are Date objects
+  const formatDateToString = (
+    date: string | Date | null | undefined
+  ): string => {
+    if (!date) return ""
+    if (date instanceof Date) {
+      return date.toISOString()
+    }
+    return String(date)
+  }
+
   const accountDetails = {
     createBy: formValues.createBy || "",
-    createDate: (formValues.createDate || "").toString(),
+    createDate: formatDateToString(formValues.createDate),
     editBy: formValues.editBy || "",
-    editDate: formValues.editDate ? formValues.editDate?.toString() : "",
+    editDate: formatDateToString(formValues.editDate),
     cancelBy: formValues.cancelBy || "",
-    cancelDate: formValues.cancelDate ? formValues.cancelDate?.toString() : "",
+    cancelDate: formatDateToString(formValues.cancelDate),
     appBy: formValues.appBy || "",
-    appDate: formValues.appDate ? formValues.appDate?.toString() : "",
+    appDate: formatDateToString(formValues.appDate),
   }
 
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <GLPostDetails invoiceId={form.getValues().transferId || ""} />
-      <EditVersionDetails invoiceId={form.getValues().transferId || ""} />
+      <GLPostDetails transferId={form.getValues().transferId || ""} />
+      <EditVersionDetails transferId={form.getValues().transferId || ""} />
     </div>
   )
 }

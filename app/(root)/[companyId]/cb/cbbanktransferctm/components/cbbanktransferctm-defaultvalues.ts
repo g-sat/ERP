@@ -3,7 +3,7 @@ import { format } from "date-fns"
 import { clientDateFormat } from "@/lib/date-utils"
 
 // Default values for Bank Transfer CTM Details (Individual Detail Record)
-const defaultBankTransferCtmDt = {
+const buildDefaultCbBankTransferCtmDt = (dateFormat: string) => ({
   transferId: "0",
   transferNo: "",
   itemNo: 0,
@@ -11,47 +11,63 @@ const defaultBankTransferCtmDt = {
 
   // Job Order Fields
   jobOrderId: 0,
+  jobOrderNo: "",
   taskId: 0,
+  taskName: "",
   serviceId: 0,
+  serviceName: "",
 
   // To Bank Fields
   toBankId: 0,
+  toBankCode: "",
+  toBankName: "",
   toCurrencyId: 0,
+  toCurrencyCode: "",
+  toCurrencyName: "",
   toExhRate: 0,
-  toBankChgGLId: 0,
-  toBankChgAmt: 0,
-  toBankChgLocalAmt: 0,
   toTotAmt: 0,
   toTotLocalAmt: 0,
+  toBankChgGLId: 0,
+  toBankChgGLCode: "",
+  toBankChgGLName: "",
+  toBankChgAmt: 0,
+  toBankChgLocalAmt: 0,
 
   // Bank Exchange Fields
-  bankExhRate: 0,
-  bankTotAmt: 0,
-  bankTotLocalAmt: 0,
+  toBankExhRate: 0,
+  toBankTotAmt: 0,
+  toBankTotLocalAmt: 0,
 
   // Audit Fields
   editVersion: 0,
-}
+})
 
 // Default values for Bank Transfer CTM Header
-const defaultBankTransferCtmHd = {
+const buildDefaultCbBankTransferCtmHd = (dateFormat: string) => ({
   companyId: 0,
   transferId: "0",
   transferNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: format(new Date(), dateFormat),
+  accountDate: format(new Date(), dateFormat),
 
   // Payment Fields
   paymentTypeId: 0,
+  paymentTypeName: "",
   chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
+  chequeDate: format(new Date(), dateFormat),
 
   // From Bank Fields
   fromBankId: 0,
+  fromBankCode: "",
+  fromBankName: "",
   fromCurrencyId: 0,
+  fromCurrencyCode: "",
+  fromCurrencyName: "",
   fromExhRate: 0,
   fromBankChgGLId: 0,
+  fromBankChgGLCode: "",
+  fromBankChgGLName: "",
   fromBankChgAmt: 0,
   fromBankChgLocalAmt: 0,
   fromTotAmt: 0,
@@ -65,40 +81,32 @@ const defaultBankTransferCtmHd = {
 
   // Audit Fields
   createBy: "",
-  createDate: format(new Date(), clientDateFormat),
-  editBy: undefined,
-  editDate: undefined,
+  createDate: format(new Date(), dateFormat),
+  editBy: null,
+  editDate: null,
   editVersion: 0,
   isCancel: false,
-  cancelBy: undefined,
-  cancelDate: undefined,
-  cancelRemarks: undefined,
-  isPost: false,
-  postBy: undefined,
-  postDate: undefined,
-  appStatusId: undefined,
-  appBy: undefined,
-  appDate: undefined,
+  cancelBy: null,
+  cancelDate: null,
+  cancelRemarks: null,
+  isPost: null,
+  postBy: null,
+  postDate: null,
+  appStatusId: null,
+  appBy: null,
+  appDate: null,
 
   // Detail Items
   data_details: [],
-}
+})
 
 // Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultBankTransferCtmHd: {
-      ...defaultBankTransferCtmHd,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-      data_details: [],
-    },
-    defaultBankTransferCtmDt: {
-      ...defaultBankTransferCtmDt,
-    },
-  }
-}
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => ({
+  defaultCbBankTransferCtm: buildDefaultCbBankTransferCtmHd(dateFormat),
+  defaultCbBankTransferCtmDt: buildDefaultCbBankTransferCtmDt(dateFormat),
+})
 
-export { defaultBankTransferCtmHd, defaultBankTransferCtmDt }
+export const defaultCbBankTransferCtm =
+  buildDefaultCbBankTransferCtmHd(clientDateFormat)
+export const defaultCbBankTransferCtmDt =
+  buildDefaultCbBankTransferCtmDt(clientDateFormat)

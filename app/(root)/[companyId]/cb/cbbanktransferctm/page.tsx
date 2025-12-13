@@ -1,21 +1,33 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { calculateAdditionAmount, mathRound } from "@/helpers/account"
-import { ICbBankTransferCtmFilter, ICbBankTransferCtmHd } from "@/interfaces"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import {
+  ICbBankTransferCtmDt,
+  ICbBankTransferCtmFilter,
+  ICbBankTransferCtmHd,
+} from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbBankTransferCtmHdSchema,
   CbBankTransferCtmHdSchemaType,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -24,22 +36,19 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbBankTransferCtm } from "@/lib/api-routes"
+import { BasicSetting, CbBankTransferCtm } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -47,47 +56,128 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultBankTransferCtmHd } from "./components/cbbanktransferctm-defaultvalues"
-import BankTransferCtmTable from "./components/cbbanktransferctm-table"
+import { getDefaultValues } from "./components/cbbanktransferctm-defaultvalues"
+import CbBankTransferCtmTable from "./components/cbbanktransferctm-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
 
-export default function BankTransferCtmPage() {
+export default function CbBankTransferCtmPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransferctm
 
+  const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
-  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingBankTransferCtm, setIsLoadingBankTransferCtm] =
-    useState(false)
-  const [isSelectingBankTransferCtm, setIsSelectingBankTransferCtm] =
+  const [isLoadingCbBankTransferCtm, setIsLoadingCbBankTransferCtm] =
     useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [bankTransferCtm, setBankTransferCtm] =
+  const [cbBankTransferCtm, setCbBankTransferCtm] =
     useState<CbBankTransferCtmHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocId, setPendingDocId] = useState("")
+
+  const documentIdFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/cb/cbbanktransferctm`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocId(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentIdFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<ICbBankTransferCtmFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "transferNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
+
+  const defaultCbBankTransferCtmValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultCbBankTransferCtm,
+    [dateFormat]
+  )
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -106,47 +196,130 @@ export default function BankTransferCtmPage() {
   // Add form state management
   const form = useForm<CbBankTransferCtmHdSchemaType>({
     resolver: zodResolver(CbBankTransferCtmHdSchema(required, visible)),
-    defaultValues: bankTransferCtm
+    defaultValues: cbBankTransferCtm
       ? {
-          transferId: bankTransferCtm.transferId?.toString() ?? "0",
-          transferNo: bankTransferCtm.transferNo ?? "",
-          referenceNo: bankTransferCtm.referenceNo ?? "",
-          trnDate: bankTransferCtm.trnDate ?? new Date(),
-          accountDate: bankTransferCtm.accountDate ?? new Date(),
-          paymentTypeId: bankTransferCtm.paymentTypeId ?? 0,
-          chequeNo: bankTransferCtm.chequeNo ?? "",
-          chequeDate: bankTransferCtm.chequeDate ?? "",
-          fromBankId: bankTransferCtm.fromBankId ?? 0,
-          fromCurrencyId: bankTransferCtm.fromCurrencyId ?? 0,
-          fromExhRate: bankTransferCtm.fromExhRate ?? 0,
-          fromBankChgGLId: bankTransferCtm.fromBankChgGLId ?? 0,
-          fromBankChgAmt: bankTransferCtm.fromBankChgAmt ?? 0,
-          fromBankChgLocalAmt: bankTransferCtm.fromBankChgLocalAmt ?? 0,
-          fromTotAmt: bankTransferCtm.fromTotAmt ?? 0,
-          fromTotLocalAmt: bankTransferCtm.fromTotLocalAmt ?? 0,
-          exhGainLoss: bankTransferCtm.exhGainLoss ?? 0,
-          remarks: bankTransferCtm.remarks ?? "",
-          payeeTo: bankTransferCtm.payeeTo ?? "",
-          moduleFrom: bankTransferCtm.moduleFrom ?? "",
-          editVersion: bankTransferCtm.editVersion ?? 0,
-          isCancel: bankTransferCtm.isCancel ?? false,
-          cancelBy: bankTransferCtm.cancelBy ?? "",
-          cancelDate: bankTransferCtm.cancelDate ?? null,
-          cancelRemarks: bankTransferCtm.cancelRemarks ?? null,
-          isPost: bankTransferCtm.isPost ?? false,
-          postBy: bankTransferCtm.postBy ?? "",
-          postDate: bankTransferCtm.postDate ?? null,
-          appStatusId: bankTransferCtm.appStatusId ?? null,
-          appBy: bankTransferCtm.appBy ?? "",
-          appDate: bankTransferCtm.appDate ?? null,
-          data_details: bankTransferCtm.data_details ?? [],
+          transferId: cbBankTransferCtm.transferId?.toString() ?? "0",
+          transferNo: cbBankTransferCtm.transferNo ?? "",
+          referenceNo: cbBankTransferCtm.referenceNo ?? "",
+          trnDate: cbBankTransferCtm.trnDate ?? new Date(),
+          accountDate: cbBankTransferCtm.accountDate ?? new Date(),
+          paymentTypeId: cbBankTransferCtm.paymentTypeId ?? 0,
+          chequeNo: cbBankTransferCtm.chequeNo ?? "",
+          chequeDate: cbBankTransferCtm.chequeDate ?? new Date(),
+          fromBankId: cbBankTransferCtm.fromBankId ?? 0,
+          fromCurrencyId: cbBankTransferCtm.fromCurrencyId ?? 0,
+          fromExhRate: cbBankTransferCtm.fromExhRate ?? 0,
+          fromBankChgGLId: cbBankTransferCtm.fromBankChgGLId ?? 0,
+          fromBankChgAmt: cbBankTransferCtm.fromBankChgAmt ?? 0,
+          fromBankChgLocalAmt: cbBankTransferCtm.fromBankChgLocalAmt ?? 0,
+          fromTotAmt: cbBankTransferCtm.fromTotAmt ?? 0,
+          fromTotLocalAmt: cbBankTransferCtm.fromTotLocalAmt ?? 0,
+          remarks: cbBankTransferCtm.remarks ?? "",
+          payeeTo: cbBankTransferCtm.payeeTo ?? "",
+          exhGainLoss: cbBankTransferCtm.exhGainLoss ?? 0,
+          moduleFrom: cbBankTransferCtm.moduleFrom ?? "",
+          editVersion: cbBankTransferCtm.editVersion ?? 0,
+          isCancel: cbBankTransferCtm.isCancel ?? false,
+          cancelBy: cbBankTransferCtm.cancelBy ?? null,
+          cancelDate: cbBankTransferCtm.cancelDate ?? null,
+          cancelRemarks: cbBankTransferCtm.cancelRemarks ?? null,
+          isPost: cbBankTransferCtm.isPost ?? null,
+          postBy: cbBankTransferCtm.postBy ?? null,
+          postDate: cbBankTransferCtm.postDate ?? null,
+          appStatusId: cbBankTransferCtm.appStatusId ?? null,
+          appBy: cbBankTransferCtm.appBy ?? null,
+          appDate: cbBankTransferCtm.appDate ?? null,
+          createBy: cbBankTransferCtm.createBy ?? "",
+          createDate: cbBankTransferCtm.createDate ?? new Date(),
+          editBy: cbBankTransferCtm.editBy ?? null,
+          editDate: cbBankTransferCtm.editDate ?? null,
+          data_details:
+            cbBankTransferCtm.data_details?.map((detail) => ({
+              ...detail,
+              transferId: detail.transferId?.toString() ?? "0",
+              transferNo: detail.transferNo ?? "",
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
+              toBankId: detail.toBankId ?? 0,
+              toBankCode: detail.toBankCode ?? "",
+              toBankName: detail.toBankName ?? "",
+              toCurrencyId: detail.toCurrencyId ?? 0,
+              toCurrencyCode: detail.toCurrencyCode ?? "",
+              toCurrencyName: detail.toCurrencyName ?? "",
+              toExhRate: detail.toExhRate ?? 0,
+              toTotAmt: detail.toTotAmt ?? 0,
+              toTotLocalAmt: detail.toTotLocalAmt ?? 0,
+              toBankChgGLId: detail.toBankChgGLId ?? 0,
+              toBankChgGLCode: detail.toBankChgGLCode ?? "",
+              toBankChgGLName: detail.toBankChgGLName ?? "",
+              toBankChgAmt: detail.toBankChgAmt ?? 0,
+              toBankChgLocalAmt: detail.toBankChgLocalAmt ?? 0,
+              toBankExhRate: detail.toBankExhRate ?? 0,
+              toBankTotAmt: detail.toBankTotAmt ?? 0,
+              toBankTotLocalAmt: detail.toBankTotLocalAmt ?? 0,
+              editVersion: detail.editVersion ?? 0,
+            })) || [],
         }
-      : {
-          ...defaultBankTransferCtmHd,
-        },
+      : (() => {
+          // For new cbBankTransferCtm, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultCbBankTransferCtmValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to BankTransferCtmTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentTransferId = form.getValues("transferId") || "0"
+    if (
+      (cbBankTransferCtm &&
+        cbBankTransferCtm.transferId &&
+        cbBankTransferCtm.transferId !== "0") ||
+      currentTransferId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultCbBankTransferCtmValues,
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
+  }, [
+    dateFormat,
+    defaultCbBankTransferCtmValues,
+    decimals,
+    form,
+    cbBankTransferCtm,
+    isDirty,
+    user,
+  ])
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferCtmHdSchemaType>(
@@ -155,10 +328,13 @@ export default function BankTransferCtmPage() {
   const updateMutation = usePersist<CbBankTransferCtmHdSchemaType>(
     `${CbBankTransferCtm.add}`
   )
-  const deleteMutation = useDelete(`${CbBankTransferCtm.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${CbBankTransferCtm.delete}`)
+
+  // Remove the useGetCbBankTransferCtmById hook for selection
+  // const { data: invoiceByIdData, refetch: refetchCbBankTransferCtmById } = ...
 
   // Handle Save
-  const handleSaveBankTransferCtm = async () => {
+  const handleSaveCbBankTransferCtm = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -171,11 +347,6 @@ export default function BankTransferCtmPage() {
       const formValues = transformToSchemaType(
         form.getValues() as unknown as ICbBankTransferCtmHd
       )
-
-      // Set chequeDate to accountDate if it's empty
-      if (!formValues.chequeDate || formValues.chequeDate === "") {
-        formValues.chequeDate = formValues.accountDate
-      }
 
       // Validate the form data using the schema
       const validationResult = CbBankTransferCtmHdSchema(
@@ -215,86 +386,127 @@ export default function BankTransferCtmPage() {
         return
       }
 
-      // Validate: fromTotLocalAmt should match sum of details (toTotLocalAmt + toBankChgLocalAmt)
-      const sumOfDetailsLocalAmt = formValues.data_details.reduce(
-        (sum, detail) => {
-          const toTotLocalAmt = Number(detail.toTotLocalAmt) || 0
-          const toBankChgLocalAmt = Number(detail.toBankChgLocalAmt) || 0
-          console.log("toTotLocalAmt :", toTotLocalAmt)
-          console.log("toBankChgLocalAmt :", toBankChgLocalAmt)
-          // Use helper to add amounts with proper precision
-          const detailTotal = calculateAdditionAmount(
-            toTotLocalAmt,
-            toBankChgLocalAmt,
-            locAmtDec
-          )
-          return calculateAdditionAmount(sum, detailTotal, locAmtDec)
-        },
-        0
+      // Validate that fromTotLocalAmt equals sum of (toTotLocalAmt + toBankChgLocalAmt) from all details
+      const { validateFromTotLocalAmt } = await import(
+        "@/helpers/cb-banktransferctm-calculations"
       )
-
-      console.log("sumOfDetailsLocalAmt :", sumOfDetailsLocalAmt)
-      console.log("formValues.fromTotLocalAmt :", formValues.fromTotLocalAmt)
-
-      // Round to 2 decimal places for comparison using account helper
-      const fromTotLocalAmtRounded = mathRound(
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const validation = validateFromTotLocalAmt(
         formValues.fromTotLocalAmt,
+        formValues.data_details as unknown as ICbBankTransferCtmDt[],
         locAmtDec
       )
-      const sumOfDetailsRounded = mathRound(sumOfDetailsLocalAmt, locAmtDec)
 
-      if (fromTotLocalAmtRounded !== sumOfDetailsRounded) {
-        toast.warning(
-          `From Total Local Amount (${fromTotLocalAmtRounded.toFixed(locAmtDec)}) does not match the sum of details (${sumOfDetailsRounded.toFixed(locAmtDec)}). Please check the amounts.`
+      if (!validation.isValid) {
+        toast.error(
+          `From Total Local Amount (${validation.actualTotal.toFixed(
+            locAmtDec
+          )}) must equal the sum of all details (To Total Local + To Bank Charge Local) = ${validation.expectedTotal.toFixed(
+            locAmtDec
+          )}`
         )
+        form.setError("fromTotLocalAmt", {
+          type: "validation",
+          message: `Must equal sum of details: ${validation.expectedTotal.toFixed(
+            locAmtDec
+          )}`,
+        })
         return
       }
 
-      console.log(formValues)
+      console.log("handleSaveCbBankTransferCtm formValues", formValues)
 
-      const response =
-        Number(formValues.transferId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.transferId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-      if (response.result === 1) {
-        const bankTransferData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
 
-        // Transform API response back to form values
-        if (bankTransferData) {
-          const updatedSchemaType = transformToSchemaType(
-            bankTransferData as unknown as ICbBankTransferCtmHd
-          )
-          setIsSelectingBankTransferCtm(true)
-          setBankTransferCtm(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
         }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
 
-        // Data refresh handled by BankTransferCtmTable component
-      } else {
-        toast.error(response.message || "Failed to save Bank Transfer CTM")
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
+        }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+
+      {
+        const response =
+          Number(formValues.transferId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
+
+        if (response.result === 1) {
+          const bankTransferData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          // Transform API response back to form values
+          if (bankTransferData) {
+            const updatedSchemaType = transformToSchemaType(
+              bankTransferData as unknown as ICbBankTransferCtmHd
+            )
+
+            setSearchNo(updatedSchemaType.transferNo || "")
+            setCbBankTransferCtm(updatedSchemaType)
+            const parsed = parseDate(updatedSchemaType.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (updatedSchemaType.accountDate as string)
+            )
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by CbBankTransferCtmTable component
+        } else {
+          toast.error(response.message || "Failed to save Bank Transfer CTM")
+        }
       }
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving Bank Transfer CTM")
     } finally {
       setIsSaving(false)
-      setIsSelectingBankTransferCtm(false)
     }
   }
 
   // Handle Clone
-  const handleCloneBankTransferCtm = () => {
-    if (bankTransferCtm) {
+  const handleCloneCbBankTransferCtm = () => {
+    if (cbBankTransferCtm) {
       // Create a proper clone with form values
       const clonedBankTransferCtm: CbBankTransferCtmHdSchemaType = {
-        ...bankTransferCtm,
+        ...cbBankTransferCtm,
         transferId: "0",
         transferNo: "",
         // Reset amounts for new Bank Transfer CTM
@@ -303,32 +515,81 @@ export default function BankTransferCtmPage() {
         exhGainLoss: 0,
         // Clone details with reset IDs
         data_details:
-          bankTransferCtm.data_details?.map((detail) => ({
+          cbBankTransferCtm.data_details?.map((detail) => ({
             ...detail,
             transferId: "0",
             transferNo: "",
           })) || [],
       }
-      setBankTransferCtm(clonedBankTransferCtm)
+      setCbBankTransferCtm(clonedBankTransferCtm)
       form.reset(clonedBankTransferCtm)
       toast.success("Bank Transfer CTM cloned successfully")
     }
   }
 
-  // Handle Delete
-  const handleBankTransferCtmDelete = async () => {
-    if (!bankTransferCtm) return
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleCbBankTransferCtmDelete = async (cancelRemarks: string) => {
+    if (!cbBankTransferCtm) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        bankTransferCtm.transferId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Bank Transfer CTM ID:", cbBankTransferCtm.transferId)
+      console.log("Bank Transfer CTM No:", cbBankTransferCtm.transferNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: cbBankTransferCtm.transferId?.toString() ?? "",
+        documentNo: cbBankTransferCtm.transferNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
-        setBankTransferCtm(null)
+        setCbBankTransferCtm(null)
         setSearchNo("") // Clear search input
-        setSearchNo("") // Clear search input
-        form.reset(defaultBankTransferCtmHd)
-        // Data refresh handled by BankTransferCtmTable component
+        form.reset({
+          ...defaultCbBankTransferCtmValues,
+          data_details: [],
+        })
+        toast.success(
+          `Bank Transfer CTM ${cbBankTransferCtm.transferNo} deleted successfully`
+        )
+        // Data refresh handled by CbBankTransferCtmTable component
       } else {
         toast.error(response.message || "Failed to delete Bank Transfer CTM")
       }
@@ -338,24 +599,38 @@ export default function BankTransferCtmPage() {
   }
 
   // Handle Reset
-  const handleBankTransferCtmReset = () => {
-    setBankTransferCtm(null)
+  const handleCbBankTransferCtmReset = () => {
+    setCbBankTransferCtm(null)
     setSearchNo("") // Clear search input
-    form.reset(defaultBankTransferCtmHd)
+
+    // Get current date/time and user name - always set for reset (new Bank Transfer CTM)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultCbBankTransferCtmValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
+      data_details: [],
+    })
     toast.success("Bank Transfer CTM reset successfully")
   }
 
   // Handle Print Bank Transfer CTM Report
-  const handlePrintBankTransferCtm = () => {
-    if (!bankTransferCtm || bankTransferCtm.transferId === "0") {
-      toast.error("Please select a bank transfer CTM to print")
+  const handlePrintCbBankTransferCtm = () => {
+    if (!cbBankTransferCtm || cbBankTransferCtm.transferId === "0") {
+      toast.error("Please select a Bank Transfer CTM to print")
       return
     }
 
     const formValues = form.getValues()
     const transferId =
-      formValues.transferId || bankTransferCtm.transferId?.toString() || "0"
-    const transferNo = formValues.transferNo || bankTransferCtm.transferNo || ""
+      formValues.transferId || cbBankTransferCtm.transferId?.toString() || "0"
+    const transferNo =
+      formValues.transferNo || cbBankTransferCtm.transferNo || ""
 
     // Get decimals
     const amtDec = decimals[0]?.amtDec || 2
@@ -374,9 +649,12 @@ export default function BankTransferCtmPage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file
+    const reportFile = "RPT_CbBankTransferCtm.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_CbBankTransferCtm.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -397,155 +675,253 @@ export default function BankTransferCtmPage() {
     }
   }
 
-  // Helper function to transform ICbBankTransferCtm to CbBankTransferCtmSchemaType
-  const transformToSchemaType = (
-    apiBankTransferCtm: ICbBankTransferCtmHd
-  ): CbBankTransferCtmHdSchemaType => {
-    return {
-      transferId: apiBankTransferCtm.transferId?.toString() ?? "0",
-      transferNo: apiBankTransferCtm.transferNo ?? "",
-      referenceNo: apiBankTransferCtm.referenceNo ?? "",
-      trnDate: apiBankTransferCtm.trnDate
-        ? format(
-            parseDate(apiBankTransferCtm.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      accountDate: apiBankTransferCtm.accountDate
-        ? format(
-            parseDate(apiBankTransferCtm.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      paymentTypeId: apiBankTransferCtm.paymentTypeId ?? 0,
-      chequeNo: apiBankTransferCtm.chequeNo ?? "",
-      chequeDate: apiBankTransferCtm.chequeDate
-        ? format(
-            parseDate(apiBankTransferCtm.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : apiBankTransferCtm.accountDate
+  // Helper function to transform ICbBankTransferCtmHd to CbBankTransferCtmHdSchemaType
+  const transformToSchemaType = useCallback(
+    (
+      apiCbBankTransferCtm: ICbBankTransferCtmHd
+    ): CbBankTransferCtmHdSchemaType => {
+      return {
+        transferId: apiCbBankTransferCtm.transferId?.toString() ?? "0",
+        transferNo: apiCbBankTransferCtm.transferNo ?? "",
+        referenceNo: apiCbBankTransferCtm.referenceNo ?? "",
+        trnDate: apiCbBankTransferCtm.trnDate
           ? format(
-              parseDate(apiBankTransferCtm.accountDate as string) || new Date(),
+              parseDate(apiCbBankTransferCtm.trnDate as string) || new Date(),
               clientDateFormat
             )
-          : format(new Date(), clientDateFormat),
+          : "",
+        accountDate: apiCbBankTransferCtm.accountDate
+          ? format(
+              parseDate(apiCbBankTransferCtm.accountDate as string) ||
+                new Date(),
+              clientDateFormat
+            )
+          : "",
+        paymentTypeId: apiCbBankTransferCtm.paymentTypeId ?? 0,
+        chequeNo: apiCbBankTransferCtm.chequeNo ?? "",
+        chequeDate: apiCbBankTransferCtm.chequeDate
+          ? format(
+              parseDate(apiCbBankTransferCtm.chequeDate as string) ||
+                new Date(),
+              clientDateFormat
+            )
+          : apiCbBankTransferCtm.accountDate
+            ? format(
+                parseDate(apiCbBankTransferCtm.accountDate as string) ||
+                  new Date(),
+                clientDateFormat
+              )
+            : format(new Date(), clientDateFormat),
 
-      fromBankId: apiBankTransferCtm.fromBankId ?? 0,
-      fromCurrencyId: apiBankTransferCtm.fromCurrencyId ?? 0,
-      fromExhRate: apiBankTransferCtm.fromExhRate ?? 0,
-      fromBankChgGLId: apiBankTransferCtm.fromBankChgGLId ?? 0,
-      fromBankChgAmt: apiBankTransferCtm.fromBankChgAmt ?? 0,
-      fromBankChgLocalAmt: apiBankTransferCtm.fromBankChgLocalAmt ?? 0,
-      fromTotAmt: apiBankTransferCtm.fromTotAmt ?? 0,
-      fromTotLocalAmt: apiBankTransferCtm.fromTotLocalAmt ?? 0,
+        fromBankId: apiCbBankTransferCtm.fromBankId ?? 0,
+        fromCurrencyId: apiCbBankTransferCtm.fromCurrencyId ?? 0,
+        fromExhRate: apiCbBankTransferCtm.fromExhRate ?? 0,
+        fromBankChgGLId: apiCbBankTransferCtm.fromBankChgGLId ?? 0,
+        fromBankChgAmt: apiCbBankTransferCtm.fromBankChgAmt ?? 0,
+        fromBankChgLocalAmt: apiCbBankTransferCtm.fromBankChgLocalAmt ?? 0,
+        fromTotAmt: apiCbBankTransferCtm.fromTotAmt ?? 0,
+        fromTotLocalAmt: apiCbBankTransferCtm.fromTotLocalAmt ?? 0,
 
-      remarks: apiBankTransferCtm.remarks ?? "",
-      payeeTo: apiBankTransferCtm.payeeTo ?? "",
-      moduleFrom: apiBankTransferCtm.moduleFrom ?? "",
-      exhGainLoss: apiBankTransferCtm.exhGainLoss ?? 0,
-      createBy: apiBankTransferCtm.createBy ?? "",
-      editBy: apiBankTransferCtm.editBy ?? "",
-      cancelBy: apiBankTransferCtm.cancelBy ?? "",
-      createDate: apiBankTransferCtm.createDate
-        ? parseDate(apiBankTransferCtm.createDate as string) || new Date()
-        : new Date(),
-      editDate: apiBankTransferCtm.editDate
-        ? parseDate(apiBankTransferCtm.editDate as unknown as string) || null
-        : null,
-      cancelDate: apiBankTransferCtm.cancelDate
-        ? parseDate(apiBankTransferCtm.cancelDate as unknown as string) || null
-        : null,
-      cancelRemarks: apiBankTransferCtm.cancelRemarks ?? null,
-      editVersion: apiBankTransferCtm.editVersion ?? 0,
-      isPost: apiBankTransferCtm.isPost ?? false,
-      postBy: apiBankTransferCtm.postBy ?? "",
-      postDate: apiBankTransferCtm.postDate
-        ? parseDate(apiBankTransferCtm.postDate as unknown as string) || null
-        : null,
-      appStatusId: apiBankTransferCtm.appStatusId ?? null,
-      appBy: apiBankTransferCtm.appBy ?? "",
-      appDate: apiBankTransferCtm.appDate
-        ? parseDate(apiBankTransferCtm.appDate as unknown as string) || null
-        : null,
-      data_details:
-        apiBankTransferCtm.data_details?.map((detail) => ({
-          transferId: detail.transferId?.toString() ?? "0",
-          transferNo: detail.transferNo ?? "",
-          itemNo: detail.itemNo ?? 0,
-          seqNo: detail.seqNo ?? 0,
-          jobOrderId: detail.jobOrderId ?? 0,
-          taskId: detail.taskId ?? 0,
-          serviceId: detail.serviceId ?? 0,
-          toBankId: detail.toBankId ?? 0,
-          toCurrencyId: detail.toCurrencyId ?? 0,
-          toExhRate: detail.toExhRate ?? 0,
-          toBankChgGLId: detail.toBankChgGLId ?? 0,
-          toBankChgAmt: detail.toBankChgAmt ?? 0,
-          toBankChgLocalAmt: detail.toBankChgLocalAmt ?? 0,
-          toTotAmt: detail.toTotAmt ?? 0,
-          toTotLocalAmt: detail.toTotLocalAmt ?? 0,
-          bankExhRate: detail.bankExhRate ?? 0,
-          bankTotAmt: detail.bankTotAmt ?? 0,
-          bankTotLocalAmt: detail.bankTotLocalAmt ?? 0,
-          editVersion: detail.editVersion ?? 0,
-        })) || [],
-    }
-  }
+        remarks: apiCbBankTransferCtm.remarks ?? "",
+        payeeTo: apiCbBankTransferCtm.payeeTo ?? "",
+        moduleFrom: apiCbBankTransferCtm.moduleFrom ?? "",
+        exhGainLoss: apiCbBankTransferCtm.exhGainLoss ?? 0,
+        createBy: apiCbBankTransferCtm.createBy ?? "",
+        editBy: apiCbBankTransferCtm.editBy ?? "",
+        cancelBy: apiCbBankTransferCtm.cancelBy ?? "",
+        createDate: apiCbBankTransferCtm.createDate
+          ? parseDate(apiCbBankTransferCtm.createDate as string) || new Date()
+          : new Date(),
+        editDate: apiCbBankTransferCtm.editDate
+          ? parseDate(apiCbBankTransferCtm.editDate as unknown as string) ||
+            null
+          : null,
+        cancelDate: apiCbBankTransferCtm.cancelDate
+          ? parseDate(apiCbBankTransferCtm.cancelDate as unknown as string) ||
+            null
+          : null,
+        cancelRemarks: apiCbBankTransferCtm.cancelRemarks ?? null,
+        editVersion: apiCbBankTransferCtm.editVersion ?? 0,
+        isPost: apiCbBankTransferCtm.isPost ?? false,
+        postBy: apiCbBankTransferCtm.postBy ?? "",
+        postDate: apiCbBankTransferCtm.postDate
+          ? parseDate(apiCbBankTransferCtm.postDate as unknown as string) ||
+            null
+          : null,
+        appStatusId: apiCbBankTransferCtm.appStatusId ?? null,
+        appBy: apiCbBankTransferCtm.appBy ?? "",
+        appDate: apiCbBankTransferCtm.appDate
+          ? parseDate(apiCbBankTransferCtm.appDate as unknown as string) || null
+          : null,
+        isCancel: apiCbBankTransferCtm.isCancel ?? false,
+        data_details:
+          apiCbBankTransferCtm.data_details?.map((detail) => ({
+            transferId: detail.transferId?.toString() ?? "0",
+            transferNo: detail.transferNo ?? "",
+            itemNo: detail.itemNo ?? 0,
+            seqNo: detail.seqNo ?? 0,
+            jobOrderId: detail.jobOrderId ?? 0,
+            jobOrderNo: detail.jobOrderNo ?? "",
+            taskId: detail.taskId ?? 0,
+            taskName: detail.taskName ?? "",
+            serviceId: detail.serviceId ?? 0,
+            serviceName: detail.serviceName ?? "",
+            toBankId: detail.toBankId ?? 0,
+            toBankCode: detail.toBankCode ?? "",
+            toBankName: detail.toBankName ?? "",
+            toCurrencyId: detail.toCurrencyId ?? 0,
+            toCurrencyCode: detail.toCurrencyCode ?? "",
+            toCurrencyName: detail.toCurrencyName ?? "",
+            toExhRate: detail.toExhRate ?? 0,
+            toBankChgGLId: detail.toBankChgGLId ?? 0,
+            toBankChgGLCode: detail.toBankChgGLCode ?? "",
+            toBankChgGLName: detail.toBankChgGLName ?? "",
+            toBankChgAmt: detail.toBankChgAmt ?? 0,
+            toBankChgLocalAmt: detail.toBankChgLocalAmt ?? 0,
+            toTotAmt: detail.toTotAmt ?? 0,
+            toTotLocalAmt: detail.toTotLocalAmt ?? 0,
+            toBankExhRate: detail.toBankExhRate ?? 0,
+            toBankTotAmt: detail.toBankTotAmt ?? 0,
+            toBankTotLocalAmt: detail.toBankTotLocalAmt ?? 0,
+            editVersion: detail.editVersion ?? 0,
+          })) || [],
+      }
+    },
+    []
+  )
 
-  const handleBankTransferCtmSelect = async (
+  const loadCbBankTransferCtm = useCallback(
+    async ({
+      transferId,
+      transferNo,
+      showLoader = false,
+    }: {
+      transferId?: string | number | null
+      transferNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("transferId", transferId)
+      console.log("transferNo", transferNo)
+      const trimmedTransferNo = transferNo?.trim() ?? ""
+      const trimmedTransferId =
+        typeof transferId === "number"
+          ? transferId.toString()
+          : (transferId?.toString().trim() ?? "")
+
+      if (!trimmedTransferNo && !trimmedTransferId) return null
+
+      if (showLoader) {
+        setIsLoadingCbBankTransferCtm(true)
+      }
+
+      const requestTransferId = trimmedTransferId || "0"
+      const requestTransferNo = trimmedTransferNo || ""
+
+      try {
+        const response = await getById(
+          `${CbBankTransferCtm.getByIdNo}/${requestTransferId}/${requestTransferNo}`
+        )
+
+        if (response?.result === 1) {
+          const detailedBankTransferCtm = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (detailedBankTransferCtm) {
+            const parsed = parseDate(
+              detailedBankTransferCtm.accountDate as string
+            )
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, dateFormat)
+                : (detailedBankTransferCtm.accountDate as string)
+            )
+
+            const updatedBankTransferCtm = transformToSchemaType(
+              detailedBankTransferCtm
+            )
+
+            setCbBankTransferCtm(updatedBankTransferCtm)
+            form.reset(updatedBankTransferCtm)
+            form.trigger()
+
+            const resolvedTransferNo =
+              updatedBankTransferCtm.transferNo ||
+              trimmedTransferNo ||
+              trimmedTransferId
+            setSearchNo(resolvedTransferNo)
+
+            return resolvedTransferNo
+          }
+        } else {
+          toast.error(
+            response?.message || "Failed to fetch Bank Transfer CTM details"
+          )
+        }
+      } catch (error) {
+        console.error("Error fetching Bank Transfer CTM details:", error)
+        toast.error("Error loading Bank Transfer CTM. Please try again.")
+      } finally {
+        if (showLoader) {
+          setIsLoadingCbBankTransferCtm(false)
+        }
+      }
+
+      return null
+    },
+    [
+      dateFormat,
+      form,
+      setCbBankTransferCtm,
+      setIsLoadingCbBankTransferCtm,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
+  )
+
+  const handleCbBankTransferCtmSelect = async (
     selectedBankTransferCtm: ICbBankTransferCtmHd | undefined
   ) => {
     if (!selectedBankTransferCtm) return
 
-    setIsSelectingBankTransferCtm(true)
+    const loadedTransferNo = await loadCbBankTransferCtm({
+      transferId: selectedBankTransferCtm.transferId ?? "0",
+      transferNo: selectedBankTransferCtm.transferNo ?? "",
+    })
 
-    try {
-      // Fetch Bank Transfer CTM details directly using selected Bank Transfer CTM's values
-      const response = await getById(
-        `${CbBankTransferCtm.getByIdNo}/${selectedBankTransferCtm.transferId}/${selectedBankTransferCtm.transferNo}`
-      )
-
-      if (response?.result === 1) {
-        const detailedBankTransferCtm = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedBankTransferCtm) {
-          const updatedBankTransferCtm = transformToSchemaType(
-            detailedBankTransferCtm
-          )
-          setBankTransferCtm(updatedBankTransferCtm)
-          form.reset(updatedBankTransferCtm)
-          form.trigger()
-
-          // Close dialog only on success
-          setShowListDialog(false)
-          toast.success(
-            `Bank Transfer CTM ${selectedBankTransferCtm.transferNo} loaded successfully`
-          )
-        }
-      } else {
-        toast.error(
-          response?.message || "Failed to fetch Bank Transfer CTM details"
-        )
-        // Keep dialog open on failure so user can try again
-      }
-    } catch (error) {
-      console.error("Error fetching Bank Transfer CTM details:", error)
-      toast.error("Error loading Bank Transfer CTM. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      setIsSelectingBankTransferCtm(false)
+    if (loadedTransferNo) {
+      setShowListDialog(false)
     }
   }
 
-  // Handle filter changes
+  // Remove direct refetch from handleFilterChange
   const handleFilterChange = (newFilters: ICbBankTransferCtmFilter) => {
     setFilters(newFilters)
+    // Data refresh handled by CbBankTransferCtmTable component
   }
 
-  // Data refresh handled by BankTransferCtmTable component
+  // Data refresh handled by CbBankTransferCtmTable component
+
+  // Set createBy and createDate for new Bank Transfer CTM on page load/refresh
+  useEffect(() => {
+    if (!cbBankTransferCtm && user && decimals.length > 0) {
+      const currentTransferId = form.getValues("transferId")
+      const currentTransferNo = form.getValues("transferNo")
+      const isNewBankTransferCtm =
+        !currentTransferId || currentTransferId === "0" || !currentTransferNo
+
+      if (isNewBankTransferCtm) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [cbBankTransferCtm, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -577,51 +953,52 @@ export default function BankTransferCtmPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handleBankTransferCtmSearch = async (value: string) => {
-    if (!value) return
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
-    setIsLoadingBankTransferCtm(true)
+  const handleCbBankTransferCtmSearch = async (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
 
     try {
-      const response = await getById(
-        `${CbBankTransferCtm.getByIdNo}/0/${value}`
-      )
+      const loadedTransferNo = await loadCbBankTransferCtm({
+        transferId: "0",
+        transferNo: trimmedValue,
+        showLoader: true,
+      })
 
-      if (response?.result === 1) {
-        const detailedBankTransferCtm = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedBankTransferCtm) {
-          const updatedBankTransferCtm = transformToSchemaType(
-            detailedBankTransferCtm
-          )
-          setBankTransferCtm(updatedBankTransferCtm)
-          form.reset(updatedBankTransferCtm)
-          form.trigger()
-
-          // Show success message
-          toast.success(`Bank Transfer CTM ${value} loaded successfully`)
-
-          // Close the load confirmation dialog on success
-          setShowLoadConfirm(false)
-        }
-      } else {
-        toast.error(
-          response?.message ||
-            "Failed to fetch Bank Transfer CTM details (direct)"
+      if (loadedTransferNo) {
+        toast.success(
+          `Bank Transfer CTM ${loadedTransferNo} loaded successfully`
         )
       }
-    } catch {
-      toast.error("Error searching for Bank Transfer CTM")
     } finally {
-      setIsLoadingBankTransferCtm(false)
+      setShowLoadConfirm(false)
     }
   }
+
+  useEffect(() => {
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
+
+    const executeLoad = async () => {
+      await loadCbBankTransferCtm({
+        transferId: trimmedId,
+        transferNo: "0",
+        showLoader: true,
+      })
+    }
+
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadCbBankTransferCtm, pendingDocId])
 
   // Determine mode and Bank Transfer CTM ID from URL
   const transferNo = form.getValues("transferNo")
   const isEdit = Boolean(transferNo)
+  const isCancelled = cbBankTransferCtm?.isCancel === true
 
   // Generic function to copy text to clipboard
   const copyToClipboard = useCallback(async (textToCopy: string) => {
@@ -651,10 +1028,10 @@ export default function BankTransferCtmPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -672,18 +1049,18 @@ export default function BankTransferCtmPage() {
   }, [searchNo, copyToClipboard])
 
   // Handle double-click to copy transferNo to clipboard
-  const handleCopyInvoiceNo = useCallback(async () => {
+  const handleCopyCbBankTransferCtmNo = useCallback(async () => {
     const transferNoToCopy = isEdit
-      ? bankTransfer?.transferNo || form.getValues("transferNo") || ""
+      ? cbBankTransferCtm?.transferNo || form.getValues("transferNo") || ""
       : form.getValues("transferNo") || ""
 
     await copyToClipboard(transferNoToCopy)
-  }, [isEdit, bankTransfer?.transferNo, form, copyToClipboard])
+  }, [isEdit, cbBankTransferCtm?.transferNo, form, copyToClipboard])
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Bank Transfer CTM (Edit) - ${transferNo}`
-    : "CB Bank Transfer CTM (New)"
+    ? `Bank Transfer CTM (Edit)- v[${cbBankTransferCtm?.editVersion}] - ${transferNo}`
+    : "Bank Transfer CTM (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -711,31 +1088,67 @@ export default function BankTransferCtmPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {cbBankTransferCtm?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {cbBankTransferCtm.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block cursor-pointer rounded-full px-6 font-semibold select-none ${isEdit ? "text-white" : "text-white"}`}
-                onDoubleClick={handleCopyInvoiceNo}
-                title="Double-click to copy transfer number"
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyCbBankTransferCtmNo}
+                  title="Double-click to copy Bank Transfer CTM number"
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (cbBankTransferCtm?.transferNo) {
+                    setSearchNo(cbBankTransferCtm.transferNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingCbBankTransferCtm}
+                className="h-4 w-4 p-0"
+                title="Refresh Bank Transfer CTM data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div
@@ -746,26 +1159,17 @@ export default function BankTransferCtmPage() {
               <Input
                 value={searchNo}
                 onChange={(e) => setSearchNo(e.target.value)}
-                onBlur={() => {
-                  if (searchNo.trim()) {
-                    setShowLoadConfirm(true)
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchNo.trim()) {
-                    e.preventDefault()
-                    setShowLoadConfirm(true)
-                  }
-                }}
+                onBlur={handleSearchNoBlur}
+                onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Bank Transfer CTM No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={
-                  !!bankTransferCtm?.transferId &&
-                  bankTransferCtm.transferId !== "0"
+                  !!cbBankTransferCtm?.transferId &&
+                  cbBankTransferCtm.transferId !== "0"
                 }
                 disabled={
-                  !!bankTransferCtm?.transferId &&
-                  bankTransferCtm.transferId !== "0"
+                  !!cbBankTransferCtm?.transferId &&
+                  cbBankTransferCtm.transferId !== "0"
                 }
               />
             </div>
@@ -784,7 +1188,13 @@ export default function BankTransferCtmPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -807,8 +1217,10 @@ export default function BankTransferCtmPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
-              onClick={handlePrintBankTransferCtm}
+              onClick={() => handlePrintCbBankTransferCtm()}
+              disabled={
+                !cbBankTransferCtm || cbBankTransferCtm.transferId === "0"
+              }
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -818,6 +1230,7 @@ export default function BankTransferCtmPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
+              //disabled={!cbBankTransferCtm}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -827,7 +1240,11 @@ export default function BankTransferCtmPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
+              disabled={
+                !cbBankTransferCtm ||
+                cbBankTransferCtm.transferId === "0" ||
+                isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -838,9 +1255,12 @@ export default function BankTransferCtmPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
-                !bankTransferCtm ||
-                bankTransferCtm.transferId === "0" ||
-                deleteMutation.isPending
+                !canView ||
+                !cbBankTransferCtm ||
+                cbBankTransferCtm.transferId === "0" ||
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -848,7 +1268,7 @@ export default function BankTransferCtmPage() {
               ) : (
                 <Trash2 className="mr-1 h-4 w-4" />
               )}
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>
@@ -857,17 +1277,18 @@ export default function BankTransferCtmPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveBankTransferCtm()
+              handleSaveCbBankTransferCtm()
             }}
             isEdit={isEdit}
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -880,53 +1301,34 @@ export default function BankTransferCtmPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by BankTransferCtmTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  CB Bank Transfer List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing Bank Transfer CTMs from the list
-                  below. Use search to filter records or create new Bank
-                  Transfer CTMs.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Bank Transfer CTM List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing Bank Transfer CTMs from the list below.
+              Use search to filter records or create new transfers.
+            </p>
+          </div>
 
-          {isSelectingBankTransferCtm ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingBankTransferCtm
-                    ? "Loading Bank Transfer CTM details..."
-                    : "Loading Bank Transfer CTMs..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingBankTransferCtm
-                    ? "Please wait while we fetch the complete Bank Transfer CTM data"
-                    : "Please wait while we fetch the Bank Transfer CTM list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <BankTransferCtmTable
-              onBankTransferCtmSelect={handleBankTransferCtmSelect}
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <CbBankTransferCtmTable
+              onCbBankTransferCtmSelect={handleCbBankTransferCtmSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
+              onCloseAction={() => setShowListDialog(false)}
+              visible={visible}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -934,10 +1336,10 @@ export default function BankTransferCtmPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveBankTransferCtm}
-        itemName={bankTransferCtm?.transferNo || "New Bank Transfer CTM"}
+        onConfirm={handleSaveCbBankTransferCtm}
+        itemName={cbBankTransferCtm?.transferNo || "New Bank Transfer CTM"}
         operationType={
-          bankTransferCtm?.transferId && bankTransferCtm.transferId !== "0"
+          cbBankTransferCtm?.transferId && cbBankTransferCtm.transferId !== "0"
             ? "update"
             : "create"
         }
@@ -946,35 +1348,46 @@ export default function BankTransferCtmPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleBankTransferCtmDelete}
-        itemName={bankTransferCtm?.transferNo}
+        onConfirm={() => handleDeleteConfirmation()}
+        itemName={cbBankTransferCtm?.transferNo}
         title="Delete Bank Transfer CTM"
-        description="This action cannot be undone. All Bank Transfer CTM details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this Bank Transfer CTM? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleCbBankTransferCtmDelete}
+        itemName={cbBankTransferCtm?.transferNo}
+        title="Cancel Bank Transfer CTM"
+        description="Please provide a reason for cancelling this Bank Transfer CTM."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleBankTransferCtmSearch(searchNo)}
+        onLoad={() => handleCbBankTransferCtmSearch(searchNo)}
         code={searchNo}
         typeLabel="Bank Transfer CTM"
         showDetails={false}
         description={`Do you want to load Bank Transfer CTM ${searchNo}?`}
-        isLoading={isLoadingBankTransferCtm}
+        isLoading={isLoadingCbBankTransferCtm}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleBankTransferCtmReset}
-        itemName={bankTransferCtm?.transferNo}
+        onConfirm={handleCbBankTransferCtmReset}
+        itemName={cbBankTransferCtm?.transferNo}
         title="Reset Bank Transfer CTM"
         description="This will clear all unsaved changes."
       />
@@ -983,8 +1396,8 @@ export default function BankTransferCtmPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneBankTransferCtm}
-        itemName={bankTransferCtm?.transferNo}
+        onConfirm={handleCloneCbBankTransferCtm}
+        itemName={cbBankTransferCtm?.transferNo}
         title="Clone Bank Transfer CTM"
         description="This will create a copy as a new Bank Transfer CTM."
       />

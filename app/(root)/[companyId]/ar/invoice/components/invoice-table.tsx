@@ -41,7 +41,7 @@ export default function InvoiceTable({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || clientDateFormat
-  //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
@@ -439,7 +439,7 @@ export default function InvoiceTable({
         const date = row.original.createDate
           ? new Date(row.original.createDate)
           : null
-        return date ? format(date, dateFormat) : "-"
+        return date ? format(date, datetimeFormat) : "-"
       },
     },
     {
@@ -457,7 +457,7 @@ export default function InvoiceTable({
         const date = row.original.editDate
           ? new Date(row.original.editDate)
           : null
-        return date ? format(date, dateFormat) : "-"
+        return date ? format(date, datetimeFormat) : "-"
       },
     },
     {

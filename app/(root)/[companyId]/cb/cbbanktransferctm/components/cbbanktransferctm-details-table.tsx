@@ -8,7 +8,7 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface BankTransferCtmDetailsTableProps {
+interface CbBankTransferCtmDetailsTableProps {
   data: ICbBankTransferCtmDt[]
   onDeleteAction?: (itemNo: number) => void
   onBulkDeleteAction?: (selectedItemNos: number[]) => void
@@ -17,9 +17,10 @@ interface BankTransferCtmDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankTransferCtmDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
-export default function BankTransferCtmDetailsTable({
+export default function CbBankTransferCtmDetailsTable({
   data,
   onDeleteAction,
   onBulkDeleteAction,
@@ -28,12 +29,17 @@ export default function BankTransferCtmDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: BankTransferCtmDetailsTableProps) {
+  isCancelled = false,
+}: CbBankTransferCtmDetailsTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -62,26 +68,7 @@ export default function BankTransferCtmDetailsTable({
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
-    // Job Order Fields
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo" as const,
-            header: "Job Order",
-            size: 120,
-          },
-          {
-            accessorKey: "taskName" as const,
-            header: "Task",
-            size: 150,
-          },
-          {
-            accessorKey: "serviceName" as const,
-            header: "Service",
-            size: 150,
-          },
-        ]
-      : []),
+
     // TO Bank Fields
     {
       accessorKey: "toBankCode",
@@ -106,19 +93,7 @@ export default function BankTransferCtmDetailsTable({
         </div>
       ),
     },
-    {
-      accessorKey: "toBankChgAmt",
-      header: "To Bank Charge",
-      size: 120,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.toBankChgAmt.toLocaleString(undefined, {
-            minimumFractionDigits: amtDec,
-            maximumFractionDigits: amtDec,
-          })}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "toTotAmt",
       header: "To Total Amount",
@@ -145,27 +120,21 @@ export default function BankTransferCtmDetailsTable({
         </div>
       ),
     },
-    // Bank Exchange Fields
+    // To Bank Charge Fields
+
     {
-      accessorKey: "bankExhRate",
-      header: "Bank Exh Rate",
+      accessorKey: "toBankChgGLCode" as const,
+      header: "To Bank Charge GL",
       size: 120,
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.bankExhRate.toLocaleString(undefined, {
-            minimumFractionDigits: exhRateDec,
-            maximumFractionDigits: exhRateDec,
-          })}
-        </div>
-      ),
     },
+
     {
-      accessorKey: "bankTotAmt",
-      header: "Bank Total",
+      accessorKey: "toBankChgAmt",
+      header: "To Bank Charge",
       size: 120,
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.bankTotAmt.toLocaleString(undefined, {
+          {row.original.toBankChgAmt.toLocaleString(undefined, {
             minimumFractionDigits: amtDec,
             maximumFractionDigits: amtDec,
           })}
@@ -173,18 +142,80 @@ export default function BankTransferCtmDetailsTable({
       ),
     },
     {
-      accessorKey: "bankTotLocalAmt",
-      header: "Bank Total Local",
-      size: 130,
+      accessorKey: "toBankChgLocalAmt",
+      header: "To Bank Charge Local",
+      size: 120,
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.bankTotLocalAmt.toLocaleString(undefined, {
+          {row.original.toBankChgLocalAmt.toLocaleString(undefined, {
             minimumFractionDigits: locAmtDec,
             maximumFractionDigits: locAmtDec,
           })}
         </div>
       ),
     },
+
+    // Bank Exchange Fields
+    {
+      accessorKey: "toBankExhRate",
+      header: "To Bank Exh Rate",
+      size: 120,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toBankExhRate.toLocaleString(undefined, {
+            minimumFractionDigits: exhRateDec,
+            maximumFractionDigits: exhRateDec,
+          })}
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: "toBankTotAmt",
+      header: "To Bank Total",
+      size: 120,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toBankTotAmt.toLocaleString(undefined, {
+            minimumFractionDigits: amtDec,
+            maximumFractionDigits: amtDec,
+          })}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toBankTotLocalAmt",
+      header: "To Bank Total Local",
+      size: 130,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toBankTotLocalAmt.toLocaleString(undefined, {
+            minimumFractionDigits: locAmtDec,
+            maximumFractionDigits: locAmtDec,
+          })}
+        </div>
+      ),
+    },
+    // Job Order Fields
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo" as const,
+            header: "Job Order",
+            size: 120,
+          },
+          {
+            accessorKey: "taskName" as const,
+            header: "Task",
+            size: 150,
+          },
+          {
+            accessorKey: "serviceName" as const,
+            header: "Service",
+            size: 150,
+          },
+        ]
+      : []),
   ]
 
   if (!mounted) {
@@ -210,9 +241,9 @@ export default function BankTransferCtmDetailsTable({
         onDeleteAction={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

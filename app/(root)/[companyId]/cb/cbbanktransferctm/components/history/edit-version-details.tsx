@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ICbBankTransferCtmHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
+import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetCbBankTransferCtmHistoryDetails,
   useGetCbBankTransferCtmHistoryList,
 } from "@/hooks/use-cb"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -22,35 +24,55 @@ import {
 } from "@/components/ui/dialog"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+import { EditVersionDetailsForm } from "./edit-version-details-form"
+
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
 interface EditVersionDetailsProps {
-  invoiceId: string
+  transferId: string
 }
 
 export default function EditVersionDetails({
-  invoiceId,
+  transferId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
+  const { hasPermission } = usePermissionStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const dateFormat = decimals[0]?.dateFormat || clientDateFormat
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransferctm
 
-  const [selectedBankTransferCtmHd, setSelectedBankTransferCtmHd] =
+  const [selectedCbBankTransferCtm, setSelectedCbBankTransferCtm] =
     useState<ICbBankTransferCtmHd | null>(null)
+  const canViewCbBankTransferCtmHistory = hasPermission(
+    moduleId,
+    transactionId,
+    "isRead"
+  )
 
-  const { data: bankTransferHistoryData, refetch: refetchHistory } =
-    useGetCbBankTransferCtmHistoryList<ICbBankTransferCtmHd[]>(invoiceId)
+  useEffect(() => {
+    if (!canViewCbBankTransferCtmHistory) {
+      setSelectedCbBankTransferCtm(null)
+    }
+  }, [canViewCbBankTransferCtmHistory])
 
-  const { data: bankTransferDetailsData, refetch: refetchDetails } =
+  const { data: cbBankTransferCtmHistoryData, refetch: refetchHistory } =
+    //useGetARCbBankTransferCtmHistoryList<ICbBankTransferCtmHd[]>("14120250100024")
+    useGetCbBankTransferCtmHistoryList<ICbBankTransferCtmHd[]>(transferId)
+
+  const { data: cbBankTransferCtmDetailsData, refetch: refetchDetails } =
     useGetCbBankTransferCtmHistoryDetails<ICbBankTransferCtmHd>(
-      selectedBankTransferCtmHd?.transferId?.toString() || "",
-      selectedBankTransferCtmHd?.editVersion?.toString() || ""
+      selectedCbBankTransferCtm?.transferId || "",
+      selectedCbBankTransferCtm?.editVersion?.toString() || ""
     )
 
-  function isICbBankTransferCtmArray(
+  function isICbBankTransferCtmHdArray(
     arr: unknown
   ): arr is ICbBankTransferCtmHd[] {
     return (
@@ -62,24 +84,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: ICbBankTransferCtmHd[] =
-    bankTransferHistoryData?.result === 1 &&
-    isICbBankTransferCtmArray(bankTransferHistoryData?.data)
-      ? bankTransferHistoryData.data
+    cbBankTransferCtmHistoryData?.result === 1 &&
+    isICbBankTransferCtmHdArray(cbBankTransferCtmHistoryData?.data)
+      ? cbBankTransferCtmHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: ICbBankTransferCtmHd | undefined =
-    bankTransferDetailsData?.result === 1 &&
-    bankTransferDetailsData?.data &&
-    typeof bankTransferDetailsData.data === "object" &&
-    bankTransferDetailsData.data !== null &&
-    !Array.isArray(bankTransferDetailsData.data)
-      ? (bankTransferDetailsData.data as ICbBankTransferCtmHd)
+    cbBankTransferCtmDetailsData?.result === 1 &&
+    cbBankTransferCtmDetailsData?.data &&
+    typeof cbBankTransferCtmDetailsData.data === "object" &&
+    cbBankTransferCtmDetailsData.data !== null &&
+    !Array.isArray(cbBankTransferCtmDetailsData.data)
+      ? (cbBankTransferCtmDetailsData.data as ICbBankTransferCtmHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = bankTransferHistoryData?.result === -1
-  const hasDetailsError = bankTransferDetailsData?.result === -1
+  const hasHistoryError = cbBankTransferCtmHistoryData?.result === -1
+  const hasDetailsError = cbBankTransferCtmDetailsData?.result === -1
 
   const columns: ColumnDef<ICbBankTransferCtmHd>[] = [
     {
@@ -88,7 +110,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "transferNo",
-      header: "Transfer No",
+      header: "CbBankTransferCtm No",
     },
     {
       accessorKey: "referenceNo",
@@ -114,24 +136,7 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Payment Type",
-    },
-    {
-      accessorKey: "chequeNo",
-      header: "Cheque No",
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+
     {
       accessorKey: "fromBankCode",
       header: "From Bank Code",
@@ -142,7 +147,11 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "fromCurrencyCode",
-      header: "From Currency",
+      header: "From Currency Code",
+    },
+    {
+      accessorKey: "fromCurrencyName",
+      header: "From Currency Name",
     },
     {
       accessorKey: "fromExhRate",
@@ -150,18 +159,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.fromExhRate
-            ? row.original.fromExhRate.toFixed(exhRateDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "fromBankChgAmt",
-      header: "From Bank Charge",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.fromBankChgAmt
-            ? row.original.fromBankChgAmt.toFixed(amtDec)
+            ? formatNumber(row.original.fromExhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -172,29 +170,18 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.fromTotAmt
-            ? row.original.fromTotAmt.toFixed(amtDec)
+            ? formatNumber(row.original.fromTotAmt, amtDec)
             : "-"}
         </div>
       ),
     },
     {
       accessorKey: "fromTotLocalAmt",
-      header: "From Total Local",
+      header: "From Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.fromTotLocalAmt
-            ? row.original.fromTotLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "exhGainLoss",
-      header: "Exchange Gain/Loss",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.exhGainLoss
-            ? row.original.exhGainLoss.toFixed(amtDec)
+            ? formatNumber(row.original.fromTotLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -204,26 +191,16 @@ export default function EditVersionDetails({
       header: "Remarks",
     },
     {
-      accessorKey: "payeeTo",
-      header: "Payee To",
+      accessorKey: "status",
+      header: "Status",
     },
     {
-      accessorKey: "isCancel",
-      header: "Cancelled",
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.isCancel ? "✓" : ""}</div>
-      ),
-    },
-    {
-      accessorKey: "isPost",
-      header: "Posted",
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.isPost ? "✓" : ""}</div>
-      ),
+      accessorKey: "createByCode",
+      header: "Created By Code",
     },
     {
       accessorKey: "createBy",
-      header: "Created By",
+      header: "Created By Name",
     },
     {
       accessorKey: "createDate",
@@ -236,8 +213,12 @@ export default function EditVersionDetails({
       },
     },
     {
+      accessorKey: "editByCode",
+      header: "Edited By Code",
+    },
+    {
       accessorKey: "editBy",
-      header: "Edited By",
+      header: "Edited By Name",
     },
     {
       accessorKey: "editDate",
@@ -256,13 +237,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        bankTransferHistoryData?.message !== "Data does not exist"
+        cbBankTransferCtmHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        bankTransferDetailsData?.message !== "Data does not exist"
+        cbBankTransferCtmDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -278,97 +259,63 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                bankTransferHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {bankTransferHistoryData?.message === "Data does not exist"
-                  ? "No Bank Transfer CTM history found for this record."
-                  : `Failed to load Bank Transfer CTM history: ${bankTransferHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.cbBankTransferCtmHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefreshAction={handleRefresh}
-            onRowSelect={(bankTransferCtm) =>
-              setSelectedBankTransferCtmHd(bankTransferCtm)
+            onRowSelect={
+              canViewCbBankTransferCtmHistory
+                ? (cbbanktransferctm) =>
+                    setSelectedCbBankTransferCtm(cbbanktransferctm)
+                : undefined
             }
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedBankTransferCtmHd}
-        onOpenChange={() => setSelectedBankTransferCtmHd(null)}
+        open={!!selectedCbBankTransferCtm}
+        onOpenChange={() => setSelectedCbBankTransferCtm(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Bank Transfer CTM Details</DialogTitle>
+            <DialogTitle>
+              CbBankTransferCtm Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.transferNo} : v{" "}
+                {selectedCbBankTransferCtm?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                bankTransferDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {bankTransferDetailsData?.message === "Data does not exist"
-                  ? "No Bank Transfer CTM details found for this version."
-                  : `Failed to load Bank Transfer CTM details: ${bankTransferDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                totalAmount: dialogData?.fromTotAmt,
+                localTotalAmount: dialogData?.fromTotLocalAmt,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading cbbanktransferctm details"
+                : "No cbbanktransferctm details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bank Transfer CTM Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) => (
-                      <div key={key} className="flex flex-col gap-1">
-                        <span className="text-muted-foreground text-sm">
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        <span className="font-medium">{String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading Bank Transfer CTM details"
-                      : "No Bank Transfer CTM details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>

@@ -6,7 +6,6 @@ import {
   IGLPeriodClose,
   IGeneratePeriodRequest,
 } from "@/interfaces/gl-periodclose"
-import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -54,10 +53,6 @@ export default function GLPeriodClosePage() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [generating, setGenerating] = useState(false)
-
-  const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   // Fetch period close data for selected year
   const { data: periodCloseResponse, isLoading } = useGet<IGLPeriodClose>(
@@ -128,6 +123,7 @@ export default function GLPeriodClosePage() {
     }
 
     try {
+      console.log("periodCloseData to save", periodCloseData)
       setSaving(true)
       const response = await saveMutation.mutateAsync(periodCloseData)
       if (response.result === 1) {
@@ -330,8 +326,6 @@ export default function GLPeriodClosePage() {
           <PeriodCloseTable
             data={periodCloseData}
             isLoading={isLoading}
-            dateFormat={dateFormat}
-            datetimeFormat={datetimeFormat}
             onFieldChange={handleFieldChange}
           />
 

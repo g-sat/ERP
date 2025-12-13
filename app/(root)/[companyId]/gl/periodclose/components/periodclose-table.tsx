@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { IGLPeriodClose } from "@/interfaces/gl-periodclose"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
@@ -11,18 +12,18 @@ import { SettingTable } from "@/components/table/table-setting"
 interface PeriodCloseTableProps {
   data: IGLPeriodClose[]
   isLoading: boolean
-  dateFormat: string
-  datetimeFormat: string
   onFieldChange: (field: IGLPeriodClose, key: string, checked: boolean) => void
 }
 
 export function PeriodCloseTable({
   data,
   isLoading,
-  dateFormat,
-  datetimeFormat,
   onFieldChange,
 }: PeriodCloseTableProps) {
+  const { decimals } = useAuthStore()
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
   const columns: ColumnDef<IGLPeriodClose>[] = useMemo(
     () => [
       {
@@ -55,7 +56,7 @@ export function PeriodCloseTable({
         header: "End Date",
         cell: ({ row }) => {
           const date = row.getValue("endDate") as string
-          return date ? format(new Date(date), dateFormat) : ""
+          return date ? format(new Date(date), datetimeFormat) : ""
         },
         size: 120,
         minSize: 100,

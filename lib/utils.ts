@@ -236,8 +236,7 @@ export enum CBTransactionId {
   cbpettycash = 3,
   cbbanktransfer = 4,
   cbbankrecon = 5,
-  cbbatchpayment = 6,
-  cbbanktransferctm = 7,
+  cbbanktransferctm = 6,
   reports = 99,
 }
 

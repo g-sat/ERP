@@ -796,6 +796,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
           form.setValue("departmentCode", "")
           form.setValue("departmentName", "")
         }
+      } else {
+        form.setValue("glId", 0, { shouldValidate: true })
+        form.setValue("glCode", "")
+        form.setValue("glName", "")
       }
     }
 
@@ -821,6 +825,13 @@ const CbPettyCashDetailsForm = React.forwardRef<
         form.setValue("gstAmt", rowData.gstAmt)
         form.setValue("gstLocalAmt", rowData.gstLocalAmt)
         form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+      } else {
+        form.setValue("gstId", 0)
+        form.setValue("gstName", "")
+        form.setValue("gstPercentage", 0)
+        form.setValue("gstAmt", 0)
+        form.setValue("gstLocalAmt", 0)
+        form.setValue("gstCtyAmt", 0)
       }
     }
 
@@ -891,6 +902,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
         })
         form.setValue("departmentCode", selectedOption.departmentCode || "")
         form.setValue("departmentName", selectedOption.departmentName || "")
+      } else {
+        form.setValue("departmentId", 0, { shouldValidate: true })
+        form.setValue("departmentCode", "")
+        form.setValue("departmentName", "")
       }
     }
 
@@ -903,6 +918,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
         })
         form.setValue("employeeCode", selectedOption.employeeCode || "")
         form.setValue("employeeName", selectedOption.employeeName || "")
+      } else {
+        form.setValue("employeeId", 0, { shouldValidate: true })
+        form.setValue("employeeCode", "")
+        form.setValue("employeeName", "")
       }
     }
 
@@ -915,6 +934,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
         })
         form.setValue("bargeCode", selectedOption.bargeCode || "")
         form.setValue("bargeName", selectedOption.bargeName || "")
+      } else {
+        form.setValue("bargeId", 0, { shouldValidate: true })
+        form.setValue("bargeCode", "")
+        form.setValue("bargeName", "")
       }
     }
 
@@ -927,6 +950,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
         })
         form.setValue("portCode", selectedOption.portCode || "")
         form.setValue("portName", selectedOption.portName || "")
+      } else {
+        form.setValue("portId", 0, { shouldValidate: true })
+        form.setValue("portCode", "")
+        form.setValue("portName", "")
       }
     }
 
@@ -939,6 +966,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
         })
         form.setValue("vesselCode", selectedOption.vesselCode || "")
         form.setValue("vesselName", selectedOption.vesselName || "")
+      } else {
+        form.setValue("vesselId", 0, { shouldValidate: true })
+        form.setValue("vesselCode", "")
+        form.setValue("vesselName", "")
       }
     }
 
@@ -950,6 +981,9 @@ const CbPettyCashDetailsForm = React.forwardRef<
           shouldDirty: true,
         })
         form.setValue("voyageNo", selectedOption.voyageNo || "")
+      } else {
+        form.setValue("voyageId", 0, { shouldValidate: true })
+        form.setValue("voyageNo", "")
       }
     }
 
@@ -1134,25 +1168,6 @@ const CbPettyCashDetailsForm = React.forwardRef<
               isCancelled ? "pointer-events-none opacity-50" : ""
             }`}
           >
-            {/* Hidden fields to register code/name fields with React Hook Form */}
-            <input type="hidden" {...form.register("glCode")} />
-            <input type="hidden" {...form.register("glName")} />
-            <input type="hidden" {...form.register("departmentCode")} />
-            <input type="hidden" {...form.register("departmentName")} />
-            <input type="hidden" {...form.register("gstName")} />
-            <input type="hidden" {...form.register("employeeCode")} />
-            <input type="hidden" {...form.register("employeeName")} />
-            <input type="hidden" {...form.register("bargeCode")} />
-            <input type="hidden" {...form.register("bargeName")} />
-            <input type="hidden" {...form.register("portCode")} />
-            <input type="hidden" {...form.register("portName")} />
-            <input type="hidden" {...form.register("vesselCode")} />
-            <input type="hidden" {...form.register("vesselName")} />
-            <input type="hidden" {...form.register("voyageNo")} />
-            <input type="hidden" {...form.register("jobOrderNo")} />
-            <input type="hidden" {...form.register("taskName")} />
-            <input type="hidden" {...form.register("serviceName")} />
-
             {/* Section Header */}
             <div className="col-span-8 mb-1">
               <div className="flex items-center gap-3">

@@ -80,17 +80,17 @@ export interface ICbBankTransferCtmDt {
   toCurrencyCode: string
   toCurrencyName: string
   toExhRate: number
+  toTotAmt: number
+  toTotLocalAmt: number
   toBankChgGLId: number
   toBankChgGLCode: string
   toBankChgGLName: string
   toBankChgAmt: number
   toBankChgLocalAmt: number
-  toTotAmt: number
-  toTotLocalAmt: number
 
-  bankExhRate: number
-  bankTotAmt: number
-  bankTotLocalAmt: number
+  toBankExhRate: number
+  toBankTotAmt: number
+  toBankTotLocalAmt: number
 
   editVersion: number
 }

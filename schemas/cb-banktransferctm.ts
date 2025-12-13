@@ -30,18 +30,18 @@ export const CbBankTransferCtmDtSchema = (
     toExhRate: z
       .number()
       .min(0.000001, "To Exchange Rate must be greater than 0"),
+    toTotAmt: z.number().min(0, "To Total Amount is required"),
+    toTotLocalAmt: z.number().min(0),
     toBankChgGLId: z.number().min(0).optional(),
     toBankChgGLCode: z.string().optional(),
     toBankChgGLName: z.string().optional(),
     toBankChgAmt: z.number().min(0),
     toBankChgLocalAmt: z.number().min(0),
-    toTotAmt: z.number().min(0, "To Total Amount is required"),
-    toTotLocalAmt: z.number().min(0),
 
     // Bank Exchange Fields
-    bankExhRate: z.number().min(0),
-    bankTotAmt: z.number().min(0),
-    bankTotLocalAmt: z.number().min(0),
+    toBankExhRate: z.number().min(0),
+    toBankTotAmt: z.number().min(0),
+    toBankTotLocalAmt: z.number().min(0),
 
     // Audit Fields
     editVersion: z.number().optional(),
