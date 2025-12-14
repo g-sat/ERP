@@ -747,8 +747,8 @@ export default function CbGenReceiptPage() {
     // Determine report file based on type
     const reportFile =
       reportType === "direct"
-        ? "RPT_CbGenReceiptDirect.trdp"
-        : "RPT_CbGenReceipt.trdp"
+        ? "rpt_CbGenReceiptDirect.trdp"
+        : "rpt_CbGenReceipt.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

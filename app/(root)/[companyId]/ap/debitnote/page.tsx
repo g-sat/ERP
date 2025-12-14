@@ -803,7 +803,7 @@ export default function DebitNotePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ApDebitNote.trdp",
+      reportFile: "rpt_ApDebitNote.trdp",
       parameters: reportParams,
     }
 

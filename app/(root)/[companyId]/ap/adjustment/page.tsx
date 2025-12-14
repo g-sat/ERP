@@ -798,7 +798,7 @@ export default function AdjustmentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ApAdjustment.trdp",
+      reportFile: "rpt_ApAdjustment.trdp",
       parameters: reportParams,
     }
 

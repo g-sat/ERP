@@ -332,7 +332,7 @@ export default function BankReconPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_CbBankRecon.trdp",
+      reportFile: "rpt_CbBankRecon.trdp",
       parameters: reportParams,
     }
 
@@ -613,10 +613,10 @@ export default function BankReconPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -719,7 +719,7 @@ export default function BankReconPage() {
                   }
                 }}
                 placeholder="Search Reconciliation No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!bankRecon?.reconId && bankRecon.reconId !== "0"}
                 disabled={!!bankRecon?.reconId && bankRecon.reconId !== "0"}
               />

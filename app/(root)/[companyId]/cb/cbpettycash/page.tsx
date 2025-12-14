@@ -766,8 +766,8 @@ export default function CbPettyCashPage() {
     // Determine report file based on type
     const reportFile =
       reportType === "direct"
-        ? "RPT_CbPettyCashDirect.trdp"
-        : "RPT_CbPettyCash.trdp"
+        ? "rpt_CbPettyCashDirect.trdp"
+        : "rpt_CbPettyCash.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

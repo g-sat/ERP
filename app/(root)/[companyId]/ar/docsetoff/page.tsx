@@ -618,7 +618,7 @@ export default function DocSetOffPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ArDocSetOff.trdp",
+      reportFile: "rpt_ArDocSetOff.trdp",
       parameters: reportParams,
     }
 
@@ -967,10 +967,10 @@ export default function DocSetOffPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1101,7 +1101,7 @@ export default function DocSetOffPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search DocSetOff No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
                 disabled={!!docSetOff?.setoffId && docSetOff.setoffId !== "0"}
               />

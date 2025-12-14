@@ -561,7 +561,7 @@ export default function ArapcontraPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_GLContra.trdp",
+      reportFile: "rpt_GLContra.trdp",
       parameters: reportParams,
     }
 

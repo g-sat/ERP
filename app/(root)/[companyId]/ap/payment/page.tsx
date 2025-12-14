@@ -634,7 +634,7 @@ export default function PaymentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ApPayment.trdp",
+      reportFile: "rpt_ApPayment.trdp",
       parameters: reportParams,
     }
 
@@ -1002,10 +1002,10 @@ export default function PaymentPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1134,7 +1134,7 @@ export default function PaymentPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Payment No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!payment?.paymentId && payment.paymentId !== "0"}
                 disabled={!!payment?.paymentId && payment.paymentId !== "0"}
               />

@@ -636,7 +636,7 @@ export default function ReceiptPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ArReceipt.trdp",
+      reportFile: "rpt_ArReceipt.trdp",
       parameters: reportParams,
     }
 
@@ -1006,10 +1006,10 @@ export default function ReceiptPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1138,7 +1138,7 @@ export default function ReceiptPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Receipt No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
                 disabled={!!receipt?.receiptId && receipt.receiptId !== "0"}
               />

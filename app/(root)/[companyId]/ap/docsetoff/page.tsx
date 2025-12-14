@@ -646,7 +646,7 @@ export default function DocSetOffPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ApDocSetOff.trdp",
+      reportFile: "rpt_ApDocSetOff.trdp",
       parameters: reportParams,
     }
 

@@ -633,7 +633,7 @@ export default function RefundPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_ApRefund.trdp",
+      reportFile: "rpt_ApRefund.trdp",
       parameters: reportParams,
     }
 
@@ -996,10 +996,10 @@ export default function RefundPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1128,7 +1128,7 @@ export default function RefundPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Refund No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!refund?.refundId && refund.refundId !== "0"}
                 disabled={!!refund?.refundId && refund.refundId !== "0"}
               />

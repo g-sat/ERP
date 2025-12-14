@@ -799,8 +799,8 @@ export default function InvoiceCtmPage() {
     // Determine report file based on type
     const reportFile =
       reportType === "direct"
-        ? "RPT_ArInvoiceCtmDirect.trdp"
-        : "RPT_ArInvoiceCtm.trdp"
+        ? "rpt_ArInvoiceCtmDirect.trdp"
+        : "rpt_ArInvoiceCtm.trdp"
 
     // Store report data in sessionStorage
     const reportData = {
@@ -1244,10 +1244,10 @@ export default function InvoiceCtmPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1412,7 +1412,7 @@ export default function InvoiceCtmPage() {
                 onBlur={handleSearchNoBlur}
                 onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search Invoice No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
                 disabled={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
               />

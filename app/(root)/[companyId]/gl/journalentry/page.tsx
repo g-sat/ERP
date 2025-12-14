@@ -729,8 +729,8 @@ export default function GLJournalPage() {
     // Determine report file based on type
     const reportFile =
       reportType === "direct"
-        ? "RPT_GLJournalDirect.trdp"
-        : "RPT_GLJournal.trdp"
+        ? "rpt_GLJournalDirect.trdp"
+        : "rpt_GLJournal.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

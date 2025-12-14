@@ -342,7 +342,7 @@ export default function BankTransferPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "RPT_CbBankTransfer.trdp",
+      reportFile: "rpt_CbBankTransfer.trdp",
       parameters: reportParams,
     }
 
@@ -603,10 +603,10 @@ export default function BankTransferPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -710,7 +710,7 @@ export default function BankTransferPage() {
                   }
                 }}
                 placeholder="Search BankTransfer No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={
                   !!bankTransfer?.transferId && bankTransfer.transferId !== "0"
                 }
