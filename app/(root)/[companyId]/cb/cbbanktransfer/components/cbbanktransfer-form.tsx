@@ -111,7 +111,7 @@ export default function BankTransferForm({
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       const { trnDate } = form?.getValues()
-      form.setValue("accountDate", trnDate)
+      form.setValue("accountDate", trnDate as Date)
       form?.trigger("accountDate")
     },
     [form]

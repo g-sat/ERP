@@ -1,12 +1,14 @@
 "use client"
 
 import React, { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { isStatusConfirmed } from "@/helpers/project"
 import {
   IDebitNoteItem,
   IJobOrderHd,
   ISaveDebitNoteItem,
 } from "@/interfaces/checklist"
+import { useAuthStore } from "@/stores/auth-store"
 import {
   Copy,
   Edit3,
@@ -55,6 +57,10 @@ export function ChecklistTabs({
   onClone,
   onUpdateSuccess,
 }: ChecklistTabsProps) {
+  const params = useParams()
+  const companyId = params.companyId as string
+  const { decimals, user } = useAuthStore()
+
   const [activeTab, setActiveTab] = useState("main")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [confirmAction, setConfirmAction] = useState<{
@@ -97,8 +103,8 @@ export function ChecklistTabs({
   const currentJobData = isDetailedJobData ? detailedJobData.data : jobData
 
   // ✅ SAFE: Check if currentJobData exists before accessing statusName
-  const isConfirmed = currentJobData?.statusName
-    ? isStatusConfirmed(currentJobData.statusName)
+  const isConfirmed = currentJobData?.jobStatusName
+    ? isStatusConfirmed(currentJobData.jobStatusName)
     : false
 
   // console.log("Original jobData:", jobData)
@@ -115,8 +121,92 @@ export function ChecklistTabs({
     // console.error("Error fetching detailed job order:", error)
   }
 
-  const handlePrint = () => {
-    /* ... */
+  // Handle Print Checklist Report
+  const handlePrint = (
+    reportType:
+      | "checklist"
+      | "purchaseList"
+      | "jobSummary"
+      | "invoice" = "checklist"
+  ) => {
+    if (
+      !currentJobData ||
+      !currentJobData.jobOrderId ||
+      currentJobData.jobOrderId === 0
+    ) {
+      toast.error("Please select a job order to print")
+      return
+    }
+
+    const jobOrderId = currentJobData.jobOrderId?.toString() || "0"
+    const jobOrderNo = currentJobData.jobOrderNo || ""
+
+    // Get decimals
+    const amtDec = decimals[0]?.amtDec || 2
+    const locAmtDec = decimals[0]?.locAmtDec || 2
+
+    // Determine report file and build parameters based on type
+    let reportFile = "rpt_Checklist.trdp"
+    const reportParams: Record<string, string | number> = {
+      companyId: companyId,
+      reportType: reportType === "invoice" ? 2 : 1,
+      userName: user?.userName || "",
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+    }
+
+    switch (reportType) {
+      case "checklist":
+        reportFile = "rpt_Checklist.trdp"
+        reportParams.jobOrderId = jobOrderId
+        reportParams.jobOrderNo = jobOrderNo
+        break
+      case "purchaseList":
+        reportFile = "rpt_PurchaseList.trdp"
+        reportParams.jobOrderId = jobOrderId
+        reportParams.jobOrderNo = jobOrderNo
+        break
+      case "jobSummary":
+        reportFile = "rpt_JobSummary.trdp"
+        reportParams.jobOrderId = jobOrderId
+        reportParams.jobOrderNo = jobOrderNo
+        break
+      case "invoice":
+        reportFile = "rpt_ArInvoice.trdp"
+        // For invoice, we need invoiceId and invoiceNo instead
+        if (currentJobData.invoiceId && currentJobData.invoiceNo) {
+          reportParams.invoiceId = currentJobData.invoiceId
+          reportParams.invoiceNo = currentJobData.invoiceNo
+        } else {
+          toast.error("Invoice not available for this job order")
+          return
+        }
+        break
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: reportFile,
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
   }
 
   const handleClone = () => {
@@ -305,17 +395,17 @@ export function ChecklistTabs({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handlePrint}>
+              <DropdownMenuItem onClick={() => handlePrint("checklist")}>
                 Checklist
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePrint}>
+              <DropdownMenuItem onClick={() => handlePrint("purchaseList")}>
                 Purchase List
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePrint}>
+              <DropdownMenuItem onClick={() => handlePrint("jobSummary")}>
                 Job Summary
               </DropdownMenuItem>
               {isConfirmed && (
-                <DropdownMenuItem onClick={handlePrint}>
+                <DropdownMenuItem onClick={() => handlePrint("invoice")}>
                   Invoice Print
                 </DropdownMenuItem>
               )}

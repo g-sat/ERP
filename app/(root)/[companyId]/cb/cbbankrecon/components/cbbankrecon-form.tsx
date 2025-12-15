@@ -45,7 +45,7 @@ export default function BankReconForm({
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       const { trnDate } = form?.getValues()
-      form.setValue("accountDate", trnDate)
+      form.setValue("accountDate", trnDate as Date)
       form?.trigger("accountDate")
     },
     [form]
@@ -86,15 +86,14 @@ export default function BankReconForm({
         )}
 
         {/* Account Date */}
-        {visible?.m_AccountDate && (
-          <CustomDateNew
-            form={form}
-            name="accountDate"
-            label="Account Date"
-            isRequired={true}
-            isFutureShow={false}
-          />
-        )}
+
+        <CustomDateNew
+          form={form}
+          name="accountDate"
+          label="Account Date"
+          isRequired={true}
+          isFutureShow={false}
+        />
 
         {/* Previous Reconciliation No */}
         <CustomInput

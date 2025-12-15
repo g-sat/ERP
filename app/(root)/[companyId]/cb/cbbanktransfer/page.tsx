@@ -1,17 +1,26 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import { ICbBankTransfer, ICbBankTransferFilter } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbBankTransferSchema, CbBankTransferSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import {
   Copy,
   ListFilter,
   Printer,
+  RefreshCw,
   RotateCcw,
   Save,
   Trash2,
@@ -20,11 +29,12 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbBankTransfer } from "@/lib/api-routes"
+import { BasicSetting, CbBankTransfer } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +46,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -43,7 +54,7 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultBankTransfer } from "./components/cbbanktransfer-defaultvalues"
+import { getDefaultValues } from "./components/cbbanktransfer-defaultvalues"
 import BankTransferTable from "./components/cbbanktransfer-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
@@ -51,15 +62,52 @@ import Other from "./components/other"
 
 export default function BankTransferPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
-  const { decimals, user } = useAuthStore()
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransfer
 
+  const { hasPermission } = usePermissionStore()
+  const { decimals, user } = useAuthStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const dateFormat = useMemo(
+    () => decimals[0]?.dateFormat || clientDateFormat,
+    [decimals]
+  )
+
+  const parseWithFallback = useCallback(
+    (value: string | Date | null | undefined): Date | null => {
+      if (!value) return null
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? null : value
+      }
+
+      if (typeof value !== "string") return null
+
+      const parsed = parse(value, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return parsed
+      }
+
+      const fallback = parseDate(value)
+      return fallback ?? null
+    },
+    [dateFormat]
+  )
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
@@ -70,15 +118,58 @@ export default function BankTransferPage() {
     useState<CbBankTransferSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+  const [pendingDocId, setPendingDocId] = useState("")
+
+  const documentIdFromQuery = useMemo(() => {
+    const value =
+      searchParams?.get("docId") ?? searchParams?.get("documentId") ?? ""
+    return value ? value.trim() : ""
+  }, [searchParams])
+
+  const autoLoadStorageKey = useMemo(
+    () => `history-doc:/${companyId}/cb/cbbanktransfer`,
+    [companyId]
+  )
+
+  useEffect(() => {
+    if (documentIdFromQuery) {
+      setPendingDocId(documentIdFromQuery)
+      return
+    }
+
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(autoLoadStorageKey)
+      if (stored) {
+        window.localStorage.removeItem(autoLoadStorageKey)
+        const trimmed = stored.trim()
+        if (trimmed) {
+          setPendingDocId(trimmed)
+        }
+      }
+    }
+  }, [autoLoadStorageKey, documentIdFromQuery])
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
+
+  const today = useMemo(() => new Date(), [])
+  const defaultFilterStartDate = useMemo(
+    () => format(startOfMonth(subMonths(today, 1)), "yyyy-MM-dd"),
+    [today]
+  )
+  const defaultFilterEndDate = useMemo(
+    () => format(lastDayOfMonth(today), "yyyy-MM-dd"),
+    [today]
+  )
 
   const [filters, setFilters] = useState<ICbBankTransferFilter>({
-    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: defaultFilterStartDate,
+    endDate: defaultFilterEndDate,
     search: "",
     sortBy: "transferNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
 
   const { data: visibleFieldsData } = useGetVisibleFields(
@@ -94,6 +185,11 @@ export default function BankTransferPage() {
   // Use nullish coalescing to handle fallback values
   const visible: IVisibleFields = visibleFieldsData ?? null
   const required: IMandatoryFields = requiredFieldsData ?? null
+
+  const defaultBankTransferValues = useMemo(
+    () => getDefaultValues(dateFormat).defaultBankTransfer,
+    [dateFormat]
+  )
 
   // Add form state management
   const form = useForm<CbBankTransferSchemaType>({
@@ -147,11 +243,31 @@ export default function BankTransferPage() {
           appDate: bankTransfer.appDate ?? null,
         }
       : {
-          ...defaultBankTransfer,
+          ...defaultBankTransferValues,
         },
   })
 
   // Data fetching moved to BankTransferTable component for better performance
+
+  // Auto-load document from URL query or localStorage
+  useEffect(() => {
+    if (pendingDocId && !bankTransfer) {
+      handleBankTransferSearch(pendingDocId)
+      setPendingDocId("")
+    }
+  }, [pendingDocId, bankTransfer])
+
+  // Track previous account date when loading a bank transfer
+  useEffect(() => {
+    if (bankTransfer?.accountDate) {
+      const parsed = parseDate(bankTransfer.accountDate as string)
+      setPreviousAccountDate(
+        parsed
+          ? format(parsed, dateFormat)
+          : (bankTransfer.accountDate as string)
+      )
+    }
+  }, [bankTransfer?.accountDate, dateFormat])
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferSchemaType>(
@@ -206,20 +322,61 @@ export default function BankTransferPage() {
         return
       }
 
-      //check totamt and totlocalamt should not be zero
-      if (
-        formValues.toTotAmt === 0 ||
-        formValues.toTotLocalAmt === 0 ||
-        formValues.fromTotAmt === 0 ||
-        formValues.fromTotLocalAmt === 0
-      ) {
-        toast.error(
-          "To Total Amount, To Total Local Amount, From Total Amount, From Total Local Amount should not be zero"
+      // Check header from total amounts should not be zero
+      if (formValues.fromTotAmt === 0 || formValues.fromTotLocalAmt === 0) {
+        toast.warning(
+          "From Total Amount and From Total Local Amount should not be zero"
         )
         return
       }
 
-      console.log(formValues)
+      // Check to total amounts should not be zero
+      if (formValues.toTotAmt === 0 || formValues.toTotLocalAmt === 0) {
+        toast.warning(
+          "To Total Amount and To Total Local Amount should not be zero"
+        )
+        return
+      }
+
+      console.log("handleSaveBankTransfer formValues", formValues)
+
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.transferId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
+
+        const parsedAccountDate = parseWithFallback(
+          accountDate as unknown as string | Date | null
+        )
+        if (!parsedAccountDate) {
+          toast.error("Invalid account date")
+          return
+        }
+
+        const parsedPrevAccountDate = parseWithFallback(
+          prevAccountDate as unknown as string | Date | null
+        )
+
+        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const prev = parsedPrevAccountDate
+          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error(
+            `GL Period is closed for Account Date: ${format(parsedAccountDate, dateFormat)}`
+          )
+          return
+        }
+      } catch (error) {
+        console.error("GL period check error:", error)
+        // Continue with save even if period check fails
+      }
 
       const response =
         Number(formValues.transferId) === 0
@@ -236,8 +393,15 @@ export default function BankTransferPage() {
           const updatedSchemaType = transformToSchemaType(
             bankTransferData as unknown as ICbBankTransfer
           )
-          setIsSelectingBankTransfer(true)
+
+          setSearchNo(updatedSchemaType.transferNo || "")
           setBankTransfer(updatedSchemaType)
+          const parsed = parseDate(updatedSchemaType.accountDate as string)
+          setPreviousAccountDate(
+            parsed
+              ? format(parsed, dateFormat)
+              : (updatedSchemaType.accountDate as string)
+          )
           form.reset(updatedSchemaType)
           form.trigger()
         }
@@ -281,8 +445,15 @@ export default function BankTransferPage() {
     }
   }
 
-  // Handle Delete
-  const handleBankTransferDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleBankTransferDelete = async (cancelRemarks: string) => {
     if (!bankTransfer) return
 
     try {
@@ -292,8 +463,10 @@ export default function BankTransferPage() {
       if (response.result === 1) {
         setBankTransfer(null)
         setSearchNo("") // Clear search input
-        setSearchNo("") // Clear search input
-        form.reset(defaultBankTransfer)
+        form.reset(defaultBankTransferValues)
+        toast.success(
+          `Bank Transfer ${bankTransfer.transferNo} deleted successfully`
+        )
         // Data refresh handled by BankTransferTable component
       } else {
         toast.error(response.message || "Failed to delete Bank Transfer")
@@ -307,7 +480,19 @@ export default function BankTransferPage() {
   const handleBankTransferReset = () => {
     setBankTransfer(null)
     setSearchNo("") // Clear search input
-    form.reset(defaultBankTransfer)
+
+    // Get current date/time and user name - always set for reset (new Bank Transfer)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultBankTransferValues,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
+    })
     toast.success("Bank Transfer reset successfully")
   }
 
@@ -550,6 +735,12 @@ export default function BankTransferPage() {
           const updatedBankTransfer =
             transformToSchemaType(detailedBankTransfer)
           setBankTransfer(updatedBankTransfer)
+          const parsed = parseDate(updatedBankTransfer.accountDate as string)
+          setPreviousAccountDate(
+            parsed
+              ? format(parsed, dateFormat)
+              : (updatedBankTransfer.accountDate as string)
+          )
           form.reset(updatedBankTransfer)
           form.trigger()
 
@@ -568,6 +759,36 @@ export default function BankTransferPage() {
       toast.error("Error searching for Bank Transfer")
     } finally {
       setIsLoadingBankTransfer(false)
+    }
+  }
+
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
     }
   }
 
@@ -698,17 +919,8 @@ export default function BankTransferPage() {
               <Input
                 value={searchNo}
                 onChange={(e) => setSearchNo(e.target.value)}
-                onBlur={() => {
-                  if (searchNo.trim()) {
-                    setShowLoadConfirm(true)
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchNo.trim()) {
-                    e.preventDefault()
-                    setShowLoadConfirm(true)
-                  }
-                }}
+                onBlur={handleSearchNoBlur}
+                onKeyDown={handleSearchNoKeyDown}
                 placeholder="Search BankTransfer No"
                 className="h-8 cursor-pointer text-sm"
                 readOnly={
@@ -750,6 +962,19 @@ export default function BankTransferPage() {
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                form.reset()
+                form.trigger()
+              }}
+              title="Refresh form validation"
+            >
+              <RefreshCw className="mr-1 h-4 w-4" />
+              Refresh
             </Button>
 
             <Button
@@ -810,52 +1035,31 @@ export default function BankTransferPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by BankTransferTable component
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  CB Bank Transfer List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing Bank Transfers from the list below.
-                  Use search to filter records or create new Bank Transfers.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Bank Transfer List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing Bank Transfers from the list below. Use
+              search to filter records or create new transfers.
+            </p>
+          </div>
 
-          {isSelectingBankTransfer ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingBankTransfer
-                    ? "Loading Bank Transfer details..."
-                    : "Loading Bank Transfers..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingBankTransfer
-                    ? "Please wait while we fetch the complete Bank Transfer data"
-                    : "Please wait while we fetch the Bank Transfer list"}
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
             <BankTransferTable
               onBankTransferSelect={handleBankTransferSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -875,15 +1079,26 @@ export default function BankTransferPage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleBankTransferDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={bankTransfer?.transferNo}
         title="Delete Bank Transfer"
-        description="This action cannot be undone. All bank transfer details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this Bank Transfer? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleBankTransferDelete}
+        itemName={bankTransfer?.transferNo}
+        title="Cancel Bank Transfer"
+        description="Please provide a reason for cancelling this Bank Transfer."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

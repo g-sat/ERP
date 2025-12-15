@@ -59,8 +59,10 @@ export interface ICbBankReconDt {
   docReferenceNo: string
   accountDate: Date | string
   paymentTypeId: number
+  paymentTypeName: string
   chequeNo: string | null
   chequeDate: Date | string
+  clearingChequeDate: Date | string
   customerId: number
   supplierId: number
   glId: number
