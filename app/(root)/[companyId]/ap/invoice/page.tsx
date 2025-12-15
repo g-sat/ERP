@@ -787,7 +787,7 @@ export default function InvoicePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_ApInvoice.trdp",
+      reportFile: "ap/ApInvoice.trdp",
       parameters: reportParams,
     }
 

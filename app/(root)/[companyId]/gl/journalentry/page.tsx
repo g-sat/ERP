@@ -696,9 +696,8 @@ export default function GLJournalPage() {
   }
 
   // Handle Print GLJournal Report
-  const handlePrintGLJournal = (
-    reportType: "direct" | "glJournal" = "glJournal"
-  ) => {
+  // Handle Print GL Journal Report (single standard report)
+  const handlePrintGLJournal = () => {
     if (!glJournal || glJournal.journalId === "0") {
       toast.error("Please select an glJournal to print")
       return
@@ -718,7 +717,7 @@ export default function GLJournalPage() {
       companyId: companyId,
       invoiceId: journalId,
       invoiceNo: journalNo,
-      reportType: reportType === "direct" ? 1 : 2,
+      reportType: 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -726,11 +725,8 @@ export default function GLJournalPage() {
 
     console.log("reportParams", reportParams)
 
-    // Determine report file based on type
-    const reportFile =
-      reportType === "direct"
-        ? "rpt_GLJournalDirect.trdp"
-        : "rpt_GLJournal.trdp"
+    // Single report file (no direct variant)
+    const reportFile = "gl/GLJournal.trdp"
 
     // Store report data in sessionStorage
     const reportData = {
@@ -1307,7 +1303,7 @@ export default function GLJournalPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePrintGLJournal("glJournal")}
+              onClick={handlePrintGLJournal}
               disabled={!glJournal || glJournal.journalId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />

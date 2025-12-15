@@ -527,7 +527,7 @@ export default function BankTransferPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_CbBankTransfer.trdp",
+      reportFile: "cb/CbBankTransfer.trdp",
       parameters: reportParams,
     }
 

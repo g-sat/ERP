@@ -650,7 +650,7 @@ export default function CbBankTransferCtmPage() {
     console.log("reportParams", reportParams)
 
     // Determine report file
-    const reportFile = "rpt_CbBankTransferCtm.trdp"
+    const reportFile = "cb/CbBankTransferCtm.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

@@ -634,7 +634,7 @@ export default function PaymentPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_ApPayment.trdp",
+      reportFile: "ap/ApPayment.trdp",
       parameters: reportParams,
     }
 

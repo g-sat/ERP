@@ -745,10 +745,7 @@ export default function CbGenPaymentPage() {
     console.log("reportParams", reportParams)
 
     // Determine report file based on type
-    const reportFile =
-      reportType === "direct"
-        ? "rpt_CbGenPaymentDirect.trdp"
-        : "rpt_CbGenPayment.trdp"
+    const reportFile = "cb/CbGenPayment.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

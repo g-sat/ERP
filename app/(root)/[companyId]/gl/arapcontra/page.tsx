@@ -561,7 +561,7 @@ export default function ArapcontraPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_GLContra.trdp",
+      reportFile: "gl/GLContra.trdp",
       parameters: reportParams,
     }
 
@@ -1086,10 +1086,10 @@ export default function ArapcontraPage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -1227,7 +1227,7 @@ export default function ArapcontraPage() {
                   }
                 }}
                 placeholder="Search Contra No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!contra?.contraId && contra.contraId !== "0"}
                 disabled={!!contra?.contraId && contra.contraId !== "0"}
               />

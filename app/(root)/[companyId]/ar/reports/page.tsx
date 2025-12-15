@@ -64,12 +64,12 @@ const REPORT_CATEGORIES = [
       {
         id: "ar-aging-details",
         name: "AR Aging Details",
-        reportFile: "ArAgingDetails.trdp",
+        reportFile: "ar/ArAgingDetails.trdp",
       },
       {
         id: "ar-aging-summary",
         name: "AR Aging Summary",
-        reportFile: "ArAgingSummary.trdp",
+        reportFile: "ar/ArAgingSummary.trdp",
       },
     ],
   },
@@ -79,38 +79,42 @@ const REPORT_CATEGORIES = [
       {
         id: "ar-outstanding-details",
         name: "AR Outstanding Details",
-        reportFile: "ArOutstandingDetails.trdp",
+        reportFile: "ar/ArOutstandingDetails.trdp",
       },
       {
         id: "ar-outstanding-summary",
         name: "AR Outstanding Summary",
-        reportFile: "ArOutstandingSummary.trdp",
+        reportFile: "ar/ArOutstandingSummary.trdp",
       },
-      { id: "ar-balances", name: "AR Balances", reportFile: "ArBalances.trdp" },
+      {
+        id: "ar-balances",
+        name: "AR Balances",
+        reportFile: "ar/ArBalances.trdp",
+      },
       {
         id: "ar-subsequent-receipt",
         name: "AR Subsequent Receipt",
-        reportFile: "ArSubsequentReceipt.trdp",
+        reportFile: "ar/ArSubsequentReceipt.trdp",
       },
       {
         id: "statement-of-account",
         name: "Statement Of Account",
-        reportFile: "ArStatementOfAccount.trdp",
+        reportFile: "ar/ArStatementOfAccount.trdp",
       },
       {
         id: "monthly-receivable",
         name: "Monthly Receivable",
-        reportFile: "ArMonthlyReceivable.trdp",
+        reportFile: "ar/ArMonthlyReceivable.trdp",
       },
       {
         id: "customer-ledger",
         name: "Customer Ledger",
-        reportFile: "ArCustomerLedger.trdp",
+        reportFile: "ar/ArCustomerLedger.trdp",
       },
       {
         id: "customer-invoice-receipt",
         name: "Customer Invoice/Receipt",
-        reportFile: "ArCustomerInvoiceReceipt.trdp",
+        reportFile: "ar/ArCustomerInvoiceReceipt.trdp",
       },
     ],
   },
@@ -120,27 +124,27 @@ const REPORT_CATEGORIES = [
       {
         id: "sales-transaction",
         name: "Sales Transaction",
-        reportFile: "ArSalesTransaction.trdp",
+        reportFile: "ar/ArSalesTransaction.trdp",
       },
       {
         id: "invoice-register",
         name: "Invoice Register",
-        reportFile: "ArInvoiceRegister.trdp",
+        reportFile: "ar/ArInvoiceRegister.trdp",
       },
       {
         id: "pending-for-invoicing",
         name: "Pending For Invoicing",
-        reportFile: "ArPendingForInvoicing.trdp",
+        reportFile: "ar/ArPendingForInvoicing.trdp",
       },
       {
         id: "launch-invoice",
         name: "Launch Invoice",
-        reportFile: "ArLaunchInvoice.trdp",
+        reportFile: "ar/ArLaunchInvoice.trdp",
       },
       {
         id: "gross-sales",
         name: "Gross Sales",
-        reportFile: "ArGrossSales.trdp",
+        reportFile: "ar/ArGrossSales.trdp",
       },
     ],
   },
@@ -268,29 +272,36 @@ export default function ReportsPage() {
 
     console.log(reportParams)
 
-    // Store report data in sessionStorage with a fixed key to avoid URL parameters
+    // Store report data in sessionStorage (clean URL approach - same pattern as transaction print)
     const reportData = {
       reportFile: report.reportFile,
       parameters: reportParams,
     }
 
     try {
-      // Use a fixed key - will be overwritten each time a new report is opened
-      sessionStorage.setItem(`report_${companyId}`, JSON.stringify(reportData))
+      // Use a fixed key per company - will be overwritten each time a new report is opened
+      // This matches the key used by `/[companyId]/reports/window`
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
     } catch (error) {
       console.error("Error storing report data:", error)
-      // Fallback to URL parameters if sessionStorage fails
+
+      // Fallback to URL parameters using the legacy viewer if sessionStorage fails
       window.open(
         `/${companyId}/reports/viewer?report=${encodeURIComponent(
           report.reportFile
         )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
         "_blank"
       )
-      return
     }
-
-    // Clean URL without any query parameters
-    window.open(`/${companyId}/reports/viewer`, "_blank")
   }
 
   const handleClear = () => {

@@ -791,9 +791,7 @@ export default function InvoicePage() {
 
     // Determine report file based on type
     const reportFile =
-      reportType === "direct"
-        ? "rpt_ArInvoiceDirect.trdp"
-        : "rpt_ArInvoice.trdp"
+      reportType === "direct" ? "ar/ArInvoiceDirect.trdp" : "ar/ArInvoice.trdp"
 
     // Store report data in sessionStorage
     const reportData = {

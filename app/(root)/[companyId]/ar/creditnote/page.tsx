@@ -809,7 +809,7 @@ export default function CreditNotePage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_ArCreditNote.trdp",
+      reportFile: "ar/ArCreditNote.trdp",
       parameters: reportParams,
     }
 

@@ -49,17 +49,17 @@ const REPORT_CATEGORIES = [
       {
         id: "payment-register",
         name: "Payment Register",
-        reportFile: "PaymentRegister.trdp",
+        reportFile: "cb/PaymentRegister.trdp",
       },
       {
         id: "receipt-register",
         name: "Receipt Register",
-        reportFile: "ReceiptRegister.trdp",
+        reportFile: "cb/ReceiptRegister.trdp",
       },
       {
         id: "bank-register",
         name: "Bank Register",
-        reportFile: "BankRegister.trdp",
+        reportFile: "cb/BankRegister.trdp",
       },
     ],
   },

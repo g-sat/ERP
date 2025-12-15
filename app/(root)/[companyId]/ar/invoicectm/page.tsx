@@ -767,8 +767,8 @@ export default function InvoiceCtmPage() {
     toast.success("Invoice reset successfully")
   }
 
-  // Handle Print Invoice Report
-  const handlePrintInvoice = (reportType: "direct" | "invoice" = "invoice") => {
+  // Handle Print Invoice Report (single report - no direct variant)
+  const handlePrintInvoice = () => {
     if (!invoice || invoice.invoiceId === "0") {
       toast.error("Please select an invoice to print")
       return
@@ -783,12 +783,12 @@ export default function InvoiceCtmPage() {
     const amtDec = decimals[0]?.amtDec || 2
     const locAmtDec = decimals[0]?.locAmtDec || 2
 
-    // Build report parameters
+    // Build report parameters (single report type)
     const reportParams = {
       companyId: companyId,
       invoiceId: invoiceId,
       invoiceNo: invoiceNo,
-      reportType: reportType === "direct" ? 1 : 2,
+      reportType: 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -796,11 +796,8 @@ export default function InvoiceCtmPage() {
 
     console.log("reportParams", reportParams)
 
-    // Determine report file based on type
-    const reportFile =
-      reportType === "direct"
-        ? "rpt_ArInvoiceCtmDirect.trdp"
-        : "rpt_ArInvoiceCtm.trdp"
+    // Single report file (no direct variant)
+    const reportFile = "ar/ArInvoiceCtm.trdp"
 
     // Store report data in sessionStorage
     const reportData = {
@@ -1471,11 +1468,8 @@ export default function InvoiceCtmPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handlePrintInvoice("direct")}>
-                  1. Direct
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handlePrintInvoice("invoice")}>
-                  2. Invoice
+                <DropdownMenuItem onClick={handlePrintInvoice}>
+                  Invoice
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -636,7 +636,7 @@ export default function ReceiptPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_ArReceipt.trdp",
+      reportFile: "ar/ArReceipt.trdp",
       parameters: reportParams,
     }
 

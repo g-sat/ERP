@@ -58,12 +58,12 @@ const REPORT_CATEGORIES = [
       {
         id: "ap-aging-details",
         name: "AP Aging Details",
-        reportFile: "APAgingDetails.trdp",
+        reportFile: "ap/APAgingDetails.trdp",
       },
       {
         id: "ap-aging-summary",
         name: "AP Aging Summary",
-        reportFile: "APAgingSummary.trdp",
+        reportFile: "ap/APAgingSummary.trdp",
       },
     ],
   },
@@ -73,34 +73,38 @@ const REPORT_CATEGORIES = [
       {
         id: "ap-outstanding-details",
         name: "AP Outstanding Details",
-        reportFile: "APOutstandingDetails.trdp",
+        reportFile: "ap/APOutstandingDetails.trdp",
       },
       {
         id: "ap-outstanding-summary",
         name: "AP Outstanding Summary",
-        reportFile: "APOutstandingSummary.trdp",
+        reportFile: "ap/APOutstandingSummary.trdp",
       },
-      { id: "ap-balances", name: "AP Balances", reportFile: "APBalances.trdp" },
+      {
+        id: "ap-balances",
+        name: "AP Balances",
+        reportFile: "ap/APBalances.trdp",
+      },
       {
         id: "ap-subsequent-receipt",
         name: "AP Subsequent Receipt",
-        reportFile: "APSubsequentReceipt.trdp",
+        reportFile: "ap/APSubsequentReceipt.trdp",
       },
       {
         id: "statement-of-account",
         name: "Statement Of Account",
-        reportFile: "StatementOfAccount.trdp",
+        reportFile: "ap/StatementOfAccount.trdp",
       },
       {
         id: "monthly-receivable",
         name: "Monthly Receivable",
-        reportFile: "MonthlyReceivable.trdp",
+        reportFile: "ap/MonthlyReceivable.trdp",
       },
 
       {
         id: "supplier-invoice-receipt",
         name: "Supplier Invoice/Receipt",
-        reportFile: "SupplierInvoiceReceipt.trdp",
+        reportFile: "ap/SupplierInvoiceReceipt.trdp",
       },
     ],
   },
@@ -110,24 +114,28 @@ const REPORT_CATEGORIES = [
       {
         id: "sales-transaction",
         name: "Sales Transaction",
-        reportFile: "SalesTransaction.trdp",
+        reportFile: "ap/SalesTransaction.trdp",
       },
       {
         id: "invoice-register",
         name: "Invoice Register",
-        reportFile: "InvoiceRegister.trdp",
+        reportFile: "ap/InvoiceRegister.trdp",
       },
       {
         id: "pending-for-invoicing",
         name: "Pending For Invoicing",
-        reportFile: "PendingForInvoicing.trdp",
+        reportFile: "ap/PendingForInvoicing.trdp",
       },
       {
         id: "launch-invoice",
         name: "Launch Invoice",
-        reportFile: "LaunchInvoice.trdp",
+        reportFile: "ap/LaunchInvoice.trdp",
       },
-      { id: "gross-sales", name: "Gross Sales", reportFile: "GrossSales.trdp" },
+      {
+        id: "gross-sales",
+        name: "Gross Sales",
+        reportFile: "ap/GrossSales.trdp",
+      },
     ],
   },
 ]

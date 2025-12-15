@@ -633,7 +633,7 @@ export default function RefundPage() {
 
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "rpt_ArRefund.trdp",
+      reportFile: "ar/ArRefund.trdp",
       parameters: reportParams,
     }
 
