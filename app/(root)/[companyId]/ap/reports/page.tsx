@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import type { TelerikReportViewer } from "@progress/telerik-react-report-viewer"
-import { addMonths, format } from "date-fns"
+import { format } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -17,26 +16,29 @@ import {
   CurrencyAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
-import ReportView from "@/components/reports/reportview"
 
 interface IReportFormData extends Record<string, unknown> {
   supplierId: string
+  currencyId: string
   fromDate: string
   toDate: string
   asOfDate: string
-  currencyId: string
   useTrsDate: boolean
+  useAsDate: boolean
   reportType: number
 }
 
 interface IReportParameters {
   companyId: number
+  companyName: string | null
   fromDate: string | null
   toDate: string | null
   asOfDate: string | null
   supplierId: number | null
   currencyId: number
   reportType: number
+  amtDec: number
+  locAmtDec: number
 }
 
 interface IReport {
@@ -44,26 +46,33 @@ interface IReport {
   name: string
   category: string
   reportFile: string
+  reportType?: number
 }
+
+// Reports that use TrsDate (From/To Date)
+const TRS_DATE_REPORTS = [
+  "supplier-ledger",
+  "purchases-transaction",
+  "pending-for-invoicing",
+  "launch-invoice",
+  "gross-purchases",
+]
 
 const REPORT_CATEGORIES = [
   {
     name: "Aging",
     reports: [
       {
-        id: "ap-aging",
-        name: "AP Aging",
-        reportFile: "ArAging.trdp",
-      },
-      {
         id: "ap-aging-details",
         name: "AP Aging Details",
-        reportFile: "ap/APAgingDetails.trdp",
+        reportFile: "ap/ApAgingDetails.trdp",
+        reportType: 2,
       },
       {
         id: "ap-aging-summary",
         name: "AP Aging Summary",
-        reportFile: "ap/APAgingSummary.trdp",
+        reportFile: "ap/ApAgingSummary.trdp",
+        reportType: 3,
       },
     ],
   },
@@ -73,68 +82,61 @@ const REPORT_CATEGORIES = [
       {
         id: "ap-outstanding-details",
         name: "AP Outstanding Details",
-        reportFile: "ap/APOutstandingDetails.trdp",
+        reportFile: "ap/ApOutstandingDetails.trdp",
+        reportType: 1,
       },
       {
         id: "ap-outstanding-summary",
         name: "AP Outstanding Summary",
-        reportFile: "ap/APOutstandingSummary.trdp",
-      },
-      {
-        id: "ap-balances",
-        name: "AP Balances",
-        reportFile: "ap/APBalances.trdp",
+        reportFile: "ap/ApOutstandingSummary.trdp",
+        reportType: 1,
       },
       {
         id: "ap-subsequent-receipt",
-        name: "AP Subsequent Receipt",
-        reportFile: "ap/APSubsequentReceipt.trdp",
+        name: "AP Subsequent Payment",
+        reportFile: "ap/ApSubsequentPayment.trdp",
+        reportType: 0,
       },
       {
         id: "statement-of-account",
         name: "Statement Of Account",
-        reportFile: "ap/StatementOfAccount.trdp",
+        reportFile: "ap/ApStatementOfAccount.trdp",
+        reportType: 2,
       },
       {
-        id: "monthly-receivable",
-        name: "Monthly Receivable",
-        reportFile: "ap/MonthlyReceivable.trdp",
+        id: "monthly-payable",
+        name: "Monthly Payable",
+        reportFile: "ap/ApMonthlyPayable.trdp",
+        reportType: 0,
       },
-
+      {
+        id: "supplier-ledger",
+        name: "Supplier Ledger",
+        reportFile: "ap/ApSupplierLedger.trdp",
+        reportType: 0,
+      },
       {
         id: "supplier-invoice-receipt",
-        name: "Supplier Invoice/Receipt",
-        reportFile: "ap/SupplierInvoiceReceipt.trdp",
+        name: "Supplier Invoice/Payment",
+        reportFile: "ap/ApSupplierInvoicePayment.trdp",
+        reportType: 0,
       },
-    ],
-  },
-  {
-    name: "Other",
-    reports: [
       {
-        id: "sales-transaction",
-        name: "Sales Transaction",
-        reportFile: "ap/SalesTransaction.trdp",
+        id: "purchases-transaction",
+        name: "Purchase Transaction",
+        reportFile: "ap/ApPurchaseTransaction.trdp",
+        reportType: 2,
       },
       {
         id: "invoice-register",
         name: "Invoice Register",
-        reportFile: "ap/InvoiceRegister.trdp",
+        reportFile: "ap/ApInvoiceRegister.trdp",
+        reportType: 1,
       },
       {
-        id: "pending-for-invoicing",
-        name: "Pending For Invoicing",
-        reportFile: "ap/PendingForInvoicing.trdp",
-      },
-      {
-        id: "launch-invoice",
-        name: "Launch Invoice",
-        reportFile: "ap/LaunchInvoice.trdp",
-      },
-      {
-        id: "gross-sales",
-        name: "Gross Sales",
-        reportFile: "ap/GrossSales.trdp",
+        id: "gross-purchases",
+        name: "Gross Purchase",
+        reportFile: "ap/ApGrossPurchase.trdp",
       },
     ],
   },
@@ -143,16 +145,15 @@ const REPORT_CATEGORIES = [
 export default function ReportsPage() {
   const params = useParams()
   const companyId = Number(params.companyId)
-  const { decimals } = useAuthStore()
+  const { decimals, companies, user } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const companyName: string | null =
+    companies.find((company) => company.companyId === companyId.toString())
+      ?.companyName || null
   // Use the same date format logic as CustomDateNew
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const [selectedReports, setSelectedReports] = useState<string[]>([])
-  const [showReportViewer, setShowReportViewer] = useState(false)
-  const [currentReport, setCurrentReport] = useState<{
-    reportFile: string
-    parameters: Record<string, unknown>
-  } | null>(null)
-  const viewerRef = useRef<TelerikReportViewer>(null)
 
   // Get current date formatted
   const getCurrentDate = () => {
@@ -162,33 +163,21 @@ export default function ReportsPage() {
   const form = useForm<IReportFormData>({
     defaultValues: {
       supplierId: "",
+      currencyId: "0",
       fromDate: "",
       toDate: "",
       asOfDate: "",
-      currencyId: "0",
       useTrsDate: true,
+      useAsDate: false,
       reportType: 0,
     },
   })
-
-  // Handle fromDate change and automatically set toDate to 2 months later
-  const handleFromDateChange = (date: Date | null) => {
-    if (date) {
-      const twoMonthsLater = addMonths(date, 2)
-      const formattedToDate = format(twoMonthsLater, dateFormat)
-      form.setValue("toDate", formattedToDate)
-    }
-  }
 
   // Initialize asOfDate to current date on mount
   useEffect(() => {
     const currentDate = format(new Date(), dateFormat)
     form.setValue("asOfDate", currentDate)
   }, [form, dateFormat])
-
-  const handleReportToggle = (reportId: string) => {
-    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
-  }
 
   const getAllReports = (): IReport[] => {
     return REPORT_CATEGORIES.flatMap((category) =>
@@ -199,20 +188,59 @@ export default function ReportsPage() {
     )
   }
 
+  // Update date selection and reportType based on selected report
+  useEffect(() => {
+    if (selectedReports.length > 0) {
+      const selectedReportId = selectedReports[0]
+      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
+      const allReports = getAllReports()
+      const selectedReport = allReports.find((r) => r.id === selectedReportId)
+
+      if (usesTrsDate) {
+        // Set TrsDate to true and disable AsDate
+        form.setValue("useTrsDate", true)
+        form.setValue("useAsDate", false)
+      } else {
+        // Set AsDate to true and disable TrsDate
+        form.setValue("useTrsDate", false)
+        form.setValue("useAsDate", true)
+      }
+
+      // Set reportType from the selected report
+      if (selectedReport?.reportType !== undefined) {
+        form.setValue("reportType", selectedReport.reportType)
+      }
+    }
+  }, [selectedReports, form])
+
+  const handleReportToggle = (reportId: string) => {
+    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
+  }
+
   const getSelectedReportObjects = (): IReport[] => {
     const allReports = getAllReports()
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
-  const buildReportParameters = (data: IReportFormData): IReportParameters => {
+  const buildReportParameters = (
+    data: IReportFormData,
+    report?: IReport
+  ): IReportParameters => {
+    const asOfDate = data.asOfDate || getCurrentDate()
+    // Use reportType from the report object if available, otherwise from form data
+    const reportType = report?.reportType ?? data.reportType ?? 0
+
     return {
       companyId,
-      fromDate: data.fromDate || null,
-      toDate: data.toDate || null,
-      asOfDate: data.asOfDate || getCurrentDate(),
-      supplierId: data.supplierId ? Number(data.supplierId) : null,
+      companyName: companyName || "",
+      supplierId: data.supplierId ? Number(data.supplierId) : 0,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      reportType: 0, // Always 0
+      fromDate: data.fromDate || asOfDate,
+      toDate: data.toDate || asOfDate,
+      asOfDate: asOfDate,
+      reportType: reportType,
+      amtDec: amtDec || 2,
+      locAmtDec: locAmtDec || 2,
     }
   }
 
@@ -222,49 +250,55 @@ export default function ReportsPage() {
       return
     }
 
-    const parameters = buildReportParameters(data)
     const report = selectedReportObjects[0] // Only one report can be selected
+    const parameters = buildReportParameters(data, report)
 
     const reportParams = {
       companyId: parameters.companyId,
+      companyName: parameters.companyName,
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
       asOfDate: parameters.asOfDate || getCurrentDate(),
       supplierId: parameters.supplierId,
       currencyId: parameters.currencyId,
-      reportType: 0,
+      reportType: parameters.reportType,
+      amtDec: parameters.amtDec,
+      locAmtDec: parameters.locAmtDec,
+      userName: user?.userName || "",
     }
 
-    setCurrentReport({
+    console.log(reportParams)
+
+    // Store report data in sessionStorage (clean URL approach - same pattern as transaction print)
+    const reportData = {
       reportFile: report.reportFile,
       parameters: reportParams,
-    })
-    setShowReportViewer(true)
-  }
-
-  const handleRefresh = (): void => {
-    if (viewerRef.current) {
-      viewerRef.current.refreshReport()
     }
-  }
 
-  const handlePrint = (): void => {
-    if (viewerRef.current?.commands?.print) {
-      viewerRef.current.commands.print.exec()
-    }
-  }
+    try {
+      // Use a fixed key per company - will be overwritten each time a new report is opened
+      // This matches the key used by `/[companyId]/reports/window`
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
 
-  const handleBackToForm = (): void => {
-    // Cleanup viewer before going back
-    if (viewerRef.current && typeof viewerRef.current.dispose === "function") {
-      try {
-        viewerRef.current.dispose()
-      } catch (error) {
-        console.error("Error disposing viewer:", error)
-      }
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error storing report data:", error)
+
+      // Fallback to URL parameters using the legacy viewer if sessionStorage fails
+      window.open(
+        `/${companyId}/reports/viewer?report=${encodeURIComponent(
+          report.reportFile
+        )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
+        "_blank"
+      )
     }
-    setShowReportViewer(false)
-    setCurrentReport(null)
   }
 
   const handleClear = () => {
@@ -276,6 +310,7 @@ export default function ReportsPage() {
       asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
+      useAsDate: false,
       reportType: 0,
     })
     setSelectedReports([])
@@ -287,194 +322,149 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-0.5">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            AP Reports
+            AR Reports
           </h1>
           <p className="text-muted-foreground text-xs">
-            Select reports and configure parameters to generate AP reports
+            Select reports and configure parameters to generate AR reports
           </p>
         </div>
       </div>
 
       <Separator />
 
-      {showReportViewer && currentReport ? (
-        /* Report Viewer */
-        <div className="relative flex h-[calc(100vh-200px)] w-full flex-col">
-          <div className="bg-background z-10 flex items-center justify-between gap-2 border-b p-2">
-            <div className="flex items-center gap-2">
-              <Button onClick={handleRefresh} size="sm">
-                Refresh
-              </Button>
-              <Button onClick={handlePrint} size="sm">
-                Print
-              </Button>
-            </div>
-            <Button onClick={handleBackToForm} variant="outline" size="sm">
-              Back to Criteria
-            </Button>
-          </div>
-          <div className="relative w-full flex-1 overflow-hidden">
-            <ReportView
-              viewerRef={viewerRef}
-              reportSource={{
-                report: currentReport.reportFile,
-                parameters: currentReport.parameters,
-              }}
-            />
-          </div>
-        </div>
-      ) : (
-        /* Report Selection and Parameters Form */
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Report Selection Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Reports</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-6 pr-4">
-                  {REPORT_CATEGORIES.map((category) => (
-                    <div key={category.name} className="space-y-3">
-                      <h3 className="text-foreground text-sm font-medium">
-                        {category.name}
-                      </h3>
-                      <div className="space-y-2">
-                        {category.reports.map((report) => (
-                          <div
-                            key={report.id}
-                            className="hover:bg-muted flex cursor-pointer items-center space-x-2 rounded-md p-2 transition-colors"
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Report Selection Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Reports</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[600px]">
+              <div className="space-y-6 pr-4">
+                {REPORT_CATEGORIES.map((category) => (
+                  <div key={category.name} className="space-y-3">
+                    <h3 className="text-foreground text-sm font-medium">
+                      {category.name}
+                    </h3>
+                    <div className="space-y-2">
+                      {category.reports.map((report) => (
+                        <div
+                          key={report.id}
+                          className="hover:bg-muted flex cursor-pointer items-center space-x-2 rounded-md p-2 transition-colors"
+                        >
+                          <Checkbox
+                            checked={selectedReports.includes(report.id)}
+                            onCheckedChange={() => {
+                              handleReportToggle(report.id)
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                            }}
+                          />
+                          <label
+                            className="flex-1 cursor-pointer text-sm font-normal"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleReportToggle(report.id)
+                            }}
                           >
-                            <Checkbox
-                              checked={selectedReports.includes(report.id)}
-                              onCheckedChange={() => {
-                                handleReportToggle(report.id)
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            />
-                            <label
-                              className="flex-1 cursor-pointer text-sm font-normal"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleReportToggle(report.id)
-                              }}
-                            >
-                              {report.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      <Separator />
+                            {report.name}
+                          </label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    <Separator />
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
 
-          {/* Report Parameters Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Report Parameters
-                {selectedReports.length > 0 && (
-                  <span className="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-medium">
-                    {getSelectedReportObjects()[0]?.name}
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FormProvider {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleViewReport)}
-                  className="space-y-4"
-                >
-                  {/* Supplier */}
-                  <CompanySupplierAutocomplete
+        {/* Report Parameters Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Report Parameters
+              {selectedReports.length > 0 && (
+                <span className="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-medium">
+                  {getSelectedReportObjects()[0]?.name}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormProvider {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleViewReport)}
+                className="space-y-4"
+              >
+                {/* Supplier */}
+                <CompanySupplierAutocomplete
+                  form={form}
+                  name="supplierId"
+                  label="Supplier"
+                  companyId={companyId}
+                  isRequired={false}
+                />
+
+                {/* Currency */}
+                <CurrencyAutocomplete
+                  form={form}
+                  name="currencyId"
+                  label="Currency"
+                  isRequired={true}
+                />
+
+                {/* Date Range - Show From/To Date for TrsDate reports */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <CustomDateNew
                     form={form}
-                    name="supplierId"
-                    label="Supplier"
-                    companyId={companyId}
+                    name="fromDate"
+                    label="From Date:"
                     isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
+                    //onChangeEvent={handleFromDateChange}
                   />
-
-                  {/* Transaction Date Checkbox */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="useTrsDate"
-                      checked={form.watch("useTrsDate")}
-                      onCheckedChange={(checked) =>
-                        form.setValue("useTrsDate", checked as boolean)
-                      }
-                    />
-                    <label
-                      htmlFor="useTrsDate"
-                      className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Trs Date
-                    </label>
-                  </div>
-
-                  {/* Date Range - Only show if checkbox is checked */}
-                  {form.watch("useTrsDate") && (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <CustomDateNew
-                        form={form}
-                        name="fromDate"
-                        label="From Date"
-                        isRequired={false}
-                        onChangeEvent={handleFromDateChange}
-                      />
-                      <CustomDateNew
-                        form={form}
-                        name="toDate"
-                        label="To Date"
-                        isRequired={false}
-                      />
-                      <CustomDateNew
-                        form={form}
-                        name="asOfDate"
-                        label="As Of Date"
-                        isRequired={false}
-                      />
-                    </div>
-                  )}
-
-                  {/* Currency */}
-                  <CurrencyAutocomplete
+                  <CustomDateNew
                     form={form}
-                    name="currencyId"
-                    label="Currency"
-                    isRequired={true}
+                    name="toDate"
+                    label="To Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
                   />
+                </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      type="submit"
-                      disabled={selectedReports.length === 0}
-                      className="flex-1"
-                    >
-                      View Report
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClear}
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </form>
-              </FormProvider>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                {/* As Date - Show only for non-TrsDate reports */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <CustomDateNew
+                    form={form}
+                    name="asOfDate"
+                    label="As Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useTrsDate")}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="submit"
+                    disabled={selectedReports.length === 0}
+                    className="flex-1"
+                  >
+                    View Report
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleClear}>
+                    Clear
+                  </Button>
+                </div>
+              </form>
+            </FormProvider>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

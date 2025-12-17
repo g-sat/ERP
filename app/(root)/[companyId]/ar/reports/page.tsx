@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { addMonths, format } from "date-fns"
+import { format } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,7 @@ interface IReport {
   name: string
   category: string
   reportFile: string
+  reportType?: number
 }
 
 // Reports that use TrsDate (From/To Date)
@@ -65,11 +66,13 @@ const REPORT_CATEGORIES = [
         id: "ar-aging-details",
         name: "AR Aging Details",
         reportFile: "ar/ArAgingDetails.trdp",
+        reportType: 2,
       },
       {
         id: "ar-aging-summary",
         name: "AR Aging Summary",
         reportFile: "ar/ArAgingSummary.trdp",
+        reportType: 3,
       },
     ],
   },
@@ -80,66 +83,55 @@ const REPORT_CATEGORIES = [
         id: "ar-outstanding-details",
         name: "AR Outstanding Details",
         reportFile: "ar/ArOutstandingDetails.trdp",
+        reportType: 1,
       },
       {
         id: "ar-outstanding-summary",
         name: "AR Outstanding Summary",
         reportFile: "ar/ArOutstandingSummary.trdp",
-      },
-      {
-        id: "ar-balances",
-        name: "AR Balances",
-        reportFile: "ar/ArBalances.trdp",
+        reportType: 1,
       },
       {
         id: "ar-subsequent-receipt",
         name: "AR Subsequent Receipt",
         reportFile: "ar/ArSubsequentReceipt.trdp",
+        reportType: 0,
       },
       {
         id: "statement-of-account",
         name: "Statement Of Account",
         reportFile: "ar/ArStatementOfAccount.trdp",
+        reportType: 2,
       },
       {
         id: "monthly-receivable",
         name: "Monthly Receivable",
         reportFile: "ar/ArMonthlyReceivable.trdp",
+        reportType: 0,
       },
       {
         id: "customer-ledger",
         name: "Customer Ledger",
         reportFile: "ar/ArCustomerLedger.trdp",
+        reportType: 0,
       },
       {
         id: "customer-invoice-receipt",
         name: "Customer Invoice/Receipt",
         reportFile: "ar/ArCustomerInvoiceReceipt.trdp",
+        reportType: 0,
       },
-    ],
-  },
-  {
-    name: "Other",
-    reports: [
       {
         id: "sales-transaction",
         name: "Sales Transaction",
         reportFile: "ar/ArSalesTransaction.trdp",
+        reportType: 2,
       },
       {
         id: "invoice-register",
         name: "Invoice Register",
         reportFile: "ar/ArInvoiceRegister.trdp",
-      },
-      {
-        id: "pending-for-invoicing",
-        name: "Pending For Invoicing",
-        reportFile: "ar/ArPendingForInvoicing.trdp",
-      },
-      {
-        id: "launch-invoice",
-        name: "Launch Invoice",
-        reportFile: "ar/ArLaunchInvoice.trdp",
+        reportType: 1,
       },
       {
         id: "gross-sales",
@@ -181,42 +173,11 @@ export default function ReportsPage() {
     },
   })
 
-  // Handle fromDate change and automatically set toDate to 2 months later
-  const handleFromDateChange = (date: Date | null) => {
-    if (date) {
-      const twoMonthsLater = addMonths(date, 2)
-      const formattedToDate = format(twoMonthsLater, dateFormat)
-      form.setValue("toDate", formattedToDate)
-    }
-  }
-
   // Initialize asOfDate to current date on mount
   useEffect(() => {
     const currentDate = format(new Date(), dateFormat)
     form.setValue("asOfDate", currentDate)
   }, [form, dateFormat])
-
-  // Update date selection based on selected report
-  useEffect(() => {
-    if (selectedReports.length > 0) {
-      const selectedReportId = selectedReports[0]
-      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
-
-      if (usesTrsDate) {
-        // Set TrsDate to true and disable AsDate
-        form.setValue("useTrsDate", true)
-        form.setValue("useAsDate", false)
-      } else {
-        // Set AsDate to true and disable TrsDate
-        form.setValue("useTrsDate", false)
-        form.setValue("useAsDate", true)
-      }
-    }
-  }, [selectedReports, form])
-
-  const handleReportToggle = (reportId: string) => {
-    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
-  }
 
   const getAllReports = (): IReport[] => {
     return REPORT_CATEGORIES.flatMap((category) =>
@@ -227,23 +188,59 @@ export default function ReportsPage() {
     )
   }
 
+  // Update date selection and reportType based on selected report
+  useEffect(() => {
+    if (selectedReports.length > 0) {
+      const selectedReportId = selectedReports[0]
+      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
+      const allReports = getAllReports()
+      const selectedReport = allReports.find((r) => r.id === selectedReportId)
+
+      if (usesTrsDate) {
+        // Set TrsDate to true and disable AsDate
+        form.setValue("useTrsDate", true)
+        form.setValue("useAsDate", false)
+      } else {
+        // Set AsDate to true and disable TrsDate
+        form.setValue("useTrsDate", false)
+        form.setValue("useAsDate", true)
+      }
+
+      // Set reportType from the selected report
+      if (selectedReport?.reportType !== undefined) {
+        form.setValue("reportType", selectedReport.reportType)
+      }
+    }
+  }, [selectedReports, form])
+
+  const handleReportToggle = (reportId: string) => {
+    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
+  }
+
   const getSelectedReportObjects = (): IReport[] => {
     const allReports = getAllReports()
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
-  const buildReportParameters = (data: IReportFormData): IReportParameters => {
+  const buildReportParameters = (
+    data: IReportFormData,
+    report?: IReport
+  ): IReportParameters => {
+    const asOfDate = data.asOfDate || getCurrentDate()
+    // Use reportType from the report object if available, otherwise from form data
+    const reportType = report?.reportType ?? data.reportType ?? 0
+
     return {
       companyId,
       companyName: companyName || "",
-      customerId: data.customerId ? Number(data.customerId) : null,
+      customerId: data.customerId ? Number(data.customerId) : 0,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      fromDate: data.fromDate || null,
-      toDate: data.toDate || null,
-      asOfDate: data.asOfDate || getCurrentDate(),
-      reportType: data.reportType || 0, // Always 0
-      amtDec: amtDec,
-      locAmtDec: locAmtDec,
+      fromDate: data.fromDate || asOfDate,
+      toDate: data.toDate || asOfDate,
+      asOfDate: asOfDate,
+      reportType: reportType,
+      amtDec: amtDec || 2,
+      locAmtDec: locAmtDec || 2,
     }
   }
 
@@ -253,8 +250,8 @@ export default function ReportsPage() {
       return
     }
 
-    const parameters = buildReportParameters(data)
     const report = selectedReportObjects[0] // Only one report can be selected
+    const parameters = buildReportParameters(data, report)
 
     const reportParams = {
       companyId: parameters.companyId,
@@ -428,7 +425,7 @@ export default function ReportsPage() {
                     label="From Date:"
                     isRequired={false}
                     isDisabled={form.watch("useAsDate")}
-                    onChangeEvent={handleFromDateChange}
+                    //onChangeEvent={handleFromDateChange}
                   />
                   <CustomDateNew
                     form={form}

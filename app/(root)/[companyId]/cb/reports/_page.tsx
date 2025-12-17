@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
+import { addMonths, format } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -19,28 +19,20 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 
 interface IReportFormData extends Record<string, unknown> {
   bankId: string
-  bankName: string
-  currencyId: string
   fromDate: string
   toDate: string
-  asOfDate: string
+  currencyId: string
   useTrsDate: boolean
-  useAsDate: boolean
   reportType: number
 }
 
 interface IReportParameters {
   companyId: number
-  companyName: string | null
   fromDate: string | null
   toDate: string | null
-  asOfDate: string | null
   bankId: number | null
-  bankName: string
   currencyId: number
   reportType: number
-  amtDec: number
-  locAmtDec: number
 }
 
 interface IReport {
@@ -48,11 +40,7 @@ interface IReport {
   name: string
   category: string
   reportFile: string
-  reportType?: number
 }
-
-// Reports that use TrsDate (From/To Date)
-const TRS_DATE_REPORTS = ["payment-register", "receipt-register"]
 
 const REPORT_CATEGORIES = [
   {
@@ -80,40 +68,34 @@ const REPORT_CATEGORIES = [
 export default function ReportsPage() {
   const params = useParams()
   const companyId = Number(params.companyId)
-  const { decimals, companies, user } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const companyName: string | null =
-    companies.find((company) => company.companyId === companyId.toString())
-      ?.companyName || null
+  const { decimals } = useAuthStore()
   // Use the same date format logic as CustomDateNew
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const [selectedReports, setSelectedReports] = useState<string[]>([])
 
-  // Get current date formatted
-  const getCurrentDate = () => {
-    return format(new Date(), dateFormat)
-  }
-
   const form = useForm<IReportFormData>({
     defaultValues: {
       bankId: "",
-      bankName: "",
-      currencyId: "0",
       fromDate: "",
       toDate: "",
-      asOfDate: "",
+      currencyId: "0",
       useTrsDate: true,
-      useAsDate: false,
       reportType: 0,
     },
   })
 
-  // Initialize asOfDate to current date on mount
-  useEffect(() => {
-    const currentDate = format(new Date(), dateFormat)
-    form.setValue("asOfDate", currentDate)
-  }, [form, dateFormat])
+  // Handle fromDate change and automatically set toDate to 2 months later
+  const handleFromDateChange = (date: Date | null) => {
+    if (date) {
+      const twoMonthsLater = addMonths(date, 2)
+      const formattedToDate = format(twoMonthsLater, dateFormat)
+      form.setValue("toDate", formattedToDate)
+    }
+  }
+
+  const handleReportToggle = (reportId: string) => {
+    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
+  }
 
   const getAllReports = (): IReport[] => {
     return REPORT_CATEGORIES.flatMap((category) =>
@@ -124,60 +106,19 @@ export default function ReportsPage() {
     )
   }
 
-  // Update date selection and reportType based on selected report
-  useEffect(() => {
-    if (selectedReports.length > 0) {
-      const selectedReportId = selectedReports[0]
-      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
-      const allReports = getAllReports()
-      const selectedReport = allReports.find((r) => r.id === selectedReportId)
-
-      if (usesTrsDate) {
-        // Set TrsDate to true and disable AsDate
-        form.setValue("useTrsDate", true)
-        form.setValue("useAsDate", false)
-      } else {
-        // Set AsDate to true and disable TrsDate
-        form.setValue("useTrsDate", false)
-        form.setValue("useAsDate", true)
-      }
-
-      // Set reportType from the selected report
-      if (selectedReport?.reportType !== undefined) {
-        form.setValue("reportType", selectedReport.reportType)
-      }
-    }
-  }, [selectedReports, form])
-
-  const handleReportToggle = (reportId: string) => {
-    setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
-  }
-
   const getSelectedReportObjects = (): IReport[] => {
     const allReports = getAllReports()
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
-  const buildReportParameters = (
-    data: IReportFormData,
-    report?: IReport
-  ): IReportParameters => {
-    const asOfDate = data.asOfDate || getCurrentDate()
-    // Use reportType from the report object if available, otherwise from form data
-    const reportType = report?.reportType ?? data.reportType ?? 0
-
+  const buildReportParameters = (data: IReportFormData): IReportParameters => {
     return {
       companyId,
-      companyName: companyName || "",
-      bankId: data.bankId ? Number(data.bankId) : 0,
-      bankName: data.bankName || "",
+      fromDate: data.fromDate || null,
+      toDate: data.toDate || null,
+      bankId: data.bankId ? Number(data.bankId) : null,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      fromDate: data.fromDate || asOfDate,
-      toDate: data.toDate || asOfDate,
-      asOfDate: asOfDate,
-      reportType: reportType,
-      amtDec: amtDec || 2,
-      locAmtDec: locAmtDec || 2,
+      reportType: 0, // Always 0
     }
   }
 
@@ -187,69 +128,35 @@ export default function ReportsPage() {
       return
     }
 
-    const report = selectedReportObjects[0] // Only one report can be selected
-    const parameters = buildReportParameters(data, report)
+    const parameters = buildReportParameters(data)
 
-    const reportParams = {
-      companyId: parameters.companyId,
-      companyName: parameters.companyName,
-      fromDate: parameters.fromDate,
-      toDate: parameters.toDate,
-      asOfDate: parameters.asOfDate || getCurrentDate(),
-      bankId: parameters.bankId,
-      bankName: parameters.bankName,
-      currencyId: parameters.currencyId,
-      reportType: parameters.reportType,
-      amtDec: parameters.amtDec,
-      locAmtDec: parameters.locAmtDec,
-      userName: user?.userName || "",
-    }
+    selectedReportObjects.forEach((report) => {
+      const reportParams = {
+        companyId: parameters.companyId,
+        fromDate: parameters.fromDate,
+        toDate: parameters.toDate,
+        bankId: parameters.bankId,
+        currencyId: parameters.currencyId,
+        reportType: 0,
+      }
 
-    console.log(reportParams)
-
-    // Store report data in sessionStorage (clean URL approach - same pattern as transaction print)
-    const reportData = {
-      reportFile: report.reportFile,
-      parameters: reportParams,
-    }
-
-    try {
-      // Use a fixed key per company - will be overwritten each time a new report is opened
-      // This matches the key used by `/[companyId]/reports/window`
-      sessionStorage.setItem(
-        `report_window_${companyId}`,
-        JSON.stringify(reportData)
-      )
-
-      // Open in a new window (not tab) with specific features
-      const windowFeatures =
-        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
-      const viewerUrl = `/${companyId}/reports/window`
-      window.open(viewerUrl, "_blank", windowFeatures)
-    } catch (error) {
-      console.error("Error storing report data:", error)
-
-      // Fallback to URL parameters using the legacy viewer if sessionStorage fails
       window.open(
         `/${companyId}/reports/viewer?report=${encodeURIComponent(
           report.reportFile
         )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
-        "_blank"
+        "_blank",
+        "width=1200,height=800"
       )
-    }
+    })
   }
 
   const handleClear = () => {
-    const currentDate = format(new Date(), dateFormat)
     form.reset({
       bankId: "",
-      bankName: "",
       fromDate: "",
       toDate: "",
-      asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
-      useAsDate: false,
       reportType: 0,
     })
     setSelectedReports([])
@@ -261,10 +168,10 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-0.5">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            AR Reports
+            CB Reports
           </h1>
           <p className="text-muted-foreground text-xs">
-            Select reports and configure parameters to generate AR reports
+            Select reports and configure parameters to generate CB reports
           </p>
         </div>
       </div>
@@ -275,16 +182,13 @@ export default function ReportsPage() {
         {/* Report Selection Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Select Reports</CardTitle>
+            <CardTitle className="text-primary">Register</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[600px]">
               <div className="space-y-6 pr-4">
                 {REPORT_CATEGORIES.map((category) => (
                   <div key={category.name} className="space-y-3">
-                    <h3 className="text-foreground text-sm font-medium">
-                      {category.name}
-                    </h3>
                     <div className="space-y-2">
                       {category.reports.map((report) => (
                         <div
@@ -301,7 +205,7 @@ export default function ReportsPage() {
                             }}
                           />
                           <label
-                            className="flex-1 cursor-pointer text-sm font-normal"
+                            className="text-primary flex-1 cursor-pointer text-sm font-normal"
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -313,7 +217,6 @@ export default function ReportsPage() {
                         </div>
                       ))}
                     </div>
-                    <Separator />
                   </div>
                 ))}
               </div>
@@ -324,11 +227,11 @@ export default function ReportsPage() {
         {/* Report Parameters Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Report Parameters
+            <CardTitle>
+              Report Criteria
               {selectedReports.length > 0 && (
-                <span className="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-medium">
-                  {getSelectedReportObjects()[0]?.name}
+                <span className="text-muted-foreground ml-2">
+                  ({getSelectedReportObjects()[0]?.name})
                 </span>
               )}
             </CardTitle>
@@ -347,6 +250,42 @@ export default function ReportsPage() {
                   isRequired={false}
                 />
 
+                {/* Transaction Date Checkbox */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="useTrsDate"
+                    checked={form.watch("useTrsDate")}
+                    onCheckedChange={(checked) =>
+                      form.setValue("useTrsDate", checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="useTrsDate"
+                    className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Trs Date
+                  </label>
+                </div>
+
+                {/* Date Range - Only show if checkbox is checked */}
+                {form.watch("useTrsDate") && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <CustomDateNew
+                      form={form}
+                      name="fromDate"
+                      label="From Date"
+                      isRequired={false}
+                      onChangeEvent={handleFromDateChange}
+                    />
+                    <CustomDateNew
+                      form={form}
+                      name="toDate"
+                      label="To Date"
+                      isRequired={false}
+                    />
+                  </div>
+                )}
+
                 {/* Currency */}
                 <CurrencyAutocomplete
                   form={form}
@@ -354,36 +293,6 @@ export default function ReportsPage() {
                   label="Currency"
                   isRequired={true}
                 />
-
-                {/* Date Range - Show From/To Date for TrsDate reports */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <CustomDateNew
-                    form={form}
-                    name="fromDate"
-                    label="From Date:"
-                    isRequired={false}
-                    isDisabled={form.watch("useAsDate")}
-                    //onChangeEvent={handleFromDateChange}
-                  />
-                  <CustomDateNew
-                    form={form}
-                    name="toDate"
-                    label="To Date:"
-                    isRequired={false}
-                    isDisabled={form.watch("useAsDate")}
-                  />
-                </div>
-
-                {/* As Date - Show only for non-TrsDate reports */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <CustomDateNew
-                    form={form}
-                    name="asOfDate"
-                    label="As Date:"
-                    isRequired={false}
-                    isDisabled={form.watch("useTrsDate")}
-                  />
-                </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4">
