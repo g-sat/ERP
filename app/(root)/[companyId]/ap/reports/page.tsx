@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
+import { format, isValid, parse, startOfMonth, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -160,24 +161,43 @@ export default function ReportsPage() {
     return format(new Date(), dateFormat)
   }
 
+  // Get date 2 months ago formatted, starting from the 1st day of that month
+  const getTwoMonthsAgoDate = () => {
+    const twoMonthsAgo = subMonths(new Date(), 2)
+    const firstDayOfMonth = startOfMonth(twoMonthsAgo)
+    return format(firstDayOfMonth, dateFormat)
+  }
+
   const form = useForm<IReportFormData>({
     defaultValues: {
       supplierId: "",
       currencyId: "0",
-      fromDate: "",
-      toDate: "",
-      asOfDate: "",
+      fromDate: getTwoMonthsAgoDate(),
+      toDate: getCurrentDate(),
+      asOfDate: getCurrentDate(),
       useTrsDate: true,
       useAsDate: false,
       reportType: 0,
     },
   })
 
-  // Initialize asOfDate to current date on mount
-  useEffect(() => {
-    const currentDate = format(new Date(), dateFormat)
-    form.setValue("asOfDate", currentDate)
-  }, [form, dateFormat])
+  // Handle asOfDate change and automatically set toDate to the same value
+  const handleAsDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("asOfDate", formattedDate)
+      form.setValue("toDate", formattedDate)
+    }
+  }
+
+  // Handle toDate change and automatically set asOfDate to the same value
+  const handleToDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("toDate", formattedDate)
+      form.setValue("asOfDate", formattedDate)
+    }
+  }
 
   const getAllReports = (): IReport[] => {
     return REPORT_CATEGORIES.flatMap((category) =>
@@ -222,22 +242,56 @@ export default function ReportsPage() {
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
+  /**
+   * Converts a date string from user's locale format to dd/MMM/yyyy format
+   * for Telerik Reporting server.
+   */
+  const convertDateToReportFormat = (
+    dateStr: string | null | undefined
+  ): string => {
+    if (!dateStr || dateStr.trim() === "") {
+      return format(new Date(), "dd/MMM/yyyy")
+    }
+
+    const parsedDate = parseDate(dateStr)
+    if (parsedDate && isValid(parsedDate)) {
+      return format(parsedDate, "dd/MMM/yyyy")
+    }
+
+    try {
+      const parsed = parse(dateStr, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return format(parsed, "dd/MMM/yyyy")
+      }
+    } catch (error) {
+      console.warn("Date parsing failed:", dateStr, error)
+    }
+
+    return format(new Date(), "dd/MMM/yyyy")
+  }
+
   const buildReportParameters = (
     data: IReportFormData,
     report?: IReport
   ): IReportParameters => {
     const asOfDate = data.asOfDate || getCurrentDate()
-    // Use reportType from the report object if available, otherwise from form data
     const reportType = report?.reportType ?? data.reportType ?? 0
+
+    // Convert all dates to dd/MMM/yyyy format for report server
+    const formattedFromDate = convertDateToReportFormat(
+      data.fromDate || asOfDate
+    )
+    const formattedToDate = convertDateToReportFormat(data.toDate || asOfDate)
+    const formattedAsOfDate = convertDateToReportFormat(asOfDate)
 
     return {
       companyId,
       companyName: companyName || "",
       supplierId: data.supplierId ? Number(data.supplierId) : 0,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      fromDate: data.fromDate || asOfDate,
-      toDate: data.toDate || asOfDate,
-      asOfDate: asOfDate,
+      fromDate: formattedFromDate,
+      toDate: formattedToDate,
+      asOfDate: formattedAsOfDate,
       reportType: reportType,
       amtDec: amtDec || 2,
       locAmtDec: locAmtDec || 2,
@@ -258,7 +312,7 @@ export default function ReportsPage() {
       companyName: parameters.companyName,
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
-      asOfDate: parameters.asOfDate || getCurrentDate(),
+      asOfDate: parameters.asOfDate,
       supplierId: parameters.supplierId,
       currencyId: parameters.currencyId,
       reportType: parameters.reportType,
@@ -266,8 +320,6 @@ export default function ReportsPage() {
       locAmtDec: parameters.locAmtDec,
       userName: user?.userName || "",
     }
-
-    console.log(reportParams)
 
     // Store report data in sessionStorage (clean URL approach - same pattern as transaction print)
     const reportData = {
@@ -302,11 +354,12 @@ export default function ReportsPage() {
   }
 
   const handleClear = () => {
-    const currentDate = format(new Date(), dateFormat)
+    const currentDate = getCurrentDate()
+    const twoMonthsAgo = getTwoMonthsAgoDate()
     form.reset({
       supplierId: "",
-      fromDate: "",
-      toDate: "",
+      fromDate: twoMonthsAgo,
+      toDate: currentDate,
       asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
@@ -322,10 +375,10 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-0.5">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            AR Reports
+            AP Reports
           </h1>
           <p className="text-muted-foreground text-xs">
-            Select reports and configure parameters to generate AR reports
+            Select reports and configure parameters to generate AP reports
           </p>
         </div>
       </div>
@@ -425,7 +478,6 @@ export default function ReportsPage() {
                     label="From Date:"
                     isRequired={false}
                     isDisabled={form.watch("useAsDate")}
-                    //onChangeEvent={handleFromDateChange}
                   />
                   <CustomDateNew
                     form={form}
@@ -433,6 +485,7 @@ export default function ReportsPage() {
                     label="To Date:"
                     isRequired={false}
                     isDisabled={form.watch("useAsDate")}
+                    onChangeEvent={handleToDateChange}
                   />
                 </div>
 
@@ -444,6 +497,7 @@ export default function ReportsPage() {
                     label="As Date:"
                     isRequired={false}
                     isDisabled={form.watch("useTrsDate")}
+                    onChangeEvent={handleAsDateChange}
                   />
                 </div>
 

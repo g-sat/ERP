@@ -5,9 +5,17 @@ import { useParams } from "next/navigation"
 import { IChartOfAccountLookup } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
 import { IconCopy, IconEye, IconX } from "@tabler/icons-react"
-import { addMonths, format } from "date-fns"
+import {
+  addMonths,
+  format,
+  isValid,
+  parse,
+  startOfMonth,
+  subMonths,
+} from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { parseDate } from "@/lib/date-utils"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,7 +77,16 @@ interface IReport {
   name: string
   category: string
   reportFile: string
+  reportType?: string
 }
+
+// Reports that use TrsDate (From/To Date)
+// Note: GL reports typically use TrsDate for date range reports
+// Reports without TrsDate use AsDate (single date)
+const TRS_DATE_REPORTS: string[] = [
+  // Add report IDs here if specific reports require TrsDate
+  // For now, all GL reports can use either TrsDate or AsDate based on user selection
+]
 
 const REPORT_CATEGORIES = [
   {
@@ -162,10 +179,11 @@ export default function ReportsPage() {
     return format(new Date(), dateFormat)
   }
 
-  // Get date 2 months ago formatted
+  // Get date 2 months ago formatted, starting from the 1st day of that month
   const getTwoMonthsAgoDate = () => {
-    const twoMonthsAgo = addMonths(new Date(), -2)
-    return format(twoMonthsAgo, dateFormat)
+    const twoMonthsAgo = subMonths(new Date(), 2)
+    const firstDayOfMonth = startOfMonth(twoMonthsAgo)
+    return format(firstDayOfMonth, dateFormat)
   }
 
   const form = useForm<IReportFormData>({
@@ -177,7 +195,7 @@ export default function ReportsPage() {
       departmentId: "",
       fromDate: getTwoMonthsAgoDate(),
       toDate: getCurrentDate(),
-      asOfDate: "",
+      asOfDate: getCurrentDate(),
       currencyId: "0",
       useTrsDate: true,
       useAsDate: false,
@@ -257,11 +275,23 @@ export default function ReportsPage() {
     }
   }
 
-  // Initialize asOfDate to current date on mount
-  useEffect(() => {
-    const currentDate = format(new Date(), dateFormat)
-    form.setValue("asOfDate", currentDate)
-  }, [form, dateFormat])
+  // Handle asOfDate change and automatically set toDate to the same value
+  const handleAsDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("asOfDate", formattedDate)
+      form.setValue("toDate", formattedDate)
+    }
+  }
+
+  // Handle toDate change and automatically set asOfDate to the same value
+  const handleToDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("toDate", formattedDate)
+      form.setValue("asOfDate", formattedDate)
+    }
+  }
 
   const handleReportToggle = (reportId: string) => {
     setSelectedReports((prev) => (prev.includes(reportId) ? [] : [reportId]))
@@ -281,7 +311,67 @@ export default function ReportsPage() {
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
+  // Update date selection and reportType based on selected report
+  useEffect(() => {
+    if (selectedReports.length > 0) {
+      const selectedReportId = selectedReports[0]
+      const usesTrsDate = TRS_DATE_REPORTS.includes(selectedReportId)
+      const allReports = getAllReports()
+      const selectedReport = allReports.find((r) => r.id === selectedReportId)
+
+      if (usesTrsDate) {
+        // Set TrsDate to true and disable AsDate
+        form.setValue("useTrsDate", true)
+        form.setValue("useAsDate", false)
+      } else {
+        // Set AsDate to true and disable TrsDate
+        form.setValue("useTrsDate", false)
+        form.setValue("useAsDate", true)
+      }
+
+      // Set reportType from the selected report if available
+      if (selectedReport?.reportType !== undefined) {
+        form.setValue("reportType", selectedReport.reportType)
+      }
+    }
+  }, [selectedReports, form])
+
+  /**
+   * Converts a date string from user's locale format to dd/MMM/yyyy format
+   * for Telerik Reporting server.
+   */
+  const convertDateToReportFormat = (
+    dateStr: string | null | undefined
+  ): string | null => {
+    if (!dateStr || dateStr.trim() === "") {
+      return null
+    }
+
+    const parsedDate = parseDate(dateStr)
+    if (parsedDate && isValid(parsedDate)) {
+      return format(parsedDate, "dd/MMM/yyyy")
+    }
+
+    try {
+      const parsed = parse(dateStr, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return format(parsed, "dd/MMM/yyyy")
+      }
+    } catch (error) {
+      console.warn("Date parsing failed:", dateStr, error)
+    }
+
+    return null
+  }
+
   const buildReportParameters = (data: IReportFormData): IReportParameters => {
+    // Convert all dates to dd/MMM/yyyy format for report server
+    const formattedFromDate = convertDateToReportFormat(data.fromDate)
+    const formattedToDate = convertDateToReportFormat(data.toDate)
+    const formattedAsOfDate = convertDateToReportFormat(
+      data.asOfDate || getCurrentDate()
+    )
+
     return {
       companyId,
       fromGlId: data.fromGlId ? Number(data.fromGlId) : null,
@@ -289,9 +379,9 @@ export default function ReportsPage() {
       glIds: data.glIds ? data.glIds : [],
       departmentId: data.departmentId ? Number(data.departmentId) : null,
       paymentTypeId: data.paymentTypeId ? Number(data.paymentTypeId) : null,
-      fromDate: data.fromDate || null,
-      toDate: data.toDate || null,
-      asOfDate: data.asOfDate || getCurrentDate(),
+      fromDate: formattedFromDate,
+      toDate: formattedToDate,
+      asOfDate: formattedAsOfDate,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
       reportType: data.reportType || "",
       vatType: data.vatType || "",
@@ -318,7 +408,7 @@ export default function ReportsPage() {
       paymentTypeId: parameters.paymentTypeId || "0",
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
-      asDate: parameters.asOfDate || getCurrentDate(),
+      asDate: parameters.asOfDate,
       currencyId: parameters.currencyId || "0",
       reportType: parameters.reportType || "0",
       gstTypeId: parameters.vatType || "0",
@@ -591,37 +681,38 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* Date Range - Show From/To Date only when Trs Date is selected */}
-                {form.watch("useTrsDate") && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <CustomDateNew
-                      form={form}
-                      name="fromDate"
-                      label="From Date:"
-                      isRequired={false}
-                      onChangeEvent={handleFromDateChange}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="toDate"
-                      label="To Date:"
-                      isRequired={false}
-                      isFutureShow={true}
-                    />
-                  </div>
-                )}
+                {/* Date Range - Show From/To Date for TrsDate reports */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <CustomDateNew
+                    form={form}
+                    name="fromDate"
+                    label="From Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
+                    onChangeEvent={handleFromDateChange}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="toDate"
+                    label="To Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useAsDate")}
+                    isFutureShow={true}
+                    onChangeEvent={handleToDateChange}
+                  />
+                </div>
 
-                {/* As Date - Show only when As Date is selected */}
-                {form.watch("useAsDate") && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <CustomDateNew
-                      form={form}
-                      name="asOfDate"
-                      label="As Date:"
-                      isRequired={false}
-                    />
-                  </div>
-                )}
+                {/* As Date - Show only for non-TrsDate reports */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <CustomDateNew
+                    form={form}
+                    name="asOfDate"
+                    label="As Date:"
+                    isRequired={false}
+                    isDisabled={form.watch("useTrsDate")}
+                    onChangeEvent={handleAsDateChange}
+                  />
+                </div>
 
                 {/* Currency, Department, Payment Type */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

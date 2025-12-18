@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
+import { format, isValid, parse, startOfMonth, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -160,24 +161,43 @@ export default function ReportsPage() {
     return format(new Date(), dateFormat)
   }
 
+  // Get date 2 months ago formatted, starting from the 1st day of that month
+  const getTwoMonthsAgoDate = () => {
+    const twoMonthsAgo = subMonths(new Date(), 2)
+    const firstDayOfMonth = startOfMonth(twoMonthsAgo)
+    return format(firstDayOfMonth, dateFormat)
+  }
+
   const form = useForm<IReportFormData>({
     defaultValues: {
       customerId: "",
       currencyId: "0",
-      fromDate: "",
-      toDate: "",
-      asOfDate: "",
+      fromDate: getTwoMonthsAgoDate(),
+      toDate: getCurrentDate(),
+      asOfDate: getCurrentDate(),
       useTrsDate: true,
       useAsDate: false,
       reportType: 0,
     },
   })
 
-  // Initialize asOfDate to current date on mount
-  useEffect(() => {
-    const currentDate = format(new Date(), dateFormat)
-    form.setValue("asOfDate", currentDate)
-  }, [form, dateFormat])
+  // Handle asOfDate change and automatically set toDate to the same value
+  const handleAsDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("asOfDate", formattedDate)
+      form.setValue("toDate", formattedDate)
+    }
+  }
+
+  // Handle toDate change and automatically set asOfDate to the same value
+  const handleToDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = format(date, dateFormat)
+      form.setValue("toDate", formattedDate)
+      form.setValue("asOfDate", formattedDate)
+    }
+  }
 
   const getAllReports = (): IReport[] => {
     return REPORT_CATEGORIES.flatMap((category) =>
@@ -222,22 +242,80 @@ export default function ReportsPage() {
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
+  /**
+   * Converts a date string from user's locale format to dd/MMM/yyyy format
+   * for Telerik Reporting server.
+   *
+   * Format: "dd/MMM/yyyy" (e.g., "18/Dec/2025")
+   * This format uses month abbreviations which are more readable than numeric dates.
+   *
+   * @param dateStr - Date string in user's configured format (e.g., "dd/MM/yyyy" = "18/12/2025")
+   * @returns Formatted date string in dd/MMM/yyyy format e.g., "18/Dec/2025"
+   *
+   * @example
+   * convertDateToReportFormat("18/12/2025") // Returns "18/Dec/2025"
+   * convertDateToReportFormat(null) // Returns current date in dd/MMM/yyyy format
+   */
+  const convertDateToReportFormat = (
+    dateStr: string | null | undefined
+  ): string => {
+    // Handle null/undefined: return current date in dd/MMM/yyyy format as fallback
+    if (!dateStr || dateStr.trim() === "") {
+      return format(new Date(), "dd/MMM/yyyy")
+    }
+
+    // Step 1: Try parsing using parseDate utility (handles multiple formats)
+    const parsedDate = parseDate(dateStr)
+    if (parsedDate && isValid(parsedDate)) {
+      return format(parsedDate, "dd/MMM/yyyy")
+    }
+
+    // Step 2: Fallback - try parsing with the configured dateFormat
+    try {
+      const parsed = parse(dateStr, dateFormat, new Date())
+      if (isValid(parsed)) {
+        return format(parsed, "dd/MMM/yyyy")
+      }
+    } catch (error) {
+      console.warn("Date parsing failed:", dateStr, error)
+    }
+
+    // Step 3: Final fallback - return current date in dd/MMM/yyyy format
+    // This ensures we always return a valid date string
+    return format(new Date(), "dd/MMM/yyyy")
+  }
+
+  /**
+   * Builds report parameters with all dates converted to dd/MMM/yyyy format.
+   * Format: "dd/MMM/yyyy" (e.g., "18/Dec/2025")
+   *
+   * @param data - Form data containing user input dates in client format
+   * @param report - Optional report object to get reportType
+   * @returns Report parameters with dates formatted as dd/MMM/yyyy
+   */
   const buildReportParameters = (
     data: IReportFormData,
     report?: IReport
   ): IReportParameters => {
     const asOfDate = data.asOfDate || getCurrentDate()
-    // Use reportType from the report object if available, otherwise from form data
     const reportType = report?.reportType ?? data.reportType ?? 0
+
+    // Convert all dates to dd/MMM/yyyy format for report server
+    // Format: "18/Dec/2025" instead of "18/12/2025" or "2025-12-18"
+    const formattedFromDate = convertDateToReportFormat(
+      data.fromDate || asOfDate
+    )
+    const formattedToDate = convertDateToReportFormat(data.toDate || asOfDate)
+    const formattedAsOfDate = convertDateToReportFormat(asOfDate)
 
     return {
       companyId,
       companyName: companyName || "",
       customerId: data.customerId ? Number(data.customerId) : 0,
       currencyId: data.currencyId ? Number(data.currencyId) : 0,
-      fromDate: data.fromDate || asOfDate,
-      toDate: data.toDate || asOfDate,
-      asOfDate: asOfDate,
+      fromDate: formattedFromDate,
+      toDate: formattedToDate,
+      asOfDate: formattedAsOfDate,
       reportType: reportType,
       amtDec: amtDec || 2,
       locAmtDec: locAmtDec || 2,
@@ -253,12 +331,15 @@ export default function ReportsPage() {
     const report = selectedReportObjects[0] // Only one report can be selected
     const parameters = buildReportParameters(data, report)
 
+    // All dates are already converted to dd/MMM/yyyy format in buildReportParameters
+    // Format: "18/Dec/2025" instead of "18/12/2025" or "2025-12-18"
+
     const reportParams = {
       companyId: parameters.companyId,
       companyName: parameters.companyName,
       fromDate: parameters.fromDate,
       toDate: parameters.toDate,
-      asOfDate: parameters.asOfDate || getCurrentDate(),
+      asOfDate: parameters.asOfDate,
       customerId: parameters.customerId,
       currencyId: parameters.currencyId,
       reportType: parameters.reportType,
@@ -267,7 +348,7 @@ export default function ReportsPage() {
       userName: user?.userName || "",
     }
 
-    console.log(reportParams)
+    console.log("reportParams", reportParams)
 
     // Store report data in sessionStorage (clean URL approach - same pattern as transaction print)
     const reportData = {
@@ -302,11 +383,12 @@ export default function ReportsPage() {
   }
 
   const handleClear = () => {
-    const currentDate = format(new Date(), dateFormat)
+    const currentDate = getCurrentDate()
+    const twoMonthsAgo = getTwoMonthsAgoDate()
     form.reset({
       customerId: "",
-      fromDate: "",
-      toDate: "",
+      fromDate: twoMonthsAgo,
+      toDate: currentDate,
       asOfDate: currentDate,
       currencyId: "0",
       useTrsDate: true,
@@ -425,7 +507,6 @@ export default function ReportsPage() {
                     label="From Date:"
                     isRequired={false}
                     isDisabled={form.watch("useAsDate")}
-                    //onChangeEvent={handleFromDateChange}
                   />
                   <CustomDateNew
                     form={form}
@@ -433,6 +514,7 @@ export default function ReportsPage() {
                     label="To Date:"
                     isRequired={false}
                     isDisabled={form.watch("useAsDate")}
+                    onChangeEvent={handleToDateChange}
                   />
                 </div>
 
@@ -444,6 +526,7 @@ export default function ReportsPage() {
                     label="As Date:"
                     isRequired={false}
                     isDisabled={form.watch("useTrsDate")}
+                    onChangeEvent={handleAsDateChange}
                   />
                 </div>
 
