@@ -135,7 +135,7 @@ const REPORT_CATEGORIES = [
       {
         id: "gl-ledger",
         name: "GLLedger",
-        reportFile: "gl/GLLedger.trdp",
+        reportFile: "gl/Ledger.trdp",
       },
       {
         id: "combined-vat-computation",
@@ -429,22 +429,29 @@ export default function ReportsPage() {
     }
 
     try {
-      // Use a fixed key - will be overwritten each time a new report is opened
-      sessionStorage.setItem(`report_${companyId}`, JSON.stringify(reportData))
+      // Use a fixed key per company - will be overwritten each time a new report is opened
+      // This matches the key used by `/[companyId]/reports/window`
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
     } catch (error) {
       console.error("Error storing report data:", error)
-      // Fallback to URL parameters if sessionStorage fails
+
+      // Fallback to URL parameters using the legacy viewer if sessionStorage fails
       window.open(
         `/${companyId}/reports/viewer?report=${encodeURIComponent(
           report.reportFile
         )}&params=${encodeURIComponent(JSON.stringify(reportParams))}`,
         "_blank"
       )
-      return
     }
-
-    // Clean URL without any query parameters
-    window.open(`/${companyId}/reports/viewer`, "_blank")
   }
 
   const handleClear = () => {
