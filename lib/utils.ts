@@ -217,6 +217,7 @@ export enum ARTransactionId {
   invoice_edit = 8,
   invoicectm = 9,
   reports = 99,
+  overview = 100,
 }
 
 export enum APTransactionId {
@@ -228,6 +229,7 @@ export enum APTransactionId {
   refund = 6,
   docsetoff = 7,
   reports = 99,
+  overview = 100,
 }
 
 export enum CBTransactionId {
@@ -238,6 +240,7 @@ export enum CBTransactionId {
   cbbankrecon = 5,
   cbbanktransferctm = 6,
   reports = 99,
+  overview = 100,
 }
 
 export enum GLTransactionId {
@@ -248,6 +251,7 @@ export enum GLTransactionId {
   yearendprocess = 5,
   periodclose = 6,
   reports = 99,
+  overview = 100,
 }
 
 export enum HRTransactionId {
