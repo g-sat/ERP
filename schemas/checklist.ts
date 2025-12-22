@@ -310,9 +310,6 @@ export const CrewSignOnSchema = z.object({
     .max(100, "Clearing must be less than 100 characters")
     .optional()
     .optional(),
-  taskStatusId: z.number().min(1, "Status is required"),
-  debitNoteId: z.number().optional(),
-  debitNoteNo: z.string().optional(),
   overStayRemark: z
     .string()
     .max(255, "Over Stay Remark must be less than 255 characters")
@@ -328,6 +325,9 @@ export const CrewSignOnSchema = z.object({
     .max(255, "CID Clearance must be less than 255 characters")
     .optional()
     .optional(),
+  taskStatusId: z.number().min(1, "Status is required"),
+  debitNoteId: z.number().optional(),
+  debitNoteNo: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -404,6 +404,46 @@ export const MedicalAssistanceSchema = z.object({
   admittedDate: z.union([z.string(), z.date()]).optional(),
   dischargedDate: z.union([z.string(), z.date()]).optional(),
   visaId: z.number(),
+  flightDetails: z
+    .string()
+    .max(255, "Flight Details must be less than 255 characters")
+    .optional()
+    .optional(),
+  hotelName: z
+    .string()
+    .max(100, "Hotel Name must be less than 100 characters")
+    .optional()
+    .optional(),
+  departureDetails: z
+    .string()
+    .max(255, "Departure Details must be less than 255 characters")
+    .optional()
+    .optional(),
+  transportName: z
+    .string()
+    .max(100, "Transport Name must be less than 100 characters")
+    .optional()
+    .optional(),
+  clearing: z
+    .string()
+    .max(100, "Clearing must be less than 100 characters")
+    .optional()
+    .optional(),
+  overStayRemark: z
+    .string()
+    .max(255, "Over Stay Remark must be less than 255 characters")
+    .optional()
+    .optional(),
+  modificationRemark: z
+    .string()
+    .max(255, "Modification Remark must be less than 255 characters")
+    .optional()
+    .optional(),
+  cidClearance: z
+    .string()
+    .max(255, "CID Clearance must be less than 255 characters")
+    .optional()
+    .optional(),
   taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()

@@ -209,6 +209,88 @@ export function MedicalAssistanceTable({
         minSize: 150,
       },
       {
+        accessorKey: "flightDetails",
+        header: "Flight Details",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("flightDetails") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "hotelName",
+        header: "Hotel Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("hotelName") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "departureDetails",
+        header: "Departure Details",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("departureDetails") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "transportName",
+        header: "Transport Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("transportName") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "clearing",
+        header: "Clearing",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("clearing") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "overStayRemark",
+        header: "Over Stay Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("overStayRemark") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "modificationRemark",
+        header: "Modification Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("modificationRemark") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "cidClearance",
+        header: "CID Clearance",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("cidClearance") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
         accessorKey: "admittedDate",
         header: "Admitted Date",
         cell: ({ row }) => {

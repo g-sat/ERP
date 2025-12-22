@@ -104,6 +104,14 @@ export function MedicalAssistanceForm({
             dateFormat
           )
         : "",
+      flightDetails: initialData?.flightDetails ?? "",
+      hotelName: initialData?.hotelName ?? "",
+      departureDetails: initialData?.departureDetails ?? "",
+      transportName: initialData?.transportName ?? "",
+      clearing: initialData?.clearing ?? "",
+      overStayRemark: initialData?.overStayRemark ?? "",
+      modificationRemark: initialData?.modificationRemark ?? "",
+      cidClearance: initialData?.cidClearance ?? "",
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -138,6 +146,14 @@ export function MedicalAssistanceForm({
             dateFormat
           )
         : "",
+      flightDetails: initialData?.flightDetails ?? "",
+      hotelName: initialData?.hotelName ?? "",
+      departureDetails: initialData?.departureDetails ?? "",
+      transportName: initialData?.transportName ?? "",
+      clearing: initialData?.clearing ?? "",
+      overStayRemark: initialData?.overStayRemark ?? "",
+      modificationRemark: initialData?.modificationRemark ?? "",
+      cidClearance: initialData?.cidClearance ?? "",
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -219,8 +235,57 @@ export function MedicalAssistanceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+              <CustomInput
+                form={form}
+                name="transportName"
+                label="Transport Details"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="hotelName"
+                label="Hotel Name"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="flightDetails"
+                label="Flight Details"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="departureDetails"
+                label="Departure Details"
+                isDisabled={isConfirmed}
+              />
+
+              <CustomTextarea
+                form={form}
+                name="clearing"
+                label="Clearing Details"
+                isDisabled={isConfirmed}
+              />
+
+              <CustomTextarea
+                form={form}
+                name="overStayRemark"
+                label="Over Stay Remark"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="modificationRemark"
+                label="Modification Remark"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="cidClearance"
+                label="CID Clearance"
+                isDisabled={isConfirmed}
+              />
+
               <CustomTextarea
                 form={form}
                 name="reason"

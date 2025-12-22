@@ -175,9 +175,6 @@ export interface IConsignmentImport {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   createById: number
   createDate: Date
   editById?: number
@@ -274,9 +271,6 @@ export interface ICrewSignOn {
   overStayRemark?: string
   modificationRemark?: string
   cidClearance?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks: string
   createById: number
   createDate: Date
@@ -542,6 +536,14 @@ export interface IMedicalAssistance {
   reason?: string
   admittedDate?: Date | string
   dischargedDate?: Date | string
+  flightDetails: string
+  hotelName: string
+  departureDetails?: string
+  transportName?: string
+  clearing?: string
+  overStayRemark?: string
+  modificationRemark?: string
+  cidClearance?: string
   taskStatusId: number
   taskStatusName?: string
   remarks: string
@@ -575,9 +577,6 @@ export interface IOtherService {
   taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks: string
   description?: string
   createById: number
@@ -609,9 +608,6 @@ export interface IPortExpenses {
 
   debitNoteId?: number
   debitNoteNo?: string
-  totAmt: number
-  gstAmt: number
-  totAmtAftGst: number
   remarks?: string
   createById: number
   createDate: Date

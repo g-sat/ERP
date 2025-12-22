@@ -212,13 +212,14 @@ export function CrewSignOffForm({
                 label="CID Clearance"
                 isDisabled={isConfirmed}
               />
+
+              <CustomTextarea
+                form={form}
+                name="remarks"
+                label="Remarks"
+                isDisabled={isConfirmed}
+              />
             </div>
-            <CustomTextarea
-              form={form}
-              name="remarks"
-              label="Remarks"
-              isDisabled={isConfirmed}
-            />
 
             {/* Audit Information Card */}
             {/* Audit Information Section */}
