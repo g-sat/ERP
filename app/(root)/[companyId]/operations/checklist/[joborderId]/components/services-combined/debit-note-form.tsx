@@ -94,7 +94,6 @@ export default function DebitNoteForm({
       itemNo: 0,
       taskId: taskId,
       chargeId: 0,
-      glId: debitNoteHd?.glId ?? 0,
       qty: 0,
       unitPrice: 0,
       totAmt: 0,
@@ -113,7 +112,6 @@ export default function DebitNoteForm({
       debitNoteHd?.debitNoteId,
       debitNoteHd?.debitNoteNo,
       taskId,
-      debitNoteHd?.glId,
     ]
   )
 
@@ -585,33 +583,36 @@ export default function DebitNoteForm({
   }
 
   useEffect(() => {
-    form.reset(
-      initialData
-        ? {
-            debitNoteId:
-              initialData?.debitNoteId ?? debitNoteHd?.debitNoteId ?? 0,
-            debitNoteNo:
-              initialData?.debitNoteNo ?? debitNoteHd?.debitNoteNo ?? "",
-            itemNo: initialData?.itemNo ?? 0,
-            taskId: taskId,
-            chargeId: initialData?.chargeId ?? 0,
-            qty: initialData?.qty ?? 0,
-            unitPrice: initialData?.unitPrice ?? 0,
-            totAmt: initialData?.totAmt ?? 0,
-            gstId: initialData?.gstId ?? 0,
-            gstPercentage: initialData?.gstPercentage ?? 0,
-            gstAmt: initialData?.gstAmt ?? 0,
-            totAmtAftGst: initialData?.totAmtAftGst ?? 0,
-            remarks: initialData?.remarks ?? "",
-            editVersion: initialData?.editVersion ?? 0,
-            totLocalAmt: initialData?.totLocalAmt ?? 0,
-            isServiceCharge: initialData?.isServiceCharge ?? false,
-            serviceCharge: initialData?.serviceCharge ?? 0,
-          }
-        : {
-            ...defaultValues,
-          }
-    )
+    // Only reset form when data is loaded to prevent race conditions
+    if (!isChartOfAccountLoading) {
+      form.reset(
+        initialData
+          ? {
+              debitNoteId:
+                initialData?.debitNoteId ?? debitNoteHd?.debitNoteId ?? 0,
+              debitNoteNo:
+                initialData?.debitNoteNo ?? debitNoteHd?.debitNoteNo ?? "",
+              itemNo: initialData?.itemNo ?? 0,
+              taskId: taskId,
+              chargeId: initialData?.chargeId ?? 0,
+              qty: initialData?.qty ?? 0,
+              unitPrice: initialData?.unitPrice ?? 0,
+              totAmt: initialData?.totAmt ?? 0,
+              gstId: initialData?.gstId ?? 0,
+              gstPercentage: initialData?.gstPercentage ?? 0,
+              gstAmt: initialData?.gstAmt ?? 0,
+              totAmtAftGst: initialData?.totAmtAftGst ?? 0,
+              remarks: initialData?.remarks ?? "",
+              editVersion: initialData?.editVersion ?? 0,
+              totLocalAmt: initialData?.totLocalAmt ?? 0,
+              isServiceCharge: initialData?.isServiceCharge ?? false,
+              serviceCharge: initialData?.serviceCharge ?? 0,
+            }
+          : {
+              ...defaultValues,
+            }
+      )
+    }
   }, [
     initialData,
     form,

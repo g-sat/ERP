@@ -9,7 +9,9 @@ import {
   ISaveDebitNoteItem,
 } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
+import { zodResolver } from "@hookform/resolvers/zod"
 import {
+  Building2,
   Copy,
   Edit3,
   FileText,
@@ -19,9 +21,12 @@ import {
   Upload,
   X,
 } from "lucide-react"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { z } from "zod"
 
 import { apiClient } from "@/lib/api-client"
+import { JobOrder } from "@/lib/api-routes"
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,7 +43,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Form } from "@/components/ui/form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  CompanyAutocomplete,
+  CompanyCustomerAutocomplete,
+} from "@/components/autocomplete"
 
 import { ChecklistDetailsForm } from "./checklist-details-form"
 import { ChecklistDocuments } from "./checklist-documents"
@@ -64,11 +74,35 @@ export function ChecklistTabs({
   const [activeTab, setActiveTab] = useState("main")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [confirmAction, setConfirmAction] = useState<{
-    type: "clone" | "cancel" | "update"
+    type: "clone" | "cancel" | "update" | "cloneCompany"
     title: string
     message: string
   } | null>(null)
   const [formRef, setFormRef] = useState<HTMLFormElement | null>(null)
+
+  // Clone Company Dialog State
+  const [showCloneCompanyDialog, setShowCloneCompanyDialog] = useState(false)
+  const [showCloneCompanyConfirmDialog, setShowCloneCompanyConfirmDialog] =
+    useState(false)
+  const [isCloning, setIsCloning] = useState(false)
+
+  // Clone Company Form Schema
+  const cloneCompanySchema = z.object({
+    companyId: z.number().min(1, "Please select a company"),
+    customerId: z.number().min(1, "Please select a customer"),
+  })
+
+  type CloneCompanyFormType = z.infer<typeof cloneCompanySchema>
+
+  const cloneCompanyForm = useForm<CloneCompanyFormType>({
+    resolver: zodResolver(cloneCompanySchema),
+    defaultValues: {
+      companyId: 0,
+      customerId: 0,
+    },
+  })
+
+  const selectedCompanyId = cloneCompanyForm.watch("companyId")
 
   // Debit Note Dialog State
   const [showDebitNoteDialog, setShowDebitNoteDialog] = useState(false)
@@ -247,6 +281,67 @@ export function ChecklistTabs({
       // Pass the cloned data back to parent
       // console.log("Cloning job order:", clonedData)
       onClone(clonedData)
+    }
+  }
+
+  const handleCloneCompany = async () => {
+    const formValues = cloneCompanyForm.getValues()
+
+    if (!formValues.companyId || !formValues.customerId) {
+      toast.error("Please select both company and customer")
+      return
+    }
+
+    if (!currentJobData?.jobOrderId) {
+      toast.error("Invalid job order data")
+      return
+    }
+
+    setIsCloning(true)
+    try {
+      // Prepare clone request data according to API specification
+      const cloneData = {
+        fromJobOrderId: currentJobData.jobOrderId,
+        toCompanyId: formValues.companyId as number,
+        toCustomerId: formValues.customerId,
+      }
+
+      const response = await apiClient.post(JobOrder.cloneChecklist, cloneData)
+
+      if (response.data.result === 1) {
+        // Check if response is successful
+        // Extract job order data from response
+        const jobOrderData = Array.isArray(response.data.data)
+          ? response.data.data[0]
+          : response.data.data
+
+        const newJobOrderId = (jobOrderData as IJobOrderHd)?.jobOrderId
+
+        if (newJobOrderId) {
+          toast.success(
+            response.data.message ||
+              "Job order cloned to different company successfully!"
+          )
+
+          // Close dialogs
+          setShowCloneCompanyDialog(false)
+          setShowCloneCompanyConfirmDialog(false)
+          cloneCompanyForm.reset()
+
+          // Create URL and open in new tab
+          const newUrl = `/${formValues.companyId}/operations/checklist/${newJobOrderId}`
+          window.open(newUrl, "_blank")
+        } else {
+          toast.error("Failed to get new job order ID")
+        }
+      } else {
+        toast.error(response.data.message || "Failed to clone job order")
+      }
+    } catch (error) {
+      console.error("Error cloning job order to different company:", error)
+      toast.error("Failed to clone job order. Please try again.")
+    } finally {
+      setIsCloning(false)
     }
   }
 
@@ -499,6 +594,18 @@ export function ChecklistTabs({
             <Copy className="h-4 w-4" />
           </Button>
 
+          {/* Clone Company button */}
+          <Button
+            title="Clone to Different Company"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setShowCloneCompanyDialog(true)
+            }}
+          >
+            <Building2 className="h-4 w-4" />
+          </Button>
+
           {/* Cancel button - only show in edit mode */}
           {isConfirmed && (
             <Button
@@ -608,12 +715,105 @@ export function ChecklistTabs({
                       // Cancel job order logic
                       // console.log("Cancelling job order")
                       break
+                    case "cloneCompany":
+                      setShowCloneCompanyConfirmDialog(true)
+                      break
                   }
                 }
                 setShowConfirmDialog(false)
               }}
             >
               Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clone Company Dialog */}
+      <Dialog
+        open={showCloneCompanyDialog}
+        onOpenChange={(open) => {
+          setShowCloneCompanyDialog(open)
+          if (!open) {
+            cloneCompanyForm.reset()
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clone to Different Company</DialogTitle>
+            <DialogDescription>
+              Select the target company and customer to clone this job order.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...cloneCompanyForm}>
+            <form className="space-y-4">
+              <CompanyAutocomplete
+                form={cloneCompanyForm}
+                name="companyId"
+                label="Company"
+                isRequired
+              />
+              <CompanyCustomerAutocomplete
+                form={cloneCompanyForm}
+                name="customerId"
+                label="Customer"
+                companyId={selectedCompanyId || undefined}
+                isRequired
+                isDisabled={!selectedCompanyId}
+              />
+            </form>
+          </Form>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCloneCompanyDialog(false)
+                cloneCompanyForm.reset()
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const formValues = cloneCompanyForm.getValues()
+                if (!formValues.companyId || !formValues.customerId) {
+                  toast.error("Please select both company and customer")
+                  return
+                }
+                setShowCloneCompanyConfirmDialog(true)
+              }}
+              disabled={isCloning}
+            >
+              Clone
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clone Company Confirmation Dialog */}
+      <Dialog
+        open={showCloneCompanyConfirmDialog}
+        onOpenChange={setShowCloneCompanyConfirmDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Clone</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to clone this job order to the selected
+              company? A new job order will be created and opened in a new tab.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCloneCompanyConfirmDialog(false)}
+              disabled={isCloning}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCloneCompany} disabled={isCloning}>
+              {isCloning ? "Cloning..." : "Yes, Clone"}
             </Button>
           </DialogFooter>
         </DialogContent>

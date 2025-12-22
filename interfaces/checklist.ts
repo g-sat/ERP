@@ -707,6 +707,7 @@ export interface IDebitNoteHd {
   serviceName?: string
   chargeId: number
   chargeName?: string
+  glId?: number
   currencyId: number
   currencyName?: string
   exhRate: number
@@ -729,6 +730,7 @@ export interface IDebitNoteDt {
   taskName?: string
   chargeId: number
   chargeName?: string
+  glId?: number
   qty: number
   unitPrice: number
   totLocalAmt: number
