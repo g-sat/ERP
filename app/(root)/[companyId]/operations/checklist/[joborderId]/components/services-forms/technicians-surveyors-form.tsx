@@ -251,6 +251,8 @@ export function TechniciansSurveyorsForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <CustomCheckbox
                 form={form}
                 name="isTransport"

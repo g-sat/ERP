@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
-  CarrierTypeAutocomplete,
+  CarrierAutocomplete,
   ChargeAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
@@ -216,10 +216,10 @@ export function ConsignmentExportForm({
                 isDisabled={isConfirmed}
               />
 
-              <CarrierTypeAutocomplete
+              <CarrierAutocomplete
                 form={form}
                 name="carrierId"
-                label="Carrier Type"
+                label="Carrier"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
@@ -270,7 +270,7 @@ export function ConsignmentExportForm({
               <ServiceModeAutocomplete
                 form={form}
                 name="serviceModeId"
-                label="Mode Type"
+                label="service Mode"
                 isDisabled={isConfirmed}
               />
 

@@ -280,7 +280,7 @@ export const Lookup = {
   getVisa: "/master/getvisalookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
-  getPurposeOfLandingType: "/master/getpurposeoflandingtypelookup",
+  getLandingPurpose: "/master/getLandingPurposelookup",
   getServiceMode: "/master/getservicemodelookup",
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrier: "/master/getcarrierlookup",

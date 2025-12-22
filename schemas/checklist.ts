@@ -373,7 +373,7 @@ export const LandingItemsSchema = z.object({
   name: z.string().min(1, "Name is required"),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
   weight: z.number().min(0, "Weight must be 0 or greater"),
-  landingTypeId: z.number().min(1, "Landing Type is required"),
+  landingPurposeId: z.number().min(1, "Landing Purpose is required"),
   locationName: z.string().min(1, "Location Name is required"),
   uomId: z.number().min(1, "UOM is required"),
   returnDate: z.string().optional(),

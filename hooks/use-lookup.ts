@@ -32,6 +32,7 @@ import {
   IGstLookup,
   IJobOrderLookup,
   IJobStatusLookup,
+  ILandingPurposeLookup,
   ILandingTypeLookup,
   ILeaveTypeLookup,
   ILoanTypeLookup,
@@ -1522,13 +1523,13 @@ export const useLandingTypeLookup = () => {
   })
 }
 
-export const usePurposeOfLandingTypeLookup = () => {
-  return useQuery<ILandingTypeLookup[]>({
-    queryKey: ["purposeoflandingtype-lookUp"],
+export const useLandingPurposeLookup = () => {
+  return useQuery<ILandingPurposeLookup[]>({
+    queryKey: ["landingpurpose-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getPurposeOfLandingType)
+        const data = await getData(Lookup.getLandingPurpose)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

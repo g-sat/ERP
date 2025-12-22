@@ -146,37 +146,59 @@ export function ChecklistTabs({
     const locAmtDec = decimals[0]?.locAmtDec || 2
 
     // Determine report file and build parameters based on type
-    let reportFile = "rpt_Checklist.trdp"
-    const reportParams: Record<string, string | number> = {
-      companyId: companyId,
-      reportType: reportType === "invoice" ? 2 : 1,
-      userName: user?.userName || "",
-      amtDec: amtDec,
-      locAmtDec: locAmtDec,
-    }
+    let reportFile = "checklist/rpt_Checklist.trdp"
+    let reportParams: Record<string, string | number> = {}
 
     switch (reportType) {
       case "checklist":
-        reportFile = "rpt_Checklist.trdp"
-        reportParams.jobOrderId = jobOrderId
-        reportParams.jobOrderNo = jobOrderNo
+        reportFile = "checklist/rpt_Checklist.trdp"
+        // Build report parameters - same structure as ar/report
+        reportParams = {
+          companyId: companyId,
+          jobOrderId: jobOrderId,
+          jobOrderNo: jobOrderNo,
+          amtDec: amtDec,
+          locAmtDec: locAmtDec,
+          userName: user?.userName || "",
+        }
         break
       case "purchaseList":
-        reportFile = "rpt_PurchaseList.trdp"
-        reportParams.jobOrderId = jobOrderId
-        reportParams.jobOrderNo = jobOrderNo
+        reportFile = "checklist/rpt_PurchaseList.trdp"
+        // Build report parameters - same structure as ar/report
+        reportParams = {
+          companyId: companyId,
+          jobOrderId: jobOrderId,
+          jobOrderNo: jobOrderNo,
+          amtDec: amtDec,
+          locAmtDec: locAmtDec,
+          userName: user?.userName || "",
+        }
         break
       case "jobSummary":
-        reportFile = "rpt_JobSummary.trdp"
-        reportParams.jobOrderId = jobOrderId
-        reportParams.jobOrderNo = jobOrderNo
+        reportFile = "checklist/rpt_JobSummary.trdp"
+        // Build report parameters - same structure as ar/report
+        reportParams = {
+          companyId: companyId,
+          jobOrderId: jobOrderId,
+          jobOrderNo: jobOrderNo,
+          amtDec: amtDec,
+          locAmtDec: locAmtDec,
+          userName: user?.userName || "",
+        }
         break
       case "invoice":
-        reportFile = "rpt_ArInvoice.trdp"
-        // For invoice, we need invoiceId and invoiceNo instead
+        reportFile = "ar/ArInvoice.trdp"
+        // For invoice, we need invoiceId and invoiceNo instead (same as ar/report)
         if (currentJobData.invoiceId && currentJobData.invoiceNo) {
-          reportParams.invoiceId = currentJobData.invoiceId
-          reportParams.invoiceNo = currentJobData.invoiceNo
+          reportParams = {
+            companyId: companyId,
+            invoiceId: currentJobData.invoiceId,
+            invoiceNo: currentJobData.invoiceNo,
+            reportType: 2,
+            userName: user?.userName || "",
+            amtDec: amtDec,
+            locAmtDec: locAmtDec,
+          }
         } else {
           toast.error("Invoice not available for this job order")
           return

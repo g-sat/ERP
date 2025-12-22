@@ -100,11 +100,11 @@ export interface IConsignmentExport {
   chargeName?: string
   awbNo: string
   carrierId: number
-  carrierTypeName?: string
+  carrierName?: string
   uomId: number
   uomName?: string
   serviceModeId?: number
-  modeTypeName?: string
+  serviceModeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string
   landingTypeId?: number
@@ -148,11 +148,11 @@ export interface IConsignmentImport {
 
   awbNo: string
   carrierId: number
-  carrierTypeName?: string
+  carrierName?: string
   uomId: number
   uomName?: string
   serviceModeId?: number
-  modeTypeName?: string
+  serviceModeName?: string
   consignmentTypeId: number
   consignmentTypeName?: string
   landingTypeId?: number
@@ -378,8 +378,8 @@ export interface ILandingItems {
   name: string
   quantity: number
   weight: number
-  landingTypeId: number
-  landingTypeName?: string
+  landingPurposeId: number
+  landingPurposeName?: string
   locationName: string
   uomId: number
   uomName?: string

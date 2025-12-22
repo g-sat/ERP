@@ -170,12 +170,10 @@ export function ConsignmentImportTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "carrierTypeName",
-        header: "Carrier Type",
+        accessorKey: "carrierName",
+        header: "Carrier",
         cell: ({ row }) => (
-          <div className="text-wrap">
-            {row.getValue("carrierTypeName") || "-"}
-          </div>
+          <div className="text-wrap">{row.getValue("carrierName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,

@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  CarrierTypeAutocomplete,
+  CarrierAutocomplete,
   ChargeAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
@@ -372,20 +372,20 @@ export function TaskServiceForm() {
             />
           )}
 
-          {/* Carrier Type, Mode Type, Consignment Type, Landing Type - Show for taskId 8,9 */}
+          {/* Carrier, service Mode, Consignment Type, Landing Type - Show for taskId 8,9 */}
           {[8, 9].includes(serviceData.taskId) && (
             <>
-              <CarrierTypeAutocomplete
+              <CarrierAutocomplete
                 form={form}
                 name={`services.${serviceKey}.carrierId`}
-                label="Carrier Type"
+                label="Carrier"
                 isRequired={false}
               />
 
               <ServiceModeAutocomplete
                 form={form}
                 name={`services.${serviceKey}.serviceModeId`}
-                label="Mode Type"
+                label="service Mode"
                 isRequired={false}
               />
 

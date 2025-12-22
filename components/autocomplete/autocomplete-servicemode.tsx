@@ -356,7 +356,7 @@ export default function ServiceModeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Mode Type..."
+                    placeholder="Select service Mode..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -414,7 +414,7 @@ export default function ServiceModeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select Mode Type..."
+          placeholder="Select service Mode..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}

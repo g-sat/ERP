@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
-  PurposeOfLandingTypeAutocomplete,
+  LandingPurposeAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
@@ -96,7 +96,7 @@ export function LandingItemsForm({
         : "",
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      landingTypeId: initialData?.landingTypeId ?? 0,
+      landingPurposeId: initialData?.landingPurposeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       name: initialData?.name ?? "",
@@ -130,7 +130,7 @@ export function LandingItemsForm({
         : "",
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      landingTypeId: initialData?.landingTypeId ?? 0,
+      landingPurposeId: initialData?.landingPurposeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       name: initialData?.name ?? "",
@@ -183,10 +183,10 @@ export function LandingItemsForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <PurposeOfLandingTypeAutocomplete
+              <LandingPurposeAutocomplete
                 form={form}
-                name="landingTypeId"
-                label="Landing Type"
+                name="landingPurposeId"
+                label="Landing Purpose"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />

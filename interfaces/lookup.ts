@@ -446,6 +446,12 @@ export interface IPassTypeLookup {
   passTypeName: string
 }
 
+export interface ILandingPurposeLookup {
+  landingPurposeId: number
+  landingPurposeCode: string
+  landingPurposeName: string
+}
+
 export interface ILandingTypeLookup {
   landingTypeId: number
   landingTypeCode: string
@@ -466,8 +472,8 @@ export interface IConsignmentTypeLookup {
 
 export interface ICarrierLookup {
   carrierId: number
-  carrierTypeCode: string
-  carrierTypeName: string
+  carrierCode: string
+  carrierName: string
 }
 
 export interface ICompanyLookup {

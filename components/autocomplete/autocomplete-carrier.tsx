@@ -25,9 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function CarrierTypeAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function CarrierAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -44,15 +42,15 @@ export default function CarrierTypeAutocomplete<
   isRequired?: boolean
   onChangeEvent?: (selectedOption: ICarrierLookup | null) => void
 }) {
-  const { data: carrierTypes = [], isLoading } = useCarrierLookup()
+  const { data: carriers = [], isLoading } = useCarrierLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      carrierTypes.map((carrierType: ICarrierLookup) => ({
-        value: carrierType.carrierId.toString(),
-        label: carrierType.carrierTypeName,
+      carriers.map((carrier: ICarrierLookup) => ({
+        value: carrier.carrierId.toString(),
+        label: carrier.carrierName,
       })),
-    [carrierTypes]
+    [carriers]
   )
 
   // Custom components with display names
@@ -189,16 +187,16 @@ export default function CarrierTypeAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedCarrierType = selectedOption
-          ? carrierTypes.find(
+        const selectedCarrier = selectedOption
+          ? carriers.find(
               (u: ICarrierLookup) =>
                 u.carrierId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedCarrierType)
+        onChangeEvent(selectedCarrier)
       }
     },
-    [form, name, onChangeEvent, carrierTypes]
+    [form, name, onChangeEvent, carriers]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -356,7 +354,7 @@ export default function CarrierTypeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Carrier Type..."
+                    placeholder="Select Carrier..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -414,7 +412,7 @@ export default function CarrierTypeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select Carrier Type..."
+          placeholder="Select Carrier..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}

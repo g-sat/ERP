@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ILandingTypeLookup } from "@/interfaces/lookup"
+import { ILandingPurposeLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { usePurposeOfLandingTypeLookup } from "@/hooks/use-lookup"
+import { useLandingPurposeLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function PurposeOfLandingTypeAutocomplete<
+export default function LandingPurposeAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -42,17 +42,17 @@ export default function PurposeOfLandingTypeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ILandingTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: ILandingPurposeLookup | null) => void
 }) {
-  const { data: landingTypes = [], isLoading } = usePurposeOfLandingTypeLookup()
+  const { data: landingPurposes = [], isLoading } = useLandingPurposeLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      landingTypes.map((landingType: ILandingTypeLookup) => ({
-        value: landingType.landingTypeId.toString(),
-        label: landingType.landingTypeName,
+      landingPurposes.map((landingPurpose: ILandingPurposeLookup) => ({
+        value: landingPurpose.landingPurposeId.toString(),
+        label: landingPurpose.landingPurposeName,
       })),
-    [landingTypes]
+    [landingPurposes]
   )
 
   // Custom components with display names
@@ -189,16 +189,16 @@ export default function PurposeOfLandingTypeAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedLandingType = selectedOption
-          ? landingTypes.find(
-              (u: ILandingTypeLookup) =>
-                u.landingTypeId.toString() === selectedOption.value
+        const selectedLandingPurpose = selectedOption
+          ? landingPurposes.find(
+              (u: ILandingPurposeLookup) =>
+                u.landingPurposeId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedLandingType)
+        onChangeEvent(selectedLandingPurpose)
       }
     },
-    [form, name, onChangeEvent, landingTypes]
+    [form, name, onChangeEvent, landingPurposes]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -356,7 +356,7 @@ export default function PurposeOfLandingTypeAutocomplete<
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Landing Type..."
+                    placeholder="Select Landing Purpose..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -414,7 +414,7 @@ export default function PurposeOfLandingTypeAutocomplete<
           options={options}
           onChange={handleChange}
           onMenuClose={handleMenuClose}
-          placeholder="Select Landing Type..."
+          placeholder="Select Landing Purpose..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}

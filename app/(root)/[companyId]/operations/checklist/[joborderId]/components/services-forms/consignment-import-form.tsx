@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
-  CarrierTypeAutocomplete,
+  CarrierAutocomplete,
   ChargeAutocomplete,
   ConsignmentTypeAutocomplete,
   LandingTypeAutocomplete,
@@ -34,7 +34,6 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface ConsignmentImportFormProps {
   jobData: IJobOrderHd
@@ -215,10 +214,10 @@ export function ConsignmentImportForm({
                 isDisabled={isConfirmed}
               />
 
-              <CarrierTypeAutocomplete
+              <CarrierAutocomplete
                 form={form}
                 name="carrierId"
-                label="Carrier Type"
+                label="Carrier"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
@@ -270,7 +269,7 @@ export function ConsignmentImportForm({
               <ServiceModeAutocomplete
                 form={form}
                 name="serviceModeId"
-                label="Mode Type"
+                label="service Mode"
                 isDisabled={isConfirmed}
               />
 

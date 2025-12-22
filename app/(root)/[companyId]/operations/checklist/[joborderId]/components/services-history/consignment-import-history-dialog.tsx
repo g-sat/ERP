@@ -84,12 +84,10 @@ export function ConsignmentImportHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "carrierTypeName",
-      header: "Carrier Type",
+      accessorKey: "carrierName",
+      header: "Carrier",
       cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("carrierTypeName") || "-"}
-        </div>
+        <div className="text-center">{row.getValue("carrierName") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
