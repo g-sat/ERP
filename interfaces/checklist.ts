@@ -125,6 +125,7 @@ export interface IConsignmentExport {
   taskStatusId: number
   taskStatusName?: string
   remarks: string
+  description: string
   debitNoteId?: number
   debitNoteNo?: string
   createById: number
@@ -173,6 +174,7 @@ export interface IConsignmentImport {
   taskStatusId: number
   taskStatusName?: string
   remarks: string
+  description: string
   debitNoteId?: number
   debitNoteNo?: string
   createById: number

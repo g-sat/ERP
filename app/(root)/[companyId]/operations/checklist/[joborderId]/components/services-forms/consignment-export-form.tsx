@@ -129,6 +129,7 @@ export function ConsignmentExportForm({
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
+      description: initialData?.description ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -182,6 +183,7 @@ export function ConsignmentExportForm({
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       remarks: initialData?.remarks ?? "",
+      description: initialData?.description ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -305,7 +307,13 @@ export function ConsignmentExportForm({
                 isDisabled={isConfirmed}
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
+              <CustomTextarea
+                form={form}
+                name="description"
+                label="Description"
+                isDisabled={isConfirmed}
+              />
               <CustomTextarea
                 form={form}
                 name="remarks"

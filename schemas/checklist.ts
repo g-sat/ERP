@@ -161,6 +161,7 @@ export const ConsignmentExportSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
+  description: z.string().optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   editVersion: z.number(),
@@ -198,6 +199,7 @@ export const ConsignmentImportSchema = z.object({
   amountDeposited: z.number().min(0, "Amount deposited must be 0 or greater"),
   refundInstrumentNo: z.string().optional(),
   taskStatusId: z.number().min(1, "Status is required"),
+  description: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
