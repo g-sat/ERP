@@ -161,13 +161,13 @@ export function CrewSignOnForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="transportName"
                 label="Transport Details"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="hotelName"
                 label="Hotel Name"

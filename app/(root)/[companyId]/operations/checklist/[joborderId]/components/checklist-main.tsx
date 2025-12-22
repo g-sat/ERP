@@ -146,7 +146,7 @@ export function ChecklistMain({
       isPost: jobData?.isPost ?? false,
       isActive: jobData?.isActive ?? true,
       remarks: jobData?.remarks ?? "",
-      jobStatusId: jobData?.jobStatusId ?? 201,
+      jobStatusId: jobData?.jobStatusId ?? 1,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
       editVersion: jobData?.editVersion ?? 0,
@@ -261,7 +261,7 @@ export function ChecklistMain({
       isPost: jobData?.isPost ?? false,
       isActive: jobData?.isActive ?? true,
       remarks: jobData?.remarks ?? "",
-      jobStatusId: jobData?.jobStatusId ?? 201,
+      jobStatusId: jobData?.jobStatusId ?? 1,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
       editVersion: jobData?.editVersion ?? 0,
@@ -386,7 +386,7 @@ export function ChecklistMain({
       isPost: apiJobOrder.isPost ?? false,
       isActive: apiJobOrder.isActive ?? true,
       remarks: apiJobOrder.remarks ?? "",
-      jobStatusId: apiJobOrder.jobStatusId ?? 201,
+      jobStatusId: apiJobOrder.jobStatusId ?? 1,
       gstId: apiJobOrder.gstId ?? 0,
       gstPercentage: apiJobOrder.gstPercentage ?? 0,
       editVersion: apiJobOrder.editVersion ?? 0,
@@ -866,7 +866,7 @@ export function ChecklistMain({
                   form={form}
                   name="addressId"
                   label="Address"
-                  isRequired
+                  isRequired={false}
                   customerId={customerId || 0}
                   isDisabled={isConfirmed}
                 />
@@ -874,7 +874,7 @@ export function ChecklistMain({
                   form={form}
                   name="contactId"
                   label="Contact"
-                  isRequired
+                  isRequired={false}
                   customerId={customerId || 0}
                   isDisabled={isConfirmed}
                 />

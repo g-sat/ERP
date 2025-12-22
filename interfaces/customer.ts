@@ -77,6 +77,7 @@ export interface ICustomerContactFilter {
 export interface ICustomerAddress {
   customerId: number
   addressId: number
+  billName: string
   address1: string
   address2: string
   address3: string

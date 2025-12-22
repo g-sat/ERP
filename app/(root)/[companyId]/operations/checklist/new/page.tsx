@@ -116,7 +116,7 @@ export default function NewChecklistPage() {
       isPost: false,
       isActive: true,
       remarks: "",
-      jobStatusId: 201,
+      jobStatusId: 1,
       gstId: 0,
       gstPercentage: 0,
       editVersion: 0,
@@ -654,14 +654,14 @@ export default function NewChecklistPage() {
                     form={form}
                     name="addressId"
                     label="Address"
-                    isRequired
+                    isRequired={false}
                     customerId={customerId || 0}
                   />
                   <ContactAutocomplete
                     form={form}
                     name="contactId"
                     label="Contact"
-                    isRequired
+                    isRequired={false}
                     customerId={customerId || 0}
                   />
 

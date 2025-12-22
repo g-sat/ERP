@@ -68,7 +68,7 @@ export default function AddressAutocomplete<T extends Record<string, unknown>>({
     () =>
       addresses.map((address: ICustomerAddress) => ({
         value: address.addressId.toString(),
-        label: address.address1,
+        label: address.billName + " - " + address.address1,
       })),
     [addresses]
   )

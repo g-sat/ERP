@@ -68,7 +68,12 @@ export default function ContactAutocomplete<T extends Record<string, unknown>>({
     () =>
       contacts.map((contact: ICustomerContact) => ({
         value: contact.contactId.toString(),
-        label: contact.contactName,
+        label:
+          contact.contactName +
+          " - " +
+          contact.offNo +
+          " - " +
+          contact.emailAdd,
       })),
     [contacts]
   )

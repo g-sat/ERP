@@ -241,7 +241,7 @@ export function MedicalAssistanceForm({
                 label="Transport Details"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="hotelName"
                 label="Hotel Name"

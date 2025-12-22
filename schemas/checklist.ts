@@ -52,8 +52,8 @@ export const JobOrderHdSchema = z
     invoiceNo: z.string().optional(),
     accountDate: z.union([z.date(), z.string()]).optional(),
     seriesDate: z.union([z.date(), z.string()]).optional(),
-    addressId: z.number().min(1, "Address is required"),
-    contactId: z.number().min(1, "Contact is required"),
+    addressId: z.number().optional(),
+    contactId: z.number().optional(),
     remarks: z
       .string()
       .max(255, "Remarks must be less than 250 characters")
