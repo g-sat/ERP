@@ -41,6 +41,7 @@ interface TechnicianSurveyorTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -59,6 +60,7 @@ export function TechnicianSurveyorTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: TechnicianSurveyorTableProps) {
   const { decimals } = useAuthStore()
@@ -399,6 +401,7 @@ export function TechnicianSurveyorTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}

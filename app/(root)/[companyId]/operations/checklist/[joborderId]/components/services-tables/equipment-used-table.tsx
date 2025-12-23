@@ -27,6 +27,7 @@ interface EquipmentUsedTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -44,6 +45,7 @@ export function EquipmentUsedTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: EquipmentUsedTableProps) {
   const { decimals } = useAuthStore()
@@ -361,6 +363,7 @@ export function EquipmentUsedTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}

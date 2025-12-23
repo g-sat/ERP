@@ -27,6 +27,7 @@ interface LaunchServiceTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -44,6 +45,7 @@ export function LaunchServiceTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: LaunchServiceTableProps) {
   const { decimals } = useAuthStore()
@@ -514,6 +516,7 @@ export function LaunchServiceTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}

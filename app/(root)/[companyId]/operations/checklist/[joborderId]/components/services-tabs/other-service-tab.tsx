@@ -9,22 +9,35 @@ import {
   IOtherService,
 } from "@/interfaces/checklist"
 import { OtherServiceSchemaType } from "@/schemas/checklist"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
-import { getData } from "@/lib/api-client"
-import { JobOrder_DebitNote, JobOrder_OtherService } from "@/lib/api-routes"
+import { apiClient, getData } from "@/lib/api-client"
+import {
+  JobOrder,
+  JobOrder_DebitNote,
+  JobOrder_OtherService,
+} from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
+import { CompanyAutocomplete } from "@/components/autocomplete"
+import JobOrderCompanyAutocomplete from "@/components/autocomplete/autocomplete-joborder-company"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
@@ -95,6 +108,30 @@ export function OtherServiceTab({
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   // Key to reset table selection state
   const [tableResetKey, setTableResetKey] = useState(0)
+
+  // Clone Task Dialog State
+  const [showCloneTaskDialog, setShowCloneTaskDialog] = useState(false)
+  const [showCloneTaskConfirmDialog, setShowCloneTaskConfirmDialog] =
+    useState(false)
+  const [isCloning, setIsCloning] = useState(false)
+
+  // Clone Task Form Schema
+  const cloneTaskSchema = z.object({
+    toCompanyId: z.number().min(1, "Please select a company"),
+    toJobOrderId: z.number().min(1, "Please select a job order"),
+  })
+
+  type CloneTaskFormType = z.infer<typeof cloneTaskSchema>
+
+  const cloneTaskForm = useForm<CloneTaskFormType>({
+    resolver: zodResolver(cloneTaskSchema),
+    defaultValues: {
+      toCompanyId: 0,
+      toJobOrderId: 0,
+    },
+  })
+
+  const selectedCompanyId = cloneTaskForm.watch("toCompanyId")
 
   const jobDataProps = useMemo(
     () => ({
@@ -300,6 +337,17 @@ export function OtherServiceTab({
     setShowCombinedServiceModal(true)
   }, [])
 
+  // Handler for clone task from table header - receives selectedIds from table
+  const handleCloneTaskClick = useCallback((selectedIds: string[]) => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one other service to clone")
+      return
+    }
+    // Store selected IDs for use in clone API call
+    setSelectedItems(selectedIds)
+    setShowCloneTaskDialog(true)
+  }, [])
+
   const handleClearSelection = useCallback(() => {
     setSelectedItems([])
     // Reset table selection by changing key
@@ -446,6 +494,61 @@ export function OtherServiceTab({
     refetch()
   }, [refetch])
 
+  const handleCloneTask = async () => {
+    const formValues = cloneTaskForm.getValues()
+
+    if (!formValues.toCompanyId || !formValues.toJobOrderId) {
+      toast.error("Please select both company and job order")
+      return
+    }
+
+    if (selectedItems.length === 0) {
+      toast.error("Please select at least one other service to clone")
+      return
+    }
+
+    setIsCloning(true)
+    try {
+      // Prepare clone request data according to API specification
+      const cloneData = {
+        toCompanyId: formValues.toCompanyId as number,
+        fromTaskId: Task.OtherService,
+        fromJobOrderId: jobData.jobOrderId,
+        toJobOrderId: formValues.toJobOrderId,
+        multipleId: selectedItems.join(","),
+      }
+
+      const response = await apiClient.post(
+        JobOrder.cloneTaskChecklist,
+        cloneData
+      )
+
+      if (response.data.result === 1) {
+        toast.success(
+          response.data.message ||
+            "Other service cloned to different company successfully!"
+        )
+
+        // Close dialogs
+        setShowCloneTaskDialog(false)
+        setShowCloneTaskConfirmDialog(false)
+        cloneTaskForm.reset()
+        handleClearSelection()
+
+        // Refresh the data
+        refetch()
+        onTaskAdded?.()
+      } else {
+        toast.error(response.data.message || "Failed to clone other service")
+      }
+    } catch (error) {
+      console.error("Error cloning other service to different company:", error)
+      toast.error("Failed to clone other service. Please try again.")
+    } finally {
+      setIsCloning(false)
+    }
+  }
+
   // Handle debit note delete
   const handleDeleteDebitNote = useCallback(
     async (debitNoteId: number) => {
@@ -494,6 +597,7 @@ export function OtherServiceTab({
             onEditActionOtherService={handleEdit}
             onCreateActionOtherService={handleCreateOtherService}
             onCombinedService={handleCombinedService}
+            onCloneTask={handleCloneTaskClick}
             onDebitNoteAction={handleDebitNote}
             onPurchaseAction={handlePurchase}
             onRefreshAction={handleRefreshOtherService}
@@ -652,6 +756,98 @@ export function OtherServiceTab({
         }
         isDeleting={deleteMutation.isPending}
       />
+
+      {/* Clone Task Dialog */}
+      <Dialog
+        open={showCloneTaskDialog}
+        onOpenChange={(open) => {
+          setShowCloneTaskDialog(open)
+          if (!open) {
+            cloneTaskForm.reset()
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clone Task to Different Company</DialogTitle>
+            <DialogDescription>
+              Select the target company and job order to clone{" "}
+              {selectedItems.length} selected other service item(s).
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...cloneTaskForm}>
+            <form className="space-y-4">
+              <CompanyAutocomplete
+                form={cloneTaskForm}
+                name="toCompanyId"
+                label="Company"
+                isRequired
+              />
+              <JobOrderCompanyAutocomplete
+                form={cloneTaskForm}
+                name="toJobOrderId"
+                label="Job Order"
+                isRequired
+                isDisabled={!selectedCompanyId}
+                companyId={selectedCompanyId as number}
+              />
+            </form>
+          </Form>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCloneTaskDialog(false)
+                cloneTaskForm.reset()
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const formValues = cloneTaskForm.getValues()
+                if (!formValues.toCompanyId || !formValues.toJobOrderId) {
+                  toast.error("Please select both company and job order")
+                  return
+                }
+                setShowCloneTaskConfirmDialog(true)
+              }}
+              disabled={isCloning}
+            >
+              Clone
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clone Task Confirmation Dialog */}
+      <Dialog
+        open={showCloneTaskConfirmDialog}
+        onOpenChange={setShowCloneTaskConfirmDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Clone</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to clone {selectedItems.length} other
+              service item(s) to the selected company and job order? This action
+              will create new records in the target job order.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCloneTaskConfirmDialog(false)}
+              disabled={isCloning}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCloneTask} disabled={isCloning}>
+              {isCloning ? "Cloning..." : "Yes, Clone"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

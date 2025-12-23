@@ -41,6 +41,7 @@ interface ConsignmentExportTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -59,6 +60,7 @@ export function ConsignmentExportTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: ConsignmentExportTableProps) {
   const { decimals } = useAuthStore()
@@ -296,6 +298,7 @@ export function ConsignmentExportTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}

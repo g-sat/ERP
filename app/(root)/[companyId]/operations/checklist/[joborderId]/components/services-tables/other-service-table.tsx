@@ -27,6 +27,7 @@ interface OtherServiceTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -44,6 +45,7 @@ export function OtherServiceTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: OtherServiceTableProps) {
   const { decimals } = useAuthStore()
@@ -313,6 +315,7 @@ export function OtherServiceTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}

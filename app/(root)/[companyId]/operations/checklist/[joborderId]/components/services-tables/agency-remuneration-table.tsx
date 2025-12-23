@@ -41,6 +41,7 @@ interface AgencyRemunerationTableProps {
   moduleId?: number
   transactionId?: number
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
 }
 
@@ -59,6 +60,7 @@ export function AgencyRemunerationTable({
   moduleId,
   transactionId,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
 }: AgencyRemunerationTableProps) {
   const { decimals } = useAuthStore()
@@ -264,6 +266,7 @@ export function AgencyRemunerationTable({
         onDebitNoteAction={handleDebitNote}
         onPurchaseAction={onPurchaseAction}
         onCombinedService={onCombinedService}
+        onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}
