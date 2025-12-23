@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { DebitNoteDtSchemaType, debitNoteDtSchema } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
@@ -111,6 +111,36 @@ export default function DebitNoteForm({
           ...defaultValues,
         },
   })
+
+  // Reset form when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        debitNoteId: initialData?.debitNoteId ?? debitNoteHd?.debitNoteId ?? 0,
+        debitNoteNo: initialData?.debitNoteNo ?? debitNoteHd?.debitNoteNo ?? "",
+        itemNo: initialData?.itemNo ?? 0,
+        taskId: taskId,
+        chargeId: initialData?.chargeId ?? 0,
+        qty: initialData?.qty ?? 0,
+        unitPrice: initialData?.unitPrice ?? 0,
+        totAmt: initialData?.totAmt ?? 0,
+        gstId: initialData?.gstId ?? 0,
+        gstPercentage: initialData?.gstPercentage ?? 0,
+        gstAmt: initialData?.gstAmt ?? 0,
+        totAmtAftGst: initialData?.totAmtAftGst ?? 0,
+        remarks: initialData?.remarks ?? "",
+        editVersion: initialData?.editVersion ?? 0,
+        totLocalAmt: initialData?.totLocalAmt ?? 0,
+        isServiceCharge: initialData?.isServiceCharge ?? false,
+        serviceCharge: initialData?.serviceCharge ?? 0,
+      })
+    } else {
+      // Reset to default values when initialData is cleared (create mode)
+      form.reset(defaultValues)
+    }
+    // Use itemNo as the key to detect changes - when it changes or becomes undefined, reset form
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.itemNo, form])
 
   const onSubmit = (data: DebitNoteDtSchemaType) => {
     submitAction(data)
