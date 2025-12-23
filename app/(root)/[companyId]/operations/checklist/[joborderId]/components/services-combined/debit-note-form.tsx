@@ -1,13 +1,19 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
+import { calculateMultiplierAmount } from "@/helpers/account"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
+import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
 import { DebitNoteDtSchemaType, debitNoteDtSchema } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { useChartOfAccountLookup } from "@/hooks/use-lookup"
+import { getData } from "@/lib/api-client"
+import { BasicSetting } from "@/lib/api-routes"
+import { parseDate } from "@/lib/date-utils"
+import { useChartOfAccountLookup, useGstLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
@@ -53,6 +59,9 @@ export default function DebitNoteForm({
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(companyId)
   )
+
+  // Get GST data for lookups
+  const { data: allGst = [] } = useGstLookup()
 
   const defaultValues = useMemo(
     () => ({
@@ -142,6 +151,181 @@ export default function DebitNoteForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.itemNo, form])
 
+  // Helper function to calculate totAmtAftGst = totAmt + gstAmt
+  const calculateTotAmtAftGst = useCallback(() => {
+    const totAmt = form.getValues("totAmt") || 0
+    const gstAmt = form.getValues("gstAmt") || 0
+    const calculatedTotAmtAftGst = totAmt + gstAmt
+    requestAnimationFrame(() => {
+      form.setValue("totAmtAftGst", calculatedTotAmtAftGst, {
+        shouldDirty: false,
+      })
+    })
+  }, [form])
+
+  // Helper function to calculate totAmt = qty * unitPrice
+  const calculateTotAmt = useCallback(() => {
+    if (isConfirmed) return
+    const qty = form.getValues("qty") || 0
+    const unitPrice = form.getValues("unitPrice") || 0
+    const calculatedTotAmt = calculateMultiplierAmount(qty, unitPrice, amtDec)
+    requestAnimationFrame(() => {
+      form.setValue("totAmt", calculatedTotAmt, { shouldDirty: false })
+      calculateTotAmtAftGst()
+    })
+  }, [form, amtDec, isConfirmed, calculateTotAmtAftGst])
+
+  // Helper function to calculate gstAmt and update related fields
+  const calculateGstAmt = useCallback(() => {
+    if (isConfirmed) return
+    const gstId = form.getValues("gstId")
+    const totAmt = form.getValues("totAmt") || 0
+
+    if (gstId && gstId > 0) {
+      const selectedGst = allGst.find((gst: IGstLookup) => gst.gstId === gstId)
+      if (selectedGst) {
+        const gstPercentage = selectedGst.gstPercentage || 0
+        requestAnimationFrame(() => {
+          form.setValue("gstPercentage", gstPercentage, { shouldDirty: false })
+          const calculatedGstAmt = calculateMultiplierAmount(
+            totAmt,
+            gstPercentage / 100,
+            amtDec
+          )
+          form.setValue("gstAmt", calculatedGstAmt, { shouldDirty: false })
+          calculateTotAmtAftGst()
+        })
+      }
+    } else {
+      requestAnimationFrame(() => {
+        form.setValue("gstPercentage", 0, { shouldDirty: false })
+        form.setValue("gstAmt", 0, { shouldDirty: false })
+        calculateTotAmtAftGst()
+      })
+    }
+  }, [form, allGst, amtDec, isConfirmed, calculateTotAmtAftGst])
+
+  // Handler for qty change
+  const handleQtyChange = useCallback(() => {
+    calculateTotAmt()
+  }, [calculateTotAmt])
+
+  // Handler for unitPrice change
+  const handleUnitPriceChange = useCallback(() => {
+    calculateTotAmt()
+  }, [calculateTotAmt])
+
+  // Handler for totAmt change (when manually entered)
+  const handleTotAmtChange = useCallback(() => {
+    calculateGstAmt()
+  }, [calculateGstAmt])
+
+  // Handler for gstAmt change (when manually entered)
+  const handleGstAmtChange = useCallback(() => {
+    calculateTotAmtAftGst()
+  }, [calculateTotAmtAftGst])
+
+  // 4. Handle charge name change - update remarks
+  const handleChargeChange = useCallback(
+    (selectedCharge: IChargeLookup | null) => {
+      if (selectedCharge && selectedCharge.chargeName) {
+        const currentRemarks = form.getValues("remarks") || ""
+        // Only update if remarks is empty or if it matches the previous charge name
+        if (!currentRemarks || currentRemarks.trim() === "") {
+          form.setValue("remarks", selectedCharge.chargeName, {
+            shouldDirty: false,
+          })
+        }
+        onChargeChange?.(selectedCharge.chargeName)
+      } else {
+        onChargeChange?.("")
+      }
+    },
+    [form, onChargeChange]
+  )
+
+  // 5. Handle GST change - get percentage and calculate gstAmt
+  const handleGstChange = useCallback(async () => {
+    const gstId = form.getValues("gstId")
+    const debitNoteDate = debitNoteHd?.debitNoteDate || new Date()
+
+    // Check if gstId exists before making API call
+    if (!gstId || gstId === 0) {
+      form.setValue("gstPercentage", 0, { shouldDirty: false })
+      form.setValue("gstAmt", 0, { shouldDirty: false })
+      calculateTotAmtAftGst()
+      return
+    }
+
+    try {
+      // Format date for API (yyyy-MM-dd format)
+      const dateValue = debitNoteDate
+      const date =
+        dateValue instanceof Date
+          ? dateValue
+          : parseDate(
+              typeof dateValue === "string" ? dateValue : String(dateValue)
+            ) || new Date(dateValue)
+
+      if (!date || isNaN(date.getTime())) {
+        console.error("Invalid date for GST percentage lookup")
+        return
+      }
+
+      const formattedDate = format(date, "yyyy-MM-dd")
+
+      // Fetch GST percentage from API based on gstId and date
+      const res = await getData(
+        `${BasicSetting.getGstPercentage}/${gstId}/${formattedDate}`
+      )
+
+      const gstPercentage = res?.data as number
+
+      console.log("gstPercentage", gstPercentage)
+
+      if (gstPercentage !== undefined && gstPercentage !== null) {
+        requestAnimationFrame(() => {
+          // Set the GST percentage
+          form.setValue("gstPercentage", gstPercentage, { shouldDirty: false })
+          form.trigger("gstPercentage")
+
+          // Calculate GST amount from the fetched percentage
+          const totAmt = form.getValues("totAmt") || 0
+          const calculatedGstAmt = calculateMultiplierAmount(
+            totAmt,
+            gstPercentage / 100,
+            amtDec
+          )
+          form.setValue("gstAmt", calculatedGstAmt, { shouldDirty: false })
+
+          // Recalculate total amount after GST
+          calculateTotAmtAftGst()
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching GST percentage:", error)
+      // Fallback to using GST lookup data if API fails
+      const selectedGst = allGst.find((gst: IGstLookup) => gst.gstId === gstId)
+      if (selectedGst) {
+        const gstPercentage = selectedGst.gstPercentage || 0
+        requestAnimationFrame(() => {
+          form.setValue("gstPercentage", gstPercentage, {
+            shouldDirty: false,
+          })
+          // Calculate GST amount from the lookup percentage
+          const totAmt = form.getValues("totAmt") || 0
+          const calculatedGstAmt = calculateMultiplierAmount(
+            totAmt,
+            gstPercentage / 100,
+            amtDec
+          )
+          form.setValue("gstAmt", calculatedGstAmt, { shouldDirty: false })
+          calculateTotAmtAftGst()
+        })
+      }
+    }
+  }, [form, debitNoteHd, allGst, amtDec, calculateTotAmtAftGst])
+
   const onSubmit = (data: DebitNoteDtSchemaType) => {
     submitAction(data)
   }
@@ -179,6 +363,7 @@ export default function DebitNoteForm({
                     taskId={taskId}
                     isRequired={true}
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleChargeChange}
                   />
                 </div>
 
@@ -187,8 +372,9 @@ export default function DebitNoteForm({
                     form={form}
                     name="qty"
                     label="Qty"
-                    round={0}
+                    round={amtDec}
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleQtyChange}
                   />
                 </div>
 
@@ -199,6 +385,7 @@ export default function DebitNoteForm({
                     label="Unit Price"
                     round={amtDec}
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleUnitPriceChange}
                   />
                 </div>
 
@@ -219,6 +406,7 @@ export default function DebitNoteForm({
                     label="Total Amt"
                     round={amtDec}
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleTotAmtChange}
                   />
                 </div>
                 <div className="col-span-1">
@@ -227,6 +415,7 @@ export default function DebitNoteForm({
                     name="gstId"
                     label="Vat"
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleGstChange}
                   />
                 </div>
 
@@ -247,6 +436,7 @@ export default function DebitNoteForm({
                     label="Vat Amt"
                     round={amtDec}
                     isDisabled={isConfirmed}
+                    onChangeEvent={handleGstAmtChange}
                   />
                 </div>
 

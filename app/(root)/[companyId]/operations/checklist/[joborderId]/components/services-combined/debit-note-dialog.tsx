@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import {
   calculateDivisionAmount,
   calculateMultiplierAmount,
+  calculatePercentagecAmount,
 } from "@/helpers/account"
 import { calculateDebitNoteSummary } from "@/helpers/debit-note-calculations"
 import {
@@ -240,7 +241,7 @@ export default function DebitNoteDialog({
       if (serviceCharge <= 0 || totAmtAftGst <= 0) return
 
       // Calculate unitPrice = totAmtAftGst / serviceCharge using account helper
-      const unitPrice = calculateDivisionAmount(
+      const unitPrice = calculatePercentagecAmount(
         totAmtAftGst,
         serviceCharge,
         amtDec
