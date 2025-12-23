@@ -219,8 +219,8 @@ export function LaunchServiceTable({
         accessorKey: "deliveredWeight",
         header: "Cargo Delivered",
         cell: ({ row }) => {
-          const value = row.getValue("deliveredWeight") as number
-          return <div className="text-wrap">{value ? `${value} MT` : "-"}</div>
+          const value = row.getValue("deliveredWeight") as number | null | undefined
+          return <div className="text-right">{value != null ? `${value} MT` : "-"}</div>
         },
         size: 150,
         minSize: 120,
@@ -230,8 +230,8 @@ export function LaunchServiceTable({
         accessorKey: "landedWeight",
         header: "Cargo Landed",
         cell: ({ row }) => {
-          const value = row.getValue("landedWeight") as number
-          return <div className="text-wrap">{value ? `${value} MT` : "-"}</div>
+          const value = row.getValue("landedWeight") as number | null | undefined
+          return <div className="text-right">{value != null ? `${value} MT` : "-"}</div>
         },
         size: 150,
         minSize: 120,

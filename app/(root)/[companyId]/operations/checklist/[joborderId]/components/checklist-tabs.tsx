@@ -475,13 +475,13 @@ export function ChecklistTabs({
             <TabsTrigger value="main">
               <div className="flex items-center gap-1">
                 <span className="text-xs">📋</span>
-                <span className="text-xs sm:text-sm">Main</span>
+                <span className="text-xs sm:text-sm">Checklist Summary</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="details">
               <div className="flex items-center gap-1">
                 <span className="text-xs">📊</span>
-                <span className="text-xs sm:text-sm">Details</span>
+                <span className="text-xs sm:text-sm">Service List</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="history">

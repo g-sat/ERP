@@ -170,18 +170,20 @@ export function OtherServiceTable({
       {
         accessorKey: "quantity",
         header: "Quantity",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
-        ),
+        cell: ({ row }) => {
+          const value = row.getValue("quantity") as number | null | undefined
+          return <div className="text-right">{value != null ? value : "-"}</div>
+        },
         size: 100,
         minSize: 80,
       },
       {
         accessorKey: "amount",
         header: "Amount",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("amount") || "-"}</div>
-        ),
+        cell: ({ row }) => {
+          const value = row.getValue("amount") as number | null | undefined
+          return <div className="text-right">{value != null ? value : "-"}</div>
+        },
         size: 120,
         minSize: 100,
       },

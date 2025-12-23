@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 import { AnimatePresence, motion } from "framer-motion"
-import { AlertTriangle, Lock, LockKeyhole, Unlock } from "lucide-react"
+import { AlertTriangle, Lock, LockKeyhole, LogOut, Unlock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -66,8 +66,14 @@ type BroadcastMessage = {
 export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
   // State Management
   // ---------------
-  const { isAuthenticated, user, applocklogIn, isAppLocked, setAppLocked } =
-    useAuthStore()
+  const {
+    isAuthenticated,
+    user,
+    applocklogIn,
+    isAppLocked,
+    setAppLocked,
+    logOut,
+  } = useAuthStore()
   const [isClient, setIsClient] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
   const [password, setPassword] = useState("")
@@ -627,36 +633,63 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                         </motion.p>
                       )}
                     </AnimatePresence>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        type="submit"
-                        className="mx-auto h-10 w-64 gap-2"
-                        disabled={isUnlocking || !password.trim()}
+                    <div className="flex flex-col gap-3">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        {isUnlocking ? (
-                          <>
-                            <motion.div
-                              className="h-4 w-4 rounded-full border-2 border-current border-t-transparent"
-                              animate={{ rotate: 360 }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                ease: "linear",
-                              }}
-                            />
-                            Unlocking...
-                          </>
-                        ) : (
-                          <>
-                            <Unlock className="h-4 w-4" />
-                            Unlock
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
+                        <Button
+                          type="submit"
+                          className="mx-auto h-10 w-64 gap-2"
+                          disabled={isUnlocking || !password.trim()}
+                        >
+                          {isUnlocking ? (
+                            <>
+                              <motion.div
+                                className="h-4 w-4 rounded-full border-2 border-current border-t-transparent"
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear",
+                                }}
+                              />
+                              Unlocking...
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="h-4 w-4" />
+                              Unlock
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="mx-auto h-10 w-64 gap-2"
+                          disabled={isUnlocking}
+                          onClick={async () => {
+                            setIsLocked(false)
+                            setAppLocked(false)
+                            setPassword("")
+                            setFailedAttempts(0)
+                            setError("")
+                            setMessage("")
+                            sessionStorage.removeItem(LOCK_STATE_KEY)
+                            await logOut()
+                            router.push("/login")
+                          }}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </Button>
+                      </motion.div>
+                    </div>
                     <AnimatePresence>
                       {message && (
                         <motion.p

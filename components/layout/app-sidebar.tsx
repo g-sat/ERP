@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Anchor,
   ArrowLeftRight,
+  Award,
   Banknote,
   BarChart,
   BookOpen,
@@ -19,7 +20,9 @@ import {
   CalendarCheck,
   CalendarDays,
   ChartArea,
+  CheckCircle,
   ChevronRightIcon,
+  CircleDot,
   CircleUserRound,
   ClipboardList,
   Clock,
@@ -38,12 +41,15 @@ import {
   Grid,
   HandCoins,
   History,
+  Key,
   Landmark,
   LayoutDashboard,
   ListCheck,
   Lock,
   MapPin,
   MinusCircle,
+  Package,
+  Pencil,
   PlusCircle,
   Receipt,
   Scale,
@@ -54,6 +60,8 @@ import {
   ShieldCheck,
   Ship,
   Sliders,
+  Target,
+  Truck,
   Undo2,
   UserCheck,
   UserRoundPen,
@@ -186,6 +194,7 @@ const getTransactionIcon = (transactionCode: string) => {
     refund: Undo2,
     adjustment: Sliders,
     documentsetoff: FileStack,
+    docsetoff: FileStack,
     arreports: BarChart,
     payment: MinusCircle,
     batchpayment: FileStack,
@@ -197,6 +206,7 @@ const getTransactionIcon = (transactionCode: string) => {
     journalentry: BookOpen,
     arapcontra: ArrowLeftRight,
     yearend: CalendarCheck,
+    yearendprocess: CalendarCheck,
     periodclose: Lock,
     openingbalance: Scale,
     users: Users,
@@ -217,6 +227,28 @@ const getTransactionIcon = (transactionCode: string) => {
     account: Briefcase,
     mandatory: FileMinus,
     visible: FilePlus,
+    // Master transactions
+    carrier: Truck,
+    consignmenttype: Package,
+    jobstatus: CheckCircle,
+    landingpurpose: Target,
+    landingtype: MapPin,
+    passtype: Key,
+    rank: Award,
+    servicemode: Sliders,
+    taskstatus: CircleDot,
+    vatservicecategory: FileText,
+    visa: Globe,
+    // Cash Book transactions
+    cbbankrecon: Scale,
+    cbbanktransfer: ArrowLeftRight,
+    cbbanktransferctm: ArrowLeftRight,
+    cbgenpayment: MinusCircle,
+    cbgenreceipt: PlusCircle,
+    cbpettycash: HandCoins,
+    // AR transactions
+    invoice_edit: Pencil,
+    invoicectm: Receipt,
   }
   return iconMap[transactionCode.toLowerCase()] || FileText
 }
@@ -327,33 +359,45 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
   return filteredMenu
 }
 
-export const menuData = {
+// Type definition for main navigation menu items
+interface MainNavItem {
+  title: string
+  url: string
+  icon: React.ComponentType<{ className?: string }>
+  items?: Array<{
+    title: string
+    url: string
+    icon: React.ComponentType<{ className?: string }>
+  }>
+}
+
+export const menuData: { mainNav: MainNavItem[] } = {
   mainNav: [
     {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
     },
-    {
-      title: "Approvals",
-      url: "/approvals",
-      icon: FileCheck,
-    },
-    {
-      title: "Document",
-      url: "/document",
-      icon: FileText,
-    },
-    {
-      title: "Requests",
-      url: "/requests",
-      icon: ClipboardList,
-      items: [
-        { title: "Loan", url: "/requests/loan", icon: Wallet },
-        { title: "Leave", url: "/requests/leave", icon: CalendarDays },
-        { title: "Petty Cash", url: "/requests/pettycash", icon: HandCoins },
-      ],
-    },
+    // {
+    //   title: "Approvals",
+    //   url: "/approvals",
+    //   icon: ShieldCheck,
+    // },
+    // {
+    //   title: "Document",
+    //   url: "/document",
+    //   icon: FileStack,
+    // },
+    // {
+    //   title: "Requests",
+    //   url: "/requests",
+    //   icon: ClipboardList,
+    //   items: [
+    //     { title: "Loan", url: "/requests/loan", icon: Wallet },
+    //     { title: "Leave", url: "/requests/leave", icon: CalendarDays },
+    //     { title: "Petty Cash", url: "/requests/pettycash", icon: HandCoins },
+    //   ],
+    // },
   ],
 }
 

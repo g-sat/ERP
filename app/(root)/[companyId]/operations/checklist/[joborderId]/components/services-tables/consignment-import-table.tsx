@@ -196,9 +196,10 @@ export function ConsignmentImportTable({
       {
         accessorKey: "weight",
         header: "Weight",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
-        ),
+        cell: ({ row }) => {
+          const value = row.getValue("weight") as number | null | undefined
+          return <div className="text-right">{value != null ? value : "-"}</div>
+        },
         size: 100,
         minSize: 80,
       },
