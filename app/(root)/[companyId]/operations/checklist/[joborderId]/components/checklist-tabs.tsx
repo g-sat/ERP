@@ -179,12 +179,12 @@ export function ChecklistTabs({
     const locAmtDec = decimals[0]?.locAmtDec || 2
 
     // Determine report file and build parameters based on type
-    let reportFile = "checklist/rpt_Checklist.trdp"
+    let reportFile = "checklist/Checklist.trdp"
     let reportParams: Record<string, string | number> = {}
 
     switch (reportType) {
       case "checklist":
-        reportFile = "checklist/rpt_Checklist.trdp"
+        reportFile = "checklist/Checklist.trdp"
         // Build report parameters - same structure as ar/report
         reportParams = {
           companyId: companyId,
@@ -196,7 +196,7 @@ export function ChecklistTabs({
         }
         break
       case "purchaseList":
-        reportFile = "checklist/rpt_PurchaseList.trdp"
+        reportFile = "checklist/PurchaseList.trdp"
         // Build report parameters - same structure as ar/report
         reportParams = {
           companyId: companyId,
@@ -208,7 +208,7 @@ export function ChecklistTabs({
         }
         break
       case "jobSummary":
-        reportFile = "checklist/rpt_JobSummary.trdp"
+        reportFile = "checklist/JobSummary.trdp"
         // Build report parameters - same structure as ar/report
         reportParams = {
           companyId: companyId,

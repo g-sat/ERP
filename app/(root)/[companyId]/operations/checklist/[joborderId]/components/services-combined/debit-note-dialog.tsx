@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useParams } from "next/navigation"
 import {
   calculateDivisionAmount,
   calculateMultiplierAmount,
@@ -20,6 +21,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { ListChecks, Printer, Save, Trash } from "lucide-react"
+import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
@@ -69,8 +71,11 @@ export default function DebitNoteDialog({
   onClearSelection,
   jobOrder,
 }: DebitNoteDialogProps) {
-  const { decimals } = useAuthStore()
+  const params = useParams()
+  const companyId = params.companyId as string
+  const { decimals, user } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
@@ -657,7 +662,6 @@ export default function DebitNoteDialog({
         itemNo: (detailsRef.current?.length ?? 0) + index + 1,
         taskId: taskId ?? 0,
         chargeId: item?.chargeId ?? 0,
-        glId: item?.glId ?? 0,
         qty: 1, // Default quantity
         unitPrice: item?.basicRate ?? 0, // Default unit price
         totLocalAmt: 0,
@@ -745,10 +749,63 @@ export default function DebitNoteDialog({
   // Calculate summary totals using helper function with null safety
   const summaryTotals = calculateDebitNoteSummary(details ?? [], { amtDec: 2 })
 
+  // Handle Print Debit Note Report
+  const handlePrint = useCallback(() => {
+    if (
+      !debitNoteHdState ||
+      !debitNoteHdState.debitNoteId ||
+      debitNoteHdState.debitNoteId === 0
+    ) {
+      toast.error("Please select a debit note to print")
+      return
+    }
+
+    const debitNoteId = debitNoteHdState.debitNoteId?.toString() || "0"
+    const debitNoteNo = debitNoteHdState.debitNoteNo || ""
+    const jobOrderId = debitNoteHdState.jobOrderId?.toString() || "0"
+
+    // Determine report file and build parameters
+    const reportFile = "checklist/DebitNote.trdp"
+    const reportParams: Record<string, string | number> = {
+      companyId: companyId,
+      debitNoteId: debitNoteId,
+      debitNoteNo: debitNoteNo,
+      jobOrderId: jobOrderId,
+      taskId: taskId,
+      amtDec: amtDec,
+      locAmtDec: locAmtDec,
+      userName: user?.userName || "",
+    }
+
+    console.log("reportParams", reportParams)
+
+    // Store report data in sessionStorage
+    const reportData = {
+      reportFile: reportFile,
+      parameters: reportParams,
+    }
+
+    try {
+      sessionStorage.setItem(
+        `report_window_${companyId}`,
+        JSON.stringify(reportData)
+      )
+
+      // Open in a new window (not tab) with specific features
+      const windowFeatures =
+        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
+      const viewerUrl = `/${companyId}/reports/window`
+      window.open(viewerUrl, "_blank", windowFeatures)
+    } catch (error) {
+      console.error("Error opening report:", error)
+      toast.error("Failed to open report")
+    }
+  }, [debitNoteHdState, companyId, taskId, amtDec, locAmtDec, user])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+        className="max-h-[95vh] w-[80vw] !max-w-none overflow-y-auto"
         onPointerDownOutside={(e) => {
           e.preventDefault()
         }}
@@ -836,7 +893,8 @@ export default function DebitNoteDialog({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={false}
+                disabled={!debitNoteHdState?.debitNoteId}
+                onClick={handlePrint}
                 className="h-8 px-2"
                 tabIndex={102}
               >
@@ -860,7 +918,7 @@ export default function DebitNoteDialog({
 
         <div className="@container">
           {/* Form Section */}
-          <div className="bg-card mb-2 rounded-lg border p-1 shadow-sm">
+          <div className="mb-2">
             <DebitNoteForm
               debitNoteHd={debitNoteHdState}
               initialData={
@@ -873,10 +931,8 @@ export default function DebitNoteDialog({
               isSubmitting={false}
               isConfirmed={isConfirmed}
               taskId={taskId}
-              exchangeRate={debitNoteHdState?.exhRate || 1}
               companyId={debitNoteHdState?.companyId || 0}
               onChargeChange={() => {}}
-              shouldReset={shouldResetForm}
               summaryTotals={summaryTotals}
               currencyCode={jobOrder?.currencyCode}
             />
@@ -989,7 +1045,7 @@ export default function DebitNoteDialog({
             open={bulkChargesDialog.isOpen}
             onOpenChange={handleBulkDialogOpenChange}
           >
-            <DialogContent className="max-h-[90vh] w-[90vw] !max-w-none overflow-y-auto">
+            <DialogContent className="max-h-[90vh] w-[70vw] !max-w-none overflow-y-auto">
               <DialogHeader className="border-b pb-2">
                 <div className="flex items-center justify-between">
                   <div>

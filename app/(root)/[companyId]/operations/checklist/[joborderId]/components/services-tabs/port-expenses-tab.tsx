@@ -37,10 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
-import {
-  CompanyAutocomplete,
-  DynamicJobOrderAutocomplete,
-} from "@/components/autocomplete"
+import { CompanyAutocomplete } from "@/components/autocomplete"
 import JobOrderCompanyAutocomplete from "@/components/autocomplete/autocomplete-joborder-company"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"

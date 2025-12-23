@@ -5,6 +5,7 @@ import { IBulkChargeData } from "@/interfaces/checklist"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
 
 interface BulkDebitNoteTableProps {
@@ -36,15 +37,36 @@ export function BulkDebitNoteTable({
       {
         accessorKey: "chargeName",
         header: "Charge Name",
-        size: 200,
-        minSize: 150,
+        size: 300,
+        minSize: 200,
         enableColumnFilter: true,
       },
       {
         accessorKey: "remarks",
         header: "Remarks",
-        size: 350,
-        minSize: 250,
+        size: 250,
+        minSize: 200,
+      },
+      {
+        accessorKey: "isTariff",
+        header: "Tariff Status",
+        cell: ({ row }) => {
+          const isTariff = row.getValue("isTariff") as boolean
+          return (
+            <Badge
+              variant={isTariff ? "default" : "secondary"}
+              className={
+                isTariff
+                  ? "border-green-200 bg-green-100 text-green-800"
+                  : "border-red-200 bg-red-100 text-red-800"
+              }
+            >
+              {isTariff ? "Available" : "Not Available"}
+            </Badge>
+          )
+        },
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "basicRate",
@@ -62,14 +84,69 @@ export function BulkDebitNoteTable({
         minSize: 80,
       },
       {
-        accessorKey: "chargeId",
-        header: "Charge",
+        accessorKey: "minUnit",
+        header: "Min Unit",
+        cell: ({ row }) => {
+          const value = row.getValue("minUnit")
+          const numericValue = parseFloat(value as string) || 0
+          return (
+            <div className="text-right font-mono">
+              {numericValue.toFixed(2)}
+            </div>
+          )
+        },
         size: 100,
         minSize: 80,
       },
       {
-        accessorKey: "glId",
-        header: "GL",
+        accessorKey: "maxUnit",
+        header: "Max Unit",
+        cell: ({ row }) => {
+          const value = row.getValue("maxUnit")
+          const numericValue = parseFloat(value as string) || 0
+          return (
+            <div className="text-right font-mono">
+              {numericValue.toFixed(2)}
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "displayRate",
+        header: "Display Rate",
+        cell: ({ row }) => {
+          const value = row.getValue("displayRate")
+          const numericValue = parseFloat(value as string) || 0
+          return (
+            <div className="text-right font-mono">
+              {numericValue.toFixed(2)}
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "additionalRate",
+        header: "Additional Rate",
+        cell: ({ row }) => {
+          const value = row.getValue("additionalRate")
+          const numericValue = parseFloat(value as string) || 0
+          return (
+            <div className="text-right font-mono">
+              {numericValue.toFixed(2)}
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
+
+      {
+        accessorKey: "chargeId",
+        header: "Charge",
         size: 100,
         minSize: 80,
       },
@@ -148,7 +225,7 @@ export function BulkDebitNoteTable({
       onBulkSelectionChange={handleBulkSelectionChange}
       onDataReorder={onDataReorder || handleDataReorder}
       isConfirmed={isConfirmed}
-      showHeader={false}
+      showHeader={true}
       showActions={true}
       hideView={true}
       hideEdit={true}

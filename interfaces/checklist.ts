@@ -730,7 +730,6 @@ export interface IDebitNoteDt {
   taskName?: string
   chargeId: number
   chargeName?: string
-  glId?: number
   qty: number
   unitPrice: number
   totLocalAmt: number
@@ -778,6 +777,11 @@ export interface IBulkChargeData {
   taskId?: number
   taskName?: string
   basicRate: number
+  minUnit: number
+  maxUnit: number
+  displayRate: number
+  additionalRate: number
+  isTariff: boolean
 }
 
 export interface IDebitNoteItem {

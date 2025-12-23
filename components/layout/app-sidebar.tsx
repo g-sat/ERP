@@ -249,6 +249,7 @@ const getTransactionIcon = (transactionCode: string) => {
     // AR transactions
     invoice_edit: Pencil,
     invoicectm: Receipt,
+    overview: BarChart,
   }
   return iconMap[transactionCode.toLowerCase()] || FileText
 }
