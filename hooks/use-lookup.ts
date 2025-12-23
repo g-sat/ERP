@@ -1598,6 +1598,7 @@ export const useCompanyLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
 export const useJobOrderCustomerLookup = (
   customerId: number,
   jobOrderId: number
@@ -1631,6 +1632,23 @@ export const useJobOrderCustomerLookup = (
     enabled: customerId !== 0,
   })
 }
+
+export const useJobOrderCompanyLookup = (companyId: number) => {
+  return useQuery<IJobOrderLookup[]>({
+    queryKey: ["joborder-company-lookUp", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getJobOrderCompany}/${companyId}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId !== 0,
+  })
+}
+
 export const usePayrollComponentLookup = () => {
   return useQuery<IPayrollComponentLookup[]>({
     queryKey: ["payrollcomponent-lookUp"],

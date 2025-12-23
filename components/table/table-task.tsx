@@ -59,6 +59,7 @@ interface TaskTableProps<T> {
   onDebitNoteAction?: (itemId: string, debitNoteNo?: string) => void
   onPurchaseAction?: (itemId: string) => void
   onCombinedService?: (selectedIds: string[]) => void
+  onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
   showActions?: boolean
@@ -81,6 +82,7 @@ export function TaskTable<T>({
   onDebitNoteAction,
   onPurchaseAction,
   onCombinedService,
+  onCloneTask,
   isConfirmed,
   showHeader = true,
   showActions = true,
@@ -175,6 +177,16 @@ export function TaskTable<T>({
       onCombinedService(selectedRowIds)
     }
   }, [selectedRowIds, onCombinedService])
+
+  const handleCloneTask = useCallback(() => {
+    if (selectedRowIds.length === 0) {
+      return
+    }
+    if (onCloneTask) {
+      onCloneTask(selectedRowIds)
+    }
+  }, [selectedRowIds, onCloneTask])
+
   const handleDebitNoteFromActions = useCallback(
     (id: string) => {
       if (onDebitNoteAction) {
@@ -358,6 +370,7 @@ export function TaskTable<T>({
           moduleId={moduleId || 1}
           transactionId={transactionId || 1}
           onCombinedService={handleCombinedService}
+          onCloneTask={handleCloneTask}
           onDebitNoteAction={(debitNoteNo, selectedIds) => {
             if (selectedIds && selectedIds.length > 0 && onDebitNoteAction) {
               onDebitNoteAction(selectedIds.join(","), debitNoteNo || "")

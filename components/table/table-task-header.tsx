@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react"
 import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 import {
+  Building2,
   ClipboardList,
   Forward,
   Layout,
@@ -37,6 +38,7 @@ type TaskTableHeaderProps<TData> = {
   onRefreshAction?: () => void
   onCreateAction?: () => void
   onCombinedService?: () => void
+  onCloneTask?: () => void
   onDebitNoteAction?: (debitNoteNo?: string, selectedIds?: string[]) => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -61,6 +63,7 @@ export function TaskTableHeader<TData>({
   onRefreshAction,
   onCreateAction,
   onCombinedService,
+  onCloneTask,
   onDebitNoteAction,
   searchQuery,
   onSearchChange,
@@ -166,6 +169,13 @@ export function TaskTableHeader<TData>({
       onCombinedService()
     }
   }, [onCombinedService])
+
+  // Handle clone task click
+  const handleCloneTaskClick = useCallback(() => {
+    if (onCloneTask) {
+      onCloneTask()
+    }
+  }, [onCloneTask])
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
   const resetDefaultLayout = useDelete<IGridSetting>("/setting/deleteUserGrid")
@@ -272,6 +282,25 @@ export function TaskTableHeader<TData>({
             >
               <Forward className="h-4 w-4" />
             </Button>
+            {onCloneTask && (
+              <Button
+                variant="outline"
+                onClick={handleCloneTaskClick}
+                title={
+                  hasSelectedRows
+                    ? "Clone Task to Different Company"
+                    : "Please select at least one item first"
+                }
+                disabled={!hasSelectedRows || isConfirmed}
+                className={
+                  !hasSelectedRows || isConfirmed
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }
+              >
+                <Building2 className="h-4 w-4" />
+              </Button>
+            )}
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

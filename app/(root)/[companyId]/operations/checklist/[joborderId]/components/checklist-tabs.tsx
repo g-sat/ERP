@@ -12,7 +12,6 @@ import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Building2,
-  Copy,
   Edit3,
   FileText,
   Printer,
@@ -576,7 +575,7 @@ export function ChecklistTabs({
             </Button>
           )}
 
-          {/* Clone button - only show in edit mode */}
+          {/* Clone button - only show in edit mode
           <Button
             title="Clone"
             variant="outline"
@@ -592,11 +591,11 @@ export function ChecklistTabs({
             }}
           >
             <Copy className="h-4 w-4" />
-          </Button>
+          </Button> */}
 
           {/* Clone Company button */}
           <Button
-            title="Clone to Different Company"
+            title="Clone to Any Company"
             variant="outline"
             size="sm"
             onClick={() => {

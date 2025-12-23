@@ -309,6 +309,8 @@ export const Lookup = {
   getSupplierDynamic: "/master/getsupplierlookup_v1",
   getProductDynamic: "/master/getproductlookup_v1",
   getJobOrderDynamic: "/master/getjoborderlookup_v1",
+
+  getJobOrderCompany: "/master/getjobordercompanylookup",
 }
 
 // Universal Documents Endpoints
@@ -1162,6 +1164,7 @@ export const JobOrder = {
   getTaskCount: "/operations/gettaskcount",
   getHistory: "/operations/getjoborderbyidhistory",
   cloneChecklist: "/operations/CloneChecklist",
+  cloneTaskChecklist: "/operations/CloneTaskFromChecklist",
 }
 
 // Tariff Endpoints
