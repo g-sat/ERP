@@ -111,7 +111,7 @@ export function MedicalAssistanceForm({
       clearing: initialData?.clearing ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
-      cidClearance: initialData?.cidClearance ?? "",
+      clinicName: initialData?.clinicName ?? "",
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -153,7 +153,7 @@ export function MedicalAssistanceForm({
       clearing: initialData?.clearing ?? "",
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
-      cidClearance: initialData?.cidClearance ?? "",
+      clinicName: initialData?.clinicName ?? "",
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -281,8 +281,8 @@ export function MedicalAssistanceForm({
               />
               <CustomTextarea
                 form={form}
-                name="cidClearance"
-                label="CID Clearance"
+                name="clinicName"
+                label="Clinic Name"
                 isDisabled={isConfirmed}
               />
 

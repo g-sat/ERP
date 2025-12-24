@@ -472,7 +472,6 @@ export default function DebitNoteDialog({
         debitNoteDate: debitNoteHdState?.debitNoteDate ?? new Date(),
         itemNo: debitNoteHdState?.itemNo ?? 0,
         taskId: debitNoteHdState?.taskId ?? 0,
-        serviceId: debitNoteHdState?.serviceId ?? 0,
         chargeId: debitNoteHdState?.chargeId ?? 0,
         currencyId: debitNoteHdState?.currencyId ?? 0,
         exhRate: debitNoteHdState?.exhRate ?? 1,

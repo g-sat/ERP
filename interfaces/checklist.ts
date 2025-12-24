@@ -545,7 +545,7 @@ export interface IMedicalAssistance {
   clearing?: string
   overStayRemark?: string
   modificationRemark?: string
-  cidClearance?: string
+  clinicName?: string
   taskStatusId: number
   taskStatusName?: string
   remarks: string
@@ -703,8 +703,6 @@ export interface IDebitNoteHd {
   jobOrderId: number
   taskId: number
   taskName?: string
-  serviceId: number
-  serviceName?: string
   chargeId: number
   chargeName?: string
   glId?: number

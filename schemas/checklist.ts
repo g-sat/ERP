@@ -441,9 +441,9 @@ export const MedicalAssistanceSchema = z.object({
     .max(255, "Modification Remark must be less than 255 characters")
     .optional()
     .optional(),
-  cidClearance: z
+  clinicName: z
     .string()
-    .max(255, "CID Clearance must be less than 255 characters")
+    .max(255, "Clinic Name must be less than 255 characters")
     .optional()
     .optional(),
   taskStatusId: z.number().min(1, "Status is required"),
@@ -690,7 +690,6 @@ export const debitNoteHdSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   itemNo: z.number().min(0, "Item Number is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  serviceId: z.number().min(1, "Service ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
   currencyId: z.number().min(1, "Currency is required"),
   exhRate: z.number().min(0, "Exchange rate must be 0 or greater"),
