@@ -130,6 +130,7 @@ export function LaunchServiceForm({
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
@@ -524,6 +525,12 @@ export function LaunchServiceForm({
               form={form}
               name="remarks"
               label="Remarks"
+              isDisabled={isConfirmed}
+            />
+            <CustomInput
+              form={form}
+              name="poNo"
+              label="PO No"
               isDisabled={isConfirmed}
             />
 

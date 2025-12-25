@@ -114,6 +114,7 @@ export function EquipmentUsedForm({
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -156,6 +157,7 @@ export function EquipmentUsedForm({
         initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -347,6 +349,12 @@ export function EquipmentUsedForm({
                 </div>
               </div>
             </div>
+            <CustomInput
+              form={form}
+              name="poNo"
+              label="PO No"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Section */}
             {initialData &&

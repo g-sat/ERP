@@ -84,6 +84,13 @@ export function PortsTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "portShortName",
+      header: "Short Name",
+      size: 150,
+      minSize: 50,
+      enableColumnFilter: true,
+    },
+    {
       accessorKey: "portRegionName",
       header: "Region",
       cell: ({ row }) => (

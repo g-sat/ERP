@@ -106,6 +106,7 @@ export function LandingItemsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -140,6 +141,7 @@ export function LandingItemsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -244,6 +246,12 @@ export function LandingItemsForm({
               form={form}
               name="remarks"
               label="Remarks"
+              isDisabled={isConfirmed}
+            />
+            <CustomInput
+              form={form}
+              name="poNo"
+              label="PO No"
               isDisabled={isConfirmed}
             />
 

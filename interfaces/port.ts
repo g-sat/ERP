@@ -3,6 +3,7 @@ export interface IPort {
   portId: number
   portCode: string
   portName: string
+  portShortName: string
   portRegionId: number
   portRegionCode: string
   portRegionName: string

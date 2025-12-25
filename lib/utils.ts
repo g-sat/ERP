@@ -156,6 +156,8 @@ export enum MasterTransactionId {
   jobStatus = 63,
   vatServiceCategory = 64,
   bargeGLMapping = 65,
+  transportLocation = 66,
+  transportMode = 67,
 }
 
 export enum AdminTransactionId {
@@ -447,6 +449,8 @@ export enum TableName {
   consignmentType = "M_ConsignmentType",
   jobStatus = "M_JobStatus",
   vatServiceCategory = "M_VATServiceCategory",
+  transportLocation = "M_TransportLocation",
+  transportMode = "M_TransportMode",
 
   // operations
   checklist = "checklist",

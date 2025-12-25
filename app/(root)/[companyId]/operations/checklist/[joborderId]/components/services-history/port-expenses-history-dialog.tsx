@@ -168,6 +168,18 @@ export function PortExpensesHistoryDialog({
       minSize: 150,
     },
     {
+      accessorKey: "debitNoteNo",
+      header: "Debit Note",
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
+    },
+    {
       accessorKey: "createBy",
       header: "Create By",
 

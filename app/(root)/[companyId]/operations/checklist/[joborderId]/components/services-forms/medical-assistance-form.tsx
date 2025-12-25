@@ -115,6 +115,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     },
@@ -157,6 +158,7 @@ export function MedicalAssistanceForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       visaId: initialData?.visaId ?? 106,
       editVersion: initialData?.editVersion ?? 0,
     })
@@ -296,6 +298,12 @@ export function MedicalAssistanceForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

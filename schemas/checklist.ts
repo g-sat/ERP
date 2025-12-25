@@ -115,6 +115,7 @@ export const AgencyRemunerationSchema = z.object({
   chargeId: z.number().min(1, "Charge is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   taskStatusId: z.number().min(1, "Status is required"),
   remarks: z
     .string()
@@ -164,6 +165,7 @@ export const ConsignmentExportSchema = z.object({
   description: z.string().optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   editVersion: z.number(),
 })
 
@@ -207,6 +209,7 @@ export const ConsignmentImportSchema = z.object({
     .optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   editVersion: z.number(),
 })
 
@@ -221,6 +224,7 @@ export const CrewMiscellaneousSchema = z.object({
   taskId: z.number().min(1, "Task ID is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   description: z.string().min(1, "Description is required"),
   glId: z.number().optional(),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
@@ -257,6 +261,7 @@ export const CrewSignOffSchema = z.object({
   taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   overStayRemark: z.string().optional(),
   modificationRemark: z.string().optional(),
   cidClearance: z.string().optional(),
@@ -330,6 +335,7 @@ export const CrewSignOnSchema = z.object({
   taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -357,6 +363,7 @@ export const FreshWaterSchema = z.object({
   uomId: z.number().min(1, "UOM is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   remarks: z.string().optional(),
   taskStatusId: z.number().min(1, "Status is required"),
   editVersion: z.number(),
@@ -387,6 +394,7 @@ export const LandingItemsSchema = z.object({
     .optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   editVersion: z.number(),
 })
 
@@ -454,6 +462,7 @@ export const MedicalAssistanceSchema = z.object({
     .optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   editVersion: z.number(),
 })
 
@@ -476,6 +485,7 @@ export const OtherServiceSchema = z.object({
   taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   description: z.string().optional(),
   remarks: z
     .string()
@@ -499,6 +509,8 @@ export const PortExpensesSchema = z.object({
   deliverDate: z.string().min(1, "Deliver Date is required"),
 
   debitNoteId: z.number().optional(),
+  debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -537,6 +549,7 @@ export const LaunchServiceSchema = z.object({
   taskStatusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   remarks: z.string().optional(),
   editVersion: z.number(),
 })
@@ -575,6 +588,7 @@ export const EquipmentUsedSchema = z.object({
   notes: z.string().optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   editVersion: z.number(),
 })
 
@@ -604,6 +618,7 @@ export const TechnicianSurveyorSchema = z.object({
     .optional(),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   isTransport: z.boolean().optional(),
   isHotel: z.boolean().optional(),
   editVersion: z.number(),
@@ -620,6 +635,7 @@ export const ThirdPartySchema = z.object({
   taskId: z.number().min(1, "Task ID is required"),
   debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  poNo: z.string().optional(),
   description: z.string().optional(),
   name: z.string().optional(),
   remarks: z
@@ -707,3 +723,25 @@ export const debitNoteHdSchema = z.object({
 })
 
 export type DebitNoteHdSchemaType = z.infer<typeof debitNoteHdSchema>
+
+export const TransportationLogSchema = z.object({
+  transportationLogId: z.number().optional(),
+  companyId: z.number().min(1, "Company ID is required"),
+  jobOrderId: z.number().min(1, "Job Order ID is required"),
+  taskId: z.number().min(1, "Task ID is required"),
+  serviceId: z.number().min(1, "Service ID is required"),
+  transportDate: z.union([z.date(), z.string()]).optional(),
+  fromLocationId: z.number().min(1, "From Location is required"),
+  toLocationId: z.number().min(1, "To Location is required"),
+  transportModeId: z.number().min(1, "Transport Mode is required"),
+  vehicleNo: z.string().max(50).nullable().optional(),
+  driverName: z.string().max(100).nullable().optional(),
+  passengerCount: z.number().min(0, "Passenger Count must be 0 or greater"),
+  chargeId: z.number().nullable().optional(),
+  remarks: z.string().max(500).nullable().optional(),
+  editVersion: z.number().optional(),
+})
+
+export type TransportationLogSchemaType = z.infer<
+  typeof TransportationLogSchema
+>

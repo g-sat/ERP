@@ -74,6 +74,9 @@ export function CrewSignOffForm({
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
       cidClearance: initialData?.cidClearance ?? "",
+      debitNoteId: initialData?.debitNoteId ?? 0,
+      debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -101,6 +104,9 @@ export function CrewSignOffForm({
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
       cidClearance: initialData?.cidClearance ?? "",
+      debitNoteId: initialData?.debitNoteId ?? 0,
+      debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [initialData, taskDefaults, form, jobData.jobOrderId, jobData.jobOrderNo])
@@ -217,6 +223,12 @@ export function CrewSignOffForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

@@ -98,6 +98,7 @@ export function FreshWaterForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       bargeId: initialData?.bargeId ?? 0,
       operatorName: initialData?.operatorName ?? "",
       supplyBarge: initialData?.supplyBarge ?? "",
@@ -127,6 +128,7 @@ export function FreshWaterForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       bargeId: initialData?.bargeId ?? 0,
       operatorName: initialData?.operatorName ?? "",
       supplyBarge: initialData?.supplyBarge ?? "",
@@ -228,6 +230,12 @@ export function FreshWaterForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

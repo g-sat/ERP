@@ -97,6 +97,7 @@ export function OtherServiceForm({
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       serviceProvider: initialData?.serviceProvider ?? "",
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
@@ -146,6 +147,7 @@ export function OtherServiceForm({
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       serviceProvider: initialData?.serviceProvider ?? "",
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
@@ -238,6 +240,12 @@ export function OtherServiceForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

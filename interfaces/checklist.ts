@@ -77,6 +77,7 @@ export interface IAgencyRemuneration {
   chargeName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   taskStatusId: number
   taskStatusName?: string
   remarks?: string
@@ -128,6 +129,7 @@ export interface IConsignmentExport {
   description: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   createById: number
   createDate: Date
   editById?: number
@@ -177,6 +179,7 @@ export interface IConsignmentImport {
   description: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   createById: number
   createDate: Date
   editById?: number
@@ -194,6 +197,7 @@ export interface ICrewMiscellaneous {
   taskId: number
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   description: string
 
   quantity: number
@@ -234,6 +238,7 @@ export interface ICrewSignOff {
   taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   overStayRemark?: string
   modificationRemark?: string
   cidClearance?: string
@@ -270,6 +275,7 @@ export interface ICrewSignOn {
   taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   overStayRemark?: string
   modificationRemark?: string
   cidClearance?: string
@@ -318,6 +324,7 @@ export interface IEquipmentUsed {
   notes?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   createById: number
   createDate: Date
   editById?: number
@@ -351,6 +358,7 @@ export interface IFreshWater {
   remarks: string
   debitNoteId?: number | null
   debitNoteNo?: string | null
+  poNo?: string | null
   createById: number
   createDate: Date
   editById?: number
@@ -385,6 +393,7 @@ export interface ILandingItems {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   createById: number
   createDate: Date
   editById?: number
@@ -427,6 +436,7 @@ export interface ILaunchService {
   taskStatusId: number
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   remarks: string
   createById: number
   createDate: Date
@@ -551,6 +561,7 @@ export interface IMedicalAssistance {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   createById: number
   createDate: Date
   editById?: number
@@ -610,6 +621,7 @@ export interface IPortExpenses {
 
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   remarks?: string
   createById: number
   createDate: Date
@@ -651,6 +663,7 @@ export interface ITechnicianSurveyor {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   isTransport: boolean
   isHotel: boolean
   createById: number
@@ -671,6 +684,7 @@ export interface IThirdParty {
   taskName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   description?: string
   name?: string
   remarks?: string
@@ -825,4 +839,32 @@ export interface ISavePurchaseData {
   jobOrderId: number
   taskId: number
   serviceId: number
+}
+
+export interface ITransportationLog {
+  transportationLogId: number
+  companyId: number
+  jobOrderId: number
+  taskId: number
+  serviceId: number
+  transportDate: Date | string
+  fromLocationId: number
+  toLocationId: number
+  transportModeId: number
+  vehicleNo?: string | null
+  driverName?: string | null
+  passengerCount: number
+  chargeId?: number | null
+  remarks?: string | null
+  createById: number
+  createDate: Date | string
+  editById?: number | null
+  editDate?: Date | string | null
+  editVersion: number
+  createBy?: string
+  editBy?: string
+  taskName?: string
+  serviceName?: string
+  transportModeName?: string
+  chargeName?: string
 }

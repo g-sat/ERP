@@ -111,6 +111,7 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       isTransport: initialData?.isTransport ?? false,
       isHotel: initialData?.isHotel ?? false,
       editVersion: initialData?.editVersion ?? 0,
@@ -148,6 +149,7 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       isTransport: initialData?.isTransport ?? false,
       isHotel: initialData?.isHotel ?? false,
       editVersion: initialData?.editVersion ?? 0,
@@ -271,6 +273,12 @@ export function TechniciansSurveyorsForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

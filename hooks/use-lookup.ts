@@ -58,6 +58,8 @@ import {
   ITaxCategoryLookup,
   ITaxLookup,
   ITransactionLookup,
+  ITransportLocationLookup,
+  ITransportModeLookup,
   IUomLookup,
   IUserGroupLookup,
   IUserLookup,
@@ -1553,6 +1555,39 @@ export const useServiceModeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+export const useTransportModeLookup = () => {
+  return useQuery<ITransportModeLookup[]>({
+    queryKey: ["transportmode-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getTransportMode)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useTransportLocationLookup = () => {
+  return useQuery<ITransportLocationLookup[]>({
+    queryKey: ["transportlocation-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getTransportLocation)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
 export const useConsignmentTypeLookup = () => {
   return useQuery<IConsignmentTypeLookup[]>({
     queryKey: ["consignmenttype-lookUp"],

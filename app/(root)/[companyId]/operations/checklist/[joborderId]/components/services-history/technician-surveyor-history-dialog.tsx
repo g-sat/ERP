@@ -188,6 +188,12 @@ export function TechnicianSurveyorHistoryDialog({
       minSize: 100,
     },
     {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => (

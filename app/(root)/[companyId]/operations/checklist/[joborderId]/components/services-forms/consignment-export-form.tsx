@@ -132,6 +132,7 @@ export function ConsignmentExportForm({
       description: initialData?.description ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -186,6 +187,7 @@ export function ConsignmentExportForm({
       description: initialData?.description ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -371,6 +373,12 @@ export function ConsignmentExportForm({
                 form={form}
                 name="refundInstrumentNo"
                 label="Refund Instrument No"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

@@ -25,6 +25,7 @@ const defaultValues = {
   portId: 0,
   portName: "",
   portCode: "",
+  portShortName: "",
   portRegionId: 0,
   remarks: "",
   isActive: true,
@@ -56,6 +57,7 @@ export function PortForm({
           portId: initialData.portId ?? 0,
           portName: initialData.portName ?? "",
           portCode: initialData.portCode ?? "",
+          portShortName: initialData.portShortName ?? "",
           portRegionId: initialData.portRegionId ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
@@ -73,6 +75,7 @@ export function PortForm({
             portId: initialData.portId ?? 0,
             portName: initialData.portName ?? "",
             portCode: initialData.portCode ?? "",
+            portShortName: initialData.portShortName ?? "",
             portRegionId: initialData.portRegionId ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
@@ -124,6 +127,12 @@ export function PortForm({
                 isDisabled={isReadOnly}
               />
             </div>
+            <CustomInput
+              form={form}
+              name="portShortName"
+              label="Port Short Name"
+              isDisabled={isReadOnly}
+            />
             <CustomTextarea
               form={form}
               name="remarks"

@@ -464,6 +464,18 @@ export interface IServiceModeLookup {
   serviceModeName: string
 }
 
+export interface ITransportModeLookup {
+  transportModeId: number
+  transportModeCode: string
+  transportModeName: string
+}
+
+export interface ITransportLocationLookup {
+  transportLocationId: number
+  transportLocationCode: string
+  transportLocationName: string
+}
+
 export interface IConsignmentTypeLookup {
   consignmentTypeId: number
   consignmentTypeCode: string

@@ -123,6 +123,12 @@ export function ConsignmentExportTable({
         minSize: 130,
       },
       {
+        accessorKey: "poNo",
+        header: "PO No",
+        size: 150,
+        minSize: 120,
+      },
+      {
         accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => (

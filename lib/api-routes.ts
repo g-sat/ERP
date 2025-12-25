@@ -282,6 +282,8 @@ export const Lookup = {
   getLandingType: "/master/getlandingtypelookup",
   getLandingPurpose: "/master/getLandingPurposelookup",
   getServiceMode: "/master/getservicemodelookup",
+  getTransportMode: "/master/gettransportmodelookup",
+  getTransportLocation: "/master/gettransportlocationlookup",
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrier: "/master/getcarrierlookup",
   getCompany: "/master/getcompanylookup",
@@ -471,6 +473,22 @@ export const ServiceMode = {
   getByCode: "/master/getservicemodebycode",
   add: "/master/saveservicemode",
   delete: "/master/deleteservicemode",
+}
+
+// TransportLocation Endpoints
+export const TransportLocation = {
+  get: "/master/gettransportlocation",
+  getByCode: "/master/gettransportlocationbycode",
+  add: "/master/savetransportlocation",
+  delete: "/master/deletetransportlocation",
+}
+
+// TransportMode Endpoints
+export const TransportMode = {
+  get: "/master/gettransportmode",
+  getByCode: "/master/gettransportmodebycode",
+  add: "/master/savetransportmode",
+  delete: "/master/deletetransportmode",
 }
 
 // Carrier Endpoints
@@ -1339,6 +1357,14 @@ export const JobOrder_DebitNote = {
 export const JobOrder_Purchase = {
   getList: "/operations/GetPurchaseList",
   saveBulkList: "/operations/SaveBulkPurchaseList",
+}
+
+// Transportation Log Endpoints
+export const JobOrder_TransportationLog = {
+  get: "/operations/gettransportationlog",
+  getById: "/operations/gettransportationlogbyid",
+  add: "/operations/savetransportationlog",
+  delete: "/operations/deletetransportationlog",
 }
 
 // Leave Management Endpoints

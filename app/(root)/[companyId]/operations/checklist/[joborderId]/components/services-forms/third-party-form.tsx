@@ -84,6 +84,7 @@ export function ThirdPartyForm({
       taskId: Task.ThirdParty,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
@@ -111,6 +112,7 @@ export function ThirdPartyForm({
       taskId: Task.ThirdParty,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      poNo: initialData?.poNo ?? "",
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
@@ -211,6 +213,12 @@ export function ThirdPartyForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

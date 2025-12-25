@@ -183,6 +183,12 @@ export function CrewSignOnHistoryDialog({
       minSize: 100,
     },
     {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
+    },
+    {
       accessorKey: "overStayRemark",
       header: "Over Stay Remark",
       cell: ({ row }) => (

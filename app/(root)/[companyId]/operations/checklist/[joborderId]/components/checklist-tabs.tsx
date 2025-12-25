@@ -52,7 +52,9 @@ import {
 import { ChecklistDetailsForm } from "./checklist-details-form"
 import { ChecklistDocuments } from "./checklist-documents"
 import { ChecklistHistory } from "./checklist-history"
+import { ChecklistLog } from "./checklist-log"
 import { ChecklistMain } from "./checklist-main"
+import { TransportationLogTab } from "./checklist-transporationlog"
 import { DebitNoteItemsTable } from "./debit-note-items-table"
 
 interface ChecklistTabsProps {
@@ -496,6 +498,18 @@ export function ChecklistTabs({
                 <span className="text-xs sm:text-sm">Documents</span>
               </div>
             </TabsTrigger>
+            <TabsTrigger value="transportation">
+              <div className="flex items-center gap-1">
+                <span className="text-xs">🚚</span>
+                <span className="text-xs sm:text-sm">Transportation</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="logs">
+              <div className="flex items-center gap-1">
+                <span className="text-xs">📋</span>
+                <span className="text-xs sm:text-sm">Logs</span>
+              </div>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -681,6 +695,25 @@ export function ChecklistTabs({
             jobData={currentJobData}
             isConfirmed={isConfirmed}
           />
+        </TabsContent>
+
+        <TabsContent value="transportation" className="mt-0">
+          <TransportationLogTab
+            jobData={currentJobData}
+            moduleId={1}
+            transactionId={1}
+            onTaskAdded={() => {
+              refetch()
+              if (onUpdateSuccess) {
+                onUpdateSuccess()
+              }
+            }}
+            isConfirmed={isConfirmed}
+          />
+        </TabsContent>
+
+        <TabsContent value="logs" className="mt-0">
+          <ChecklistLog jobData={currentJobData} isConfirmed={isConfirmed} />
         </TabsContent>
       </Tabs>
 

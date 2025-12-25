@@ -224,6 +224,7 @@ export default function PortPage() {
               portId: portData.portId,
               portCode: portData.portCode,
               portName: portData.portName,
+              portShortName: portData.portShortName || "",
               portRegionId: portData.portRegionId,
               portRegionCode: portData.portRegionCode,
               portRegionName: portData.portRegionName,
