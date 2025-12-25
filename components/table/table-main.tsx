@@ -116,6 +116,7 @@ interface MainTableProps<T> {
   // ============================================================================
   onSelect?: (item: T | null) => void // Callback when item is selected/viewed
   onCreateAction?: () => void // Callback for creating new item
+  createButtonText?: string // Custom text for create button
   onEditAction?: (item: T) => void // Callback for editing existing item
   onDeleteAction?: (itemId: string) => void // Callback for deleting item
   // ============================================================================
@@ -176,6 +177,7 @@ export function MainTable<T>({
   // Action handler props
   onSelect, // Item selection callback
   onCreateAction, // Create item callback
+  createButtonText = "Create", // Custom text for create button
   onEditAction, // Edit item callback
   onDeleteAction, // Delete item callback
   // Visibility control props with defaults
@@ -554,6 +556,7 @@ export function MainTable<T>({
           onSearchChange={handleSearch} // Search change handler
           onRefreshAction={onRefreshAction} // Refresh button handler
           onCreateAction={onCreateAction} // Create button handler
+          createButtonText={createButtonText} // Custom create button text
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

@@ -1,21 +1,22 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
-import {
-  ITemplateDt,
-  ITemplateFilter,
-  ITemplateHd,
-} from "@/interfaces/template"
-import { TemplateDtSchemaType, TemplateHdSchemaType } from "@/schemas/template"
+import { ITemplateFilter, ITemplateHd } from "@/interfaces/template"
+import { TemplateHdSchemaType } from "@/schemas/template"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { Save, Trash } from "lucide-react"
 
-import { getData } from "@/lib/api-client"
 import { Template } from "@/lib/api-routes"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import {
+  useDelete,
+  useGetById,
+  useGetWithPagination,
+  usePersist,
+} from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,20 +25,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
-import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-import { TemplateDetailsForm } from "./components/template-details-form"
 import { TemplateDetailsTable } from "./components/template-details-table"
-import { TemplateForm } from "./components/template-form"
+import { TemplateForm, TemplateFormRef } from "./components/template-form"
 import { TemplateTable } from "./components/template-table"
 
 export default function TemplatePage() {
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.template
+
+  // Move queryClient to top for proper usage order
+  const queryClient = useQueryClient()
 
   const { hasPermission } = usePermissionStore()
 
@@ -46,84 +50,122 @@ export default function TemplatePage() {
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  // Fetch templates from the API using useGet
+  const params = useParams()
+  const companyId = Number(params?.companyId) || 0
+
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
+  // Fetch templates from the API using useGetWithPagination
   const [filters, setFilters] = useState<ITemplateFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ITemplateFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const {
     data: templatesResponse,
     refetch,
     isLoading,
-  } = useGet<ITemplateHd>(`${Template.get}`, "templates", filters.search)
+  } = useGetWithPagination<ITemplateHd>(
+    `${Template.get}`,
+    "templates",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   // Destructure with fallback values
-  const { result: templatesResult, data: templatesData } =
-    (templatesResponse as ApiResponse<ITemplateHd>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: templatesResult,
+    data: templatesData,
+    totalRecords,
+  } = (templatesResponse as ApiResponse<ITemplateHd>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
-  // Add API call for checking code availability
-  // Fetch history data
-  // const { data: templateResponse } = useGetById<ITemplateHd>(
-  //   `${Template.getById}/${templateId}`,
-  //   "templateHistory"
-  // )
+  // Handle result = -1 and result = -2 cases
+  useEffect(() => {
+    if (!templatesResponse) return
+
+    if (templatesResponse.result === -1) {
+      setFilters({})
+    } else if (templatesResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (templatesResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [templatesResponse, isLocked])
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<TemplateHdSchemaType>(`${Template.add}`)
   const updateMutation = usePersist<TemplateHdSchemaType>(`${Template.add}`)
-  const deleteMutation = useDelete(`${Template.delete}`)
+  const deleteMutation = useDelete(`${Template.delete}/${companyId}`)
 
   // State for modal and selected template
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    ITemplateHd | undefined
+  const [selectedTemplateId, setSelectedTemplateId] = useState<
+    string | undefined
   >(undefined)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
+  const [hasFormErrors, setHasFormErrors] = useState(false)
 
-  // State for template details
-  const [templateDetails, setTemplateDetails] = useState<ITemplateDt[]>([])
+  // Form ref for triggering submission
+  const formRef = useRef<TemplateFormRef>(null)
 
-  // Ref for template form to access form data
-  const templateFormRef = useRef<{
-    getFormData: () => TemplateHdSchemaType
-  } | null>(null)
+  // Fetch template by ID when editing/viewing
+  const { data: templateByIdResponse, isLoading: isLoadingTemplateById } =
+    useGetById<ITemplateHd>(
+      `${Template.getById}`,
+      "template",
+      selectedTemplateId || ""
+    )
 
-  // State for details management
-  const [_selectedDetail, setSelectedDetail] = useState<
-    ITemplateDt | undefined
-  >(undefined)
-  const [shouldResetDetailForm, setShouldResetDetailForm] = useState(false)
+  // Extract template data from response
+  const selectedTemplate =
+    templateByIdResponse?.result === 1 && templateByIdResponse?.data
+      ? Array.isArray(templateByIdResponse.data)
+        ? templateByIdResponse.data[0]
+        : templateByIdResponse.data
+      : undefined
 
-  // Reset the shouldResetDetailForm flag after it's been used (like debit note)
-  useEffect(() => {
-    if (shouldResetDetailForm) {
-      setShouldResetDetailForm(false)
-    }
-  }, [shouldResetDetailForm])
-
-  // State to track if template form is filled (for new templates)
-  const [isFormFilled, setIsFormFilled] = useState(false)
-
-  // State to track current form data (for new templates)
-  const [currentFormData, setCurrentFormData] =
-    useState<TemplateHdSchemaType | null>(null)
-  // State for code availability check
-  const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingTemplate, setExistingTemplate] = useState<ITemplateHd | null>(
-    null
-  )
+  // Details view state
+  const [showDetailsView, setShowDetailsView] = useState(false)
+  const [selectedTemplateForDetails, _setSelectedTemplateForDetails] =
+    useState<ITemplateHd | null>(null)
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -139,7 +181,7 @@ export default function TemplatePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: TemplateHdSchemaType | null
+    data: ITemplateHd | null
   }>({
     isOpen: false,
     data: null,
@@ -153,99 +195,80 @@ export default function TemplatePage() {
   // Handler to open modal for creating a new template
   const handleCreateTemplate = () => {
     setModalMode("create")
-    setSelectedTemplate(undefined)
-    setIsFormFilled(false)
-    setCurrentFormData(null)
-    setTemplateDetails([])
+    setSelectedTemplateId(undefined)
     setIsModalOpen(true)
   }
 
   // Handler to open modal for editing a template
-  const handleEditTemplate = async (template: ITemplateHd) => {
-    const response = (await getData(
-      `${Template.getById}/${template.templateId}`
-    )) as ApiResponse<ITemplateHd>
-
-    if (response.result === 1 && response.data) {
-      const templateData = Array.isArray(response.data)
-        ? response.data[0]
-        : response.data
-      template = templateData
-
-      setModalMode("edit")
-      setSelectedTemplate(template)
-      setIsFormFilled(true) // For edit mode, form is considered filled
-      setCurrentFormData(null) // Clear form data for edit mode
-
-      setTemplateDetails(templateData.data_details || [])
-
-      setIsModalOpen(true)
-    }
+  const handleEditTemplate = (template: ITemplateHd) => {
+    setModalMode("edit")
+    setSelectedTemplateId(template.templateId.toString())
+    setIsModalOpen(true)
   }
 
   // Handler to open modal for viewing a template
   const handleViewTemplate = (template: ITemplateHd | null) => {
     if (!template) return
     setModalMode("view")
-    setSelectedTemplate(template)
-    setIsFormFilled(true) // For view mode, form is considered filled
-    setCurrentFormData(null) // Clear form data for view mode
-    setTemplateDetails([]) // Reset details
+    setSelectedTemplateId(template.templateId.toString())
     setIsModalOpen(true)
   }
 
-  // Handler to track when form is filled (for new templates)
-  const handleFormChange = (data: TemplateHdSchemaType) => {
-    setCurrentFormData(data)
-    const isFilled = Boolean(
-      data.templateName &&
-        data.templateName.trim() !== "" &&
-        data.taskId > 0 &&
-        data.chargeId > 0
-    )
-    setIsFormFilled(isFilled)
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: ITemplateHd) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Convert ITemplateHd to TemplateHdSchemaType for API
+  const convertToSchema = (data: ITemplateHd): TemplateHdSchemaType => {
+    return {
+      templateId: data.templateId,
+      templateName: data.templateName,
+      taskId: data.taskId,
+      chargeId: data.chargeId,
+      isActive: data.isActive,
+      editVersion: data.editVersion || 0,
+      data_details: data.data_details || [],
+    }
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: TemplateHdSchemaType) => {
+  const handleConfirmedFormSubmit = async (data: ITemplateHd) => {
     try {
-      // Combine header and details data
-      const combinedData = {
-        ...data,
-        data_details: templateDetails,
-      }
-
+      const schemaData = convertToSchema(data)
       if (modalMode === "create") {
-        const response = await saveMutation.mutateAsync(combinedData)
+        const response = await saveMutation.mutateAsync(schemaData)
         if (response.result === 1) {
           // Invalidate and refetch the templates query
           queryClient.invalidateQueries({ queryKey: ["templates"] })
+          setIsModalOpen(false)
         }
-      } else if (modalMode === "edit" && selectedTemplate) {
-        const response = await updateMutation.mutateAsync(combinedData)
+      } else if (modalMode === "edit" && selectedTemplateId) {
+        const response = await updateMutation.mutateAsync(schemaData)
         if (response.result === 1) {
           // Invalidate and refetch the templates query
           queryClient.invalidateQueries({ queryKey: ["templates"] })
+          queryClient.invalidateQueries({
+            queryKey: ["template", selectedTemplateId],
+          })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
   }
 
   // Handler for deleting a template
-  const handleDeleteTemplate = (templateId: string) => {
-    const templateToDelete = templatesData?.find(
-      (template) => template.templateId.toString() === templateId
-    )
-    if (!templateToDelete) return
-
+  const handleDeleteTemplate = (template: ITemplateHd) => {
     // Open delete confirmation dialog with template details
     setDeleteConfirmation({
       isOpen: true,
-      templateId,
-      templateName: templateToDelete.templateName,
+      templateId: template.templateId.toString(),
+      templateName: template.templateName,
     })
   }
 
@@ -263,150 +286,16 @@ export default function TemplatePage() {
     }
   }
 
-  // Handler for loading existing template
-  const handleLoadExistingTemplate = () => {
-    if (existingTemplate) {
-      // Set the states
-      setModalMode("edit")
-      setSelectedTemplate(existingTemplate)
-      setShowLoadDialog(false)
-      setExistingTemplate(null)
-    }
-  }
-
-  const queryClient = useQueryClient()
-
-  // Save handler for template form
-  const handleSave = async () => {
-    try {
-      // Get form data from template form
-      const formData = templateFormRef.current?.getFormData()
-      if (!formData) {
-        console.error("No form data available")
-        return
-      }
-
-      // Validate form data
-      if (!formData.templateName || formData.templateName.trim() === "") {
-        console.error("Template name is required")
-        return
-      }
-
-      if (!formData.taskId || formData.taskId <= 0) {
-        console.error("Task is required")
-        return
-      }
-
-      if (!formData.chargeId || formData.chargeId <= 0) {
-        console.error("Charge is required")
-        return
-      }
-
-      // Combine header and details data
-      const combinedData = {
-        ...formData,
-        data_details: templateDetails,
-      }
-
-      // Show save confirmation
-      setSaveConfirmation({
-        isOpen: true,
-        data: combinedData,
-      })
-    } catch (error) {
-      console.error("Error in save handler:", error)
-    }
-  }
-
-  const handleDeleteDetail = (itemNo: string) => {
-    // Remove specific item from array
-    setTemplateDetails((prev) =>
-      prev.filter((detail) => detail.itemNo.toString() !== itemNo)
-    )
-  }
-
-  // Handler for updating a template detail
-  const handleUpdateDetail = (updatedDetail: ITemplateDt) => {
-    setTemplateDetails((prev) =>
-      prev.map((detail) =>
-        detail.itemNo === updatedDetail.itemNo ? updatedDetail : detail
-      )
-    )
-    setSelectedDetail(undefined)
-  }
-
-  // Additional details handlers - Handle both add and edit
-  const handleDetailFormSubmit = (data: TemplateDtSchemaType) => {
-    if (_selectedDetail) {
-      // Edit existing detail
-      const updatedDetail: ITemplateDt = {
-        ..._selectedDetail,
-        chargeId: data.chargeId,
-        chargeName: data.chargeName || "", // Use chargeName from form data
-        remarks: data.remarks || "",
-        editVersion: data.editVersion,
-        isServiceCharge: data.isServiceCharge,
-        serviceCharge: data.serviceCharge,
-      }
-      handleUpdateDetail(updatedDetail)
-    } else {
-      // Add new detail
-      const newDetail: ITemplateDt = {
-        templateId: selectedTemplate?.templateId ?? 0,
-        itemNo: (templateDetails?.length ?? 0) + 1, // Next item number
-        chargeId: data.chargeId,
-        chargeName: data.chargeName || "", // Use chargeName from form data
-        remarks: data.remarks || "",
-        editVersion: data.editVersion,
-        isServiceCharge: data.isServiceCharge,
-        serviceCharge: data.serviceCharge,
-      }
-
-      // Add to existing array
-      setTemplateDetails((prev) => [...prev, newDetail])
-    }
-
-    // Reset form after successful addition/update
-    setSelectedDetail(undefined)
-    setShouldResetDetailForm(true)
-  }
-
-  const handleViewDetail = (detail: ITemplateDt | null) => {
-    if (!detail) return
-    setSelectedDetail(detail)
-  }
-
-  // Handler for editing a template detail
-  const handleEditDetail = (detail: ITemplateDt) => {
-    setSelectedDetail(detail)
-    // The form will be pre-filled with this detail data
-    setShouldResetDetailForm(false) // Don't reset when editing
-  }
-
-  // Check if template form is fully filled
-  // For new templates, we need to check if the form has been filled
-  // For existing templates, we check selectedTemplate
-  const isTemplateFormComplete = Boolean(
-    modalMode === "create"
-      ? isFormFilled // For new templates, check if form is filled
-      : selectedTemplate?.templateName &&
-          selectedTemplate?.taskId &&
-          selectedTemplate?.chargeId &&
-          selectedTemplate.templateName.trim() !== "" &&
-          selectedTemplate.taskId > 0 &&
-          selectedTemplate.chargeId > 0
-  )
-
   return (
-    <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
+    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Templates
+            Template Management
           </h1>
           <p className="text-muted-foreground text-sm">
-            Manage template information and settings
+            Manage templates and their details
           </p>
         </div>
       </div>
@@ -414,13 +303,14 @@ export default function TemplatePage() {
       {/* Templates Table */}
       {isLoading ? (
         <DataTableSkeleton
-          columnCount={7}
+          columnCount={8}
           filterCount={2}
           cellWidths={[
             "10rem",
             "30rem",
             "10rem",
             "10rem",
+            "6rem",
             "6rem",
             "6rem",
             "6rem",
@@ -449,14 +339,20 @@ export default function TemplatePage() {
         </LockSkeleton>
       ) : (
         <TemplateTable
-          data={filters.search ? [] : templatesData || []}
+          data={templatesData || []}
           isLoading={isLoading}
-          onSelect={handleViewTemplate}
-          onDeleteAction={handleDeleteTemplate}
-          onEditAction={handleEditTemplate}
-          onCreateAction={handleCreateTemplate}
+          totalRecords={totalRecords}
+          onSelect={canView ? handleViewTemplate : undefined}
+          onDeleteAction={canDelete ? handleDeleteTemplate : undefined}
+          onEditAction={canEdit ? handleEditTemplate : undefined}
+          onCreateAction={canCreate ? handleCreateTemplate : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table
@@ -471,21 +367,24 @@ export default function TemplatePage() {
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            setIsModalOpen(false)
+          if (!open && hasFormErrors) {
+            return
           }
+          setIsModalOpen(open)
         }}
       >
         <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[70vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
-            e.preventDefault()
+            if (hasFormErrors) {
+              e.preventDefault()
+            }
           }}
         >
-          <DialogHeader className="border-b pb-2">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <DialogTitle className="text-2xl font-bold">
+          <DialogHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <DialogTitle>
                   {modalMode === "create" && "Create Template"}
                   {modalMode === "edit" && "Update Template"}
                   {modalMode === "view" && "View Template"}
@@ -498,104 +397,97 @@ export default function TemplatePage() {
                       : "View template details."}
                 </DialogDescription>
               </div>
-              <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleSave}
-                  disabled={!isTemplateFormComplete}
-                  className="h-8 px-2"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    if (modalMode === "edit" && selectedTemplate) {
-                      handleDeleteTemplate(
-                        selectedTemplate.templateId.toString()
-                      )
-                    }
-                  }}
-                  disabled={modalMode !== "edit" || !selectedTemplate}
-                  className="h-8 px-2"
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
+              <div className="flex items-center gap-2 pr-10">
+                {modalMode !== "view" && (
+                  <Button
+                    type="button"
+                    onClick={() => formRef.current?.submit()}
+                  >
+                    {modalMode === "create" ? "Save" : "Update"}
+                  </Button>
+                )}
               </div>
             </div>
           </DialogHeader>
-
-          <div className="@container">
-            {/* Header Form Section */}
-            <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
-              <TemplateForm
-                ref={templateFormRef}
-                initialData={
-                  modalMode === "edit" || modalMode === "view"
-                    ? selectedTemplate
-                    : undefined
-                }
-                onCancelAction={() => setIsModalOpen(false)}
-                isReadOnly={modalMode === "view"}
-                onCodeBlur={() => {}}
-                onChange={handleFormChange}
-              />
+          <Separator />
+          {isLoadingTemplateById &&
+          (modalMode === "edit" || modalMode === "view") ? (
+            <div className="flex items-center justify-center p-8">
+              <p>Loading template details...</p>
             </div>
-
-            {/* Details Form Section - Always visible like debit note */}
-            <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
-              <TemplateDetailsForm
-                initialData={_selectedDetail} // Pass selected detail for editing
-                submitAction={handleDetailFormSubmit}
-                onCancelAction={() => setSelectedDetail(undefined)}
-                isSubmitting={false}
-                isReadOnly={!isTemplateFormComplete}
-                shouldReset={shouldResetDetailForm}
-                onReset={() => setShouldResetDetailForm(false)}
-                taskId={
-                  modalMode === "create"
-                    ? currentFormData?.taskId
-                    : selectedTemplate?.taskId
-                }
-              />
-            </div>
-
-            {/* Details Table Section - Always visible like debit note */}
-            <div className="bg-card rounded-lg border shadow-sm">
-              <div className="max-h-[50vh] overflow-auto p-4">
-                <TemplateDetailsTable
-                  data={templateDetails}
-                  isLoading={false}
-                  onSelect={handleViewDetail}
-                  onDeleteAction={handleDeleteDetail}
-                  onBulkDeleteAction={() => {}}
-                  onEditAction={handleEditDetail}
-                  onCreateAction={() => setSelectedDetail(undefined)}
-                  onRefreshAction={() => {}}
-                  onFilterChange={() => {}}
-                  onDataReorder={() => {}}
-                />
-              </div>
-            </div>
-          </div>
+          ) : (
+            <TemplateForm
+              ref={formRef}
+              initialData={
+                modalMode === "edit" || modalMode === "view"
+                  ? selectedTemplate
+                  : undefined
+              }
+              onSaveAction={handleFormSubmit}
+              onCloseAction={() => setIsModalOpen(false)}
+              mode={modalMode}
+              companyId={companyId}
+              onValidationError={setHasFormErrors}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Template Dialog */}
-      <LoadConfirmation
-        open={showLoadDialog}
-        onOpenChange={setShowLoadDialog}
-        onLoad={handleLoadExistingTemplate}
-        onCancelAction={() => setExistingTemplate(null)}
-        code={existingTemplate?.templateName}
-        name={existingTemplate?.templateName}
-        typeLabel="Template"
-        isLoading={saveMutation.isPending || updateMutation.isPending}
-      />
+      {/* Details View Dialog */}
+      <Dialog open={showDetailsView} onOpenChange={setShowDetailsView}>
+        <DialogContent className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Template Details</DialogTitle>
+            <DialogDescription>
+              View details for template:{" "}
+              {selectedTemplateForDetails?.templateName}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTemplateForDetails && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground text-xs">
+                    Template Name
+                  </Label>
+                  <p className="text-sm font-medium">
+                    {selectedTemplateForDetails.templateName}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Task</Label>
+                  <p className="text-sm font-medium">
+                    {selectedTemplateForDetails.taskName || "-"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">
+                    Charge
+                  </Label>
+                  <p className="text-sm font-medium">
+                    {selectedTemplateForDetails.chargeName || "-"}
+                  </p>
+                </div>
+              </div>
+              {selectedTemplateForDetails.data_details &&
+                selectedTemplateForDetails.data_details.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium">
+                      Template Details
+                    </h4>
+                    <TemplateDetailsTable
+                      data={selectedTemplateForDetails.data_details}
+                      canEdit={false}
+                      canDelete={false}
+                      canView={true}
+                      canCreate={false}
+                    />
+                  </div>
+                )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmation

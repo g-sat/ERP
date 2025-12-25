@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { XIcon } from "lucide-react"
+import { AlertCircle, XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -78,6 +78,19 @@ const copyCompanyRateSchema = z
     {
       message: "To Port is required",
       path: ["toPortId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Prevent selecting the same company in both fields
+      if (data.fromCompanyId > 0 && data.toCompanyId > 0) {
+        return data.fromCompanyId !== data.toCompanyId
+      }
+      return true
+    },
+    {
+      message: "From Company and To Company cannot be the same",
+      path: ["toCompanyId"],
     }
   )
 
@@ -226,6 +239,26 @@ export function CopyCompanyRateForm({
       return (selectedCompany: { companyId?: number; id?: number } | null) => {
         if (selectedCompany) {
           const companyId = selectedCompany.companyId || selectedCompany.id || 0
+
+          // Check if the same company is already selected in the other field
+          const fromCompanyId = form.getValues("fromCompanyId")
+          const toCompanyId = form.getValues("toCompanyId")
+
+          if (companyId > 0) {
+            if (field === "fromCompanyId" && companyId === toCompanyId) {
+              toast.error("From Company and To Company cannot be the same")
+              form.setValue(field, 0)
+              setSelectedFromCompanyId(0)
+              return
+            }
+            if (field === "toCompanyId" && companyId === fromCompanyId) {
+              toast.error("From Company and To Company cannot be the same")
+              form.setValue(field, 0)
+              setSelectedToCompanyId(0)
+              return
+            }
+          }
+
           form.setValue(field, companyId)
 
           // Update the selected company ID state
@@ -273,6 +306,19 @@ export function CopyCompanyRateForm({
   // Watch checkbox values to control field states
   const isAllPorts = form.watch("isAllPorts")
   const isAllTasks = form.watch("isAllTasks")
+
+  // Watch both company IDs to prevent same selection
+  const fromCompanyId = form.watch("fromCompanyId")
+  const toCompanyId = form.watch("toCompanyId")
+
+  // Clear the other field if same company is selected (backup check)
+  useEffect(() => {
+    if (fromCompanyId > 0 && toCompanyId > 0 && fromCompanyId === toCompanyId) {
+      // Clear the "to" field if it matches "from"
+      form.setValue("toCompanyId", 0)
+      setSelectedToCompanyId(0)
+    }
+  }, [fromCompanyId, toCompanyId, form])
 
   // Handle All Ports checkbox change - clear fromPortId and toPortId when checked
   useEffect(() => {
@@ -454,6 +500,34 @@ export function CopyCompanyRateForm({
                 <label htmlFor="isDelete" className="text-sm font-medium">
                   Delete source after copy
                 </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Information Note */}
+          <div className="w-full rounded-lg border border-amber-200/60 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  Important Notes
+                </p>
+                <ul className="space-y-1 text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/70">
+                  <li>
+                    • The same company cannot be selected for both &quot;From&quot;
+                    and &quot;To&quot; fields.
+                  </li>
+                  <li>
+                    • The same customer cannot be selected for both &quot;From&quot;
+                    and &quot;To&quot; fields.
+                  </li>
+                  <li>
+                    • You must select different companies and customers to copy
+                    rates between them.
+                  </li>
+                </ul>
               </div>
             </div>
           </div>

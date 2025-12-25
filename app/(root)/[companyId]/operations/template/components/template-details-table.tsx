@@ -1,130 +1,111 @@
 "use client"
 
-import { useMemo } from "react"
 import { ITemplateDt } from "@/interfaces/template"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
+import { MainTable } from "@/components/table/table-main"
 
 interface TemplateDetailsTableProps {
   data: ITemplateDt[]
   isLoading?: boolean
-  onSelect?: (template: ITemplateDt | null) => void
-  onDeleteAction?: (templateId: string) => void
-  onBulkDeleteAction?: (selectedIds: string[]) => void
-  onEditAction?: (template: ITemplateDt) => void
-  onCreateAction?: () => void
+  onDeleteAction?: (detail: ITemplateDt) => void
+  onEditAction?: (detail: ITemplateDt) => void
   onRefreshAction?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: ITemplateDt[]) => void
+  // Permission props
+  canEdit?: boolean
+  canDelete?: boolean
+  canView?: boolean
+  canCreate?: boolean
+  onSelect?: (detail: ITemplateDt | null) => void
+  onCreateAction?: () => void
+  createButtonText?: string // Custom text for create button
 }
 
 export function TemplateDetailsTable({
   data,
   isLoading = false,
-  onSelect,
   onDeleteAction,
-  onBulkDeleteAction,
   onEditAction,
-  onCreateAction,
   onRefreshAction,
-  onFilterChange,
-  onDataReorder,
+  canEdit = true,
+  canDelete = true,
+  canView = true,
+  canCreate = true,
+  onSelect,
+  onCreateAction,
+  createButtonText = "Add Detail",
 }: TemplateDetailsTableProps) {
-  // Show all data (multiple rows display)
-  const displayData = data || []
+  // Define columns for the table
+  const columns: ColumnDef<ITemplateDt>[] = [
+    {
+      accessorKey: "itemNo",
+      header: "Item No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Badge variant="outline">{row.getValue("itemNo")}</Badge>
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "chargeName",
+      header: "Charge",
+      cell: ({ row }) => (
+        <div>
+          {row.getValue("chargeName") || `Charge ID: ${row.original.chargeId}`}
+        </div>
+      ),
+      size: 250,
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) => (
+        <div className="max-w-md truncate">
+          {row.getValue("remarks") || "-"}
+        </div>
+      ),
+      size: 300,
+    },
+  ]
 
-  // Define columns for the template details table
-  const columns: ColumnDef<ITemplateDt>[] = useMemo(
-    () => [
-      {
-        accessorKey: "itemNo",
-        header: "Item No",
-        size: 100,
-        minSize: 50,
-      },
-      {
-        accessorKey: "chargeName",
-        header: "Charge Name",
-        size: 200,
-        minSize: 150,
-      },
-      {
-        accessorKey: "remarks",
-        header: "Remarks",
-        size: 250,
-        minSize: 200,
-      },
-      {
-        accessorKey: "isServiceCharge",
-        header: "Is Service Charge",
-        cell: ({ row }) => (
-          <Badge
-            variant={row.getValue("isServiceCharge") ? "default" : "secondary"}
-          >
-            {row.getValue("isServiceCharge") ? "Yes" : "No"}
-          </Badge>
-        ),
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "serviceCharge",
-        header: "Service Charge",
-        cell: ({ row }) => (
-          <div className="text-right">
-            {typeof row.getValue("serviceCharge") === "number"
-              ? (row.getValue("serviceCharge") as number).toFixed(2)
-              : "0.00"}
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "editVersion",
-        header: "Version",
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Badge
-              variant="secondary"
-              className="flex items-center justify-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white"
-            >
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
-        size: 80,
-        minSize: 60,
-      },
-    ],
-    []
-  )
+  // Handle delete with detail object
+  const handleDelete = (itemNo: string) => {
+    if (onDeleteAction) {
+      const detail = data.find((d) => d.itemNo?.toString() === itemNo)
+      if (detail) {
+        onDeleteAction(detail)
+      }
+    }
+  }
 
   return (
-    <DebitNoteBaseTable
-      data={displayData}
+    <MainTable
+      data={data}
       columns={columns}
       isLoading={isLoading}
-      moduleId={0}
-      transactionId={0}
       tableName={TableName.template}
       emptyMessage="No template details found."
       accessorId="itemNo"
+      // Add handlers if provided
       onRefreshAction={onRefreshAction}
-      onFilterChange={onFilterChange}
+      //handler column props
       onSelect={onSelect}
       onCreateAction={onCreateAction}
+      createButtonText={createButtonText}
       onEditAction={onEditAction}
-      onDeleteAction={onDeleteAction}
-      onBulkDeleteAction={onBulkDeleteAction}
-      onDataReorder={onDataReorder}
-      isConfirmed={false}
+      onDeleteAction={handleDelete}
+      //show props
       showHeader={true}
+      showFooter={true}
       showActions={true}
-      hideCreate={true}
+      // Permission props
+      canEdit={canEdit}
+      canDelete={canDelete}
+      canView={canView}
+      canCreate={canCreate}
     />
   )
 }

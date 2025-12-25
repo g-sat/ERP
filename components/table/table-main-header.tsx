@@ -58,6 +58,7 @@ type MainTableHeaderProps<TData> = {
   data?: TData[] // Add data prop
   tableName?: string // Optional table name prop
   hideCreateButton?: boolean // Add hideCreateButton prop
+  createButtonText?: string // Custom text for create button
   moduleId: number
   transactionId: number
   onResetLayout?: () => void // Callback to reset layout in parent component
@@ -71,6 +72,7 @@ export function MainTableHeader<TData>({
   data = [], // Default to empty array
   tableName = "Table",
   hideCreateButton = false, // Default to false
+  createButtonText = "Create", // Default button text
   moduleId,
   transactionId,
   onResetLayout,
@@ -235,9 +237,16 @@ export function MainTableHeader<TData>({
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
         {onCreateAction && !hideCreateButton && (
-          <Button onClick={onCreateAction}>
+          <Button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onCreateAction()
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Create
+            {createButtonText}
           </Button>
         )}
         {onRefreshAction && (

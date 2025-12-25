@@ -10,9 +10,6 @@ export const templateDtSchema = z.object({
     .string()
     .max(500, "Remarks must be less than 500 characters")
     .optional(),
-  isServiceCharge: z.boolean(),
-  serviceCharge: z.number(),
-  editVersion: z.number().min(0, "Edit version must be 0 or greater"),
 })
 
 export type TemplateDtSchemaType = z.infer<typeof templateDtSchema>

@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { XIcon } from "lucide-react"
+import { AlertCircle, XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -72,6 +72,19 @@ const copyRateSchema = z
     {
       message: "To Port is required",
       path: ["toPortId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Prevent selecting the same customer in both fields
+      if (data.fromCustomerId > 0 && data.toCustomerId > 0) {
+        return data.fromCustomerId !== data.toCustomerId
+      }
+      return true
+    },
+    {
+      message: "From Customer and To Customer cannot be the same",
+      path: ["toCustomerId"],
     }
   )
 
@@ -208,7 +221,26 @@ export function CopyRateForm({
   const handleCustomerChange = useCallback(
     (field: "fromCustomerId" | "toCustomerId") =>
       (selectedCustomer: ICustomerLookup | null) => {
-        form.setValue(field, selectedCustomer?.customerId || 0)
+        const customerId = selectedCustomer?.customerId || 0
+
+        // Check if the same customer is already selected in the other field
+        const fromCustomerId = form.getValues("fromCustomerId")
+        const toCustomerId = form.getValues("toCustomerId")
+
+        if (customerId > 0) {
+          if (field === "fromCustomerId" && customerId === toCustomerId) {
+            toast.error("From Customer and To Customer cannot be the same")
+            form.setValue(field, 0)
+            return
+          }
+          if (field === "toCustomerId" && customerId === fromCustomerId) {
+            toast.error("From Customer and To Customer cannot be the same")
+            form.setValue(field, 0)
+            return
+          }
+        }
+
+        form.setValue(field, customerId)
       },
     [form]
   )
@@ -224,6 +256,22 @@ export function CopyRateForm({
   // Watch checkbox values to control field states
   const isAllPorts = form.watch("isAllPorts")
   const isAllTasks = form.watch("isAllTasks")
+
+  // Watch both customer IDs to prevent same selection
+  const fromCustomerId = form.watch("fromCustomerId")
+  const toCustomerId = form.watch("toCustomerId")
+
+  // Clear the other field if same customer is selected (backup check)
+  useEffect(() => {
+    if (
+      fromCustomerId > 0 &&
+      toCustomerId > 0 &&
+      fromCustomerId === toCustomerId
+    ) {
+      // Clear the "to" field if it matches "from"
+      form.setValue("toCustomerId", 0)
+    }
+  }, [fromCustomerId, toCustomerId, form])
 
   // Handle All Ports checkbox change - clear fromPortId and toPortId when checked
   useEffect(() => {
@@ -389,6 +437,25 @@ export function CopyRateForm({
                 <label htmlFor="isDelete" className="text-sm font-medium">
                   Delete source after copy
                 </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Information Note */}
+          <div className="w-full rounded-lg border border-amber-200/60 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  Important Note
+                </p>
+                <p className="text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/70">
+                  The same customer cannot be selected for both &quot;From&quot;
+                  and &quot;To&quot; fields. You must select different customers
+                  to copy rates between them.
+                </p>
               </div>
             </div>
           </div>

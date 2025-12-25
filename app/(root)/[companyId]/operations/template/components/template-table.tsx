@@ -1,13 +1,13 @@
 "use client"
 
-import { ITemplateHd } from "@/interfaces/template"
+import { ITemplateFilter, ITemplateHd } from "@/interfaces/template"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
   IconSquareRoundedXFilled,
 } from "@tabler/icons-react"
 import { ColumnDef } from "@tanstack/react-table"
-import { format, isValid } from "date-fns"
+import { format } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -16,12 +16,16 @@ import { MainTable } from "@/components/table/table-main"
 interface TemplateTableProps {
   data: ITemplateHd[]
   isLoading?: boolean
-  onSelect?: (template: ITemplateHd | null) => void
-  onDeleteAction?: (templateId: string) => void
+  totalRecords?: number
+  onDeleteAction?: (template: ITemplateHd) => void
   onEditAction?: (template: ITemplateHd) => void
-  onCreateAction?: () => void
   onRefreshAction?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onFilterChange?: (filters: ITemplateFilter) => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  currentPage?: number
+  pageSize?: number
+  serverSidePagination?: boolean
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -29,109 +33,134 @@ interface TemplateTableProps {
   canDelete?: boolean
   canView?: boolean
   canCreate?: boolean
+  onSelect?: (template: ITemplateHd | null) => void
+  onCreateAction?: () => void
 }
 
 export function TemplateTable({
   data,
   isLoading = false,
-  onSelect,
+  totalRecords,
   onDeleteAction,
   onEditAction,
-  onCreateAction,
   onRefreshAction,
   onFilterChange,
+  onPageChange,
+  onPageSizeChange,
+  currentPage,
+  pageSize,
+  serverSidePagination = false,
   moduleId,
   transactionId,
-  // Permission props
   canEdit = true,
   canDelete = true,
   canView = true,
   canCreate = true,
+  onSelect,
+  onCreateAction,
 }: TemplateTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  // Define columns for the table
   const columns: ColumnDef<ITemplateHd>[] = [
     {
       accessorKey: "templateName",
       header: "Template Name",
+      cell: ({ row }) => <div>{row.getValue("templateName")}</div>,
       size: 200,
-      minSize: 50,
-      enableColumnFilter: true,
     },
     {
       accessorKey: "taskName",
-      header: "Task Name",
+      header: "Task",
+      cell: ({ row }) => <div>{row.getValue("taskName") || "-"}</div>,
       size: 150,
-      minSize: 50,
     },
     {
       accessorKey: "chargeName",
-      header: "Charge Name",
-      size: 150,
-      minSize: 50,
+      header: "Charge",
+      cell: ({ row }) => <div>{row.getValue("chargeName") || "-"}</div>,
+      size: 200,
     },
     {
       accessorKey: "isActive",
-      header: "Status",
+      header: "Active",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+        <div className="flex justify-center">
           {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
           ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
           )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
+        </div>
       ),
-      size: 120,
-      minSize: 50,
+      size: 80,
+    },
+    {
+      accessorKey: "data_details",
+      header: "Details Count",
+      cell: ({ row }) => {
+        const details = row.original.data_details || []
+        return (
+          <div className="text-center">
+            <Badge variant="outline">{details.length}</Badge>
+          </div>
+        )
+      },
+      size: 100,
     },
     {
       accessorKey: "createBy",
-      header: "Create By",
+      header: "Created By",
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
-      minSize: 50,
     },
     {
       accessorKey: "createDate",
-      header: "Create Date",
+      header: "Created Date",
       cell: ({ row }) => {
-        const raw = row.getValue("createDate")
-        let date: Date | null = null
-        if (typeof raw === "string") date = new Date(raw)
-        else if (raw instanceof Date) date = raw
-        return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        const date = row.original.createDate
+          ? new Date(row.original.createDate)
+          : null
+        return date ? format(date, datetimeFormat) : "-"
       },
-      size: 180,
-      minSize: 150,
+      size: 150,
     },
     {
       accessorKey: "editBy",
-      header: "Edit By",
+      header: "Edited By",
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
-      minSize: 50,
     },
     {
       accessorKey: "editDate",
-      header: "Edit Date",
+      header: "Edited Date",
       cell: ({ row }) => {
-        const raw = row.getValue("editDate")
-        let date: Date | null = null
-        if (typeof raw === "string") date = new Date(raw)
-        else if (raw instanceof Date) date = raw
-        return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        const date = row.original.editDate
+          ? new Date(row.original.editDate)
+          : null
+        return date ? format(date, datetimeFormat) : "-"
       },
-      size: 180,
-      minSize: 150,
+      size: 150,
     },
   ]
+
+  // Handle delete with template object
+  const handleDelete = (templateId: string) => {
+    if (onDeleteAction) {
+      const template = data.find((t) => t.templateId?.toString() === templateId)
+      if (template) {
+        onDeleteAction(template)
+      }
+    }
+  }
 
   return (
     <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.template}
@@ -140,11 +169,16 @@ export function TemplateTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
       onCreateAction={onCreateAction}
       onEditAction={onEditAction}
-      onDeleteAction={onDeleteAction}
+      onDeleteAction={handleDelete}
       //show props
       showHeader={true}
       showFooter={true}

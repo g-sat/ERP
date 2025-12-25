@@ -7,6 +7,7 @@ export interface ITemplateHd {
   chargeId: number
   chargeName?: string
   isActive: boolean
+  editVersion: number
   createById: number
   editById: number
   createBy: string
@@ -22,9 +23,6 @@ export interface ITemplateDt {
   chargeId: number
   chargeName?: string
   remarks: string
-  editVersion: number
-  isServiceCharge: boolean
-  serviceCharge: number
 }
 
 export interface ITemplateFilter {

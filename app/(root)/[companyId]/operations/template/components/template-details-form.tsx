@@ -1,226 +1,240 @@
 "use client"
 
-import { useEffect } from "react"
+import React, { useState } from "react"
 import { ITemplateDt } from "@/interfaces/template"
-import { TemplateDtSchemaType, templateDtSchema } from "@/schemas/template"
+import {
+  TemplateDtSchemaType,
+  TemplateHdSchemaType,
+  templateDtSchema,
+} from "@/schemas/template"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { XIcon } from "lucide-react"
+import { UseFormReturn, useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { ChargeAutocomplete } from "@/components/autocomplete"
-import CustomInput from "@/components/custom/custom-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-// Default values for the template details form
-const defaultValues: TemplateDtSchemaType = {
-  templateId: 0,
-  itemNo: 1,
-  chargeId: 0,
-  chargeName: "",
-  remarks: "",
-  editVersion: 0,
-  isServiceCharge: false,
-  serviceCharge: 0,
-}
+import { TemplateDetailsTable } from "./template-details-table"
 
 interface TemplateDetailsFormProps {
-  initialData?: ITemplateDt
-  submitAction: (data: TemplateDtSchemaType) => void
-  onCancelAction?: () => void
-  isSubmitting?: boolean
-  isReadOnly?: boolean
-  shouldReset?: boolean
-  onReset?: () => void
-  taskId?: number
+  form: UseFormReturn<TemplateHdSchemaType>
+  taskId: number
+  templateId: number
 }
 
 export function TemplateDetailsForm({
-  initialData,
-  submitAction,
-  onCancelAction,
-  isSubmitting = false,
-  isReadOnly = false,
-  shouldReset = false,
-  onReset,
+  form,
   taskId,
+  templateId,
 }: TemplateDetailsFormProps) {
-  const form = useForm<TemplateDtSchemaType>({
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingDetail, setEditingDetail] = useState<ITemplateDt | null>(null)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+
+  const detailsForm = useForm<TemplateDtSchemaType>({
     resolver: zodResolver(templateDtSchema),
-    mode: "onBlur", // Validate on blur for better UX
-    defaultValues: initialData
-      ? {
-          templateId: initialData.templateId ?? 0,
-          itemNo: initialData.itemNo ?? 0,
-          chargeId: initialData.chargeId ?? 0,
-          chargeName: initialData.chargeName ?? "",
-          remarks: initialData.remarks ?? "",
-          editVersion: initialData.editVersion ?? 0,
-          isServiceCharge: initialData.isServiceCharge ?? false,
-          serviceCharge: initialData.serviceCharge ?? 0,
-        }
-      : {
-          ...defaultValues,
-        },
+    defaultValues: {
+      templateId: templateId,
+      itemNo: 0,
+      chargeId: 0,
+      remarks: "",
+    },
   })
 
-  // Reset form when initialData changes
-  useEffect(() => {
-    console.log("TemplateDetailsForm - initialData changed:", initialData)
-    form.reset(
-      initialData
-        ? {
-            templateId: initialData.templateId ?? 0,
-            itemNo: initialData.itemNo ?? 0,
-            chargeId: initialData.chargeId ?? 0,
-            chargeName: initialData.chargeName ?? "",
-            remarks: initialData.remarks ?? "",
-            isServiceCharge: initialData.isServiceCharge ?? false,
-            serviceCharge: initialData.serviceCharge ?? 0,
-            editVersion: initialData.editVersion ?? 0,
-          }
-        : {
-            ...defaultValues,
-          }
-    )
-  }, [initialData, form])
+  const details = form.watch("data_details") || []
 
-  // Handle form reset
-  useEffect(() => {
-    if (shouldReset) {
-      form.reset(defaultValues)
-      onReset?.()
-    }
-  }, [shouldReset, form, onReset])
+  const handleAdd = () => {
+    setEditingDetail(null)
+    setEditingIndex(null)
+    detailsForm.reset({
+      templateId: templateId,
+      itemNo:
+        details.length > 0 ? Math.max(...details.map((d) => d.itemNo)) + 1 : 1,
+      chargeId: 0,
+      remarks: "",
+    })
+    setIsDialogOpen(true)
+  }
 
-  // Handle charge selection and auto-populate remarks
-  const handleChargeChange = (
-    selectedCharge: { chargeName: string } | null
+  const handleEdit = (detail: ITemplateDt, index: number) => {
+    setEditingDetail(detail)
+    setEditingIndex(index)
+    detailsForm.reset({
+      templateId: detail.templateId,
+      itemNo: detail.itemNo,
+      chargeId: detail.chargeId,
+      chargeName: detail.chargeName,
+      remarks: detail.remarks || "",
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleDelete = (index: number) => {
+    const currentDetails = form.getValues("data_details") || []
+    const updatedDetails = currentDetails.filter((_, i) => i !== index)
+    form.setValue("data_details", updatedDetails, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+    form.trigger("data_details")
+    toast.success("Detail removed successfully")
+  }
+
+  const handleSaveDetail = (
+    data: TemplateDtSchemaType,
+    e?: React.BaseSyntheticEvent
   ) => {
-    if (selectedCharge && selectedCharge.chargeName) {
-      // Store the charge name in a hidden field for form submission
-      form.setValue("chargeName", selectedCharge.chargeName)
+    // Prevent event from bubbling to parent form
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
 
-      // Only auto-populate if remarks is empty or only whitespace
-      const currentRemarks = form.getValues("remarks") || ""
-      if (currentRemarks.trim() === "") {
-        // Auto-populate remarks with charge name
-        form.setValue("remarks", selectedCharge.chargeName)
-        console.log(
-          "Auto-populated remarks with charge name:",
-          selectedCharge.chargeName
-        )
-      } else {
-        console.log(
-          "Remarks already has content, not overwriting:",
-          currentRemarks
-        )
+    const currentDetails = form.getValues("data_details") || []
+
+    if (editingIndex !== null) {
+      // Update existing detail
+      const updatedDetails = [...currentDetails]
+      updatedDetails[editingIndex] = {
+        ...data,
+        chargeName: detailsForm.getValues("chargeName"),
+        remarks: data.remarks || "",
       }
+      form.setValue("data_details", updatedDetails, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      toast.success("Detail updated successfully")
+    } else {
+      // Add new detail
+      const newDetail: ITemplateDt = {
+        ...data,
+        chargeName: detailsForm.getValues("chargeName"),
+        remarks: data.remarks || "",
+      }
+      form.setValue("data_details", [...currentDetails, newDetail], {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      toast.success("Detail added successfully")
     }
+
+    form.trigger("data_details")
+    setIsDialogOpen(false)
+    setEditingDetail(null)
+    setEditingIndex(null)
   }
 
-  // Watch isServiceCharge to control Service Charge field
-  const watchedIsServiceCharge = form.watch("isServiceCharge")
-
-  // Auto-increment itemNo for new items (when initialData is undefined)
-  useEffect(() => {
-    if (!initialData) {
-      // This is a new item, auto-increment itemNo
-      // The parent component should handle the actual increment logic
-      // For now, we'll set it to 1 and let the parent handle the increment
-      form.setValue("itemNo", 1)
-    }
-  }, [initialData, form])
-
-  const onSubmit = (values: TemplateDtSchemaType) => {
-    submitAction(values)
-  }
-
-  const onError = (errors: Record<string, unknown>) => {
-    console.log("Form validation errors:", errors)
-    console.log("Form state:", form.formState)
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+    setEditingDetail(null)
+    setEditingIndex(null)
+    detailsForm.reset()
   }
 
   return (
-    <div className="max-w flex flex-col gap-2">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)}>
-          {/* Hidden fields for templateId, itemNo, and chargeName */}
-          <input type="hidden" {...form.register("templateId")} />
-          <input type="hidden" {...form.register("itemNo")} />
-          <input type="hidden" {...form.register("chargeName")} />
-          <div className="grid gap-2">
-            <div className="grid grid-cols-6 gap-2">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium">Template Details</h4>
+      </div>
+
+      <div className="rounded-lg border">
+        <TemplateDetailsTable
+          data={details.map((d) => ({
+            ...d,
+            remarks: d.remarks || "",
+          }))}
+          onEditAction={(detail) => {
+            const index = details.findIndex((d) => d.itemNo === detail.itemNo)
+            if (index !== -1) {
+              handleEdit(detail, index)
+            }
+          }}
+          onDeleteAction={(detail) => {
+            const index = details.findIndex((d) => d.itemNo === detail.itemNo)
+            if (index !== -1) {
+              handleDelete(index)
+            }
+          }}
+          onCreateAction={handleAdd}
+          canEdit={true}
+          canDelete={true}
+          canView={true}
+          canCreate={true}
+          createButtonText="Add Detail"
+        />
+      </div>
+
+      {/* Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingDetail ? "Edit Detail" : "Add Detail"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingDetail
+                ? "Update template detail information"
+                : "Add a new template detail"}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...detailsForm}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                detailsForm.handleSubmit((data) => handleSaveDetail(data, e))()
+              }}
+              className="space-y-3"
+            >
               <ChargeAutocomplete
-                form={form}
+                form={detailsForm}
                 name="chargeId"
                 label="Charge"
                 isRequired
-                isDisabled={isReadOnly}
-                taskId={taskId ?? 0}
-                onChangeEvent={handleChargeChange}
+                taskId={taskId}
+                onChangeEvent={(selected) => {
+                  if (selected) {
+                    detailsForm.setValue(
+                      "chargeName",
+                      selected.chargeName || ""
+                    )
+                  }
+                }}
               />
-              <div className="col-span-2 flex w-full gap-2">
-                <div className="w-1/3">
-                  <CustomSwitch
-                    form={form}
-                    name="isServiceCharge"
-                    label="Is Service Charge"
-                    activeColor="success"
-                    isDisabled={isReadOnly}
-                  />
-                </div>
-                <div className="w-1/3">
-                  <CustomInput
-                    form={form}
-                    name="serviceCharge"
-                    label="Service Charge"
-                    type="number"
-                    isDisabled={isReadOnly || !watchedIsServiceCharge}
-                  />
-                </div>
-                <div className="w-1/3">
-                  <CustomInput
-                    form={form}
-                    name="itemNo"
-                    label="Item No"
-                    type="number"
-                    isDisabled={isReadOnly}
-                  />
-                </div>
-              </div>
-              <div className="col-span-2">
-                <CustomTextarea
-                  form={form}
-                  name="remarks"
-                  label="Remarks"
-                  isDisabled={isReadOnly}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2">
+              <CustomTextarea
+                form={detailsForm}
+                name="remarks"
+                label="Remarks"
+              />
+              <div className="flex justify-end space-x-2">
                 <Button
-                  variant="outline"
                   type="button"
-                  onClick={onCancelAction}
+                  variant="outline"
+                  onClick={handleCloseDialog}
+                  className="flex items-center gap-2"
                 >
-                  {isReadOnly ? "Close" : "Cancel"}
+                  <XIcon className="h-4 w-4" />
+                  Cancel
                 </Button>
-                {!isReadOnly && (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? "Saving..."
-                      : initialData
-                        ? "Update"
-                        : "Add"}
-                  </Button>
-                )}
+                <Button type="submit">
+                  {editingDetail ? "Update" : "Add"}
+                </Button>
               </div>
-            </div>
-          </div>
-        </form>
-      </Form>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
