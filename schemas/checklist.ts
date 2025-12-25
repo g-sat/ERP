@@ -730,7 +730,7 @@ export const TransportationLogSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   taskId: z.number().min(1, "Task ID is required"),
   serviceItemNo: z.string().min(1, "Service Item No is required"),
-  serviceItemNoName: z.string().min(1, "Service Item No Name is required"),
+  serviceItemNoName: z.string().optional(),
   transportDate: z.union([z.date(), z.string()]).optional(),
   fromLocationId: z.number().min(1, "From Location is required"),
   toLocationId: z.number().min(1, "To Location is required"),

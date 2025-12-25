@@ -80,6 +80,7 @@ export function TransportationLogForm({
       jobOrderId: jobData.jobOrderId,
       taskId: initialData?.taskId ?? taskDefaults.taskId ?? 0,
       serviceItemNo: initialData?.serviceItemNo ?? "",
+      serviceItemNoName: initialData?.serviceItemNoName ?? "",
       transportDate: initialData?.transportDate
         ? format(
             parseWithFallback(initialData.transportDate as string) ||
@@ -106,6 +107,7 @@ export function TransportationLogForm({
       jobOrderId: jobData.jobOrderId,
       taskId: initialData?.taskId ?? taskDefaults.taskId ?? 0,
       serviceItemNo: initialData?.serviceItemNo ?? "",
+      serviceItemNoName: initialData?.serviceItemNoName ?? "",
       transportDate: initialData?.transportDate
         ? format(
             parseWithFallback(initialData.transportDate as string) ||
@@ -151,9 +153,19 @@ export function TransportationLogForm({
       })
       // Reset service when task changes
       form.setValue("serviceItemNo", "", { shouldValidate: true })
+      form.setValue(
+        "serviceItemNoName" as keyof TransportationLogSchemaType,
+        "",
+        { shouldValidate: false }
+      )
     } else {
       form.setValue("taskId", 0, { shouldValidate: true })
       form.setValue("serviceItemNo", "", { shouldValidate: true })
+      form.setValue(
+        "serviceItemNoName" as keyof TransportationLogSchemaType,
+        "",
+        { shouldValidate: false }
+      )
     }
   }
 
@@ -165,20 +177,63 @@ export function TransportationLogForm({
     const serviceItemNos = selectedOptions
       .map((option) => option.serviceItemNo.toString())
       .join(",")
+
+    // Also create comma-separated names for serviceItemNoName
+    const serviceItemNoNames = selectedOptions
+      .map((option) => option.serviceItemNoName)
+      .join(",")
+
     form.setValue("serviceItemNo", serviceItemNos || "", {
       shouldValidate: true,
       shouldDirty: true,
     })
+
+    // Set serviceItemNoName if schema requires it
+    if (serviceItemNoNames) {
+      form.setValue(
+        "serviceItemNoName" as keyof TransportationLogSchemaType,
+        serviceItemNoNames,
+        {
+          shouldValidate: false,
+          shouldDirty: true,
+        }
+      )
+    }
   }
 
   const onSubmit = (data: TransportationLogSchemaType) => {
-    submitAction(data)
+    // Ensure serviceItemNo is a comma-separated string
+    let serviceItemNoString = ""
+    if (typeof data.serviceItemNo === "string") {
+      serviceItemNoString = data.serviceItemNo.trim()
+    } else if (data.serviceItemNo) {
+      serviceItemNoString = String(data.serviceItemNo).trim()
+    }
+
+    // Ensure serviceItemNoName is a comma-separated string
+    let serviceItemNoNameString = ""
+    if (typeof data.serviceItemNoName === "string") {
+      serviceItemNoNameString = data.serviceItemNoName.trim()
+    } else if (data.serviceItemNoName) {
+      serviceItemNoNameString = String(data.serviceItemNoName).trim()
+    }
+
+    const formattedData = {
+      ...data,
+      serviceItemNo: serviceItemNoString,
+      serviceItemNoName: serviceItemNoNameString,
+    }
+    submitAction(formattedData)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.error("Form validation errors:", errors)
+          })}
+        >
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <JobOrderTaskAutocomplete

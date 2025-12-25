@@ -208,6 +208,7 @@ export function TransportationLogTab({
 
   // Actual save function that gets called after confirmation
   const handleConfirmSave = useCallback(async () => {
+    console.log("saveConfirmation.formData", saveConfirmation.formData)
     if (!saveConfirmation.formData) return
 
     try {
