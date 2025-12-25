@@ -17,7 +17,6 @@ import {
   Printer,
   Receipt,
   RefreshCcw,
-  Upload,
   X,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -50,7 +49,6 @@ import {
 } from "@/components/autocomplete"
 
 import { ChecklistDetailsForm } from "./checklist-details-form"
-import { ChecklistDocuments } from "./checklist-documents"
 import { ChecklistHistory } from "./checklist-history"
 import { ChecklistLog } from "./checklist-log"
 import { ChecklistMain } from "./checklist-main"
@@ -486,22 +484,22 @@ export function ChecklistTabs({
                 <span className="text-xs sm:text-sm">Service List</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="history">
-              <div className="flex items-center gap-1">
-                <span className="text-xs">🕒</span>
-                <span className="text-xs sm:text-sm">History</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="documents">
+            {/* <TabsTrigger value="documents">
               <div className="flex items-center gap-1">
                 <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="text-xs sm:text-sm">Documents</span>
               </div>
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger value="transportation">
               <div className="flex items-center gap-1">
                 <span className="text-xs">🚚</span>
-                <span className="text-xs sm:text-sm">Transportation</span>
+                <span className="text-xs sm:text-sm">Transportation Log</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <div className="flex items-center gap-1">
+                <span className="text-xs">🕒</span>
+                <span className="text-xs sm:text-sm">History</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="logs">
@@ -683,19 +681,12 @@ export function ChecklistTabs({
           />
         </TabsContent>
 
-        <TabsContent value="history" className="mt-0">
-          <ChecklistHistory
-            jobData={currentJobData}
-            isConfirmed={isConfirmed}
-          />
-        </TabsContent>
-
-        <TabsContent value="documents" className="mt-0">
+        {/* <TabsContent value="documents" className="mt-0">
           <ChecklistDocuments
             jobData={currentJobData}
             isConfirmed={isConfirmed}
           />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="transportation" className="mt-0">
           <TransportationLogTab
@@ -708,6 +699,13 @@ export function ChecklistTabs({
                 onUpdateSuccess()
               }
             }}
+            isConfirmed={isConfirmed}
+          />
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-0">
+          <ChecklistHistory
+            jobData={currentJobData}
             isConfirmed={isConfirmed}
           />
         </TabsContent>

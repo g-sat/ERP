@@ -4,13 +4,14 @@ import { useCallback, useMemo, useState } from "react"
 import {
   ICrewMiscellaneous,
   ICrewMiscellaneousFilter,
+  IJobOrderHd,
 } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid, parse } from "date-fns"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { TableName } from "@/lib/utils"
+import { OperationsTransactionId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
@@ -43,6 +44,7 @@ interface CrewMiscellaneousTableProps {
   onCombinedService?: (selectedIds: string[]) => void
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
+  jobData?: IJobOrderHd | null // Job order data for document upload
 }
 
 export function CrewMiscellaneousTable({
@@ -62,6 +64,7 @@ export function CrewMiscellaneousTable({
   onCombinedService,
   onCloneTask,
   isConfirmed,
+  jobData,
 }: CrewMiscellaneousTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -286,6 +289,8 @@ export function CrewMiscellaneousTable({
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}
+        jobData={jobData}
+        transactionIdForDocuments={OperationsTransactionId.crewMiscellaneous}
       />
 
       {/* History Dialog */}

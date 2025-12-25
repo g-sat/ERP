@@ -604,6 +604,7 @@ export function CrewSignOnTab({
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
+            jobData={jobData}
           />
         </div>
       </div>

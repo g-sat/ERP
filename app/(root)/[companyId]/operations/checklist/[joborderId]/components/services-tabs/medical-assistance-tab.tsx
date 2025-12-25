@@ -620,6 +620,7 @@ export function MedicalAssistanceTab({
             moduleId={moduleId}
             transactionId={transactionId}
             isConfirmed={isConfirmed}
+            jobData={jobData}
           />
         </div>
       </div>

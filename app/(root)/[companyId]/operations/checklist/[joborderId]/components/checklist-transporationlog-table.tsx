@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useMemo } from "react"
-import { ITransportationLog } from "@/interfaces/checklist"
+import { IJobOrderHd, ITransportationLog } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid, parse } from "date-fns"
@@ -26,6 +26,7 @@ interface TransportationLogTableProps {
   moduleId?: number
   transactionId?: number
   isConfirmed?: boolean
+  jobData?: IJobOrderHd | null // Job order data for document upload
 }
 
 export function TransportationLogTable({
@@ -39,6 +40,7 @@ export function TransportationLogTable({
   moduleId,
   transactionId,
   isConfirmed,
+  jobData,
 }: TransportationLogTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = useMemo(
@@ -231,6 +233,7 @@ export function TransportationLogTable({
       transactionId={transactionId}
       isConfirmed={isConfirmed}
       emptyMessage="No transportation logs found."
+      jobData={jobData}
     />
   )
 }

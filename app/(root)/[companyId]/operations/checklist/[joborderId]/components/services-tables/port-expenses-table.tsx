@@ -1,13 +1,17 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { IPortExpenses, IPortExpensesFilter } from "@/interfaces/checklist"
+import {
+  IJobOrderHd,
+  IPortExpenses,
+  IPortExpensesFilter,
+} from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid, parse } from "date-fns"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { TableName } from "@/lib/utils"
+import { OperationsTransactionId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
@@ -29,6 +33,7 @@ interface PortExpensesTableProps {
   onCombinedService?: (selectedIds: string[]) => void
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
+  jobData?: IJobOrderHd | null // Job order data for document upload
 }
 
 export function PortExpensesTable({
@@ -47,6 +52,7 @@ export function PortExpensesTable({
   onCombinedService,
   onCloneTask,
   isConfirmed,
+  jobData,
 }: PortExpensesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -163,11 +169,7 @@ export function PortExpensesTable({
         header: "Quantity",
         cell: ({ row }) => {
           const value = row.getValue("quantity") as number | null | undefined
-          return (
-            <div className="text-right">
-              {value != null ? value : "-"}
-            </div>
-          )
+          return <div className="text-right">{value != null ? value : "-"}</div>
         },
         size: 100,
         minSize: 80,
@@ -305,6 +307,8 @@ export function PortExpensesTable({
         isConfirmed={isConfirmed}
         showHeader={true}
         showActions={true}
+        jobData={jobData}
+        transactionIdForDocuments={OperationsTransactionId.portExpenses}
       />
 
       {/* History Dialog */}

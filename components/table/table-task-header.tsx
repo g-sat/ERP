@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react"
+import { IJobOrderHd } from "@/interfaces/checklist"
 import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 import {
   Building2,
   ClipboardList,
+  FileText,
   Forward,
   Layout,
   Plus,
@@ -11,12 +13,22 @@ import {
   RedoDot,
   RefreshCw,
   SlidersHorizontal,
+  Upload,
+  UploadCloudIcon,
+  UploadIcon,
 } from "lucide-react"
 
 import { useDelete, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -32,6 +44,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { DebitNoteConfirmation } from "@/components/confirmation/debitnote-confirmation"
+import { ServicelistDocuments } from "@/app/(root)/[companyId]/operations/checklist/[joborderId]/components/services-combined/service-documents"
 
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {
@@ -58,6 +71,9 @@ type TaskTableHeaderProps<TData> = {
   // Props for job order info display
   data?: TData[] // Table data to display charges summary
   onResetLayout?: () => void // Callback to reset layout in parent component
+  // Props for document upload
+  jobData?: IJobOrderHd | null // Job order data for document upload
+  transactionIdForDocuments?: number // Transaction ID for document upload
 }
 export function TaskTableHeader<TData>({
   onRefreshAction,
@@ -80,6 +96,8 @@ export function TaskTableHeader<TData>({
   hasDebitNoteInSelection = false,
   data = [],
   onResetLayout,
+  jobData,
+  transactionIdForDocuments,
 }: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -88,6 +106,8 @@ export function TaskTableHeader<TData>({
   // State for debit note confirmation dialog
   const [showDebitNoteConfirmation, setShowDebitNoteConfirmation] =
     useState(false)
+  // State for document upload dialog
+  const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false)
 
   // Extract and aggregate charges with quantities from data
   const chargesData = useMemo(() => {
@@ -264,6 +284,7 @@ export function TaskTableHeader<TData>({
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
+
             <Button
               variant="outline"
               onClick={handleCombinedServiceClick}
@@ -356,6 +377,21 @@ export function TaskTableHeader<TData>({
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsDocumentDialogOpen(true)}
+              disabled={isConfirmed || !jobData}
+              title={
+                isConfirmed
+                  ? "Cannot upload documents when confirmed"
+                  : !jobData
+                    ? "Job order data not available"
+                    : "Upload Documents"
+              }
+            >
+              <UploadIcon className="h-4 w-4" />
+            </Button>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -484,6 +520,27 @@ export function TaskTableHeader<TData>({
         onCancelAction={handleCancelDebitNote}
         isCreating={false} // You can add loading state here if needed
       />
+      {/* Document Upload Dialog */}
+      <Dialog
+        open={isDocumentDialogOpen}
+        onOpenChange={setIsDocumentDialogOpen}
+      >
+        <DialogContent className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Documents</DialogTitle>
+            <DialogDescription>
+              Upload and manage documents for this service/task.
+            </DialogDescription>
+          </DialogHeader>
+          {jobData && (
+            <ServicelistDocuments
+              jobData={jobData}
+              isConfirmed={isConfirmed}
+              transactionId={transactionIdForDocuments}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

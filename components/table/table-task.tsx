@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { IJobOrderHd } from "@/interfaces/checklist"
 import {
   DndContext,
   DragEndEvent,
@@ -63,6 +64,8 @@ interface TaskTableProps<T> {
   isConfirmed?: boolean
   showHeader?: boolean
   showActions?: boolean
+  jobData?: IJobOrderHd | null // Job order data for document upload
+  transactionIdForDocuments?: number // Transaction ID for document upload
 }
 export function TaskTable<T>({
   data,
@@ -86,6 +89,8 @@ export function TaskTable<T>({
   isConfirmed,
   showHeader = true,
   showActions = true,
+  jobData,
+  transactionIdForDocuments,
 }: TaskTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -385,6 +390,8 @@ export function TaskTable<T>({
           hasDebitNoteInSelection={hasValidDebitNoteIds}
           data={data}
           onResetLayout={handleResetLayout}
+          jobData={jobData}
+          transactionIdForDocuments={transactionIdForDocuments}
         />
       )}
       <Table>
