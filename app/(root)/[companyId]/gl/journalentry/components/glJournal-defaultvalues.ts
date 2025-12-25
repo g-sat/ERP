@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const buildDefaultGLJournalDetails = (dateFormat: string) => ({
+const buildDefaultGLJournalDetails = (_dateFormat: string) => ({
   journalId: "0",
   journalNo: "",
   itemNo: 0,
@@ -45,8 +45,8 @@ const buildDefaultGLJournalDetails = (dateFormat: string) => ({
   jobOrderNo: "",
   taskId: 0,
   taskName: "",
-  serviceId: 0,
-  serviceName: "",
+  serviceItemNo: 0,
+  serviceItemNoName: "",
   editVersion: 0,
 })
 

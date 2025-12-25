@@ -85,5 +85,6 @@ export interface IUserTransactionRights {
   isExport: boolean
   isPrint: boolean
   isPost: boolean
+  isDebitNote: boolean
   isVisible: boolean
 }

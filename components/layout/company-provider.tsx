@@ -145,6 +145,8 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     companies,
     isAuthenticated,
     router,
+    currentCompany?.companyId,
+    hasSwitched,
   ])
   // Show loading state while company is switching
   if (isCompanySwitching && currentCompany?.companyId !== companyId) {

@@ -66,7 +66,7 @@ export function PayrollAccountIntegrationForm({
       })
       setSelectedCompanyId(null)
     }
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   return (
     <Form {...form}>

@@ -30,7 +30,6 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface EquipmentUsedFormProps {
   jobData: IJobOrderHd
@@ -179,7 +178,7 @@ export function EquipmentUsedForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <CustomDateNew
                 form={form}
                 name="date"
@@ -214,6 +213,12 @@ export function EquipmentUsedForm({
                 form={form}
                 name="others"
                 label="Others"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
                 isDisabled={isConfirmed}
               />
 
@@ -349,12 +354,6 @@ export function EquipmentUsedForm({
                 </div>
               </div>
             </div>
-            <CustomInput
-              form={form}
-              name="poNo"
-              label="PO No"
-              isDisabled={isConfirmed}
-            />
 
             {/* Audit Information Section */}
             {initialData &&

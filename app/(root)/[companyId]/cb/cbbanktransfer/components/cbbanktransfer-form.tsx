@@ -12,7 +12,7 @@ import {
   ICurrencyLookup,
   IJobOrderLookup,
   IPaymentTypeLookup,
-  IServiceLookup,
+  IServiceItemNoLookup,
   ITaskLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -170,7 +170,7 @@ export default function BankTransferForm({
       form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
       // Reset task and service when job order changes
       form.setValue("taskId", 0, { shouldValidate: true })
-      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceItemNo", 0, { shouldValidate: true })
     }
   }
 
@@ -183,20 +183,21 @@ export default function BankTransferForm({
       })
       form.setValue("taskName", selectedOption.taskName || "")
       // Reset service when task changes
-      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceItemNo", 0, { shouldValidate: true })
     }
   }
 
   // Handle service selection
-  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+  const handleServiceChange = (selectedOption: IServiceItemNoLookup | null) => {
     if (selectedOption) {
-      form.setValue("serviceId", selectedOption.serviceId, {
+      form.setValue("serviceItemNo", selectedOption.serviceItemNo, {
         shouldValidate: true,
         shouldDirty: true,
       })
       form.setValue(
-        "serviceName",
-        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+        "serviceItemNoName",
+        selectedOption.serviceCode + " " + selectedOption.serviceItemNoName ||
+          ""
       )
     }
   }
@@ -843,7 +844,7 @@ export default function BankTransferForm({
               <JobOrderServiceAutocomplete
                 key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                 form={form}
-                name="serviceId"
+                name="serviceItemNo"
                 jobOrderId={watchedJobOrderId || 0}
                 taskId={watchedTaskId || 0}
                 label="Service"

@@ -8,6 +8,7 @@ import { format, isValid, parse } from "date-fns"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
 interface TransportationLogTableProps {
@@ -16,7 +17,7 @@ interface TransportationLogTableProps {
   onTransportationLogSelect?: (
     transportationLog: ITransportationLog | null
   ) => void
-  onDeleteTransportationLog?: (transportationLogId: string) => void
+  onDeleteTransportationLog?: (itemNo: string) => void
   onEditActionTransportationLog?: (
     transportationLog: ITransportationLog
   ) => void
@@ -78,12 +79,54 @@ export function TransportationLogTable({
         minSize: 100,
       },
       {
-        accessorKey: "serviceName",
-        header: "Service",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("serviceName") || "-"}</div>
-        ),
-        size: 150,
+        accessorKey: "serviceItemNo",
+        header: "Services",
+        cell: ({ row }) => {
+          const serviceItemNo = row.original.serviceItemNo
+          const serviceItemNoName = row.original.serviceItemNoName
+
+          if (!serviceItemNo || serviceItemNo.trim() === "") {
+            return <span className="text-muted-foreground">-</span>
+          }
+
+          // Split comma-separated strings
+          const serviceItemNos = serviceItemNo
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item && !isNaN(Number(item)))
+
+          if (serviceItemNos.length === 0) {
+            return <span className="text-muted-foreground">-</span>
+          }
+
+          // Split serviceItemNoName if available, otherwise use IDs
+          const serviceItemNoNames = serviceItemNoName
+            ? serviceItemNoName.split(",").map((name) => name.trim())
+            : []
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {serviceItemNos.map((itemNo, index) => {
+                // Use name if available and matches index, otherwise use ID
+                const displayText =
+                  serviceItemNoNames[index] && serviceItemNoNames[index] !== ""
+                    ? serviceItemNoNames[index]
+                    : itemNo
+
+                return (
+                  <Badge
+                    key={`${itemNo}-${index}`}
+                    variant="default"
+                    className="border-blue-200 bg-blue-100 text-xs text-blue-800 hover:bg-blue-200"
+                  >
+                    {displayText}
+                  </Badge>
+                )
+              })}
+            </div>
+          )
+        },
+        size: 250,
         minSize: 120,
         enableColumnFilter: true,
       },
@@ -178,7 +221,7 @@ export function TransportationLogTable({
       columns={columns}
       isLoading={isLoading}
       tableName={TableName.checklist}
-      accessorId="transportationLogId"
+      accessorId="itemNo"
       onSelect={onTransportationLogSelect}
       onEditAction={onEditActionTransportationLog}
       onDeleteAction={onDeleteTransportationLog}

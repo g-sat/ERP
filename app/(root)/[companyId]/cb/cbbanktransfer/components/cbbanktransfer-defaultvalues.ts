@@ -14,7 +14,8 @@ const defaultBankTransfer = {
   chequeDate: format(new Date(), clientDateFormat),
   jobOrderId: 0,
   taskId: 0,
-  serviceId: 0,
+  serviceItemNo: 0,
+  serviceItemNoName: "",
 
   fromBankId: 0,
   fromCurrencyId: 0,

@@ -18,7 +18,6 @@ import {
   Settings,
   TrendingDown,
   TrendingUp,
-  XCircle,
 } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
@@ -183,7 +182,7 @@ export default function GLDashboardPage() {
   const params = useParams()
   const router = useRouter()
   const companyId = params.companyId as string
-  const { decimals, currentCompany } = useAuthStore()
+  const { decimals, currentCompany: _currentCompany } = useAuthStore()
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),

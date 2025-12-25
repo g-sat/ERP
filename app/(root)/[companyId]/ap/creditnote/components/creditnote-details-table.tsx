@@ -115,7 +115,7 @@ export default function CreditNoteDetailsTable({
           },
 
           {
-            accessorKey: "serviceName",
+            accessorKey: "serviceItemNoName",
             header: "Service",
             size: 100,
           },

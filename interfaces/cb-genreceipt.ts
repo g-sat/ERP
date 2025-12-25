@@ -105,7 +105,7 @@ export interface ICbGenReceiptDt {
   jobOrderNo: string
   taskId: number
   taskName: string
-  serviceId: number
-  serviceName: string
+  serviceItemNo: number
+  serviceItemNoName: string
   editVersion: number
 }

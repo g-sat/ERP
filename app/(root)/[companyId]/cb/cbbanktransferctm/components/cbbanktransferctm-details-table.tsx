@@ -210,7 +210,7 @@ export default function CbBankTransferCtmDetailsTable({
             size: 150,
           },
           {
-            accessorKey: "serviceName" as const,
+            accessorKey: "serviceItemNoName" as const,
             header: "Service",
             size: 150,
           },

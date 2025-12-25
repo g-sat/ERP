@@ -33,12 +33,11 @@ export const CbBankTransferSchema = (
         ? z.number().min(1, "Task is required")
         : z.number().optional(),
     taskName: z.string().optional().nullable(),
-    serviceName: z.string().optional().nullable(),
-    serviceId:
+    serviceItemNo:
       required?.m_JobOrderId && visible?.m_JobOrderId
         ? z.number().min(1, "Service is required")
         : z.number().optional(),
-
+    serviceItemNoName: z.string().optional(),
     // From Bank Fields
     fromBankId: z.number().min(1, "From Bank is required"),
     fromCurrencyId: z.number().min(1, "From Currency is required"),

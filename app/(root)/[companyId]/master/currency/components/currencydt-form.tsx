@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { ICurrencyDt } from "@/interfaces/currency"
 import { CurrencyDtSchemaType, currencyDtSchema } from "@/schemas/currency"
 import { useAuthStore } from "@/stores/auth-store"
@@ -54,11 +54,14 @@ export function CurrencyDtForm({
     )
   )
 
-  const defaultValues = {
-    currencyId: 0,
-    exhRate: exhRateDec || 9,
-    validFrom: format(new Date(), clientDateFormat),
-  }
+  const defaultValues = useMemo(
+    () => ({
+      currencyId: 0,
+      exhRate: exhRateDec || 9,
+      validFrom: format(new Date(), clientDateFormat),
+    }),
+    [exhRateDec]
+  )
 
   const form = useForm<CurrencyDtSchemaType>({
     resolver: zodResolver(currencyDtSchema),

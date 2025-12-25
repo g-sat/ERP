@@ -12,8 +12,8 @@ export interface ICbBankTransfer {
   jobOrderNo: string
   taskId: number
   taskName: string
-  serviceId: number
-  serviceName: string
+  serviceItemNo: number
+  serviceItemNoName: string
 
   fromBankId: number
   fromBankCode: string

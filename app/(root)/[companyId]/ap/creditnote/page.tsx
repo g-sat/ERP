@@ -276,8 +276,8 @@ export default function CreditNotePage() {
               jobOrderNo: detail.jobOrderNo ?? "",
               taskId: detail.taskId ?? 0,
               taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
+              serviceItemNo: detail.serviceItemNo ?? 0,
+              serviceItemNoName: detail.serviceItemNoName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -780,59 +780,6 @@ export default function CreditNotePage() {
     toast.success("CreditNote reset successfully")
   }
 
-  // Handle Print Credit Note Report
-  const handlePrintCreditNote = () => {
-    if (!creditNote || creditNote.creditNoteId === "0") {
-      toast.error("Please select a credit note to print")
-      return
-    }
-
-    const formValues = form.getValues()
-    const creditNoteId =
-      formValues.creditNoteId || creditNote.creditNoteId?.toString() || "0"
-    const creditNoteNo =
-      formValues.creditNoteNo || creditNote.creditNoteNo || ""
-
-    // Get decimals
-    const amtDec = decimals[0]?.amtDec || 2
-    const locAmtDec = decimals[0]?.locAmtDec || 2
-
-    // Build report parameters
-    const reportParams = {
-      companyId: companyId,
-      invoiceId: creditNoteId,
-      invoiceNo: creditNoteNo,
-      reportType: 1,
-      userName: user?.userName || "",
-      amtDec: amtDec,
-      locAmtDec: locAmtDec,
-    }
-
-    console.log("reportParams", reportParams)
-
-    // Store report data in sessionStorage
-    const reportData = {
-      reportFile: "ap/ApCreditNote.trdp",
-      parameters: reportParams,
-    }
-
-    try {
-      sessionStorage.setItem(
-        `report_window_${companyId}`,
-        JSON.stringify(reportData)
-      )
-
-      // Open in a new window (not tab) with specific features
-      const windowFeatures =
-        "width=1200,height=800,menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes"
-      const viewerUrl = `/${companyId}/reports/window`
-      window.open(viewerUrl, "_blank", windowFeatures)
-    } catch (error) {
-      console.error("Error opening report:", error)
-      toast.error("Failed to open report")
-    }
-  }
-
   // Helper function to transform IApCreditNoteHd to ApCreditNoteHdSchemaType
   const transformToSchemaType = useCallback(
     (apiCreditNote: IApCreditNoteHd): ApCreditNoteHdSchemaType => {
@@ -988,8 +935,8 @@ export default function CreditNotePage() {
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
                 taskName: detail.taskName ?? "",
-                serviceId: detail.serviceId ?? 0,
-                serviceName: detail.serviceName ?? "",
+                serviceItemNo: detail.serviceItemNo ?? 0,
+                serviceItemNoName: detail.serviceItemNoName ?? "",
                 employeeId: detail.employeeId ?? 0,
                 employeeCode: detail.employeeCode ?? "",
                 employeeName: detail.employeeName ?? "",

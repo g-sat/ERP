@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import {
-  calculateDivisionAmount,
   calculateMultiplierAmount,
   calculatePercentagecAmount,
 } from "@/helpers/account"
@@ -65,7 +64,9 @@ export default function DebitNoteDialog({
   debitNoteHd,
   isConfirmed,
   title = "Debit Note",
-  description = "Manage debit note details for this service.",
+  description: _description = "Manage debit note details for this service.",
+  // Note: onOpenChange is a standard Dialog prop from shadcn/ui - Next.js linter warning is a false positive
+  // as this is a client component using a client component (Dialog)
   onOpenChange,
   onDeleteAction,
   onUpdateHeader,

@@ -20,7 +20,6 @@ import { toast } from "sonner"
 import { APTransactionId } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
 import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 

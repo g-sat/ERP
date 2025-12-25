@@ -52,7 +52,7 @@ export function MedicalAssistanceTable({
   onDeleteMedicalAssistance,
   onEditActionMedicalAssistance,
   onCreateActionMedicalAssistance,
-  onRefreshActionte,
+  onRefreshActionte: _onRefreshActionte,
   onDebitNoteAction,
   onPurchaseAction,
   onRefreshAction,

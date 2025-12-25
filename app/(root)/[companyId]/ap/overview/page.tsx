@@ -8,7 +8,6 @@ import { endOfMonth, format, startOfMonth } from "date-fns"
 import {
   AlertTriangle,
   BarChart3,
-  Building2,
   Clock,
   CreditCard,
   DollarSign,
@@ -154,7 +153,7 @@ export default function APDashboardPage() {
   const params = useParams()
   const router = useRouter()
   const companyId = params.companyId as string
-  const { decimals, currentCompany } = useAuthStore()
+  const { decimals } = useAuthStore()
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),

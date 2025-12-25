@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { ITaxDt } from "@/interfaces/tax"
 import { TaxDtSchemaType, taxDtSchema } from "@/schemas/tax"
 import { useAuthStore } from "@/stores/auth-store"
@@ -42,11 +42,14 @@ export function TaxDtForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData TaxDtForm", initialData)
-  const defaultValues = {
-    taxId: 0,
-    taxPercentage: 0,
-    validFrom: new Date(),
-  }
+  const defaultValues = useMemo(
+    () => ({
+      taxId: 0,
+      taxPercentage: 0,
+      validFrom: new Date(),
+    }),
+    []
+  )
 
   const form = useForm<TaxDtSchemaType>({
     resolver: zodResolver(taxDtSchema),

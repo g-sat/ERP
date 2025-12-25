@@ -3,7 +3,7 @@ import { format } from "date-fns"
 import { clientDateFormat } from "@/lib/date-utils"
 
 // Default values for Bank Transfer CTM Details (Individual Detail Record)
-const buildDefaultCbBankTransferCtmDt = (dateFormat: string) => ({
+const buildDefaultCbBankTransferCtmDt = (_dateFormat: string) => ({
   transferId: "0",
   transferNo: "",
   itemNo: 0,
@@ -14,8 +14,8 @@ const buildDefaultCbBankTransferCtmDt = (dateFormat: string) => ({
   jobOrderNo: "",
   taskId: 0,
   taskName: "",
-  serviceId: 0,
-  serviceName: "",
+  serviceItemNo: 0,
+  serviceItemNoName: "",
 
   // To Bank Fields
   toBankId: 0,

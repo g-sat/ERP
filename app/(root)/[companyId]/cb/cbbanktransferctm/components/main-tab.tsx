@@ -43,7 +43,7 @@ export default function Main({
   const { decimals } = useAuthStore()
 
   // Get user settings with defaults for all modules
-  const { defaults } = useUserSettingDefaults()
+  const { defaults: _defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
     useState<CbBankTransferCtmDtSchemaType | null>(null)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -48,31 +48,34 @@ export function ChecklistHistory({
       jobData?.jobOrderId ? jobData.jobOrderId.toString() : ""
     )
 
-  const formatDate = (dateValue: string | Date | null | undefined) => {
-    if (!dateValue) return "-"
+  const formatDate = useCallback(
+    (dateValue: string | Date | null | undefined) => {
+      if (!dateValue) return "-"
 
-    try {
-      let date: Date | null = null
+      try {
+        let date: Date | null = null
 
-      // Handle Date objects
-      if (dateValue instanceof Date) {
-        date = dateValue
+        // Handle Date objects
+        if (dateValue instanceof Date) {
+          date = dateValue
+        }
+        // Handle string dates
+        else if (typeof dateValue === "string") {
+          date = new Date(dateValue)
+        }
+
+        // Validate and format the date
+        if (date && isValid(date) && !isNaN(date.getTime())) {
+          return format(date, datetimeFormat)
+        }
+
+        return "-"
+      } catch {
+        return "-"
       }
-      // Handle string dates
-      else if (typeof dateValue === "string") {
-        date = new Date(dateValue)
-      }
-
-      // Validate and format the date
-      if (date && isValid(date) && !isNaN(date.getTime())) {
-        return format(date, datetimeFormat)
-      }
-
-      return "-"
-    } catch {
-      return "-"
-    }
-  }
+    },
+    [datetimeFormat]
+  )
 
   // Define columns for the history table
   const historyColumns: ColumnDef<IJobOrderHistory>[] = useMemo(
@@ -173,7 +176,7 @@ export function ChecklistHistory({
         maxSize: 300,
       },
     ],
-    [datetimeFormat]
+    [formatDate]
   )
 
   // Extract history data from response

@@ -115,7 +115,7 @@ export default function DebitNoteDetailsTable({
           },
 
           {
-            accessorKey: "serviceName",
+            accessorKey: "serviceItemNoName",
             header: "Service",
             size: 100,
           },

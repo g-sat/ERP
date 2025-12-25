@@ -116,7 +116,7 @@ export default function GLJournalDetailsTable({
           },
 
           {
-            accessorKey: "serviceName",
+            accessorKey: "serviceItemNoName",
             header: "Service",
             size: 100,
           },

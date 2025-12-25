@@ -590,6 +590,7 @@ export interface IOtherService {
   taskStatusName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  poNo?: string
   remarks: string
   description?: string
   createById: number
@@ -842,11 +843,12 @@ export interface ISavePurchaseData {
 }
 
 export interface ITransportationLog {
-  transportationLogId: number
+  itemNo: number
   companyId: number
   jobOrderId: number
   taskId: number
-  serviceId: number
+  serviceItemNo: string
+  serviceItemNoName: string
   transportDate: Date | string
   fromLocationId: number
   toLocationId: number

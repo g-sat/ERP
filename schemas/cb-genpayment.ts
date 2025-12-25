@@ -212,12 +212,11 @@ export const CbGenPaymentDtSchema = (
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId:
+    serviceItemNo:
       required?.m_JobOrderId && visible?.m_JobOrderId
         ? z.number().min(1, "Service is required")
         : z.number().optional(),
-    serviceName: z.string().optional(),
-
+    serviceItemNoName: z.string().optional(),
     editVersion: z.number().optional(),
   })
 }

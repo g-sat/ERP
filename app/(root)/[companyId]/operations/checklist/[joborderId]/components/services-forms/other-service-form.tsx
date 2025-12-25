@@ -207,13 +207,7 @@ export function OtherServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-              <TaskStatusAutocomplete
-                form={form}
-                name="taskStatusId"
-                label="Status"
-                isRequired={true}
-                isDisabled={isConfirmed}
-              />
+
               <CustomNumberInput
                 form={form}
                 name="quantity"
@@ -228,6 +222,19 @@ export function OtherServiceForm({
                 isRequired
                 isDisabled={isConfirmed || !isCashToMaster}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
+              <TaskStatusAutocomplete
+                form={form}
+                name="taskStatusId"
+                label="Status"
+                isRequired={true}
+                isDisabled={isConfirmed}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <CustomTextarea
@@ -240,12 +247,6 @@ export function OtherServiceForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

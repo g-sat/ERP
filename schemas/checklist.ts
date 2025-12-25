@@ -725,11 +725,12 @@ export const debitNoteHdSchema = z.object({
 export type DebitNoteHdSchemaType = z.infer<typeof debitNoteHdSchema>
 
 export const TransportationLogSchema = z.object({
-  transportationLogId: z.number().optional(),
+  itemNo: z.number().optional(),
   companyId: z.number().min(1, "Company ID is required"),
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  serviceId: z.number().min(1, "Service ID is required"),
+  serviceItemNo: z.string().min(1, "Service Item No is required"),
+  serviceItemNoName: z.string().min(1, "Service Item No Name is required"),
   transportDate: z.union([z.date(), z.string()]).optional(),
   fromLocationId: z.number().min(1, "From Location is required"),
   toLocationId: z.number().min(1, "To Location is required"),

@@ -219,14 +219,6 @@ export function LandingItemsForm({
                 isDisabled={isConfirmed}
               />
 
-              <TaskStatusAutocomplete
-                form={form}
-                name="taskStatusId"
-                label="Status"
-                isRequired={true}
-                isDisabled={isConfirmed}
-              />
-
               <CustomNumberInput
                 form={form}
                 name="weight"
@@ -240,18 +232,26 @@ export function LandingItemsForm({
                 label="Return Date (Optional)"
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
+
+              <TaskStatusAutocomplete
+                form={form}
+                name="taskStatusId"
+                label="Status"
+                isRequired={true}
+                isDisabled={isConfirmed}
+              />
             </div>
 
             <CustomTextarea
               form={form}
               name="remarks"
               label="Remarks"
-              isDisabled={isConfirmed}
-            />
-            <CustomInput
-              form={form}
-              name="poNo"
-              label="PO No"
               isDisabled={isConfirmed}
             />
 

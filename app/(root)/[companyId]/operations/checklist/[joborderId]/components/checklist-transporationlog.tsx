@@ -4,28 +4,20 @@ import { useCallback, useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IJobOrderHd, ITransportationLog } from "@/interfaces/checklist"
 import { TransportationLogSchemaType } from "@/schemas/checklist"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { z } from "zod"
 
-import { apiClient, getData } from "@/lib/api-client"
+import { getData } from "@/lib/api-client"
 import { JobOrder_TransportationLog } from "@/lib/api-routes"
-import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
@@ -78,12 +70,12 @@ export function TransportationLogTab({
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
-    transportationLogId: string | null
+    itemNo: string | null
     transportationLogName: string | null
     jobOrderId: number | null
   }>({
     isOpen: false,
-    transportationLogId: null,
+    itemNo: null,
     transportationLogName: null,
     jobOrderId: null,
   })
@@ -126,7 +118,7 @@ export function TransportationLogTab({
 
       try {
         const response = (await getData(
-          `${JobOrder_TransportationLog.getById}/${jobOrderId}/${item.transportationLogId}`
+          `${JobOrder_TransportationLog.getById}/${jobOrderId}/${item.itemNo}`
         )) as ApiResponse<ITransportationLog>
         if (response.result === 1 && response.data) {
           const itemData = Array.isArray(response.data)
@@ -150,27 +142,22 @@ export function TransportationLogTab({
   )
 
   const handleDelete = (id: string) => {
-    const itemToDelete = data?.find(
-      (item) => item.transportationLogId.toString() === id
-    )
+    const itemToDelete = data?.find((item) => item.itemNo.toString() === id)
     if (!itemToDelete) return
 
     setDeleteConfirmation({
       isOpen: true,
-      transportationLogId: id,
-      transportationLogName: `Transportation ${itemToDelete.fromLocation} to ${itemToDelete.toLocation}`,
+      itemNo: id,
+      transportationLogName: `Transportation ${itemToDelete.fromLocationId} to ${itemToDelete.toLocationId}`,
       jobOrderId: jobData.jobOrderId,
     })
   }
 
   const handleConfirmDelete = async () => {
-    if (
-      deleteConfirmation.transportationLogId &&
-      deleteConfirmation.jobOrderId
-    ) {
+    if (deleteConfirmation.itemNo && deleteConfirmation.jobOrderId) {
       try {
         await deleteMutation.mutateAsync(
-          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.transportationLogId}`
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.itemNo}`
         )
         queryClient.invalidateQueries({ queryKey: ["transportationLog"] })
         onTaskAdded?.()
@@ -179,7 +166,7 @@ export function TransportationLogTab({
       } finally {
         setDeleteConfirmation({
           isOpen: false,
-          transportationLogId: null,
+          itemNo: null,
           jobOrderId: null,
           transportationLogName: null,
         })
@@ -190,7 +177,7 @@ export function TransportationLogTab({
   const handleEdit = useCallback(
     async (item: ITransportationLog) => {
       const response = (await getData(
-        `${JobOrder_TransportationLog.getById}/${jobOrderId}/${item.transportationLogId}`
+        `${JobOrder_TransportationLog.getById}/${jobOrderId}/${item.itemNo}`
       )) as ApiResponse<ITransportationLog>
       if (response.result === 1 && response.data) {
         const itemData = Array.isArray(response.data)
@@ -238,7 +225,7 @@ export function TransportationLogTab({
       if (saveConfirmation.operationType === "update" && selectedItem) {
         response = await updateMutation.mutateAsync({
           ...submitData,
-          transportationLogId: selectedItem.transportationLogId,
+          itemNo: selectedItem.itemNo,
         })
       } else {
         response = await saveMutation.mutateAsync(submitData)
@@ -375,7 +362,7 @@ export function TransportationLogTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Transportation ${selectedItem?.fromLocation || ""} to ${selectedItem?.toLocation || ""}`
+            ? `Transportation ${selectedItem?.fromLocationId || ""} to ${selectedItem?.toLocationId || ""}`
             : "New Transportation Log"
         }
         operationType={saveConfirmation.operationType}
@@ -402,7 +389,7 @@ export function TransportationLogTab({
         onCancelAction={() =>
           setDeleteConfirmation({
             isOpen: false,
-            transportationLogId: null,
+            itemNo: null,
             jobOrderId: null,
             transportationLogName: null,
           })

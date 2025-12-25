@@ -32,6 +32,7 @@ type PermissionType =
   | "isExport"
   | "isPrint"
   | "isPost"
+  | "isDebitNote"
 
 export function UserGroupSettingTable() {
   const form = useForm()
@@ -131,6 +132,7 @@ export function UserGroupSettingTable() {
               isExport: checked,
               isPrint: checked,
               isPost: checked,
+              isDebitNote: checked,
             }
           : right
       )
@@ -159,7 +161,8 @@ export function UserGroupSettingTable() {
       right.isDelete &&
       right.isExport &&
       right.isPrint &&
-      right.isPost
+      right.isPost &&
+      right.isDebitNote
     )
   }
 
@@ -203,6 +206,7 @@ export function UserGroupSettingTable() {
                   isExport: isChecked,
                   isPrint: isChecked,
                   isPost: isChecked,
+                  isDebitNote: isChecked,
                 }))
               )
             }}
@@ -412,6 +416,34 @@ export function UserGroupSettingTable() {
               row.original.moduleId,
               row.original.transactionId,
               "isPost",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isDebitNote",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Debit Note</span>
+          <Checkbox
+            checked={isColumnAllSelected("isDebitNote")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isDebitNote", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isDebitNote}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isDebitNote",
               Boolean(checked)
             )
           }

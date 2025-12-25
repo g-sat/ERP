@@ -887,8 +887,8 @@ export default function CbGenPaymentPage() {
                 jobOrderNo: detail.jobOrderNo ?? "",
                 taskId: detail.taskId ?? 0,
                 taskName: detail.taskName ?? "",
-                serviceId: detail.serviceId ?? 0,
-                serviceName: detail.serviceName ?? "",
+                serviceItemNo: detail.serviceItemNo ?? 0,
+                serviceItemNoName: detail.serviceItemNoName ?? "",
                 editVersion: detail.editVersion ?? 0,
               }) as unknown as CbGenPaymentDtSchemaType
           ) || [],

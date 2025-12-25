@@ -3,7 +3,6 @@
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 
-import { parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

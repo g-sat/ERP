@@ -1,7 +1,6 @@
 "use client"
 
 import { GLJournalHdSchemaType } from "@/schemas"
-import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import AccountDetails from "./history/account-details"

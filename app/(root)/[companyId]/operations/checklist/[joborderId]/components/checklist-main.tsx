@@ -267,7 +267,7 @@ export function ChecklistMain({
       editVersion: jobData?.editVersion ?? 0,
       vesselDistance: jobData?.vesselDistance ?? 10,
     })
-  }, [jobData, form])
+  }, [jobData, form, dateFormat, parseWithFallback])
 
   // Reset address and contact when customer changes (only for new selections, not initial load)
   useEffect(() => {

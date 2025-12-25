@@ -52,7 +52,7 @@ export function AgencyRemunerationTable({
   onDeleteAgencyRemuneration,
   onEditActionAgencyRemuneration,
   onCreateActionAgencyRemuneration,
-  onRefreshActionte,
+  onRefreshActionte: _onRefreshActionte,
   onDebitNoteAction,
   onPurchaseAction,
   onRefreshAction,

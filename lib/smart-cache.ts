@@ -129,7 +129,7 @@ class SmartCache {
    */
   clear(): void {
     this.cache.clear()
-    }
+  }
   /**
    * Get cache statistics
    */
@@ -163,7 +163,7 @@ class SmartCache {
       }
     }
     if (cleanedCount > 0) {
-      }
+    }
   }
   /**
    * Evict oldest entries when cache is full
@@ -179,7 +179,7 @@ class SmartCache {
     }
     if (oldestKey) {
       this.cache.delete(oldestKey)
-      }
+    }
   }
   /**
    * Calculate cache hit rate (simplified)
@@ -238,29 +238,29 @@ export const cacheInvalidation = {
   /**
    * Invalidate all user-related cache when user logs out
    */
-  onUserLogout: (userId: string) => {
+  onUserLogout: (_userId: string) => {
     smartCache.invalidateByTags(["user"])
-    },
+  },
   /**
    * Invalidate company-related cache when company switches
    */
-  onCompanySwitch: (companyId: string) => {
+  onCompanySwitch: (_companyId: string) => {
     smartCache.invalidateByTags(["company"])
-    },
+  },
   /**
    * Invalidate permission cache when permissions change
    */
   onPermissionsChange: (userId: string, companyId: string) => {
     smartCache.delete(cacheKeys.permissions(userId, companyId))
     smartCache.invalidateByTags(["permissions"])
-    },
+  },
   /**
    * Invalidate notification cache when new notifications arrive
    */
   onNotificationUpdate: (userId: string) => {
     smartCache.delete(cacheKeys.notifications(userId))
     smartCache.invalidateByTags(["notifications"])
-    },
+  },
 }
 /**
  * Cache warming strategies
@@ -297,7 +297,7 @@ export const cacheWarming = {
         CACHE_CONFIG.decimals,
         dataFetchers.getDecimals
       )
-      } catch (error) {
+    } catch (error) {
       console.error(`❌ [SmartCache] Cache warming failed:`, error)
     }
   },
@@ -309,7 +309,7 @@ export const cacheWarming = {
     // For example, if user navigates to notifications, prefetch notifications
     if (route.includes("notifications")) {
       // This would be implemented with actual notification fetching
-      }
+    }
   },
 }
 /**
@@ -326,12 +326,11 @@ export const cacheMonitor = {
   /**
    * Debug cache contents
    */
-  debugCache: () => {
-    },
+  debugCache: () => {},
   /**
    * Clear all cache (for debugging)
    */
   clearAll: () => {
     smartCache.clear()
-    },
+  },
 }

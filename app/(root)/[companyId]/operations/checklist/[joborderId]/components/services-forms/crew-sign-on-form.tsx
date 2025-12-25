@@ -159,6 +159,12 @@ export function CrewSignOnForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
 
               <TaskStatusAutocomplete
                 form={form}
@@ -167,6 +173,8 @@ export function CrewSignOnForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               <CustomTextarea
                 form={form}
                 name="transportName"
@@ -222,12 +230,6 @@ export function CrewSignOnForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

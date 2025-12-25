@@ -28,7 +28,7 @@ import {
   IJobOrderLookup,
   IPortLookup,
   IProductLookup,
-  IServiceLookup,
+  IServiceItemNoLookup,
   ITaskLookup,
   IUomLookup,
   IVesselLookup,
@@ -226,8 +226,8 @@ const DebitNoteDetailsForm = React.forwardRef<
             jobOrderNo: editingDetail.jobOrderNo ?? "",
             taskId: editingDetail.taskId ?? 0,
             taskName: editingDetail.taskName ?? "",
-            serviceId: editingDetail.serviceId ?? 0,
-            serviceName: editingDetail.serviceName ?? "",
+            serviceItemNo: editingDetail.serviceItemNo ?? 0,
+            serviceItemNoName: editingDetail.serviceItemNoName ?? "",
             employeeId: editingDetail.employeeId ?? 0,
             employeeCode: editingDetail.employeeCode ?? "",
             employeeName: editingDetail.employeeName ?? "",
@@ -524,8 +524,8 @@ const DebitNoteDetailsForm = React.forwardRef<
           jobOrderNo: editingDetail.jobOrderNo ?? "",
           taskId: editingDetail.taskId ?? 0,
           taskName: editingDetail.taskName ?? "",
-          serviceId: editingDetail.serviceId ?? 0,
-          serviceName: editingDetail.serviceName ?? "",
+          serviceItemNo: editingDetail.serviceItemNo ?? 0,
+          serviceItemNoName: editingDetail.serviceItemNoName ?? "",
           employeeId: editingDetail.employeeId ?? 0,
           employeeCode: editingDetail.employeeCode ?? "",
           employeeName: editingDetail.employeeName ?? "",
@@ -686,8 +686,8 @@ const DebitNoteDetailsForm = React.forwardRef<
           jobOrderNo: updatedData.jobOrderNo ?? "",
           taskId: updatedData.taskId ?? 0,
           taskName: updatedData.taskName ?? "",
-          serviceId: updatedData.serviceId ?? 0,
-          serviceName: updatedData.serviceName ?? "",
+          serviceItemNo: updatedData.serviceItemNo ?? 0,
+          serviceItemNoName: updatedData.serviceItemNoName ?? "",
           employeeId: updatedData.employeeId ?? 0,
           employeeCode: updatedData.employeeCode ?? "",
           employeeName: updatedData.employeeName ?? "",
@@ -789,8 +789,8 @@ const DebitNoteDetailsForm = React.forwardRef<
           form.setValue("jobOrderNo", "")
           form.setValue("taskId", 0, { shouldValidate: true })
           form.setValue("taskName", "")
-          form.setValue("serviceId", 0, { shouldValidate: true })
-          form.setValue("serviceName", "")
+          form.setValue("serviceItemNo", 0, { shouldValidate: true })
+          form.setValue("serviceItemNoName", "")
         } else {
           // Job-Specific: Reset department field
           form.setValue("departmentId", 0, { shouldValidate: true })
@@ -836,15 +836,15 @@ const DebitNoteDetailsForm = React.forwardRef<
         // Reset task and service when job order changes
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         form.setValue("jobOrderId", 0, { shouldValidate: true })
         form.setValue("jobOrderNo", "")
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -857,27 +857,32 @@ const DebitNoteDetailsForm = React.forwardRef<
         })
         form.setValue("taskName", selectedOption.taskName || "")
         // Reset service when task changes
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
     // Handle service selection
-    const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    const handleServiceChange = (
+      selectedOption: IServiceItemNoLookup | null
+    ) => {
       if (selectedOption) {
-        form.setValue("serviceId", selectedOption.serviceId, {
+        form.setValue("serviceItemNo", selectedOption.serviceItemNo, {
           shouldValidate: true,
           shouldDirty: true,
         })
-        form.setValue("serviceName", selectedOption.serviceName || "")
+        form.setValue(
+          "serviceItemNoName",
+          selectedOption.serviceItemNoName || ""
+        )
       } else {
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -1214,7 +1219,7 @@ const DebitNoteDetailsForm = React.forwardRef<
             <input type="hidden" {...form.register("departmentName")} />
             <input type="hidden" {...form.register("jobOrderNo")} />
             <input type="hidden" {...form.register("taskName")} />
-            <input type="hidden" {...form.register("serviceName")} />
+            <input type="hidden" {...form.register("serviceItemNoName")} />
             <input type="hidden" {...form.register("productCode")} />
             <input type="hidden" {...form.register("productName")} />
             <input type="hidden" {...form.register("uomCode")} />
@@ -1348,7 +1353,7 @@ const DebitNoteDetailsForm = React.forwardRef<
                   <JobOrderServiceAutocomplete
                     key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                     form={form}
-                    name="serviceId"
+                    name="serviceItemNo"
                     jobOrderId={watchedJobOrderId || 0}
                     taskId={watchedTaskId || 0}
                     label="Service"

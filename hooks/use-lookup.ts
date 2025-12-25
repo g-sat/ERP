@@ -47,6 +47,7 @@ import {
   IProductLookup,
   IRankLookup,
   IServiceCategoryLookup,
+  IServiceItemNoLookup,
   IServiceLookup,
   IServiceModeLookup,
   IServiceTypeCategoryLookup,
@@ -1372,7 +1373,7 @@ export const useJobOrderTaskLookup = (jobOrderId: number) => {
   })
 }
 export const useJobOrderChargeLookup = (jobOrderId: number, taskId: number) => {
-  return useQuery<IServiceLookup[]>({
+  return useQuery<IServiceItemNoLookup[]>({
     queryKey: ["joborder-charge-lookUp", jobOrderId, taskId],
     ...defaultQueryConfig,
     queryFn: async () => {

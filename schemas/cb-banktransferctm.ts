@@ -17,9 +17,8 @@ export const CbBankTransferCtmDtSchema = (
     jobOrderNo: z.string().optional(),
     taskId: z.number().optional(),
     taskName: z.string().optional(),
-    serviceName: z.string().optional(),
-    serviceId: z.number().optional(),
-
+    serviceItemNo: z.number().optional(),
+    serviceItemNoName: z.string().optional(),
     // To Bank Fields
     toBankId: z.number().min(1, "To Bank is required"),
     toBankCode: z.string().optional(),

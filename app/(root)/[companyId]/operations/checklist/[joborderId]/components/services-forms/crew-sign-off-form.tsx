@@ -25,7 +25,6 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface CrewSignOffFormProps {
   jobData: IJobOrderHd
@@ -160,6 +159,12 @@ export function CrewSignOffForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
 
               <TaskStatusAutocomplete
                 form={form}
@@ -168,6 +173,8 @@ export function CrewSignOffForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               <CustomTextarea
                 form={form}
                 name="transportName"
@@ -223,12 +230,6 @@ export function CrewSignOffForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

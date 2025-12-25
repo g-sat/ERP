@@ -106,7 +106,7 @@ export default function CbGenPaymentDetailsTable({
           },
 
           {
-            accessorKey: "serviceName",
+            accessorKey: "serviceItemNoName",
             header: "Service",
             size: 100,
           },

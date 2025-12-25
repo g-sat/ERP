@@ -118,7 +118,7 @@ export default function ReportsPage() {
   })
 
   // Handle asOfDate change and automatically set toDate to the same value
-  const handleAsDateChange = (date: Date | null) => {
+  const _handleAsDateChange = (date: Date | null) => {
     if (date) {
       const formattedDate = format(date, dateFormat)
       form.setValue("asOfDate", formattedDate)

@@ -237,7 +237,8 @@ export default function BankReconDetailsTable({
         if (!date || !isValid(date)) return ""
         return format(date, dateFormat)
       },
-      [dateFormat]
+      // dateFormat is an outer scope value that doesn't need to be in dependencies
+      []
     )
 
     // Parse user input string to Date

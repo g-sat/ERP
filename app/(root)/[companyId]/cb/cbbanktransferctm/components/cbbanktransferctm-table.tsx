@@ -30,7 +30,7 @@ export default function CbBankTransferCtmTable({
   initialFilters,
   pageSize: _pageSize,
   onCloseAction,
-  visible,
+  visible: _visible,
 }: CbBankTransferCtmTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2

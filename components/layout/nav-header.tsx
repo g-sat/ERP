@@ -25,14 +25,12 @@ import {
 import { cn } from "@/lib/utils"
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 
-const data = {
+const _data = {
   projectNav: [
     {
       title: "Operations",

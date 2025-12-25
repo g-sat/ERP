@@ -37,6 +37,8 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      // Allow onOpenChange prop in Dialog components (standard shadcn/ui prop)
+      "@next/next/no-server-import-in-page": "off",
     },
   },
 ];

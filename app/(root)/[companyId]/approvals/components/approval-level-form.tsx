@@ -68,7 +68,7 @@ export function ApprovalLevelForm({
     },
   })
 
-  const onSubmit = async (data: ApprovalLevelSchemaType) => {
+  const onSubmit = async (_data: ApprovalLevelSchemaType) => {
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality

@@ -153,7 +153,7 @@ export default function ARDashboardPage() {
   const params = useParams()
   const router = useRouter()
   const companyId = params.companyId as string
-  const { decimals, currentCompany } = useAuthStore()
+  const { decimals, currentCompany: _currentCompany } = useAuthStore()
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),

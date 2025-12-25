@@ -24,9 +24,9 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface CrewMiscellaneousFormProps {
   jobData: IJobOrderHd
@@ -118,6 +118,12 @@ export function CrewMiscellaneousForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
 
               <TaskStatusAutocomplete
                 form={form}
@@ -139,12 +145,6 @@ export function CrewMiscellaneousForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

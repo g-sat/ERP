@@ -34,7 +34,6 @@ import {
   DynamicSupplierAutocomplete,
   SupplierAutocomplete,
 } from "@/components/autocomplete"
-import ServiceCategoryAutocomplete from "@/components/autocomplete/autocomplete-servicecategory"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"

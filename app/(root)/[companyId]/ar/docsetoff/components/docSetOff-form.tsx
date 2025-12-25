@@ -57,7 +57,7 @@ export default function DocSetOffForm({
   dataDetails = [],
 }: DocSetOffFormProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
+  const _amtDec = decimals[0]?.amtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
@@ -74,8 +74,8 @@ export default function DocSetOffForm({
   // Common function to recalculate amounts based on currency comparison
   const recalculateAmountsBasedOnCurrency = React.useCallback(
     (clearAllocations = false) => {
-      const currencyId = form.getValues("currencyId") || 0
-      const allocTotAmt = form.getValues("allocTotAmt") || 0
+      const _currencyId = form.getValues("currencyId") || 0
+      const _allocTotAmt = form.getValues("allocTotAmt") || 0
       const balTotAmt = form.getValues("balTotAmt") || 0
 
       // Recalculate all details with new exchange rate if data details exist
@@ -102,7 +102,7 @@ export default function DocSetOffForm({
           (s, r) => s + (Number(r.allocAmt) || 0),
           0
         )
-        const sumAllocLocalAmt = arr.reduce(
+        const _sumAllocLocalAmt = arr.reduce(
           (s, r) => s + (Number(r.allocLocalAmt) || 0),
           0
         )

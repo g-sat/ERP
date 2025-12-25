@@ -52,7 +52,7 @@ export function CrewMiscellaneousTable({
   onDeleteCrewMiscellaneous,
   onEditActionCrewMiscellaneous,
   onCreateActionCrewMiscellaneous,
-  onRefreshActionte,
+  onRefreshActionte: _onRefreshActionte,
   onDebitNoteAction,
   onPurchaseAction,
   onRefreshAction,

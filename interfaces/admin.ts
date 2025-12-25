@@ -110,6 +110,7 @@ export interface IUserGroupRights {
   isExport: boolean
   isPrint: boolean
   isPost: boolean
+  isDebitNote: boolean
 }
 
 export interface IShareData {
@@ -135,6 +136,7 @@ export interface IUserRightsv1 {
   isExport: boolean
   isPrint: boolean
   isPost: boolean
+  isDebitNote: boolean
 }
 
 export interface IUserRights {

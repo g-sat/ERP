@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const buildDefaultCbGenReceiptDetails = (dateFormat: string) => ({
+const buildDefaultCbGenReceiptDetails = (_dateFormat: string) => ({
   receiptId: "0",
   receiptNo: "",
   itemNo: 0,
@@ -41,8 +41,8 @@ const buildDefaultCbGenReceiptDetails = (dateFormat: string) => ({
   jobOrderNo: "",
   taskId: 0,
   taskName: "",
-  serviceId: 0,
-  serviceName: "",
+  serviceItemNo: 0,
+  serviceItemNoName: "",
   editVersion: 0,
 })
 

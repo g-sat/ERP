@@ -106,7 +106,7 @@ export default function CbGenReceiptDetailsTable({
           },
 
           {
-            accessorKey: "serviceName",
+            accessorKey: "serviceItemNoName",
             header: "Service",
             size: 100,
           },

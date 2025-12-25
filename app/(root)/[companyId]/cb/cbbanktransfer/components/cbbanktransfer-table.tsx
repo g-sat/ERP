@@ -127,7 +127,7 @@ export default function BankTransferTable({
       header: "Task Name",
     },
     {
-      accessorKey: "serviceName",
+      accessorKey: "serviceItemNoName",
       header: "Service Name",
     },
     {

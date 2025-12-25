@@ -113,8 +113,8 @@ export interface ICbPettyCashDt {
   jobOrderNo: string
   taskId: number
   taskName: string
-  serviceId: number
-  serviceName: string
+  serviceItemNo: number
+  serviceItemNoName: string
   serviceCategoryId: number
   serviceCategoryName: string
   editVersion: number

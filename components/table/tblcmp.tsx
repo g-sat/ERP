@@ -259,7 +259,7 @@ export default function InvoiceTable({
    * Dialog-level quick filters (search text / sort order) call this handler.
    * We reset to the first page and remember the new search string.
    */
-  const handleDialogFilterChange = (filters: {
+  const _handleDialogFilterChange = (filters: {
     search?: string
     sortOrder?: string
   }) => {

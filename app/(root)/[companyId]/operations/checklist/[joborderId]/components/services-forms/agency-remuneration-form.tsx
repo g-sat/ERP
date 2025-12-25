@@ -26,8 +26,8 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface AgencyRemunerationFormProps {
   jobData: IJobOrderHd
@@ -159,6 +159,12 @@ export function AgencyRemunerationForm({
                 companyId={jobData.companyId}
               />
 
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
@@ -172,12 +178,6 @@ export function AgencyRemunerationForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

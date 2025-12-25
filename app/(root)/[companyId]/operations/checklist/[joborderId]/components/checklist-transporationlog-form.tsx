@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from "react"
 import { IJobOrderHd, ITransportationLog } from "@/interfaces/checklist"
-import { IServiceLookup, ITaskLookup } from "@/interfaces/lookup"
+import { IServiceItemNoLookup, ITaskLookup } from "@/interfaces/lookup"
 import {
   TransportationLogSchema,
   TransportationLogSchemaType,
@@ -10,21 +10,22 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, isValid, parse } from "date-fns"
-import { FormProvider, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
+import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   JobOrderTaskAutocomplete,
 } from "@/components/autocomplete"
-import JobOrderServiceAutocomplete from "@/components/autocomplete/autocomplete-joborder-service"
 import TransportLocationAutocomplete from "@/components/autocomplete/autocomplete-transportlocation"
 import TransportModeAutocomplete from "@/components/autocomplete/autocomplete-transportmode"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import JobOrderServiceItemNoMultiSelect from "@/components/multiselection-joborderserviceitemno"
 
 interface TransportationLogFormProps {
   jobData: IJobOrderHd
@@ -74,11 +75,11 @@ export function TransportationLogForm({
   const form = useForm<TransportationLogSchemaType>({
     resolver: zodResolver(TransportationLogSchema),
     defaultValues: {
-      transportationLogId: initialData?.transportationLogId,
+      itemNo: initialData?.itemNo,
       companyId: jobData.companyId,
       jobOrderId: jobData.jobOrderId,
       taskId: initialData?.taskId ?? taskDefaults.taskId ?? 0,
-      serviceId: initialData?.serviceId ?? 0,
+      serviceItemNo: initialData?.serviceItemNo ?? "",
       transportDate: initialData?.transportDate
         ? format(
             parseWithFallback(initialData.transportDate as string) ||
@@ -100,11 +101,11 @@ export function TransportationLogForm({
 
   useEffect(() => {
     form.reset({
-      transportationLogId: initialData?.transportationLogId,
+      itemNo: initialData?.itemNo,
       companyId: jobData.companyId,
       jobOrderId: jobData.jobOrderId,
       taskId: initialData?.taskId ?? taskDefaults.taskId ?? 0,
-      serviceId: initialData?.serviceId ?? 0,
+      serviceItemNo: initialData?.serviceItemNo ?? "",
       transportDate: initialData?.transportDate
         ? format(
             parseWithFallback(initialData.transportDate as string) ||
@@ -149,23 +150,25 @@ export function TransportationLogForm({
         shouldDirty: true,
       })
       // Reset service when task changes
-      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceItemNo", "", { shouldValidate: true })
     } else {
       form.setValue("taskId", 0, { shouldValidate: true })
-      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceItemNo", "", { shouldValidate: true })
     }
   }
 
-  // Handle service selection
-  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
-    if (selectedOption) {
-      form.setValue("serviceId", selectedOption.serviceId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-    } else {
-      form.setValue("serviceId", 0, { shouldValidate: true })
-    }
+  // Handle service selection (multiple)
+  const handleServiceItemNoChange = (
+    selectedOptions: IServiceItemNoLookup[]
+  ) => {
+    // Convert array of selected options to comma-separated string
+    const serviceItemNos = selectedOptions
+      .map((option) => option.serviceItemNo.toString())
+      .join(",")
+    form.setValue("serviceItemNo", serviceItemNos || "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    })
   }
 
   const onSubmit = (data: TransportationLogSchemaType) => {
@@ -174,7 +177,7 @@ export function TransportationLogForm({
 
   return (
     <div className="max-w flex flex-col gap-2">
-      <FormProvider {...form}>
+      <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
@@ -188,17 +191,20 @@ export function TransportationLogForm({
                 isDisabled={isConfirmed}
                 onChangeEvent={handleTaskChange}
               />
-              <JobOrderServiceAutocomplete
-                key={`service-${watchedJobOrderId}-${watchedTaskId}`}
-                form={form}
-                name="serviceId"
-                jobOrderId={watchedJobOrderId || 0}
-                taskId={watchedTaskId || 0}
-                label="Service"
-                isRequired
-                isDisabled={isConfirmed}
-                onChangeEvent={handleServiceChange}
-              />
+              <div className="col-span-2">
+                <JobOrderServiceItemNoMultiSelect
+                  key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                  form={form}
+                  name="serviceItemNo"
+                  jobOrderId={watchedJobOrderId || 0}
+                  taskId={watchedTaskId || 0}
+                  label="Service Item No"
+                  isRequired
+                  isDisabled={isConfirmed}
+                  onChangeEvent={handleServiceItemNoChange}
+                  className="min-h-[80px] w-full"
+                />
+              </div>
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
@@ -273,7 +279,7 @@ export function TransportationLogForm({
             </div>
           )}
         </form>
-      </FormProvider>
+      </Form>
     </div>
   )
 }

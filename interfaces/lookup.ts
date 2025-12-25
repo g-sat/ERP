@@ -43,6 +43,11 @@ export interface IServiceLookup {
   serviceCode: string
 }
 
+export interface IServiceItemNoLookup {
+  serviceItemNo: number
+  serviceItemNoName: string
+}
+
 export interface IBargeLookup {
   bargeId: number
   bargeCode: string

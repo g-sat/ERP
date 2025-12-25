@@ -247,9 +247,8 @@ export const ApInvoiceDtSchema = (
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId: z.number().optional(),
-    serviceName: z.string().optional(),
-
+    serviceItemNo: z.number().optional(),
+    serviceItemNoName: z.string().optional(),
     // Employee Fields
     employeeId:
       required?.m_EmployeeId && visible?.m_EmployeeId

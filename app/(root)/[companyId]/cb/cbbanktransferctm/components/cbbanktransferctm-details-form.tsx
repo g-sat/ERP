@@ -12,7 +12,7 @@ import {
   IChartOfAccountLookup,
   ICurrencyLookup,
   IJobOrderLookup,
-  IServiceLookup,
+  IServiceItemNoLookup,
   ITaskLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -95,7 +95,7 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
       itemNo: number
     ): CbBankTransferCtmDtSchemaType => ({
       ...defaultCbBankTransferCtmDt,
-        itemNo,
+      itemNo,
     })
 
     const form = useForm<CbBankTransferCtmDtSchemaType>({
@@ -113,8 +113,8 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
             jobOrderNo: editingDetail.jobOrderNo ?? "",
             taskId: editingDetail.taskId ?? 0,
             taskName: editingDetail.taskName ?? "",
-            serviceId: editingDetail.serviceId ?? 0,
-            serviceName: editingDetail.serviceName ?? "",
+            serviceItemNo: editingDetail.serviceItemNo ?? 0,
+            serviceItemNoName: editingDetail.serviceItemNoName ?? "",
 
             // To Bank Fields
             toBankId: editingDetail.toBankId ?? 0,
@@ -161,7 +161,7 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
       setTimeout(() => {
         const firstInput = document.querySelector(
           'input:not([disabled]):not([type="hidden"])'
-          ) as HTMLInputElement
+        ) as HTMLInputElement
         firstInput?.focus()
       }, 100)
     }
@@ -191,13 +191,13 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
     // Function to recalculate local amounts when exchange rate changes
     const recalculateAmountsOnExchangeRateChange = (exchangeRate?: number) => {
       if (exchangeRate !== undefined) {
-      recalculateDetailFormAmounts(
-        form,
-        Hdform,
-        decimals[0],
-        visible,
+        recalculateDetailFormAmounts(
+          form,
+          Hdform,
+          decimals[0],
+          visible,
           exchangeRate
-      )
+        )
       }
     }
 
@@ -219,8 +219,8 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
           jobOrderNo: editingDetail.jobOrderNo ?? "",
           taskId: editingDetail.taskId ?? 0,
           taskName: editingDetail.taskName ?? "",
-          serviceId: editingDetail.serviceId ?? 0,
-          serviceName: editingDetail.serviceName ?? "",
+          serviceItemNo: editingDetail.serviceItemNo ?? 0,
+          serviceItemNoName: editingDetail.serviceItemNoName ?? "",
 
           // To Bank Fields
           toBankId: editingDetail.toBankId ?? 0,
@@ -250,7 +250,7 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
           ...createDefaultValues(getNextItemNo()),
           transferId: Hdform.getValues("transferId"),
           transferNo: Hdform.getValues("transferNo"),
-          })
+        })
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editingDetail])
@@ -290,8 +290,8 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
           jobOrderNo: populatedData.jobOrderNo ?? "",
           taskId: populatedData.taskId ?? 0,
           taskName: populatedData.taskName ?? "",
-          serviceId: populatedData.serviceId ?? 0,
-          serviceName: populatedData.serviceName ?? "",
+          serviceItemNo: populatedData.serviceItemNo ?? 0,
+          serviceItemNoName: populatedData.serviceItemNoName ?? "",
 
           // To Bank Fields
           toBankId: populatedData.toBankId ?? 0,
@@ -348,16 +348,16 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
         // Reset task and service when job order changes
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         // Clear job order and related fields
         form.setValue("jobOrderId", 0, { shouldValidate: true })
         form.setValue("jobOrderNo", "")
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -370,32 +370,35 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
         })
         form.setValue("taskName", selectedOption.taskName || "")
         // Reset service when task changes
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         // Clear task and service fields
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
     // Handle Service selection
-    const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    const handleServiceChange = (
+      selectedOption: IServiceItemNoLookup | null
+    ) => {
       if (selectedOption) {
-        form.setValue("serviceId", selectedOption.serviceId, {
+        form.setValue("serviceItemNo", selectedOption.serviceItemNo, {
           shouldValidate: true,
           shouldDirty: true,
         })
         form.setValue(
-          "serviceName",
-          selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+          "serviceItemNoName",
+          selectedOption.serviceCode + " " + selectedOption.serviceItemNoName ||
+            ""
         )
       } else {
         // Clear service fields
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -454,7 +457,7 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
             // Calculate bank charges based on difference
             setTimeout(() => calculateBankCharges(), 0)
           }
-      } else {
+        } else {
           form.setValue("toCurrencyId", 0, { shouldValidate: true })
           form.setValue("toCurrencyCode", "")
           form.setValue("toCurrencyName", "")
@@ -516,8 +519,8 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
         if (toBankExhRate === 0) {
           form.setValue("toBankTotAmt", 0)
           form.setValue("toBankTotLocalAmt", 0)
-        return
-      }
+          return
+        }
 
         const toTotAmt = form.getValues("toTotAmt") || 0
         form.setValue("toBankTotAmt", toTotAmt)
@@ -585,156 +588,156 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
     )
 
     return (
-        <FormProvider {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
+      <FormProvider {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
           className={`grid w-full grid-cols-7 gap-2 p-2 ${
-              isCancelled ? "pointer-events-none opacity-50" : ""
-            }`}
-          >
+            isCancelled ? "pointer-events-none opacity-50" : ""
+          }`}
+        >
           <BankAutocomplete
-                  form={form}
+            form={form}
             name="toBankId"
             label="To Bank"
-                isRequired={true}
+            isRequired={true}
             onChangeEvent={handleBankChange}
-              />
+          />
 
           <CurrencyAutocomplete
-                form={form}
+            form={form}
             name="toCurrencyId"
             label="To Currency"
-                isRequired={true}
+            isRequired={true}
             onChangeEvent={handleToCurrencyChange}
-              />
+          />
 
           <CustomNumberInput
-                form={form}
+            form={form}
             name="toExhRate"
             label="To Exchange Rate"
             round={exhRateDec}
-                isRequired={true}
+            isRequired={true}
             className="text-right"
             onBlurEvent={handleToExchangeRateChange}
-            />
+          />
 
           {visible?.m_JobOrderId && (
             <>
               {isDynamicJobOrder ? (
                 <DynamicJobOrderAutocomplete
-                    form={form}
-                    name="jobOrderId"
+                  form={form}
+                  name="jobOrderId"
                   label="Job Order-D"
-                    onChangeEvent={handleJobOrderChange}
-                  />
+                  onChangeEvent={handleJobOrderChange}
+                />
               ) : (
                 <JobOrderAutocomplete
-                    form={form}
-                    name="jobOrderId"
+                  form={form}
+                  name="jobOrderId"
                   label="Job Order-S"
                   isRequired={required?.m_JobOrderId}
-                    onChangeEvent={handleJobOrderChange}
-                  />
-                )}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
 
-                  <JobOrderTaskAutocomplete
-                    key={`task-${watchedJobOrderId}`}
-                    form={form}
-                    name="taskId"
-                    jobOrderId={watchedJobOrderId || 0}
-                    label="Task"
+              <JobOrderTaskAutocomplete
+                key={`task-${watchedJobOrderId}`}
+                form={form}
+                name="taskId"
+                jobOrderId={watchedJobOrderId || 0}
+                label="Task"
                 isRequired={required?.m_JobOrderId}
-                    onChangeEvent={handleTaskChange}
-                  />
+                onChangeEvent={handleTaskChange}
+              />
 
-                  <JobOrderServiceAutocomplete
-                    key={`service-${watchedJobOrderId}-${watchedTaskId}`}
-                    form={form}
-                    name="serviceId"
-                    jobOrderId={watchedJobOrderId || 0}
-                    taskId={watchedTaskId || 0}
-                    label="Service"
+              <JobOrderServiceAutocomplete
+                key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                form={form}
+                name="serviceItemNo"
+                jobOrderId={watchedJobOrderId || 0}
+                taskId={watchedTaskId || 0}
+                label="Service"
                 isRequired={required?.m_JobOrderId}
-                    onChangeEvent={handleServiceChange}
-                  />
-              </>
-            )}
+                onChangeEvent={handleServiceChange}
+              />
+            </>
+          )}
 
           <BankChartOfAccountAutocomplete
-                form={form}
+            form={form}
             name="toBankChgGLId"
             label="To Bank Charge GL"
             companyId={companyId}
             onChangeEvent={handleBankChgGLChange}
-              />
+          />
 
-            <CustomNumberInput
-              form={form}
+          <CustomNumberInput
+            form={form}
             name="toBankChgAmt"
             label="To Bank Charge Amt"
-              round={amtDec}
+            round={amtDec}
             isDisabled={true}
-              className="text-right"
-            />
+            className="text-right"
+          />
 
-            <CustomNumberInput
-              form={form}
+          <CustomNumberInput
+            form={form}
             name="toBankChgLocalAmt"
             label="To Bank Charge Local Amt"
-              round={locAmtDec}
-              isDisabled={true}
+            round={locAmtDec}
+            isDisabled={true}
             className="text-right"
-            />
+          />
 
-              <CustomNumberInput
-                form={form}
+          <CustomNumberInput
+            form={form}
             name="toTotAmt"
             label="To Total Amount"
             round={amtDec}
             isRequired={true}
-                className="text-right"
+            className="text-right"
             onChangeEvent={handleToTotAmtChange}
-              />
+          />
 
-              <CustomNumberInput
-                form={form}
+          <CustomNumberInput
+            form={form}
             name="toTotLocalAmt"
             label="To Total Local Amt"
             round={locAmtDec}
             isDisabled={true}
-                className="text-right"
-              />
+            className="text-right"
+          />
 
-              <CustomNumberInput
-                form={form}
+          <CustomNumberInput
+            form={form}
             name="toBankExhRate"
             label="Bank Exchange Rate"
             round={exhRateDec}
             isRequired={true}
-                className="text-right"
+            className="text-right"
             onChangeEvent={handleToBankExhRateChange}
-              />
+          />
 
-              <CustomNumberInput
-                form={form}
+          <CustomNumberInput
+            form={form}
             name="toBankTotAmt"
             label="Bank Total Amount"
             round={amtDec}
             isRequired={true}
-                className="text-right"
+            className="text-right"
             onChangeEvent={handleToBankTotAmtChange}
-              />
+          />
 
-              <CustomNumberInput
-                form={form}
+          <CustomNumberInput
+            form={form}
             name="toBankTotLocalAmt"
             label="Bank Total Local Amount"
-                round={locAmtDec}
-                isDisabled={true}
+            round={locAmtDec}
+            isDisabled={true}
             className="text-right"
           />
 
-            {/* Action buttons */}
+          {/* Action buttons */}
           <div className="col-span-1 flex items-center gap-2">
             <Button
               type="button"
@@ -746,14 +749,14 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
               Reset
             </Button>
 
-              <Button
-                type="submit"
-                size="sm"
+            <Button
+              type="submit"
+              size="sm"
               className="ml-auto"
-                disabled={form.formState.isSubmitting}
-              >
-                {editingDetail ? "Update" : "Add"}
-              </Button>
+              disabled={form.formState.isSubmitting}
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
             {editingDetail && (
               <Button
                 type="button"
@@ -764,9 +767,9 @@ const CbBankTransferCtmDetailsForm = React.forwardRef<
                 Cancel
               </Button>
             )}
-            </div>
-          </form>
-        </FormProvider>
+          </div>
+        </form>
+      </FormProvider>
     )
   }
 )

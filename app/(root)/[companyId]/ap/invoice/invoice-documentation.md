@@ -615,9 +615,9 @@ handleChartOfAccountChange(selectedOption)
   ├── setIsJobSpecific(isJobSpecificAccount)
   └── If job-specific:
       ├── Reset departmentId, departmentCode, departmentName
-      └── Keep jobOrderId, taskId, serviceId
+      └── Keep jobOrderId, taskId, serviceItemNo
       Else:
-      ├── Reset jobOrderId, jobOrderNo, taskId, taskName, serviceId, serviceName
+      ├── Reset jobOrderId, jobOrderNo, taskId, taskName, serviceItemNo, serviceItemNoName
       └── Keep departmentId
 ```
 
@@ -953,7 +953,7 @@ handleChartOfAccountChange(selectedOption)
     ├── If job-specific:
     │   └── Reset departmentId, departmentCode, departmentName
     └── Else:
-        └── Reset jobOrderId, taskId, serviceId
+        └── Reset jobOrderId, taskId, serviceItemNo
 ```
 
 ---

@@ -10,7 +10,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
 import { formatNumber } from "@/lib/format-utils"
-import { Task } from "@/lib/operations-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"

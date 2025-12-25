@@ -450,7 +450,7 @@ export default function Main({
     for (let i = 0; i < arr.length; i++) {
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
-    const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
+    const _sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
     const totalPositiveAlloc = arr.reduce(
       (sum, r) => sum + (Number(r.allocAmt) > 0 ? Number(r.allocAmt) : 0),
       0
@@ -526,7 +526,7 @@ export default function Main({
     form.trigger("data_details")
     setRefreshKey((prev) => prev + 1)
     setIsAllocated(false)
-  }, [form, decimals])
+  }, [form, decimals, allocationTotals])
 
   // Check if customer is selected
   const customerId = form.watch("customerId")

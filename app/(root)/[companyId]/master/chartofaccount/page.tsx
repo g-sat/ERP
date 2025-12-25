@@ -192,16 +192,13 @@ export default function ChartOfAccountPage() {
       totalRecords: 0,
     }
 
-  const {
-    result: category2Result,
-    data: category2Data,
-    totalRecords: category2TotalRecords,
-  } = (category2Response as ApiResponse<ICoaCategory2>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-    totalRecords: 0,
-  }
+  const { data: category2Data, totalRecords: category2TotalRecords } =
+    (category2Response as ApiResponse<ICoaCategory2>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+      totalRecords: 0,
+    }
 
   const { data: category3Data, totalRecords: category3TotalRecords } =
     (category3Response as ApiResponse<ICoaCategory3>) ?? {

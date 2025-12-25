@@ -56,7 +56,7 @@ export default function DebitNoteForm({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
+  const { isLoading: _isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(companyId)
   )
 

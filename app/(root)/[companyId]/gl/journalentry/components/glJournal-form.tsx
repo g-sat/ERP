@@ -56,9 +56,9 @@ export default function GLJournalForm({
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: dynamicLookup } = useGetDynamicLookup()
-  const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
-  const isDynamicVessel = dynamicLookup?.isVessel ?? false
-  const isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
+  const _isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+  const _isDynamicVessel = dynamicLookup?.isVessel ?? false
+  const _isDynamicJobOrder = dynamicLookup?.isJobOrder ?? false
 
   const dateFormat = React.useMemo(
     () => decimals[0]?.dateFormat || clientDateFormat,
@@ -85,7 +85,7 @@ export default function GLJournalForm({
     control: form.control,
     name: "accountDate",
   })
-  const dueDateMinDate = React.useMemo(() => {
+  const _dueDateMinDate = React.useMemo(() => {
     if (!accountDateValue) return new Date()
 
     // Parse account date string to Date object if needed

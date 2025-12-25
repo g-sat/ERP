@@ -28,7 +28,7 @@ export function DocumentTableActions<T>({
   onDeleteAction,
   onEditAction,
   onSelect,
-  idAccessor,
+  idAccessor: _idAccessor,
   hideView,
   hideDownload,
   hideDelete,

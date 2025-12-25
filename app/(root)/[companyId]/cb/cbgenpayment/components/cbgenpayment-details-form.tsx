@@ -26,7 +26,7 @@ import {
   IGstLookup,
   IJobOrderLookup,
   IPortLookup,
-  IServiceLookup,
+  IServiceItemNoLookup,
   ITaskLookup,
   IVesselLookup,
   IVoyageLookup,
@@ -206,8 +206,8 @@ const CbGenPaymentDetailsForm = React.forwardRef<
             jobOrderNo: editingDetail.jobOrderNo ?? "",
             taskId: editingDetail.taskId ?? 0,
             taskName: editingDetail.taskName ?? "",
-            serviceId: editingDetail.serviceId ?? 0,
-            serviceName: editingDetail.serviceName ?? "",
+            serviceItemNo: editingDetail.serviceItemNo ?? 0,
+            serviceItemNoName: editingDetail.serviceItemNoName ?? "",
             editVersion: editingDetail.editVersion ?? 0,
           }
         : createDefaultValues(getNextItemNo()),
@@ -462,8 +462,8 @@ const CbGenPaymentDetailsForm = React.forwardRef<
           jobOrderNo: editingDetail.jobOrderNo ?? "",
           taskId: editingDetail.taskId ?? 0,
           taskName: editingDetail.taskName ?? "",
-          serviceId: editingDetail.serviceId ?? 0,
-          serviceName: editingDetail.serviceName ?? "",
+          serviceItemNo: editingDetail.serviceItemNo ?? 0,
+          serviceItemNoName: editingDetail.serviceItemNoName ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         })
       } else {
@@ -603,8 +603,8 @@ const CbGenPaymentDetailsForm = React.forwardRef<
           jobOrderNo: updatedData.jobOrderNo ?? "",
           taskId: updatedData.taskId ?? 0,
           taskName: updatedData.taskName ?? "",
-          serviceId: updatedData.serviceId ?? 0,
-          serviceName: updatedData.serviceName ?? "",
+          serviceItemNo: updatedData.serviceItemNo ?? 0,
+          serviceItemNoName: updatedData.serviceItemNoName ?? "",
           editVersion: updatedData.editVersion ?? 0,
         }
 
@@ -666,8 +666,8 @@ const CbGenPaymentDetailsForm = React.forwardRef<
           form.setValue("jobOrderNo", "")
           form.setValue("taskId", 0, { shouldValidate: true })
           form.setValue("taskName", "")
-          form.setValue("serviceId", 0, { shouldValidate: true })
-          form.setValue("serviceName", "")
+          form.setValue("serviceItemNo", 0, { shouldValidate: true })
+          form.setValue("serviceItemNoName", "")
         } else {
           // Job-Specific: Reset department field
           form.setValue("departmentId", 0, { shouldValidate: true })
@@ -713,15 +713,15 @@ const CbGenPaymentDetailsForm = React.forwardRef<
         // Reset task and service when job order changes
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         form.setValue("jobOrderId", 0, { shouldValidate: true })
         form.setValue("jobOrderNo", "")
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -734,27 +734,32 @@ const CbGenPaymentDetailsForm = React.forwardRef<
         })
         form.setValue("taskName", selectedOption.taskName || "")
         // Reset service when task changes
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       } else {
         form.setValue("taskId", 0, { shouldValidate: true })
         form.setValue("taskName", "")
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
     // Handle service selection
-    const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    const handleServiceChange = (
+      selectedOption: IServiceItemNoLookup | null
+    ) => {
       if (selectedOption) {
-        form.setValue("serviceId", selectedOption.serviceId, {
+        form.setValue("serviceItemNo", selectedOption.serviceItemNo, {
           shouldValidate: true,
           shouldDirty: true,
         })
-        form.setValue("serviceName", selectedOption.serviceName || "")
+        form.setValue(
+          "serviceItemNoName",
+          selectedOption.serviceItemNoName || ""
+        )
       } else {
-        form.setValue("serviceId", 0, { shouldValidate: true })
-        form.setValue("serviceName", "")
+        form.setValue("serviceItemNo", 0, { shouldValidate: true })
+        form.setValue("serviceItemNoName", "")
       }
     }
 
@@ -1003,7 +1008,7 @@ const CbGenPaymentDetailsForm = React.forwardRef<
             <input type="hidden" {...form.register("voyageNo")} />
             <input type="hidden" {...form.register("jobOrderNo")} />
             <input type="hidden" {...form.register("taskName")} />
-            <input type="hidden" {...form.register("serviceName")} />
+            <input type="hidden" {...form.register("serviceItemNoName")} />
 
             {/* Section Header */}
             <div className="col-span-8 mb-1">
@@ -1113,7 +1118,7 @@ const CbGenPaymentDetailsForm = React.forwardRef<
                   <JobOrderServiceAutocomplete
                     key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                     form={form}
-                    name="serviceId"
+                    name="serviceItemNo"
                     jobOrderId={watchedJobOrderId || 0}
                     taskId={watchedTaskId || 0}
                     label="Service"

@@ -187,18 +187,24 @@ export function ThirdPartyForm({
                 isDisabled={isConfirmed}
               />
 
+              <CustomDateNew
+                form={form}
+                name="deliverDate"
+                label="Deliver Date"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
+
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
                 label="Status"
                 isRequired={true}
-                isDisabled={isConfirmed}
-              />
-
-              <CustomDateNew
-                form={form}
-                name="deliverDate"
-                label="Deliver Date"
                 isDisabled={isConfirmed}
               />
             </div>
@@ -213,12 +219,6 @@ export function ThirdPartyForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

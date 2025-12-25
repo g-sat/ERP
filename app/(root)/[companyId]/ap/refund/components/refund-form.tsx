@@ -109,8 +109,8 @@ export default function RefundForm({
       const payTotAmt = form.getValues("payTotAmt") || 0
       const exhRate = form.getValues("exhRate") || 0
       const payExhRate = form.getValues("payExhRate") || 0
-      const allocTotAmt = form.getValues("allocTotAmt") || 0
-      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
+      const _allocTotAmt = form.getValues("allocTotAmt") || 0
+      const _allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
 
       if (currencyId === payCurrencyId) {
         // Same currency scenario - totAmt drives everything

@@ -217,6 +217,12 @@ export function FreshWaterForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
@@ -230,12 +236,6 @@ export function FreshWaterForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

@@ -70,7 +70,7 @@ export function ApprovalProcessForm({
     },
   })
 
-  const onSubmit = async (data: ApprovalProcessSchemaType) => {
+  const onSubmit = async (_data: ApprovalProcessSchemaType) => {
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality

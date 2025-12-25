@@ -52,7 +52,7 @@ export function ConsignmentImportTable({
   onDeleteConsignmentImport,
   onEditActionConsignmentImport,
   onCreateActionConsignmentImport,
-  onRefreshActionte,
+  onRefreshActionte: _onRefreshActionte,
   onDebitNoteAction,
   onPurchaseAction,
   onRefreshAction,

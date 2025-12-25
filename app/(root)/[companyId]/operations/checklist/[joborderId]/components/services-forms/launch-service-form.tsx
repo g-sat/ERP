@@ -377,6 +377,12 @@ export function LaunchServiceForm({
                 label="Invoice Number"
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
@@ -525,12 +531,6 @@ export function LaunchServiceForm({
               form={form}
               name="remarks"
               label="Remarks"
-              isDisabled={isConfirmed}
-            />
-            <CustomInput
-              form={form}
-              name="poNo"
-              label="PO No"
               isDisabled={isConfirmed}
             />
 

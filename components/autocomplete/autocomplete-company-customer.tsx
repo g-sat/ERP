@@ -194,7 +194,7 @@ export default function CompanyCustomerAutocomplete<
       const selectedOption = Array.isArray(option) ? option[0] : option
       // Mark that an option was selected (not just cleared)
       isOptionSelectedRef.current = !!selectedOption
-      
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
@@ -229,8 +229,8 @@ export default function CompanyCustomerAutocomplete<
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
   const isOptionSelectedRef = React.useRef(false)
-  
-  const handleMenuClose = React.useCallback(() => {
+
+  const _handleMenuClose = React.useCallback(() => {
     // Only refocus if:
     // 1. Tab was NOT pressed (to allow Tab navigation)
     // 2. An option was actually selected (to distinguish from clicking outside)
@@ -244,7 +244,7 @@ export default function CompanyCustomerAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -263,7 +263,7 @@ export default function CompanyCustomerAutocomplete<
         }
       })
     }
-    
+
     // Reset flags after menu closes
     requestAnimationFrame(() => {
       isTabPressedRef.current = false
@@ -272,7 +272,7 @@ export default function CompanyCustomerAutocomplete<
   }, [])
 
   // Handle Tab key to close menu and allow normal tab navigation
-  const handleKeyDown = React.useCallback(
+  const _handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "Tab") {
         // Set flag to prevent onMenuClose from refocusing
@@ -295,7 +295,7 @@ export default function CompanyCustomerAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {

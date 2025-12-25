@@ -28,7 +28,7 @@ interface OtherProps {
   visible?: IVisibleFields
 }
 
-export default function Other({ form, visible }: OtherProps) {
+export default function Other({ form, visible: _visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 

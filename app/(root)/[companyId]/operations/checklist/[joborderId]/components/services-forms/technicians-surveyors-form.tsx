@@ -246,6 +246,12 @@ export function TechniciansSurveyorsForm({
                 label="Port Request No"
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
@@ -273,12 +279,6 @@ export function TechniciansSurveyorsForm({
                 form={form}
                 name="remarks"
                 label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

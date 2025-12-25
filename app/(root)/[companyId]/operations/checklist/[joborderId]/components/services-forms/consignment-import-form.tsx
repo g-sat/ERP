@@ -300,6 +300,13 @@ export function ConsignmentImportForm({
                 isRequired={false}
                 isDisabled={isConfirmed}
               />
+
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 form={form}
                 name="taskStatusId"
@@ -372,12 +379,6 @@ export function ConsignmentImportForm({
                 form={form}
                 name="refundInstrumentNo"
                 label="Refund Instrument No"
-                isDisabled={isConfirmed}
-              />
-              <CustomInput
-                form={form}
-                name="poNo"
-                label="PO No"
                 isDisabled={isConfirmed}
               />
             </div>

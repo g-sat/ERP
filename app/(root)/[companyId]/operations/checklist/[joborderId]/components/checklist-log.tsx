@@ -4,19 +4,10 @@ import { useMemo } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { format, isValid } from "date-fns"
-import {
-  Calendar,
-  Clock,
-  Droplets,
-  Fan,
-  LogIn,
-  Sun,
-  User,
-} from "lucide-react"
+import { Calendar, Clock, Droplets, Fan, LogIn, Sun, User } from "lucide-react"
 
 import { JobOrder } from "@/lib/api-routes"
 import { useGet } from "@/hooks/use-common"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface IActivityLog {
@@ -41,16 +32,13 @@ export function ChecklistLog({
   isConfirmed: _isConfirmed = false,
 }: ChecklistLogProps) {
   const { decimals } = useAuthStore()
-  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const timeFormat = "HH:mm"
 
   // Fetch activity logs data
   const { data: logsResponse, isLoading: isLogsLoading } = useGet<
     IActivityLog[]
   >(
-    jobData?.jobOrderId
-      ? `${JobOrder.getHistory}/${jobData.jobOrderId}`
-      : "",
+    jobData?.jobOrderId ? `${JobOrder.getHistory}/${jobData.jobOrderId}` : "",
     "activityLogs",
     jobData?.jobOrderId ? jobData.jobOrderId.toString() : ""
   )
@@ -86,8 +74,8 @@ export function ChecklistLog({
         </div>
       ),
       ventilation: (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-light-blue-100">
-          <Fan className="h-5 w-5 text-light-blue-600" />
+        <div className="bg-light-blue-100 flex h-10 w-10 items-center justify-center rounded-full">
+          <Fan className="text-light-blue-600 h-5 w-5" />
         </div>
       ),
       entry: (
@@ -191,11 +179,14 @@ export function ChecklistLog({
         <CardContent className="p-6">
           <div className="relative space-y-6">
             {/* Timeline line */}
-            <div className="absolute left-5 top-0 h-full w-0.5 bg-border" />
+            <div className="bg-border absolute top-0 left-5 h-full w-0.5" />
 
             {/* Timeline items */}
             {displayLogs.map((log, index) => (
-              <div key={log.activityId || index} className="relative flex gap-4">
+              <div
+                key={log.activityId || index}
+                className="relative flex gap-4"
+              >
                 {/* Icon */}
                 <div className="relative z-10 flex-shrink-0">
                   {getActivityIcon(log.activityType || "default")}
@@ -211,7 +202,8 @@ export function ChecklistLog({
                     {log.status && (
                       <span
                         className={`h-2 w-2 rounded-full ${
-                          log.status === "scheduled" || log.status === "automatic"
+                          log.status === "scheduled" ||
+                          log.status === "automatic"
                             ? "bg-green-500"
                             : "bg-blue-500"
                         }`}
@@ -224,7 +216,7 @@ export function ChecklistLog({
 
                   {/* Activity Details */}
                   {log.activityDetails && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
                       {log.status === "scheduled" ? (
                         <>
                           <Clock className="h-3 w-3" />
@@ -254,4 +246,3 @@ export function ChecklistLog({
     </div>
   )
 }
-

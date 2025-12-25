@@ -137,9 +137,8 @@ export interface IApInvoiceDt {
   jobOrderNo: string
   taskId: number
   taskName: string
-  serviceId: number
-  serviceName: string
-
+  serviceItemNo: number
+  serviceItemNoName: string
   employeeId: number
   employeeCode: string
   employeeName: string

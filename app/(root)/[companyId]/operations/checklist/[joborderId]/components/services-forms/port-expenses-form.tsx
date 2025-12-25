@@ -26,6 +26,7 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -162,7 +163,7 @@ export function PortExpensesForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <SupplierAutocomplete
                 form={form}
                 name="supplierId"
@@ -202,6 +203,12 @@ export function PortExpensesForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="poNo"
+                label="PO No"
+                isDisabled={isConfirmed}
+              />
               <TaskStatusAutocomplete
                 key={`status-${jobData.companyId}`}
                 form={form}
@@ -216,12 +223,6 @@ export function PortExpensesForm({
               form={form}
               name="remarks"
               label="Remarks"
-              isDisabled={isConfirmed}
-            />
-            <CustomInput
-              form={form}
-              name="poNo"
-              label="PO No"
               isDisabled={isConfirmed}
             />
 

@@ -52,7 +52,7 @@ export function TechnicianSurveyorTable({
   onDeleteTechnicianSurveyor,
   onEditActionTechnicianSurveyor,
   onCreateActionTechnicianSurveyor,
-  onRefreshActionte,
+  onRefreshActionte: _onRefreshActionte,
   onDebitNoteAction,
   onPurchaseAction,
   onRefreshAction,

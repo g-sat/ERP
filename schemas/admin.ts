@@ -125,6 +125,7 @@ export const userGroupRightsSchema = z.object({
   isExport: z.boolean(),
   isPrint: z.boolean(),
   isPost: z.boolean(),
+  isDebitNote: z.boolean(),
 })
 
 export type UserGroupRightsSchemaType = z.infer<typeof userGroupRightsSchema>

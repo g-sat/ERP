@@ -39,9 +39,8 @@ const buildDefaultInvoiceDetails = (dateFormat: string) => ({
   jobOrderNo: "",
   taskId: 0,
   taskName: "",
-  serviceId: 0,
-  serviceName: "",
-
+  serviceItemNo: 0,
+  serviceItemNoName: "",
   employeeId: 0,
   employeeCode: "",
   employeeName: "",
