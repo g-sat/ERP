@@ -96,6 +96,8 @@ export function TransportationLogForm({
       passengerCount: initialData?.passengerCount ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? null,
       remarks: initialData?.remarks ?? null,
+      refNo: initialData?.refNo ?? null,
+      vendor: initialData?.vendor ?? null,
       editVersion: initialData?.editVersion,
     },
   })
@@ -123,6 +125,8 @@ export function TransportationLogForm({
       passengerCount: initialData?.passengerCount ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? null,
       remarks: initialData?.remarks ?? null,
+      refNo: initialData?.refNo ?? null,
+      vendor: initialData?.vendor ?? null,
       editVersion: initialData?.editVersion,
     })
   }, [
@@ -299,6 +303,18 @@ export function TransportationLogForm({
               />
               <CustomInput
                 form={form}
+                name="refNo"
+                label="Slip No"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="vendor"
+                label="Vendor"
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
                 name="vehicleNo"
                 label="Vehicle No"
                 isDisabled={isConfirmed}
@@ -315,13 +331,13 @@ export function TransportationLogForm({
                 label="Passenger Count"
                 isDisabled={isConfirmed}
               />
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
             </div>
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
           </div>
           {!isConfirmed && (
             <div className="mt-4 flex justify-end gap-2">

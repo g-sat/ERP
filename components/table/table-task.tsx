@@ -66,6 +66,12 @@ interface TaskTableProps<T> {
   showActions?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
   transactionIdForDocuments?: number // Transaction ID for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 export function TaskTable<T>({
   data,
@@ -91,6 +97,11 @@ export function TaskTable<T>({
   showActions = true,
   jobData,
   transactionIdForDocuments,
+  canView = true,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
+  canDebitNote = true,
 }: TaskTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -266,6 +277,8 @@ export function TaskTable<T>({
                   }}
                   isSelected={isSelected}
                   isConfirmed={isConfirmed}
+                  hideDebitNote={!canDebitNote}
+                  hidePurchase={!canDebitNote}
                 />
               )
             },

@@ -74,6 +74,8 @@ type TaskTableHeaderProps<TData> = {
   // Props for document upload
   jobData?: IJobOrderHd | null // Job order data for document upload
   transactionIdForDocuments?: number // Transaction ID for document upload
+  // Permission props
+  canDebitNote?: boolean
 }
 export function TaskTableHeader<TData>({
   onRefreshAction,
@@ -98,6 +100,7 @@ export function TaskTableHeader<TData>({
   onResetLayout,
   jobData,
   transactionIdForDocuments,
+  canDebitNote = true,
 }: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -322,58 +325,60 @@ export function TaskTableHeader<TData>({
                 <Building2 className="h-4 w-4" />
               </Button>
             )}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleDebitNoteClick}
-                title={
-                  !hasSelectedRows
-                    ? "Please select at least one item first"
-                    : hasValidDebitNoteIds
-                      ? "Selected items have valid Debit Note IDs - cannot create new debit note"
-                      : "Debit Note"
-                }
-                disabled={
-                  isConfirmed || !hasSelectedRows || hasValidDebitNoteIds
-                }
-                className={
-                  !hasSelectedRows || hasValidDebitNoteIds || isConfirmed
-                    ? "cursor-not-allowed opacity-50"
-                    : ""
-                }
-              >
-                <Receipt className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="debit-note-checkbox"
-                  checked={showDebitNoteInput}
-                  onCheckedChange={(checked) =>
-                    setShowDebitNoteInput(checked as boolean)
+            {canDebitNote && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleDebitNoteClick}
+                  title={
+                    !hasSelectedRows
+                      ? "Please select at least one item first"
+                      : hasValidDebitNoteIds
+                        ? "Selected items have valid Debit Note IDs - cannot create new debit note"
+                        : "Debit Note"
                   }
-                  disabled={!hasSelectedRows || hasValidDebitNoteIds}
-                />
-                <label
-                  htmlFor="debit-note-checkbox"
-                  className={`text-sm leading-none font-medium ${
-                    !hasSelectedRows || hasValidDebitNoteIds
+                  disabled={
+                    isConfirmed || !hasSelectedRows || hasValidDebitNoteIds
+                  }
+                  className={
+                    !hasSelectedRows || hasValidDebitNoteIds || isConfirmed
                       ? "cursor-not-allowed opacity-50"
                       : ""
-                  }`}
+                  }
                 >
-                  IsDebitNoteNo.
-                </label>
+                  <Receipt className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="debit-note-checkbox"
+                    checked={showDebitNoteInput}
+                    onCheckedChange={(checked) =>
+                      setShowDebitNoteInput(checked as boolean)
+                    }
+                    disabled={!hasSelectedRows || hasValidDebitNoteIds}
+                  />
+                  <label
+                    htmlFor="debit-note-checkbox"
+                    className={`text-sm leading-none font-medium ${
+                      !hasSelectedRows || hasValidDebitNoteIds
+                        ? "cursor-not-allowed opacity-50"
+                        : ""
+                    }`}
+                  >
+                    IsDebitNoteNo.
+                  </label>
+                </div>
+                {showDebitNoteInput && (
+                  <Input
+                    placeholder="Debit Note No"
+                    value={debitNoteNo}
+                    onChange={(e) => setDebitNoteNo(e.target.value)}
+                    className="w-40"
+                    disabled={!hasSelectedRows || hasValidDebitNoteIds}
+                  />
+                )}
               </div>
-              {showDebitNoteInput && (
-                <Input
-                  placeholder="Debit Note No"
-                  value={debitNoteNo}
-                  onChange={(e) => setDebitNoteNo(e.target.value)}
-                  className="w-40"
-                  disabled={!hasSelectedRows || hasValidDebitNoteIds}
-                />
-              )}
-            </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

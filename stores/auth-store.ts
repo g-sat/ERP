@@ -914,6 +914,7 @@ export const useAuthStore = create<AuthState>()(
                     isExport: item.isExport,
                     isPrint: item.isPrint,
                     isPost: item.isPost,
+                    isDebitNote: item.isDebitNote,
                     isVisible: item.isVisible,
                   })
                 )

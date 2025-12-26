@@ -293,8 +293,6 @@ export function TransportationLogTab({
             onRefreshAction={handleRefreshTransportationLog}
             moduleId={moduleId}
             transactionId={transactionId}
-            isConfirmed={isConfirmed}
-            jobData={jobData}
           />
         </div>
       </div>

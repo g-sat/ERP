@@ -9,6 +9,7 @@ import {
   IPortExpenses,
 } from "@/interfaces/checklist"
 import { PortExpensesSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -23,6 +24,7 @@ import {
 } from "@/lib/api-routes"
 import { formatDateWithoutTimezone } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -50,19 +52,33 @@ import { PortExpensesTable } from "../services-tables/port-expenses-table"
 
 interface PortExpensesTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function PortExpensesTab({
   jobData,
-  moduleId,
-  transactionId,
   onTaskAdded,
   isConfirmed,
 }: PortExpensesTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.portExpenses
+  const { hasPermission } = usePermissionStore()
+  console.log("PortExpensesTab hasPermission", hasPermission)
+  console.log("PortExpensesTab moduleId", moduleId)
+  console.log("PortExpensesTab transactionId", transactionId)
+  // Calculate permissions using the correct transaction ID for this service
+  // Each service tab should use its own transaction ID, not the parent's
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
+  console.log("PortExpensesTab canView", canView)
+  console.log("PortExpensesTab canEdit", canEdit)
+  console.log("PortExpensesTab canDelete", canDelete)
+  console.log("PortExpensesTab canCreate", canCreate)
+  console.log("PortExpensesTab canDebitNote", canDebitNote)
   // Get default values for Port Expenses task
   const { defaults: taskDefaults } = useTaskServiceDefaults(Task.PortExpenses)
 
@@ -625,6 +641,11 @@ export function PortExpensesTab({
             transactionId={transactionId}
             isConfirmed={isConfirmed}
             jobData={jobData}
+            canView={canView}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canCreate={canCreate}
+            canDebitNote={canDebitNote}
           />
         </div>
       </div>

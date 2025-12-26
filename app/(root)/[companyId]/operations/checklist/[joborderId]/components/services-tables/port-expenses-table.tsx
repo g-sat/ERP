@@ -34,6 +34,12 @@ interface PortExpensesTableProps {
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function PortExpensesTable({
@@ -53,6 +59,11 @@ export function PortExpensesTable({
   onCloneTask,
   isConfirmed,
   jobData,
+  canView = true,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
+  canDebitNote = true,
 }: PortExpensesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -123,12 +134,16 @@ export function PortExpensesTable({
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IPortExpenses>[] = useMemo(
     () => [
-      {
-        accessorKey: "debitNoteNo",
-        header: "Debit Note No",
-        size: 180,
-        minSize: 130,
-      },
+      ...(canDebitNote
+        ? [
+            {
+              accessorKey: "debitNoteNo",
+              header: "Debit Note No",
+              size: 180,
+              minSize: 130,
+            },
+          ]
+        : []),
       {
         accessorKey: "poNo",
         header: "PO No",
@@ -300,8 +315,8 @@ export function PortExpensesTable({
         onCreateAction={onCreateActionPortExpenses}
         onEditAction={onEditActionPortExpenses}
         onDeleteAction={onDeletePortExpenses}
-        onDebitNoteAction={handleDebitNote}
-        onPurchaseAction={onPurchaseAction}
+        onDebitNoteAction={canDebitNote ? handleDebitNote : undefined}
+        onPurchaseAction={canDebitNote ? onPurchaseAction : undefined}
         onCombinedService={onCombinedService}
         onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
@@ -309,6 +324,11 @@ export function PortExpensesTable({
         showActions={true}
         jobData={jobData}
         transactionIdForDocuments={OperationsTransactionId.portExpenses}
+        canView={canView}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        canCreate={canCreate}
+        canDebitNote={canDebitNote}
       />
 
       {/* History Dialog */}

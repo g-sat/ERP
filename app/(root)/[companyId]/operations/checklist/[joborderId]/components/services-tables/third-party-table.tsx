@@ -34,6 +34,12 @@ interface ThirdPartyTableProps {
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function ThirdPartyTable({
@@ -53,6 +59,11 @@ export function ThirdPartyTable({
   onCloneTask,
   isConfirmed,
   jobData,
+  canView = true,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
+  canDebitNote = true,
 }: ThirdPartyTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -123,12 +134,16 @@ export function ThirdPartyTable({
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IThirdParty>[] = useMemo(
     () => [
-      {
-        accessorKey: "debitNoteNo",
-        header: "Debit Note No",
-        size: 180,
-        minSize: 130,
-      },
+      ...(canDebitNote
+        ? [
+            {
+              accessorKey: "debitNoteNo",
+              header: "Debit Note No",
+              size: 180,
+              minSize: 130,
+            },
+          ]
+        : []),
       {
         accessorKey: "poNo",
         header: "PO No",
@@ -320,8 +335,8 @@ export function ThirdPartyTable({
         onCreateAction={onCreateActionThirdParty}
         onEditAction={onEditActionThirdParty}
         onDeleteAction={onDeleteThirdParty}
-        onDebitNoteAction={handleDebitNote}
-        onPurchaseAction={onPurchaseAction}
+        onDebitNoteAction={canDebitNote ? handleDebitNote : undefined}
+        onPurchaseAction={canDebitNote ? onPurchaseAction : undefined}
         onCombinedService={onCombinedService}
         onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
@@ -329,6 +344,11 @@ export function ThirdPartyTable({
         showActions={true}
         jobData={jobData}
         transactionIdForDocuments={OperationsTransactionId.thirdParty}
+        canView={canView}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        canCreate={canCreate}
+        canDebitNote={canDebitNote}
       />
 
       {/* History Dialog */}

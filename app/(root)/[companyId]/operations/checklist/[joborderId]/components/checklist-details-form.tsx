@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder, TaskServiceSetting } from "@/lib/api-routes"
-import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -32,11 +31,22 @@ import { ThirdPartyTab } from "./services-tabs/third-party-tab"
 interface ChecklistDetailsFormProps {
   jobData: IJobOrderHd
   isConfirmed: boolean
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function ChecklistDetailsForm({
   jobData,
   isConfirmed,
+  canView: _canView,
+  canEdit: _canEdit,
+  canDelete: _canDelete,
+  canCreate: _canCreate,
+  canDebitNote: _canDebitNote,
 }: ChecklistDetailsFormProps) {
   //const { decimals } = useAuthStore()
   const [activeTab, setActiveTab] = useState("port-expenses")
@@ -53,9 +63,6 @@ export function ChecklistDetailsForm({
       staleTime: 5 * 60 * 1000,
     })
   }, [queryClient])
-
-  const moduleId = ModuleId.operations
-  const transactionId = OperationsTransactionId.job_order
 
   // Data fetching
   console.log("jobData.jobOrderId:", jobData.jobOrderId)
@@ -118,11 +125,11 @@ export function ChecklistDetailsForm({
     refetch()
   }
 
-  // Pass refresh function to all tab components
+  // Pass refresh function and permissions to all tab components
   const tabProps = {
     jobData,
-    moduleId,
-    transactionId,
+    // moduleId,
+    // transactionId,
     onTaskAdded: refreshTaskCounts,
     isConfirmed,
   }

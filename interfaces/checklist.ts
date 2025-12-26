@@ -858,6 +858,8 @@ export interface ITransportationLog {
   passengerCount: number
   chargeId?: number | null
   remarks?: string | null
+  refNo?: string | null
+  vendor?: string | null
   createById: number
   createDate: Date | string
   editById?: number | null

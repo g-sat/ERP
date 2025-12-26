@@ -24,6 +24,11 @@ interface ChecklistTableProps {
   transactionId?: number
   onCreateAction?: () => void
   onRefreshAction?: () => void
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
 }
 
 export function ChecklistTable({
@@ -34,6 +39,10 @@ export function ChecklistTable({
   transactionId,
   onCreateAction,
   onRefreshAction,
+  canView: _canView = true,
+  canEdit: _canEdit = true,
+  canDelete: _canDelete = true,
+  canCreate = true,
 }: ChecklistTableProps) {
   const params = useParams()
   const companyId = params.companyId as string
@@ -364,7 +373,8 @@ export function ChecklistTable({
         tableName={TableName.checklist}
         emptyMessage="No job orders found."
         onRefreshAction={onRefreshAction}
-        onCreateAction={onCreateAction}
+        onCreateAction={canCreate ? onCreateAction : undefined}
+        hideCreateButton={!canCreate}
       />
     </div>
   )

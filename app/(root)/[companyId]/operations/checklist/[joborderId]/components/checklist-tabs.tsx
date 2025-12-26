@@ -59,12 +59,23 @@ interface ChecklistTabsProps {
   jobData: IJobOrderHd
   onClone?: (clonedData: IJobOrderHd) => void
   onUpdateSuccess?: () => void
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function ChecklistTabs({
   jobData,
   onClone,
   onUpdateSuccess,
+  canView: _canView = true,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
+  canDebitNote = true,
 }: ChecklistTabsProps) {
   const params = useParams()
   const companyId = params.companyId as string
@@ -587,7 +598,7 @@ export function ChecklistTabs({
             </Button>
           )}
 
-          {/* Clone button - only show in edit mode
+          {/* Clone button - only show in edit mode and if user has create permission
           <Button
             title="Clone"
             variant="outline"
@@ -605,20 +616,22 @@ export function ChecklistTabs({
             <Copy className="h-4 w-4" />
           </Button> */}
 
-          {/* Clone Company button */}
-          <Button
-            title="Clone to Any Company"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setShowCloneCompanyDialog(true)
-            }}
-          >
-            <Building2 className="h-4 w-4" />
-          </Button>
+          {/* Clone Company button - only show if user has create permission */}
+          {canCreate && (
+            <Button
+              title="Clone to Any Company"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowCloneCompanyDialog(true)
+              }}
+            >
+              <Building2 className="h-4 w-4" />
+            </Button>
+          )}
 
-          {/* Cancel button - only show in edit mode */}
-          {isConfirmed && (
+          {/* Cancel button - only show in edit mode and if user has delete permission */}
+          {isConfirmed && canDelete && (
             <Button
               variant="destructive"
               size="sm"
@@ -638,22 +651,24 @@ export function ChecklistTabs({
             </Button>
           )}
 
-          {/* Submit/Update Button */}
-          <Button
-            size="sm"
-            disabled={isConfirmed}
-            onClick={() => {
-              setConfirmAction({
-                type: "update",
-                title: "Update Job Order",
-                message: "Do you want to update this job order?",
-              })
-              setShowConfirmDialog(true)
-            }}
-          >
-            <Edit3 className="mr-1 h-4 w-4" />
-            Update
-          </Button>
+          {/* Submit/Update Button - only show if user has edit permission */}
+          {canEdit && (
+            <Button
+              size="sm"
+              disabled={isConfirmed}
+              onClick={() => {
+                setConfirmAction({
+                  type: "update",
+                  title: "Update Job Order",
+                  message: "Do you want to update this job order?",
+                })
+                setShowConfirmDialog(true)
+              }}
+            >
+              <Edit3 className="mr-1 h-4 w-4" />
+              Update
+            </Button>
+          )}
         </div>
       </div>
 
@@ -678,6 +693,11 @@ export function ChecklistTabs({
           <ChecklistDetailsForm
             jobData={currentJobData}
             isConfirmed={isConfirmed}
+            canView={_canView}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canCreate={canCreate}
+            canDebitNote={canDebitNote}
           />
         </TabsContent>
 

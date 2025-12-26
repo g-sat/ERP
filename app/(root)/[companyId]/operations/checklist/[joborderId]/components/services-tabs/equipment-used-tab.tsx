@@ -22,6 +22,8 @@ import {
   JobOrder_EquipmentUsed,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
+import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -49,19 +51,23 @@ import { EquipmentUsedTable } from "../services-tables/equipment-used-table"
 
 interface EquipmentUsedTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function EquipmentUsedTab({
   jobData,
-  moduleId,
-  transactionId,
   onTaskAdded,
   isConfirmed,
 }: EquipmentUsedTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.equipmentUsed
+  const { hasPermission } = usePermissionStore()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
   // Get default values for Equipment Used task
   const { defaults: taskDefaults } = useTaskServiceDefaults(Task.EquipmentUsed)
 

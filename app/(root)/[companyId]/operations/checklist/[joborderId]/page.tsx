@@ -2,7 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -20,6 +22,17 @@ export default function JobOrderDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const jobOrderId = params.joborderId as string // Note: using joborderId (lowercase) to match directory name
+
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.checklist
+
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
 
   // Validate jobOrderId format (should be numeric string)
   const isValidJobOrderId = jobOrderId && /^\d+$/.test(jobOrderId)
@@ -249,6 +262,11 @@ export default function JobOrderDetailsPage() {
         jobData={jobOrderResponse?.data as IJobOrderHd}
         onClone={handleClone}
         onUpdateSuccess={refetchJobOrder}
+        canView={canView}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        canCreate={canCreate}
+        canDebitNote={canDebitNote}
       />
     </div>
   )

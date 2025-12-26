@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useMemo } from "react"
-import { IJobOrderHd, ITransportationLog } from "@/interfaces/checklist"
+import { ITransportationLog } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid, parse } from "date-fns"
@@ -9,7 +9,7 @@ import { format, isValid, parse } from "date-fns"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { TaskTable } from "@/components/table/table-task"
+import { MainTable } from "@/components/table/table-main"
 
 interface TransportationLogTableProps {
   data: ITransportationLog[]
@@ -25,8 +25,6 @@ interface TransportationLogTableProps {
   onRefreshAction?: () => void
   moduleId?: number
   transactionId?: number
-  isConfirmed?: boolean
-  jobData?: IJobOrderHd | null // Job order data for document upload
 }
 
 export function TransportationLogTable({
@@ -39,8 +37,6 @@ export function TransportationLogTable({
   onRefreshAction,
   moduleId,
   transactionId,
-  isConfirmed,
-  jobData,
 }: TransportationLogTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = useMemo(
@@ -70,17 +66,6 @@ export function TransportationLogTable({
   const columns: ColumnDef<ITransportationLog>[] = useMemo(
     () => [
       {
-        accessorKey: "transportDate",
-        header: "Transport Date",
-        cell: ({ row }) => (
-          <div className="text-wrap">
-            {formatDateValue(row.getValue("transportDate"))}
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
-      },
-      {
         accessorKey: "serviceItemNo",
         header: "Services",
         cell: ({ row }) => {
@@ -88,7 +73,7 @@ export function TransportationLogTable({
           const serviceItemNoName = row.original.serviceItemNoName
 
           if (!serviceItemNo || serviceItemNo.trim() === "") {
-            return <span className="text-muted-foreground">-</span>
+            return <span className="text-muted-foreground text-[10px]">-</span>
           }
 
           // Split comma-separated strings
@@ -98,7 +83,7 @@ export function TransportationLogTable({
             .filter((item) => item && !isNaN(Number(item)))
 
           if (serviceItemNos.length === 0) {
-            return <span className="text-muted-foreground">-</span>
+            return <span className="text-muted-foreground text-[10px]">-</span>
           }
 
           // Split serviceItemNoName if available, otherwise use IDs
@@ -107,7 +92,7 @@ export function TransportationLogTable({
             : []
 
           return (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-0.5">
               {serviceItemNos.map((itemNo, index) => {
                 // Use name if available and matches index, otherwise use ID
                 const displayText =
@@ -119,7 +104,7 @@ export function TransportationLogTable({
                   <Badge
                     key={`${itemNo}-${index}`}
                     variant="default"
-                    className="border-blue-200 bg-blue-100 text-xs text-blue-800 hover:bg-blue-200"
+                    className="border-blue-200 bg-blue-100 px-1.5 py-0.5 text-[10px] leading-tight text-blue-800 hover:bg-blue-200"
                   >
                     {displayText}
                   </Badge>
@@ -128,10 +113,31 @@ export function TransportationLogTable({
             </div>
           )
         },
-        size: 250,
-        minSize: 120,
+        size: 300,
+        minSize: 100,
         enableColumnFilter: true,
       },
+      {
+        accessorKey: "transportDate",
+        header: "Transport Date",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {formatDateValue(row.getValue("transportDate"))}
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "taskName",
+        header: "Task",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("taskName") || "-"}</div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+
       {
         accessorKey: "chargeName",
         header: "Charge",
@@ -213,12 +219,32 @@ export function TransportationLogTable({
         size: 200,
         minSize: 150,
       },
+      {
+        accessorKey: "refNo",
+        header: "Slip No",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("refNo") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "vendor",
+        header: "Vendor",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("vendor") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
     ],
     [formatDateValue]
   )
 
   return (
-    <TaskTable<ITransportationLog>
+    <MainTable<ITransportationLog>
       data={data}
       columns={columns}
       isLoading={isLoading}
@@ -229,11 +255,17 @@ export function TransportationLogTable({
       onDeleteAction={onDeleteTransportationLog}
       onCreateAction={onCreateActionTransportationLog}
       onRefreshAction={onRefreshAction}
+      onFilterChange={undefined}
       moduleId={moduleId}
       transactionId={transactionId}
-      isConfirmed={isConfirmed}
       emptyMessage="No transportation logs found."
-      jobData={jobData}
+      showHeader={true}
+      showFooter={true}
+      showActions={true}
+      canEdit={true}
+      canDelete={true}
+      canView={true}
+      canCreate={true}
     />
   )
 }

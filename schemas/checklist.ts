@@ -740,6 +740,8 @@ export const TransportationLogSchema = z.object({
   passengerCount: z.number().min(0, "Passenger Count must be 0 or greater"),
   chargeId: z.number().nullable().optional(),
   remarks: z.string().max(500).nullable().optional(),
+  refNo: z.string().max(100).nullable().optional(),
+  vendor: z.string().max(200).nullable().optional(),
   editVersion: z.number().optional(),
 })
 

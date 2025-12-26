@@ -9,6 +9,7 @@ import {
   IJobOrderHd,
 } from "@/interfaces/checklist"
 import { AgencyRemunerationSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -22,6 +23,7 @@ import {
   JobOrder_DebitNote,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -36,9 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
-import {
-  CompanyAutocomplete,
-} from "@/components/autocomplete"
+import { CompanyAutocomplete } from "@/components/autocomplete"
 import JobOrderCompanyAutocomplete from "@/components/autocomplete/autocomplete-joborder-company"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
@@ -51,19 +51,23 @@ import { AgencyRemunerationTable } from "../services-tables/agency-remuneration-
 
 interface AgencyRemunerationTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function AgencyRemunerationTab({
   jobData,
-  moduleId,
-  transactionId,
   onTaskAdded,
   isConfirmed,
 }: AgencyRemunerationTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.agencyRemuneration
+  const { hasPermission } = usePermissionStore()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
   // Get default values for Agency Remuneration task
   const { defaults: taskDefaults } = useTaskServiceDefaults(
     Task.AgencyRemuneration
@@ -343,18 +347,15 @@ export function AgencyRemunerationTab({
   }, [])
 
   // Handler for clone task from table header - receives selectedIds from table
-  const handleCloneTaskClick = useCallback(
-    (selectedIds: string[]) => {
-      if (selectedIds.length === 0) {
-        toast.error("Please select at least one agency remuneration to clone")
-        return
-      }
-      // Store selected IDs for use in clone API call
-      setSelectedItems(selectedIds)
-      setShowCloneTaskDialog(true)
-    },
-    []
-  )
+  const handleCloneTaskClick = useCallback((selectedIds: string[]) => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one agency remuneration to clone")
+      return
+    }
+    // Store selected IDs for use in clone API call
+    setSelectedItems(selectedIds)
+    setShowCloneTaskDialog(true)
+  }, [])
 
   // Function to clear selection after operations
   const handleClearSelection = useCallback(() => {
@@ -551,10 +552,15 @@ export function AgencyRemunerationTab({
         refetch()
         onTaskAdded?.()
       } else {
-        toast.error(response.data.message || "Failed to clone agency remunerations")
+        toast.error(
+          response.data.message || "Failed to clone agency remunerations"
+        )
       }
     } catch (error) {
-      console.error("Error cloning agency remunerations to different company:", error)
+      console.error(
+        "Error cloning agency remunerations to different company:",
+        error
+      )
       toast.error("Failed to clone agency remunerations. Please try again.")
     } finally {
       setIsCloning(false)
@@ -617,6 +623,11 @@ export function AgencyRemunerationTab({
             transactionId={transactionId}
             isConfirmed={isConfirmed}
             jobData={jobData}
+            canView={canView}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canCreate={canCreate}
+            canDebitNote={canDebitNote}
           />
         </div>
       </div>

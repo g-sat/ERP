@@ -22,6 +22,8 @@ import {
   JobOrder_TechnicianSurveyor,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
+import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -49,19 +51,23 @@ import { TechnicianSurveyorTable } from "../services-tables/technician-surveyor-
 
 interface TechniciansSurveyorsTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function TechniciansSurveyorsTab({
   jobData,
-  moduleId,
-  transactionId,
   onTaskAdded,
   isConfirmed,
 }: TechniciansSurveyorsTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.technicianSurveyor
+  const { hasPermission } = usePermissionStore()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
   const jobOrderId = jobData.jobOrderId
   const queryClient = useQueryClient()
 

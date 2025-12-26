@@ -9,6 +9,7 @@ import {
   IOtherService,
 } from "@/interfaces/checklist"
 import { OtherServiceSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -22,6 +23,7 @@ import {
   JobOrder_OtherService,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -49,19 +51,25 @@ import { OtherServiceTable } from "../services-tables/other-service-table"
 
 interface OtherServiceTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
+
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function OtherServiceTab({
   jobData,
-  moduleId,
-  transactionId,
+
   onTaskAdded,
   isConfirmed,
 }: OtherServiceTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.otherService
+  const { hasPermission } = usePermissionStore()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
   const jobOrderId = jobData.jobOrderId
   const queryClient = useQueryClient()
 

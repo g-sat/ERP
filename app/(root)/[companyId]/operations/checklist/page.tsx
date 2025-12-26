@@ -12,6 +12,7 @@ import { z } from "zod"
 import { JobOrder } from "@/lib/api-routes"
 import { OperationsStatus } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId, cn } from "@/lib/utils"
+import { usePermissionStore } from "@/stores/permission-store"
 import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,13 @@ export default function ChecklistPage() {
   const companyId = params.companyId as string
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.checklist
+
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("All")

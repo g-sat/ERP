@@ -22,6 +22,8 @@ import {
   JobOrder_DebitNote,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
+import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -49,19 +51,23 @@ import { ConsignmentImportTable } from "../services-tables/consignment-import-ta
 
 interface ConsignmentImportTabProps {
   jobData: IJobOrderHd
-  moduleId: number
-  transactionId: number
   onTaskAdded?: () => void
   isConfirmed: boolean
 }
 
 export function ConsignmentImportTab({
   jobData,
-  moduleId,
-  transactionId,
   onTaskAdded,
   isConfirmed,
 }: ConsignmentImportTabProps) {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.consignmentImport
+  const { hasPermission } = usePermissionStore()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canDebitNote = hasPermission(moduleId, transactionId, "isDebitNote")
   // Get default values for Consignment Import task
   const { defaults: taskDefaults } = useTaskServiceDefaults(
     Task.ConsignmentImport

@@ -45,6 +45,12 @@ interface ConsignmentExportTableProps {
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function ConsignmentExportTable({
@@ -65,6 +71,11 @@ export function ConsignmentExportTable({
   onCloneTask,
   isConfirmed,
   jobData,
+  canView = true,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
+  canDebitNote = true,
 }: ConsignmentExportTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -119,12 +130,16 @@ export function ConsignmentExportTable({
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IConsignmentExport>[] = useMemo(
     () => [
-      {
-        accessorKey: "debitNoteNo",
-        header: "Debit Note No",
-        size: 180,
-        minSize: 130,
-      },
+      ...(canDebitNote
+        ? [
+            {
+              accessorKey: "debitNoteNo",
+              header: "Debit Note No",
+              size: 180,
+              minSize: 130,
+            },
+          ]
+        : []),
       {
         accessorKey: "poNo",
         header: "PO No",
@@ -305,8 +320,8 @@ export function ConsignmentExportTable({
         onCreateAction={onCreateActionConsignmentExport}
         onEditAction={onEditActionConsignmentExport}
         onDeleteAction={onDeleteConsignmentExport}
-        onDebitNoteAction={handleDebitNote}
-        onPurchaseAction={onPurchaseAction}
+        onDebitNoteAction={canDebitNote ? handleDebitNote : undefined}
+        onPurchaseAction={canDebitNote ? onPurchaseAction : undefined}
         onCombinedService={onCombinedService}
         onCloneTask={onCloneTask}
         isConfirmed={isConfirmed}
@@ -314,6 +329,11 @@ export function ConsignmentExportTable({
         showActions={true}
         jobData={jobData}
         transactionIdForDocuments={OperationsTransactionId.consignmentExport}
+        canView={canView}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        canCreate={canCreate}
+        canDebitNote={canDebitNote}
       />
 
       {/* History Dialog */}
