@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from "react"
 import { ICustomerLookup } from "@/interfaces/lookup"
 import { ITariffDt, ITariffHd } from "@/interfaces/tariff"
@@ -108,8 +109,27 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
       },
     })
 
+    // Track if form has been initialized to prevent resetting when initialData changes after user edits
+    const isInitializedRef = useRef(false)
+    const lastInitialDataRef = useRef<ITariffHd | undefined>(undefined)
+
     useEffect(() => {
-      if (initialData) {
+      // Only reset if initialData actually changed (not just a reference change)
+      // and if we haven't initialized yet, or if it's a completely new record
+      const isNewRecord =
+        !initialData ||
+        (initialData.tariffId === 0 && !isInitializedRef.current)
+      const hasInitialDataChanged =
+        !lastInitialDataRef.current ||
+        !initialData ||
+        lastInitialDataRef.current.tariffId !== initialData.tariffId ||
+        lastInitialDataRef.current.chargeId !== initialData.chargeId ||
+        lastInitialDataRef.current.editVersion !== initialData.editVersion
+
+      if (
+        initialData &&
+        (isNewRecord || (hasInitialDataChanged && !isInitializedRef.current))
+      ) {
         form.reset({
           tariffId: initialData.tariffId || 0,
           companyId: initialData.companyId || companyId,
@@ -142,7 +162,9 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
             form.trigger("data_details")
           }
         })
-      } else if (mode === "create") {
+        lastInitialDataRef.current = initialData
+        isInitializedRef.current = true
+      } else if (!initialData && mode === "create") {
         form.reset({
           tariffId: 0,
           companyId: companyId,
@@ -163,6 +185,7 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
           editVersion: 0,
           data_details: [],
         })
+        isInitializedRef.current = true
       }
     }, [
       initialData,
@@ -346,7 +369,7 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
                 name="chargeId"
                 label="Charge"
                 isRequired
-                isDisabled={mode === "view" || hasDetails}
+                isDisabled={mode === "view"}
                 taskId={watchedTaskId || 0}
               />
 

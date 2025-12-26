@@ -1205,8 +1205,8 @@ export const Tariffv1 = {
   getById: "/operations/gettariffv1byid",
   add: "/operations/savetariffv1",
   delete: "/operations/deletetariffv1",
-  copy: "/operations/copytariff",
-  copyCompanyTariff: "/operations/CopyCompanyTariff",
+  copy: "/operations/copytariffv1",
+  copyCompanyTariff: "/operations/CopyCompanyTariffv1",
   getRPTTariff: "/operations/GetRPTTariff",
 }
 

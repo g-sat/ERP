@@ -272,3 +272,34 @@ export const getRPTTariffDirect = async (rptTariffData: ITariffRPTRequest) => {
     throw error
   }
 }
+
+/**
+ * 3. Copy Rate Management
+ * ----------------------
+ * 3.1 Copy Rate Direct
+ * @param {CopyRate} copyData - Copy rate data
+ * @returns {Promise} Promise containing copy response
+ */
+export const copyRateDirectv1 = async (copyData: CopyRate) => {
+  try {
+    const response = await saveData(Tariffv1.copy, copyData)
+    return response
+  } catch (error) {
+    console.error("Error copying rate:", error)
+    throw error
+  }
+}
+/**
+ * 3.2 Copy Company Tariff Direct
+ * @param {CopyRate} copyData - Copy company tariff data
+ * @returns {Promise} Promise containing copy response
+ */
+export const copyCompanyTariffDirectv1 = async (copyData: CopyRate) => {
+  try {
+    const response = await saveData(Tariffv1.copyCompanyTariff, copyData)
+    return response
+  } catch (error) {
+    console.error("Error copying company tariff:", error)
+    throw error
+  }
+}

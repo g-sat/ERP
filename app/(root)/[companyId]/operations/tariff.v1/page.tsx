@@ -6,6 +6,7 @@ import { ITariff, ITariffHd, ITariffRPT, ITariffRPTRequest } from "@/interfaces"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { usePermissionStore } from "@/stores/permission-store"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   BuildingIcon,
   CopyIcon,
@@ -29,7 +30,9 @@ import {
 } from "@/hooks/use-common"
 import {
   copyCompanyTariffDirect,
+  copyCompanyTariffDirectv1,
   copyRateDirect,
+  copyRateDirectv1,
   getRPTTariffDirect,
 } from "@/hooks/use-tariff"
 import { Badge } from "@/components/ui/badge"
@@ -150,6 +153,7 @@ export default function TariffPage() {
 
   const params = useParams()
   const companyId = Number(params?.companyId) || 0
+  const queryClient = useQueryClient()
 
   const { hasPermission } = usePermissionStore()
 
@@ -318,16 +322,19 @@ export default function TariffPage() {
     selectedTariffId > 0
       ? `${selectedCustomerId}/${selectedTaskId}/${selectedTariffId}`
       : ""
-  const { data: tariffByIdResponse, isLoading: isLoadingTariffById } =
-    useGetById<ITariffHd>(Tariffv1.getById, "tariffById", tariffByIdPath, {
-      enabled:
-        selectedCustomerId !== undefined &&
-        selectedCustomerId > 0 &&
-        selectedTaskId !== undefined &&
-        selectedTaskId > 0 &&
-        selectedTariffId !== undefined &&
-        selectedTariffId > 0,
-    })
+  const {
+    data: tariffByIdResponse,
+    isLoading: isLoadingTariffById,
+    refetch: refetchTariffById,
+  } = useGetById<ITariffHd>(Tariffv1.getById, "tariffById", tariffByIdPath, {
+    enabled:
+      selectedCustomerId !== undefined &&
+      selectedCustomerId > 0 &&
+      selectedTaskId !== undefined &&
+      selectedTaskId > 0 &&
+      selectedTariffId !== undefined &&
+      selectedTariffId > 0,
+  })
 
   // Extract tariff data from response and transform to schema type
   const fetchedTariff: ITariffHd | undefined =
@@ -644,6 +651,12 @@ export default function TariffPage() {
             response?.message ||
               `Tariff ${tariffData.tariffId ? `#${tariffData.tariffId}` : ""} updated successfully`
           )
+          // Invalidate the tariffById query cache and refetch to ensure fresh data
+          queryClient.invalidateQueries({ queryKey: ["tariffById"] })
+          // If modal is still open, refetch the tariff data immediately
+          if (selectedCustomerId && selectedTaskId && selectedTariffId) {
+            await refetchTariffById()
+          }
           setIsModalOpen(false)
           setSelectedTariffId(undefined)
           setSelectedCustomerId(undefined)
@@ -776,7 +789,7 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      const response = await copyRateDirect(
+      const response = await copyRateDirectv1(
         saveConfirmation.data as unknown as Parameters<typeof copyRateDirect>[0]
       )
       if (response?.result === 1) {
@@ -803,7 +816,7 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      const response = await copyCompanyTariffDirect(
+      const response = await copyCompanyTariffDirectv1(
         saveConfirmation.data as unknown as Parameters<
           typeof copyCompanyTariffDirect
         >[0]
