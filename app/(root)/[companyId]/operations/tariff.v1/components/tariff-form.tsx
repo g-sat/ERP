@@ -206,29 +206,37 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
     }))
 
     function onSubmit(data: TariffHdSchemaType) {
+      // Get all form values to ensure we have the latest data
+      const formValues = form.getValues()
+
       const tariffData: ITariffHd = {
-        tariffId: data.tariffId,
-        companyId: data.companyId,
-        taskId: data.taskId,
-        chargeId: data.chargeId,
-        portId: data.portId,
-        customerId: data.customerId,
-        currencyId: data.currencyId,
-        uomId: data.uomId,
-        visaId: data.visaId || null,
-        fromLocationId: data.fromLocationId || null,
-        toLocationId: data.toLocationId || null,
-        isPrepayment: data.isPrepayment,
-        prepaymentPercentage: data.prepaymentPercentage,
-        itemNo: data.itemNo || null,
-        remarks: data.remarks || null,
-        isActive: data.isActive,
-        editVersion: data.editVersion,
+        tariffId: formValues.tariffId ?? data.tariffId,
+        companyId: formValues.companyId ?? data.companyId,
+        taskId: formValues.taskId ?? data.taskId,
+        chargeId: formValues.chargeId ?? data.chargeId,
+        portId: formValues.portId ?? data.portId,
+        customerId: formValues.customerId ?? data.customerId,
+        currencyId: formValues.currencyId ?? data.currencyId,
+        uomId: formValues.uomId ?? data.uomId,
+        visaId: formValues.visaId ?? data.visaId ?? null,
+        fromLocationId:
+          formValues.fromLocationId ?? data.fromLocationId ?? null,
+        toLocationId: formValues.toLocationId ?? data.toLocationId ?? null,
+        isPrepayment: formValues.isPrepayment ?? data.isPrepayment,
+        prepaymentPercentage:
+          formValues.prepaymentPercentage ?? data.prepaymentPercentage,
+        itemNo: formValues.itemNo ?? data.itemNo ?? null,
+        remarks: formValues.remarks ?? data.remarks ?? null,
+        isActive: formValues.isActive ?? data.isActive,
+        editVersion: formValues.editVersion ?? data.editVersion,
         createBy: initialData?.createBy || "",
         createDate: initialData?.createDate || new Date(),
         editBy: initialData?.editBy || null,
         editDate: initialData?.editDate || null,
-        data_details: data.data_details || [],
+        // Use form.getValues() to get the latest data_details from form state
+        data_details: (formValues.data_details ||
+          data.data_details ||
+          []) as ITariffDt[],
       }
 
       onSaveAction(tariffData)

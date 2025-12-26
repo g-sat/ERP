@@ -253,6 +253,60 @@ export default function TariffPage() {
   // Form ref for submitting
   const formRef = useRef<TariffFormRef>(null)
 
+  // Transformation function to convert ITariffHd (from API) to ITariffHd with proper data_details formatting
+  const transformToTariffHd = useCallback((apiTariff: ITariffHd): ITariffHd => {
+    return {
+      ...apiTariff,
+      // Ensure data_details is properly formatted array
+      data_details:
+        apiTariff.data_details?.map((detail) => ({
+          tariffId: detail.tariffId ?? 0,
+          itemNo: detail.itemNo ?? 0,
+          displayRate: detail.displayRate ?? 0,
+          basicRate: detail.basicRate ?? 0,
+          minUnit: detail.minUnit ?? 0,
+          maxUnit: detail.maxUnit ?? 0,
+          isAdditional: detail.isAdditional ?? false,
+          additionalUnit: detail.additionalUnit ?? 0,
+          additionalRate: detail.additionalRate ?? 0,
+          editVersion: detail.editVersion ?? 0,
+        })) || [],
+    }
+  }, [])
+
+  // Helper function to convert ITariff to ITariffHd (for backward compatibility)
+  const convertTariffToTariffHd = useCallback(
+    (tariff: ITariff | undefined, companyId: number): ITariffHd | undefined => {
+      if (!tariff) return undefined
+
+      return {
+        companyId: companyId,
+        tariffId: tariff.tariffId || 0,
+        customerId: tariff.customerId || 0,
+        currencyId: tariff.currencyId || 0,
+        portId: tariff.portId || 0,
+        taskId: tariff.taskId || 0,
+        chargeId: tariff.chargeId || 0,
+        uomId: tariff.uomId || 0,
+        visaId: tariff.visaId || null,
+        fromLocationId: null,
+        toLocationId: null,
+        isPrepayment: tariff.isPrepayment || false,
+        prepaymentPercentage: tariff.prepaymentPercentage || 0,
+        itemNo: null,
+        remarks: tariff.remarks || null,
+        isActive: tariff.isActive ?? true,
+        createBy: tariff.createBy || "",
+        createDate: tariff.createDate || new Date(),
+        editBy: tariff.editBy || null,
+        editDate: tariff.editDate || null,
+        editVersion: tariff.editVersion || 0,
+        data_details: [],
+      }
+    },
+    []
+  )
+
   // Fetch tariff by ID when editing/viewing using use-common hooks
   // API format: GetTariffv1ById/{CustomerId}/{TaskId}/{TariffId}
   const tariffByIdPath =
@@ -275,13 +329,18 @@ export default function TariffPage() {
         selectedTariffId > 0,
     })
 
-  // Extract tariff data from response
+  // Extract tariff data from response and transform to schema type
   const fetchedTariff: ITariffHd | undefined =
     tariffByIdResponse?.result === 1 && tariffByIdResponse?.data
       ? Array.isArray(tariffByIdResponse.data)
         ? tariffByIdResponse.data[0]
         : tariffByIdResponse.data
       : undefined
+
+  // Transform fetched tariff to ITariffHd for form (form accepts ITariffHd)
+  const transformedTariff: ITariffHd | undefined = fetchedTariff
+    ? transformToTariffHd(fetchedTariff)
+    : undefined
 
   // Mutations using use-common hooks
   const saveMutation = usePersist<ITariffHd>(Tariffv1.add)
@@ -529,48 +588,22 @@ export default function TariffPage() {
       try {
         const response = await deleteMutation.mutateAsync(tariffId.toString())
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariff.taskName || tariff.chargeName || ""} deleted successfully`
+          )
           setDeleteConfirmation({
             isOpen: false,
             tariff: null,
           })
           refetchTariffByTask()
+        } else {
+          toast.error(response?.message || "Failed to delete tariff")
         }
       } catch (error) {
         console.error("Error deleting tariff:", error)
+        toast.error("Network error while deleting tariff. Please try again.")
       }
-    }
-  }
-
-  // Helper function to convert ITariff to ITariffHd
-  const convertTariffToTariffHd = (
-    tariff: ITariff | undefined,
-    companyId: number
-  ): ITariffHd | undefined => {
-    if (!tariff) return undefined
-
-    return {
-      companyId: companyId,
-      tariffId: tariff.tariffId || 0,
-      customerId: tariff.customerId || 0,
-      currencyId: tariff.currencyId || 0,
-      portId: tariff.portId || 0,
-      taskId: tariff.taskId || 0,
-      chargeId: tariff.chargeId || 0,
-      uomId: tariff.uomId || 0,
-      visaId: tariff.visaId || null,
-      fromLocationId: null,
-      toLocationId: null,
-      isPrepayment: tariff.isPrepayment || false,
-      prepaymentPercentage: tariff.prepaymentPercentage || 0,
-      itemNo: null,
-      remarks: tariff.remarks || null,
-      isActive: tariff.isActive ?? true,
-      createBy: tariff.createBy || "",
-      createDate: tariff.createDate || new Date(),
-      editBy: tariff.editBy || null,
-      editDate: tariff.editDate || null,
-      editVersion: tariff.editVersion || 0,
-      data_details: [],
     }
   }
 
@@ -591,26 +624,39 @@ export default function TariffPage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(tariffData)
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariffData.tariffId ? `#${tariffData.tariffId}` : ""} saved successfully`
+          )
           setIsModalOpen(false)
           setSelectedTariffId(undefined)
           setSelectedCustomerId(undefined)
           setSelectedTaskId(undefined)
           setSelectedTariff(undefined)
           refetchTariffByTask()
+        } else {
+          toast.error(response?.message || "Failed to save tariff")
         }
       } else if (modalMode === "edit" && selectedTariffId) {
         const response = await updateMutation.mutateAsync(tariffData)
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariffData.tariffId ? `#${tariffData.tariffId}` : ""} updated successfully`
+          )
           setIsModalOpen(false)
           setSelectedTariffId(undefined)
           setSelectedCustomerId(undefined)
           setSelectedTaskId(undefined)
           setSelectedTariff(undefined)
           refetchTariffByTask()
+        } else {
+          toast.error(response?.message || "Failed to update tariff")
         }
       }
     } catch (error) {
       console.error("Error saving tariff:", error)
+      toast.error("Network error while saving tariff. Please try again.")
     } finally {
       setSaveConfirmation({
         isOpen: false,
@@ -1129,8 +1175,15 @@ export default function TariffPage() {
             <TariffForm
               ref={formRef}
               initialData={
-                fetchedTariff ||
-                convertTariffToTariffHd(selectedTariff, Number(companyId))
+                transformedTariff
+                  ? {
+                      ...transformedTariff,
+                      createBy: fetchedTariff?.createBy || "",
+                      createDate: fetchedTariff?.createDate || new Date(),
+                      editBy: fetchedTariff?.editBy || null,
+                      editDate: fetchedTariff?.editDate || null,
+                    }
+                  : convertTariffToTariffHd(selectedTariff, Number(companyId))
               }
               onSaveAction={handleSaveTariff}
               onCloseAction={() => {
