@@ -1,0 +1,506 @@
+//copy-rate-form.tsx
+"use client"
+
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { AlertCircle, XIcon } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
+
+import { copyRateDirect, useGetTariffByTask } from "@/hooks/use-tariff"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Form } from "@/components/ui/form"
+import {
+  CustomerAutocomplete,
+  PortAutocomplete,
+  TaskAutocomplete,
+} from "@/components/autocomplete"
+import { CustomCheckbox } from "@/components/custom"
+
+import { TariffTable } from "./tariff-table"
+
+const copyRateSchema = z
+  .object({
+    fromCustomerId: z.number().min(1, "From Customer is required"),
+    fromPortId: z.number().min(0),
+    toCustomerId: z.number().min(1, "To Customer is required"),
+    toPortId: z.number().min(0),
+    fromTaskId: z.number().min(0),
+    multipleId: z.string().optional(),
+    isOverwrite: z.boolean(),
+    isDelete: z.boolean(),
+    isAllTasks: z.boolean(),
+    isAllPorts: z.boolean(),
+  })
+  .refine(
+    (data) => {
+      // If isAllPorts is false, fromPortId is required
+      if (!data.isAllPorts && data.fromPortId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "From Port is required",
+      path: ["fromPortId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If isAllTasks is false, fromTaskId is required
+      if (!data.isAllTasks && data.fromTaskId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "From Task is required",
+      path: ["fromTaskId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If isAllPorts is false, toPortId is required
+      if (!data.isAllPorts && data.toPortId < 1) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "To Port is required",
+      path: ["toPortId"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Prevent selecting the same customer in both fields
+      if (data.fromCustomerId > 0 && data.toCustomerId > 0) {
+        return data.fromCustomerId !== data.toCustomerId
+      }
+      return true
+    },
+    {
+      message: "From Customer and To Customer cannot be the same",
+      path: ["toCustomerId"],
+    }
+  )
+
+type CopyRateSchemaType = z.infer<typeof copyRateSchema>
+
+interface CopyRateFormProps {
+  onCancelAction: () => void
+  onSaveConfirmation?: (data: Record<string, unknown>) => void
+}
+
+export function CopyRateForm({
+  onCancelAction,
+  onSaveConfirmation,
+}: CopyRateFormProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [showTable, setShowTable] = useState(false)
+
+  const form = useForm<CopyRateSchemaType>({
+    resolver: zodResolver(copyRateSchema),
+    defaultValues: {
+      fromCustomerId: 0,
+      fromPortId: 0,
+      fromTaskId: 0,
+      toCustomerId: 0,
+      toPortId: 0,
+      multipleId: "",
+      isOverwrite: true,
+      isDelete: false,
+      isAllTasks: false,
+      isAllPorts: false,
+    },
+  })
+
+  // Direct API function using api-client.ts
+
+  const watchedValues = form.watch([
+    "fromCustomerId",
+    "fromPortId",
+    "fromTaskId",
+    "isAllPorts",
+    "isAllTasks",
+  ])
+  const watchedFromCustomerId = watchedValues[0]
+  const watchedFromPortId = watchedValues[1]
+  const watchedFromTaskId = watchedValues[2]
+  const watchedIsAllPorts = watchedValues[3]
+  const watchedIsAllTasks = watchedValues[4]
+
+  const { data: tariffResponse, isLoading: isLoadingTariffs } =
+    useGetTariffByTask(
+      watchedFromCustomerId,
+      watchedFromPortId,
+      watchedFromTaskId,
+      watchedFromCustomerId > 0 &&
+        (watchedIsAllPorts || watchedFromPortId > 0) &&
+        !watchedIsAllTasks &&
+        watchedFromTaskId > 0
+    )
+
+  const tariffData = useMemo(() => {
+    return tariffResponse?.data
+      ? Array.isArray(tariffResponse.data)
+        ? tariffResponse.data
+        : [tariffResponse.data]
+      : []
+  }, [tariffResponse?.data])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Don't show table if isAllTasks is selected
+      if (watchedIsAllTasks) {
+        setShowTable(false)
+      } else if (
+        watchedFromCustomerId > 0 &&
+        (watchedIsAllPorts || watchedFromPortId > 0) &&
+        watchedFromTaskId > 0
+      ) {
+        setShowTable(true)
+      } else {
+        setShowTable(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [
+    watchedFromCustomerId,
+    watchedFromPortId,
+    watchedFromTaskId,
+    watchedIsAllPorts,
+    watchedIsAllTasks,
+  ])
+
+  const handleSubmit = async (data: CopyRateSchemaType) => {
+    const copyRateData = {
+      fromCompanyId: 0,
+      toCompanyId: 0,
+      fromTaskId: data.fromTaskId,
+      fromPortId: data.fromPortId,
+      toPortId: data.isAllPorts ? 0 : data.toPortId,
+      fromCustomerId: data.fromCustomerId,
+      toCustomerId: data.toCustomerId,
+      multipleId: data.multipleId || "",
+      isOverwrite: data.isOverwrite,
+      isDelete: data.isDelete,
+      isAllTasks: data.isAllTasks,
+      isAllPorts: data.isAllPorts,
+    }
+
+    if (onSaveConfirmation) {
+      console.log("copyRateData", copyRateData)
+      onSaveConfirmation(copyRateData)
+    } else {
+      // Fallback to direct execution if no confirmation handler
+      setIsLoading(true)
+      try {
+        const response = await copyRateDirect(copyRateData)
+        if (response?.result === 1) {
+          toast.success(response.message || "Rates copied successfully")
+          onCancelAction()
+          form.reset()
+        } else {
+          const errorMessage = response?.message || "Failed to copy rates"
+          toast.error(errorMessage)
+        }
+      } catch (error) {
+        console.error("Error copying rates:", error)
+        toast.error("Failed to copy rates")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
+  const handleCustomerChange = useCallback(
+    (field: "fromCustomerId" | "toCustomerId") =>
+      (selectedCustomer: ICustomerLookup | null) => {
+        const customerId = selectedCustomer?.customerId || 0
+
+        // Check if the same customer is already selected in the other field
+        const fromCustomerId = form.getValues("fromCustomerId")
+        const toCustomerId = form.getValues("toCustomerId")
+
+        if (customerId > 0) {
+          if (field === "fromCustomerId" && customerId === toCustomerId) {
+            toast.error("From Customer and To Customer cannot be the same")
+            form.setValue(field, 0)
+            return
+          }
+          if (field === "toCustomerId" && customerId === fromCustomerId) {
+            toast.error("From Customer and To Customer cannot be the same")
+            form.setValue(field, 0)
+            return
+          }
+        }
+
+        form.setValue(field, customerId)
+      },
+    [form]
+  )
+
+  const handlePortChange = useCallback(
+    (field: "fromPortId" | "toPortId") =>
+      (selectedPort: IPortLookup | null) => {
+        form.setValue(field, selectedPort?.portId || 0)
+      },
+    [form]
+  )
+
+  // Watch checkbox values to control field states
+  const isAllPorts = form.watch("isAllPorts")
+  const isAllTasks = form.watch("isAllTasks")
+
+  // Watch both customer IDs to prevent same selection
+  const fromCustomerId = form.watch("fromCustomerId")
+  const toCustomerId = form.watch("toCustomerId")
+
+  // Clear the other field if same customer is selected (backup check)
+  useEffect(() => {
+    if (
+      fromCustomerId > 0 &&
+      toCustomerId > 0 &&
+      fromCustomerId === toCustomerId
+    ) {
+      // Clear the "to" field if it matches "from"
+      form.setValue("toCustomerId", 0)
+    }
+  }, [fromCustomerId, toCustomerId, form])
+
+  // Handle All Ports checkbox change - clear fromPortId and toPortId when checked
+  useEffect(() => {
+    if (isAllPorts) {
+      form.setValue("fromPortId", 0)
+      form.setValue("toPortId", 0)
+    }
+  }, [isAllPorts, form])
+
+  // Handle All Tasks checkbox change - clear fromTaskId when checked
+  useEffect(() => {
+    if (isAllTasks) {
+      form.setValue("fromTaskId", 0)
+    }
+  }, [isAllTasks, form])
+
+  // Get form errors for display
+  const formErrors = form.formState.errors
+
+  return (
+    <div className="w-full space-y-4">
+      <Form {...form}>
+        {/* Validation Error Display */}
+        {Object.keys(formErrors).length > 0 && (
+          <div className="bg-destructive/10 border-destructive/20 rounded-md border p-3">
+            <h4 className="text-destructive mb-2 text-sm font-medium">
+              Please fix the following errors:
+            </h4>
+            <ul className="text-destructive space-y-1 text-sm">
+              {Object.entries(formErrors).map(([field, error]) => (
+                <li key={field}>
+                  • {error?.message || `${field} is required`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <form
+          onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+            console.error("Form validation failed:", errors)
+            // Scroll to first error
+            const firstErrorField = Object.keys(errors)[0]
+            if (firstErrorField) {
+              const element = document.querySelector(
+                `[name="${firstErrorField}"]`
+              )
+              element?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+          })}
+          className="w-full space-y-4"
+        >
+          <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* From Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <h3 className="text-lg font-semibold text-blue-700">From</h3>
+              </div>
+              <div className="space-y-3">
+                <CustomerAutocomplete
+                  form={form}
+                  name="fromCustomerId"
+                  label="Customer"
+                  isRequired
+                  onChangeEvent={handleCustomerChange("fromCustomerId")}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <PortAutocomplete
+                    form={form}
+                    name="fromPortId"
+                    label="Port"
+                    isRequired={!isAllPorts}
+                    isDisabled={isAllPorts}
+                    onChangeEvent={handlePortChange("fromPortId")}
+                  />
+                  <div className="flex items-end pb-2">
+                    <CustomCheckbox
+                      form={form}
+                      name="isAllPorts"
+                      label="All Ports"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TaskAutocomplete
+                    form={form}
+                    name="fromTaskId"
+                    label="Task"
+                    isRequired={!isAllTasks}
+                    isDisabled={isAllTasks}
+                  />
+                  <div className="flex items-end pb-2">
+                    <CustomCheckbox
+                      form={form}
+                      name="isAllTasks"
+                      label="All Tasks"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* To Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <h3 className="text-lg font-semibold text-green-700">To</h3>
+              </div>
+              <div className="space-y-3">
+                <CustomerAutocomplete
+                  form={form}
+                  name="toCustomerId"
+                  label="Customer"
+                  isRequired
+                  onChangeEvent={handleCustomerChange("toCustomerId")}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="toPortId"
+                  label="Port"
+                  isRequired={!isAllPorts}
+                  isDisabled={isAllPorts}
+                  onChangeEvent={handlePortChange("toPortId")}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Options Section */}
+          <div className="bg-muted/30 w-full space-y-3 rounded-lg border p-3">
+            <h3 className="text-lg font-semibold">Copy Options</h3>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isOverwrite"
+                  checked={form.watch("isOverwrite")}
+                  onCheckedChange={(c) => {
+                    const isChecked = c as boolean
+                    form.setValue("isOverwrite", isChecked)
+                    // If overwrite is checked, uncheck delete
+                    if (isChecked) {
+                      form.setValue("isDelete", false)
+                    }
+                  }}
+                />
+                <label htmlFor="isOverwrite" className="text-sm font-medium">
+                  Overwrite existing rates
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isDelete"
+                  checked={form.watch("isDelete")}
+                  onCheckedChange={(c) => {
+                    const isChecked = c as boolean
+                    form.setValue("isDelete", isChecked)
+                    // If delete is checked, uncheck overwrite
+                    if (isChecked) {
+                      form.setValue("isOverwrite", false)
+                    }
+                  }}
+                />
+                <label htmlFor="isDelete" className="text-sm font-medium">
+                  Delete source after copy
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Information Note */}
+          <div className="w-full rounded-lg border border-amber-200/60 bg-amber-50/80 p-4 dark:border-amber-800/40 dark:bg-amber-950/20">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  Important Note
+                </p>
+                <p className="text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/70">
+                  The same customer cannot be selected for both &quot;From&quot;
+                  and &quot;To&quot; fields. You must select different customers
+                  to copy rates between them.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Rates Selection Table */}
+          {showTable && (
+            <div className="bg-card w-full space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Select Rates to Copy</h3>
+                {form.watch("multipleId") && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Selected:{" "}
+                      {
+                        form.watch("multipleId")?.split(",").filter(Boolean)
+                          .length
+                      }{" "}
+                      rate(s)
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-background max-h-[50vh] w-full overflow-auto rounded-md border">
+                <TariffTable data={tariffData} isLoading={isLoadingTariffs} />
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancelAction}
+              className="flex items-center gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Copying..." : "Copy Rates"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  )
+}

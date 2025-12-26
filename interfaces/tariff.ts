@@ -5,6 +5,44 @@ export interface ITariffFilter {
   customer?: string
 }
 
+export interface ITariffHd {
+  companyId: number
+  tariffId: number
+  customerId: number
+  currencyId: number
+  portId: number
+  taskId: number
+  chargeId: number
+  uomId: number
+  visaId?: number | null
+  fromLocationId?: number | null
+  toLocationId?: number | null
+  isPrepayment: boolean
+  prepaymentPercentage: number
+  itemNo?: number | null
+  remarks?: string | null
+  isActive: boolean
+  createBy: string
+  createDate: Date | string
+  editBy?: string | null
+  editDate?: Date | string | null
+  editVersion: number
+  data_details?: ITariffDt[]
+}
+
+export interface ITariffDt {
+  tariffId: number
+  itemNo: number
+  displayRate: number
+  basicRate: number
+  minUnit: number
+  maxUnit: number
+  isAdditional: boolean
+  additionalUnit: number
+  additionalRate: number
+  editVersion: number
+}
+
 export interface ITariff {
   tariffId: number
   taskId?: number

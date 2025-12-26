@@ -1198,6 +1198,18 @@ export const Tariff = {
   getRPTTariff: "/operations/GetRPTTariff",
 }
 
+export const Tariffv1 = {
+  getTariffCount: "/operations/gettariffv1count",
+  getTariffList: "/operations/gettariffv1list",
+  getTariffByTask: "/operations/gettariffv1bytask",
+  getById: "/operations/gettariffv1byid",
+  add: "/operations/savetariffv1",
+  delete: "/operations/deletetariffv1",
+  copy: "/operations/copytariff",
+  copyCompanyTariff: "/operations/CopyCompanyTariff",
+  getRPTTariff: "/operations/GetRPTTariff",
+}
+
 // Template Endpoints
 export const Template = {
   get: "/operations/gettemplate",

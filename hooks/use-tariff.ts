@@ -2,6 +2,7 @@ import { ITaskDetails } from "@/interfaces/checklist"
 import {
   CopyRate,
   ITariff,
+  ITariffHd,
   ITariffRPT,
   ITariffRPTRequest,
 } from "@/interfaces/tariff"
@@ -9,7 +10,7 @@ import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 
 import { getById, getData, postData, saveData } from "@/lib/api-client"
-import { Tariff } from "@/lib/api-routes"
+import { Tariff, Tariffv1 } from "@/lib/api-routes"
 
 /**
  * Query Configuration
@@ -136,15 +137,47 @@ export function useGetTariffByCompanyTask(
   })
 }
 /**
- * 2. Direct API Call Functions
+ * 1.4 Get Tariff By ID (v1)
+ * @param {number} companyId - Company ID
+ * @param {number} tariffId - Tariff ID
+ * @returns {object} Query object containing tariff data
+ */
+export function useGetTariffById(
+  companyId: number,
+  tariffId: number | undefined
+) {
+  return useQuery<{
+    result: number
+    message: string
+    data: ITariffHd
+    totalRecords: number
+  }>({
+    queryKey: ["tariffById", companyId, tariffId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getById(
+          `${Tariffv1.getById}/${companyId}/${tariffId}`
+        )
+        return data
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId > 0 && tariffId !== undefined && tariffId > 0,
+  })
+}
+
+/**
+ * 2. Direct API Call Functions (v1)
  * ---------------------------
- * 2.1 Save Tariff Direct
- * @param {Partial<ITariff>} tariffData - Tariff data to save
+ * 2.1 Save Tariff Direct (v1)
+ * @param {Partial<ITariffHd>} tariffData - Tariff data to save
  * @returns {Promise} Promise containing save response
  */
-export const saveTariffDirect = async (tariffData: Partial<ITariff>) => {
+export const saveTariffDirect = async (tariffData: Partial<ITariffHd>) => {
   try {
-    const response = await saveData(Tariff.add, tariffData)
+    const response = await saveData(Tariffv1.add, tariffData)
     return response
   } catch (error) {
     console.error("Error saving tariff:", error)
@@ -152,13 +185,13 @@ export const saveTariffDirect = async (tariffData: Partial<ITariff>) => {
   }
 }
 /**
- * 2.2 Update Tariff Direct
- * @param {Partial<ITariff>} tariffData - Tariff data to update
+ * 2.2 Update Tariff Direct (v1)
+ * @param {Partial<ITariffHd>} tariffData - Tariff data to update
  * @returns {Promise} Promise containing update response
  */
-export const updateTariffDirect = async (tariffData: Partial<ITariff>) => {
+export const updateTariffDirect = async (tariffData: Partial<ITariffHd>) => {
   try {
-    const response = await saveData(Tariff.add, tariffData)
+    const response = await saveData(Tariffv1.add, tariffData)
     return response
   } catch (error) {
     console.error("Error updating tariff:", error)
@@ -166,21 +199,19 @@ export const updateTariffDirect = async (tariffData: Partial<ITariff>) => {
   }
 }
 /**
- * 2.3 Delete Tariff Direct
- * @param {number} customerId - Customer ID
- * @param {number} taskId - Task ID
- * @param {string} tariffId - Tariff ID to delete
+ * 2.3 Delete Tariff Direct (v1)
+ * @param {number} companyId - Company ID
+ * @param {number} tariffId - Tariff ID to delete
  * @returns {Promise} Promise containing delete response
  */
 export const deleteTariffDirect = async (
-  customerId: number,
-  taskId: number,
-  tariffId: string
+  companyId: number,
+  tariffId: number
 ) => {
   try {
     // POST request with parameters in URL path and empty body
     const response = await postData(
-      `${Tariff.delete}/${customerId}/${taskId}/${tariffId}`,
+      `${Tariffv1.delete}/${companyId}/${tariffId}`,
       {}
     )
     return response
