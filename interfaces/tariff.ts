@@ -66,6 +66,12 @@ export interface ITariff {
   visaId?: number
   visaCode?: string
   visaName?: string
+  fromLocationId?: number
+  fromLocationCode?: string
+  fromLocationName?: string
+  toLocationId?: number
+  toLocationCode?: string
+  toLocationName?: string
   displayRate?: number
   basicRate?: number
   minUnit?: number

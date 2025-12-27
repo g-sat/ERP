@@ -81,6 +81,7 @@ export enum ModuleId {
   approvals = 7,
   document = 8,
   request = 9,
+  inquiry = 10,
 
   ar = 25,
   ap = 26,
@@ -184,6 +185,13 @@ export enum SettingTransactionId {
   docSeqNo = 8,
   userSetting = 9,
   operationSetting = 10,
+}
+
+export enum InquiryTransactionId {
+  checklist = 1,
+  aptransaction = 2,
+  aptransactiondetails = 3,
+  gltransaction = 4,
 }
 
 export enum OperationsTransactionId {
@@ -321,6 +329,12 @@ export function getModuleAndTransactionId(pathname: string): {
       transactionId =
         OperationsTransactionId[
           transactionName as keyof typeof OperationsTransactionId
+        ] || 0
+      break
+    case ModuleId.inquiry:
+      transactionId =
+        InquiryTransactionId[
+          transactionName as keyof typeof InquiryTransactionId
         ] || 0
       break
     case ModuleId.ar:

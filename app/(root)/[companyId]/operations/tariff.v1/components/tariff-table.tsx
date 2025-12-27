@@ -85,6 +85,16 @@ export function TariffTable({
       size: 80,
     },
     {
+      accessorKey: "fromLocationName",
+      header: "From Location",
+      size: 120,
+    },
+    {
+      accessorKey: "toLocationName",
+      header: "To Location",
+      size: 120,
+    },
+    {
       accessorKey: "displayRate",
       header: "Display Rate",
       cell: ({ row }) => (

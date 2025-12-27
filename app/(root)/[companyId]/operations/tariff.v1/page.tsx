@@ -352,7 +352,7 @@ export default function TariffPage() {
   // Mutations using use-common hooks
   const saveMutation = usePersist<ITariffHd>(Tariffv1.add)
   const updateMutation = usePersist<ITariffHd>(Tariffv1.add)
-  const deleteMutation = useDelete(`${Tariffv1.delete}/${companyId}`)
+  const deleteMutation = useDelete(`${Tariffv1.delete}`)
 
   // Copy forms state
   const [showCopyRateForm, setShowCopyRateForm] = useState(false)

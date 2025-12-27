@@ -1183,6 +1183,7 @@ export const JobOrder = {
   getHistory: "/operations/getjoborderbyidhistory",
   cloneChecklist: "/operations/CloneChecklist",
   cloneTaskChecklist: "/operations/CloneTaskFromChecklist",
+  getAllCompanies: "/operations/getjoborderallcompanies", // Cross-company search
 }
 
 // Tariff Endpoints
@@ -1500,4 +1501,13 @@ export const HrLoan = {
   add: "/hr/loan/saveloan",
   update: "/hr/loan/saveloan",
   delete: "/hr/loan/deleteloan",
+}
+
+// Inquiry Endpoints
+export const Inquiry = {
+  getCustomerInquiry: "/inquiry/GetCustomerInquiry",
+  getChecklistInquiry: "/inquiry/GetChecklistInquiry",
+  getGlTransactionInquiry: "/inquiry/GetGlTransactionInquiry",
+  getArTransactionInquiry: "/inquiry/GetArTransactionInquiry",
+  getApTransactionInquiry: "/inquiry/GetApTransactionInquiry",
 }
