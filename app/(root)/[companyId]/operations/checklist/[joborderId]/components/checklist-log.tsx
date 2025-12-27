@@ -4,20 +4,45 @@ import { useMemo } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { format, isValid } from "date-fns"
-import { Calendar, Clock, Droplets, Fan, LogIn, Sun, User } from "lucide-react"
+import {
+  Activity,
+  Anchor,
+  Calendar,
+  ClipboardList,
+  Container,
+  DollarSign,
+  Droplets,
+  FileCheck,
+  FileText,
+  Package,
+  Plane,
+  Ship,
+  Stethoscope,
+  Truck,
+  User,
+  Users,
+  Wrench,
+} from "lucide-react"
 
-import { JobOrder } from "@/lib/api-routes"
-import { useGet } from "@/hooks/use-common"
+import { Admin } from "@/lib/api-routes"
+import { useGetById } from "@/hooks/use-common"
 import { Card, CardContent } from "@/components/ui/card"
+
+interface IChecklistLogResponse {
+  tblName?: string
+  modeName?: string
+  remarks?: string
+  createDate?: string | Date
+  createBy?: string
+}
 
 interface IActivityLog {
   activityId: number
-  activityType: string
   timestamp: string | Date
   description: string
   activityDetails?: string
+  normalizedTableName?: string // For icon lookup
   performedBy?: string
-  location?: string
   status?: string
   icon?: string
 }
@@ -32,18 +57,22 @@ export function ChecklistLog({
   isConfirmed: _isConfirmed = false,
 }: ChecklistLogProps) {
   const { decimals } = useAuthStore()
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const timeFormat = "HH:mm"
 
   // Fetch activity logs data
-  const { data: logsResponse, isLoading: isLogsLoading } = useGet<
-    IActivityLog[]
+  const { data: logsResponse, isLoading: isLogsLoading } = useGetById<
+    IChecklistLogResponse[]
   >(
-    jobData?.jobOrderId ? `${JobOrder.getHistory}/${jobData.jobOrderId}` : "",
-    "activityLogs",
-    jobData?.jobOrderId ? jobData.jobOrderId.toString() : ""
+    Admin.getChecklistLog,
+    "checklistLog",
+    jobData?.jobOrderId ? jobData.jobOrderId.toString() : "",
+    {
+      enabled: !!jobData?.jobOrderId,
+    }
   )
 
-  const formatTime = (dateValue: string | Date | null | undefined) => {
+  const formatDateTime = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return "-"
 
     try {
@@ -56,7 +85,9 @@ export function ChecklistLog({
       }
 
       if (date && isValid(date) && !isNaN(date.getTime())) {
-        return format(date, timeFormat)
+        const formattedDate = format(date, dateFormat)
+        const formattedTime = format(date, timeFormat)
+        return `${formattedDate} ${formattedTime}`
       }
 
       return "-"
@@ -65,105 +96,242 @@ export function ChecklistLog({
     }
   }
 
-  // Get icon component based on activity type
-  const getActivityIcon = (activityType: string) => {
+  // Convert normalized table name to display name (Title Case with proper spacing)
+  const getDisplayName = (normalizedName: string): string => {
+    const displayNameMap: Record<string, string> = {
+      checklist: "Checklist",
+      portexpense: "Port Expense",
+      launchservice: "Launch Service",
+      equipmentused: "Equipment Used",
+      crewsignon: "Crew Sign On",
+      crewsignoff: "Crew Sign Off",
+      crewmiscellaneous: "Crew Miscellaneous",
+      medicalassistance: "Medical Assistance",
+      consignmentimport: "Consignment Import",
+      consignmentexport: "Consignment Export",
+      thirdparty: "Third Party",
+      freshwater: "Fresh Water",
+      technicianssurveyors: "Technicians Surveyors",
+      landingitems: "Landing Items",
+      otherservice: "Other Service",
+      agencyremuneration: "Agency Remuneration",
+      transportation: "Transportation",
+      debitnote: "Debit Note",
+      tariff: "Tariff",
+      template: "Template",
+    }
+
+    return displayNameMap[normalizedName] || normalizedName
+  }
+
+  // Normalize table name: remove Ser_ prefix, remove Hd suffix, convert to lowercase
+  const normalizeTableName = (tblName?: string): string => {
+    if (!tblName) return ""
+
+    let normalized = tblName.trim()
+
+    // Remove "Ser_" prefix if present
+    if (normalized.startsWith("Ser_")) {
+      normalized = normalized.substring(4)
+    }
+
+    // Remove "Hd" suffix if present (case-insensitive)
+    const lowerNormalized = normalized.toLowerCase()
+    if (lowerNormalized.endsWith("hd")) {
+      normalized = normalized.substring(0, normalized.length - 2)
+    }
+
+    normalized = normalized.toLowerCase()
+
+    // Handle special mappings to standardized names for icon lookup
+    const specialMappings: Record<string, string> = {
+      // Map JobOrder to checklist
+      joborder: "checklist",
+      // Map plural to singular forms
+      portexpenses: "portexpense",
+      // Handle typo in DB: TransporationLog
+      transporationlog: "transportation",
+      transportationlog: "transportation",
+      // Handle singular/plural variations
+      techniciansurveyor: "technicianssurveyors",
+      landingitems: "landingitems",
+      otherservice: "otherservice",
+      agencyremuneration: "agencyremuneration",
+      equipmentused: "equipmentused",
+      crewsignon: "crewsignon",
+      crewsignoff: "crewsignoff",
+      crewmiscellaneous: "crewmiscellaneous",
+      medicalassistance: "medicalassistance",
+      consignmentimport: "consignmentimport",
+      consignmentexport: "consignmentexport",
+      thirdparty: "thirdparty",
+      freshwater: "freshwater",
+      launchservice: "launchservice",
+      lunchservice: "launchservice", // Handle typo case
+      debitnote: "debitnote",
+    }
+
+    // Apply special mappings or return normalized name
+    return specialMappings[normalized] || normalized
+  }
+
+  // Get icon component based on table name (expects already normalized name)
+  const getTableIcon = (normalizedName?: string) => {
+    if (!normalizedName) {
+      return (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+          <Calendar className="h-4 w-4 text-gray-600" />
+        </div>
+      )
+    }
+
+    // Map table names to icons (reduced size for compact display)
     const iconMap: Record<string, React.ReactNode> = {
-      watering: (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-          <Droplets className="h-5 w-5 text-blue-600" />
+      checklist: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+          <ClipboardList className="h-4 w-4 text-blue-600" />
         </div>
       ),
-      ventilation: (
-        <div className="bg-light-blue-100 flex h-10 w-10 items-center justify-center rounded-full">
-          <Fan className="text-light-blue-600 h-5 w-5" />
+      portexpense: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+          <Anchor className="h-4 w-4 text-green-600" />
         </div>
       ),
-      entry: (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-          <LogIn className="h-5 w-5 text-purple-600" />
+      launchservice: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-100">
+          <Ship className="h-4 w-4 text-cyan-600" />
         </div>
       ),
-      lighting: (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-          <Sun className="h-5 w-5 text-orange-600" />
+      equipmentused: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+          <Wrench className="h-4 w-4 text-orange-600" />
         </div>
       ),
-      default: (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-          <Calendar className="h-5 w-5 text-gray-600" />
+      crewsignon: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+          <Users className="h-4 w-4 text-purple-600" />
+        </div>
+      ),
+      crewsignoff: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-100">
+          <Users className="h-4 w-4 text-pink-600" />
+        </div>
+      ),
+      crewmiscellaneous: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100">
+          <Users className="h-4 w-4 text-indigo-600" />
+        </div>
+      ),
+      medicalassistance: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100">
+          <Stethoscope className="h-4 w-4 text-red-600" />
+        </div>
+      ),
+      consignmentimport: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+          <Package className="h-4 w-4 text-emerald-600" />
+        </div>
+      ),
+      consignmentexport: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100">
+          <Container className="h-4 w-4 text-teal-600" />
+        </div>
+      ),
+      thirdparty: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100">
+          <Truck className="h-4 w-4 text-amber-600" />
+        </div>
+      ),
+      freshwater: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100">
+          <Droplets className="h-4 w-4 text-sky-600" />
+        </div>
+      ),
+      technicianssurveyors: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
+          <Activity className="h-4 w-4 text-violet-600" />
+        </div>
+      ),
+      landingitems: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100">
+          <Plane className="h-4 w-4 text-rose-600" />
+        </div>
+      ),
+      otherservice: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+          <FileText className="h-4 w-4 text-slate-600" />
+        </div>
+      ),
+      agencyremuneration: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100">
+          <DollarSign className="h-4 w-4 text-yellow-600" />
+        </div>
+      ),
+      tariff: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-100">
+          <FileCheck className="h-4 w-4 text-lime-600" />
+        </div>
+      ),
+      template: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+          <FileText className="h-4 w-4 text-blue-600" />
+        </div>
+      ),
+      // Handle special cases
+      transportation: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+          <Truck className="h-4 w-4 text-blue-600" />
+        </div>
+      ),
+      debitnote: (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100">
+          <FileText className="h-4 w-4 text-red-600" />
         </div>
       ),
     }
 
+    // Return mapped icon or default
     return (
-      iconMap[activityType.toLowerCase()] ||
-      iconMap[activityType] ||
-      iconMap.default
+      iconMap[normalizedName] || (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+          <Calendar className="h-4 w-4 text-gray-600" />
+        </div>
+      )
     )
   }
 
-  // Get activity type badge color
-  const getActivityTypeColor = (activityType: string) => {
-    const colorMap: Record<string, string> = {
-      scheduled: "bg-gray-100 text-gray-800",
-      manual: "bg-blue-100 text-blue-800",
-      automatic: "bg-green-100 text-green-800",
+  // Extract and map logs data from response
+  const displayLogs: IActivityLog[] = useMemo(() => {
+    if (logsResponse?.result === 1 && logsResponse?.data) {
+      const data = logsResponse.data as unknown
+      let rawLogs: IChecklistLogResponse[] = []
+
+      if (Array.isArray(data)) {
+        // Handle nested array case: [[IChecklistLogResponse[]]]
+        if (data.length > 0 && Array.isArray(data[0])) {
+          rawLogs = data[0] as IChecklistLogResponse[]
+        } else {
+          // Handle flat array case: IChecklistLogResponse[]
+          rawLogs = data as IChecklistLogResponse[]
+        }
+      }
+
+      // Map API response to IActivityLog format
+      return rawLogs.map((log, index) => {
+        const normalizedName = normalizeTableName(log.tblName)
+        return {
+          activityId: index + 1,
+          timestamp: log.createDate || new Date(),
+          description: log.remarks || "",
+          activityDetails: getDisplayName(normalizedName), // Display formatted name
+          normalizedTableName: normalizedName, // Keep normalized name for icon lookup
+          performedBy: log.createBy || "",
+          status: log.modeName || "",
+        }
+      })
     }
-
-    return (
-      colorMap[activityType.toLowerCase()] ||
-      colorMap[activityType] ||
-      "bg-gray-100 text-gray-800"
-    )
-  }
-
-  // Extract logs data from response
-  const logsData = logsResponse?.data || []
-
-  // Mock data for demonstration (replace with actual API data)
-  const mockLogs: IActivityLog[] = useMemo(
-    () => [
-      {
-        activityId: 1,
-        activityType: "watering",
-        timestamp: new Date(),
-        description: "Morning watering initiated.",
-        activityDetails: "Scheduled Activity",
-        status: "scheduled",
-      },
-      {
-        activityId: 2,
-        activityType: "ventilation",
-        timestamp: new Date(Date.now() - 20 * 60 * 1000),
-        description: "Ventilation system power set to 80%",
-        activityDetails: "Scheduled Activity",
-        status: "scheduled",
-      },
-      {
-        activityId: 3,
-        activityType: "entry",
-        timestamp: new Date(Date.now() - 37 * 60 * 1000),
-        description: "Authorized personnel entered facility.",
-        activityDetails: "Nick R. @ Main Entrance",
-        performedBy: "Nick R.",
-        location: "Main Entrance",
-        status: "manual",
-      },
-      {
-        activityId: 4,
-        activityType: "lighting",
-        timestamp: new Date(Date.now() - 108 * 60 * 1000),
-        description: "Main light source set to 1200 LUX",
-        activityDetails: "Nancy T. Manually Set",
-        performedBy: "Nancy T.",
-        status: "manual",
-      },
-    ],
-    []
-  )
-
-  // Use mock data if no real data available
-  const displayLogs = logsData.length > 0 ? logsData : mockLogs
+    return []
+  }, [logsResponse])
 
   if (isLogsLoading) {
     return (
@@ -174,12 +342,12 @@ export function ChecklistLog({
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="p-6">
-          <div className="relative space-y-6">
+    <div className="space-y-2">
+      <Card className="flex max-h-[600px] flex-col overflow-hidden">
+        <CardContent className="flex-1 overflow-y-auto p-4">
+          <div className="relative space-y-3">
             {/* Timeline line */}
-            <div className="bg-border absolute top-0 left-5 h-full w-0.5" />
+            <div className="bg-border absolute top-0 left-4 h-full w-0.5" />
 
             {/* Timeline items */}
             {displayLogs.map((log, index) => (
@@ -189,19 +357,26 @@ export function ChecklistLog({
               >
                 {/* Icon */}
                 <div className="relative z-10 flex-shrink-0">
-                  {getActivityIcon(log.activityType || "default")}
+                  {getTableIcon(log.normalizedTableName)}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 space-y-1 pb-6">
-                  {/* Time and status */}
+                <div className="flex-1 space-y-0.5 pb-3">
+                  {/* Table Name - at the top */}
+                  {log.activityDetails && (
+                    <div className="text-sm font-semibold">
+                      {log.activityDetails}
+                    </div>
+                  )}
+
+                  {/* Date and Time */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {formatTime(log.timestamp)}
+                    <span className="text-muted-foreground text-xs font-medium">
+                      {formatDateTime(log.timestamp)}
                     </span>
                     {log.status && (
                       <span
-                        className={`h-2 w-2 rounded-full ${
+                        className={`h-1.5 w-1.5 rounded-full ${
                           log.status === "scheduled" ||
                           log.status === "automatic"
                             ? "bg-green-500"
@@ -212,30 +387,18 @@ export function ChecklistLog({
                   </div>
 
                   {/* Description */}
-                  <div className="text-base font-medium">{log.description}</div>
-
-                  {/* Activity Details */}
-                  {log.activityDetails && (
-                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                      {log.status === "scheduled" ? (
-                        <>
-                          <Clock className="h-3 w-3" />
-                          <span>{log.activityDetails}</span>
-                        </>
-                      ) : (
-                        <>
-                          <User className="h-3 w-3" />
-                          <span>{log.activityDetails}</span>
-                        </>
-                      )}
+                  {log.description && (
+                    <div className="text-muted-foreground text-xs leading-relaxed">
+                      {log.description}
                     </div>
                   )}
 
-                  {/* Show similar activities link (for entry type) */}
-                  {log.activityType === "entry" && index === 2 && (
-                    <button className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
-                      <span>Show 3 similar activities</span>
-                    </button>
+                  {/* Performed By */}
+                  {log.performedBy && (
+                    <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                      <User className="h-2.5 w-2.5" />
+                      <span>{log.performedBy}</span>
+                    </div>
                   )}
                 </div>
               </div>

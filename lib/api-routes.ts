@@ -12,6 +12,7 @@ export const Admin = {
   getDocumentById: "/admin/GetDocumentbyid",
   saveDocument: "/admin/SaveDocument",
   deleteDocument: "/admin/DeleteDocument",
+  getChecklistLog: "/admin/GetChecklistLog",
 }
 
 // User Rights Endpoints

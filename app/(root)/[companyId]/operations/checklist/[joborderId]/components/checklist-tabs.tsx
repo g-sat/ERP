@@ -515,8 +515,8 @@ export function ChecklistTabs({
             </TabsTrigger>
             <TabsTrigger value="logs">
               <div className="flex items-center gap-1">
-                <span className="text-xs">📋</span>
-                <span className="text-xs sm:text-sm">Logs</span>
+                <span className="text-xs">⏱️</span>
+                <span className="text-xs sm:text-sm">Timeline</span>
               </div>
             </TabsTrigger>
           </TabsList>

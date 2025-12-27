@@ -1,22 +1,12 @@
 "use client"
 
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
 import { ITemplateDt } from "@/interfaces/template"
 import {
   TemplateDtSchemaType,
   TemplateHdSchemaType,
   templateDtSchema,
 } from "@/schemas/template"
-import {
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
 import { UseFormReturn, useForm } from "react-hook-form"
@@ -32,11 +22,8 @@ import {
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { ChargeAutocomplete } from "@/components/autocomplete"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { MergeFieldsSidebar } from "./merge-fields-sidebar"
-import MergeFieldsTextarea, {
-  MergeFieldsTextareaRef,
-} from "./merge-fields-textarea"
 import { TemplateDetailsTable } from "./template-details-table"
 
 interface TemplateDetailsFormProps {
@@ -44,42 +31,6 @@ interface TemplateDetailsFormProps {
   taskId: number
   templateId: number
 }
-
-// Define available merge fields for template remarks
-const MERGE_FIELDS = [
-  {
-    key: "chargeName",
-    label: "Charge Name",
-    description: "Name of the charge",
-  },
-  { key: "bargeName", label: "Barge Name", description: "Name of the barge" },
-  {
-    key: "vesselName",
-    label: "Vessel Name",
-    description: "Name of the vessel",
-  },
-  { key: "portName", label: "Port Name", description: "Name of the port" },
-  { key: "distance", label: "Distance", description: "Distance in miles" },
-  { key: "qty", label: "Quantity", description: "Quantity value" },
-  { key: "unitPrice", label: "Unit Price", description: "Price per unit" },
-  { key: "totAmt", label: "Total Amount", description: "Total amount" },
-  {
-    key: "totLocalAmt",
-    label: "Total Local Amount",
-    description: "Total in local currency",
-  },
-  {
-    key: "uomName",
-    label: "Unit of Measure",
-    description: "Unit of measurement",
-  },
-  {
-    key: "gstPercentage",
-    label: "GST Percentage",
-    description: "GST percentage",
-  },
-  { key: "gstAmt", label: "GST Amount", description: "GST amount" },
-]
 
 export function TemplateDetailsForm({
   form,
@@ -89,23 +40,6 @@ export function TemplateDetailsForm({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDetail, setEditingDetail] = useState<ITemplateDt | null>(null)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const textareaRef = useRef<MergeFieldsTextareaRef>(null)
-
-  // Configure drag sensors
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 6,
-      },
-    }),
-    useSensor(KeyboardSensor)
-  )
 
   const detailsForm = useForm<TemplateDtSchemaType>({
     resolver: zodResolver(templateDtSchema),
@@ -116,18 +50,6 @@ export function TemplateDetailsForm({
       remarks: "",
     },
   })
-
-  // Handle drag end event
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-
-    if (over && over.id === "remarks-textarea") {
-      const fieldData = active.data.current
-      if (fieldData?.type === "merge-field" && fieldData.value) {
-        textareaRef.current?.insertText(fieldData.value)
-      }
-    }
-  }
 
   const details = form.watch("data_details") || []
 
@@ -255,7 +177,7 @@ export function TemplateDetailsForm({
 
       {/* Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {editingDetail ? "Edit Detail" : "Add Detail"}
@@ -263,73 +185,54 @@ export function TemplateDetailsForm({
             <DialogDescription>
               {editingDetail
                 ? "Update template detail information"
-                : "Add a new template detail. Drag and drop merge fields into the remarks field."}
+                : "Add a new template detail"}
             </DialogDescription>
           </DialogHeader>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <Form {...detailsForm}>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  detailsForm.handleSubmit((data) =>
-                    handleSaveDetail(data, e)
-                  )()
+          <Form {...detailsForm}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                detailsForm.handleSubmit((data) => handleSaveDetail(data, e))()
+              }}
+              className="space-y-3"
+            >
+              <ChargeAutocomplete
+                form={detailsForm}
+                name="chargeId"
+                label="Charge"
+                isRequired
+                taskId={taskId}
+                onChangeEvent={(selected) => {
+                  if (selected) {
+                    detailsForm.setValue(
+                      "chargeName",
+                      selected.chargeName || ""
+                    )
+                  }
                 }}
-                className="space-y-4"
-              >
-                <ChargeAutocomplete
-                  form={detailsForm}
-                  name="chargeId"
-                  label="Charge"
-                  isRequired
-                  taskId={taskId}
-                  onChangeEvent={(selected) => {
-                    if (selected) {
-                      detailsForm.setValue(
-                        "chargeName",
-                        selected.chargeName || ""
-                      )
-                    }
-                  }}
-                />
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="md:col-span-1">
-                    <MergeFieldsSidebar fields={MERGE_FIELDS} />
-                  </div>
-                  <div className="md:col-span-2">
-                    <MergeFieldsTextarea
-                      ref={textareaRef}
-                      form={detailsForm}
-                      name="remarks"
-                      label="Remarks"
-                      droppableId="remarks-textarea"
-                      minRows={4}
-                      maxRows={8}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCloseDialog}
-                    className="flex items-center gap-2"
-                  >
-                    <XIcon className="h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {editingDetail ? "Update" : "Add"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DndContext>
+              />
+              <CustomTextarea
+                form={detailsForm}
+                name="remarks"
+                label="Remarks"
+              />
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseDialog}
+                  className="flex items-center gap-2"
+                >
+                  <XIcon className="h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingDetail ? "Update" : "Add"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
