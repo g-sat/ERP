@@ -718,7 +718,7 @@ export function OtherServiceTab({
           description="Manage purchase details for this other service."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.OtherService}
-          serviceId={selectedItem?.otherServiceId ?? 0}
+          serviceItemNo={selectedItem?.otherServiceId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

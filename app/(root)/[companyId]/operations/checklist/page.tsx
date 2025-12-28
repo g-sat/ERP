@@ -47,7 +47,7 @@ export default function ChecklistPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("All")
+  const [selectedStatus, setSelectedStatus] = useState("Pending")
   const [isLoading, setIsLoading] = useState(true)
 
   // Add this at the top of your component

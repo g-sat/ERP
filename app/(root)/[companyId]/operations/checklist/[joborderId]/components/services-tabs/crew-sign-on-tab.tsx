@@ -9,6 +9,7 @@ import {
   IJobOrderHd,
 } from "@/interfaces/checklist"
 import { CrewSignOnSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -23,7 +24,6 @@ import {
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -340,18 +340,15 @@ export function CrewSignOnTab({
   }, [])
 
   // Handler for clone task from table header - receives selectedIds from table
-  const handleCloneTaskClick = useCallback(
-    (selectedIds: string[]) => {
-      if (selectedIds.length === 0) {
-        toast.error("Please select at least one crew sign on to clone")
-        return
-      }
-      // Store selected IDs for use in clone API call
-      setSelectedItems(selectedIds)
-      setShowCloneTaskDialog(true)
-    },
-    []
-  )
+  const handleCloneTaskClick = useCallback((selectedIds: string[]) => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one crew sign on to clone")
+      return
+    }
+    // Store selected IDs for use in clone API call
+    setSelectedItems(selectedIds)
+    setShowCloneTaskDialog(true)
+  }, [])
 
   // Function to clear selection after operations
   const handleClearSelection = useCallback(() => {
@@ -716,7 +713,7 @@ export function CrewSignOnTab({
           description="Manage purchase details for this crew sign on."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.CrewSignOn}
-          serviceId={selectedItem?.crewSignOnId ?? 0}
+          serviceItemNo={selectedItem?.crewSignOnId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

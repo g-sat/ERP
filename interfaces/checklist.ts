@@ -839,7 +839,7 @@ export interface ISavePurchaseData {
   itemNo: number
   jobOrderId: number
   taskId: number
-  serviceId: number
+  serviceItemNo: number
 }
 
 export interface ITransportationLog {

@@ -752,7 +752,7 @@ export function PortExpensesTab({
           description="Manage purchase details for this port expenses."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.PortExpenses}
-          serviceId={selectedItem?.portExpenseId ?? 0}
+          serviceItemNo={selectedItem?.portExpenseId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

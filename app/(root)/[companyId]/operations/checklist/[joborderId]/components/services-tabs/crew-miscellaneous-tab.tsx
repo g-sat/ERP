@@ -9,6 +9,7 @@ import {
   IJobOrderHd,
 } from "@/interfaces/checklist"
 import { CrewMiscellaneousSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -23,7 +24,6 @@ import {
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -723,7 +723,7 @@ export function CrewMiscellaneousTab({
           description="Manage purchase details for this crew miscellaneous."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.CrewMiscellaneous}
-          serviceId={selectedItem?.crewMiscellaneousId ?? 0}
+          serviceItemNo={selectedItem?.crewMiscellaneousId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

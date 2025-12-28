@@ -9,6 +9,7 @@ import {
   IMedicalAssistance,
 } from "@/interfaces/checklist"
 import { MedicalAssistanceSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -23,7 +24,6 @@ import {
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -731,7 +731,7 @@ export function MedicalAssistanceTab({
           description="Manage purchase details for this medical assistance."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.MedicalAssistance}
-          serviceId={selectedItem?.medicalAssistanceId ?? 0}
+          serviceItemNo={selectedItem?.medicalAssistanceId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

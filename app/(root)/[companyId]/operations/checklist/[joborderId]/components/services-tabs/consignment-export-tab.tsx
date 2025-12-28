@@ -732,7 +732,7 @@ export function ConsignmentExportTab({
           description="Manage purchase details for this consignment export."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.ConsignmentExport}
-          serviceId={selectedItem?.consignmentExportId ?? 0}
+          serviceItemNo={selectedItem?.consignmentExportId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

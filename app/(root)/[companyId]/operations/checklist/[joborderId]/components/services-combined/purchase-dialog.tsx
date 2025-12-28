@@ -25,7 +25,7 @@ interface PurchaseDialogProps {
   description?: string
   jobOrderId: number
   taskId: number
-  serviceId: number
+  serviceItemNo: number
   isConfirmed: boolean
 }
 
@@ -36,7 +36,7 @@ export function PurchaseDialog({
   description = "Manage purchase details for this service.",
   jobOrderId,
   taskId,
-  serviceId,
+  serviceItemNo,
   isConfirmed,
 }: PurchaseDialogProps) {
   const queryClient = useQueryClient()
@@ -53,8 +53,8 @@ export function PurchaseDialog({
 
   // Fetch purchase data when dialog opens
   const { data: purchaseResponse, isLoading } = useGet<IPurchaseData>(
-    `${JobOrder_Purchase.getList}/${jobOrderId}/${taskId}/${serviceId}`,
-    `purchase-list-${jobOrderId}-${taskId}-${serviceId}`,
+    `${JobOrder_Purchase.getList}/${jobOrderId}/${taskId}/${serviceItemNo}`,
+    `purchase-list-${jobOrderId}-${taskId}-${serviceItemNo}`,
     undefined,
     {
       enabled: open,
@@ -120,7 +120,7 @@ export function PurchaseDialog({
         (item) => ({
           jobOrderId,
           taskId,
-          serviceId,
+          serviceItemNo,
           moduleId: item.moduleId,
           transactionId: item.transactionId,
           documentId: item.documentId,
@@ -139,7 +139,7 @@ export function PurchaseDialog({
       if (response.result === 1) {
         // Invalidate purchase list query to refetch fresh data
         queryClient.invalidateQueries({
-          queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceId}`],
+          queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceItemNo}`],
         })
 
         // Reset unsaved changes flag
@@ -156,7 +156,7 @@ export function PurchaseDialog({
     selectedIds,
     jobOrderId,
     taskId,
-    serviceId,
+    serviceItemNo,
     onOpenChangeAction,
     saveMutation,
     queryClient,

@@ -719,7 +719,7 @@ export function LaunchServicesTab({
           description="Manage purchase details for this launch services."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.LaunchServices}
-          serviceId={selectedItem?.launchServiceId ?? 0}
+          serviceItemNo={selectedItem?.launchServiceId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

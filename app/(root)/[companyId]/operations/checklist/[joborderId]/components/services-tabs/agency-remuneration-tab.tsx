@@ -732,7 +732,7 @@ export function AgencyRemunerationTab({
           description="Manage purchase details for this agency remuneration."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.AgencyRemuneration}
-          serviceId={selectedItem?.agencyRemunerationId ?? 0}
+          serviceItemNo={selectedItem?.agencyRemunerationId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}

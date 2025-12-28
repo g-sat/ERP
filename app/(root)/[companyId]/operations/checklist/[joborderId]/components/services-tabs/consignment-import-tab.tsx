@@ -9,6 +9,7 @@ import {
   IJobOrderHd,
 } from "@/interfaces/checklist"
 import { ConsignmentImportSchemaType } from "@/schemas/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
@@ -23,7 +24,6 @@ import {
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import { usePermissionStore } from "@/stores/permission-store"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -732,7 +732,7 @@ export function ConsignmentImportTab({
           description="Manage purchase details for this consignment import."
           jobOrderId={jobData.jobOrderId}
           taskId={Task.ConsignmentImport}
-          serviceId={selectedItem?.consignmentImportId ?? 0}
+          serviceItemNo={selectedItem?.consignmentImportId ?? 0}
           isConfirmed={isConfirmed}
         />
       )}
