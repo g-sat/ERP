@@ -26,6 +26,7 @@ import {
 
 import { Admin } from "@/lib/api-routes"
 import { useGetById } from "@/hooks/use-common"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface IChecklistLogResponse {
@@ -173,6 +174,32 @@ export function ChecklistLog({
 
     // Apply special mappings or return normalized name
     return specialMappings[normalized] || normalized
+  }
+
+  // Get status badge color based on modeName
+  const getStatusBadgeColor = (status?: string): string => {
+    if (!status) return "bg-gray-100 text-gray-800 border-gray-200"
+
+    const statusLower = status.toLowerCase()
+
+    if (statusLower.includes("delete") || statusLower.includes("del")) {
+      return "bg-red-100 text-red-800 border-red-200"
+    } else if (
+      statusLower.includes("create") ||
+      statusLower.includes("add") ||
+      statusLower.includes("new")
+    ) {
+      return "bg-green-100 text-green-800 border-green-200"
+    } else if (
+      statusLower.includes("update") ||
+      statusLower.includes("edit") ||
+      statusLower.includes("modify")
+    ) {
+      return "bg-sky-100 text-sky-800 border-sky-200"
+    }
+
+    // Default color for other statuses
+    return "bg-gray-100 text-gray-800 border-gray-200"
   }
 
   // Get icon component based on table name (expects already normalized name)
@@ -375,14 +402,12 @@ export function ChecklistLog({
                       {formatDateTime(log.timestamp)}
                     </span>
                     {log.status && (
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          log.status === "scheduled" ||
-                          log.status === "automatic"
-                            ? "bg-green-500"
-                            : "bg-blue-500"
-                        }`}
-                      />
+                      <Badge
+                        variant="outline"
+                        className={`text-xs font-medium ${getStatusBadgeColor(log.status)}`}
+                      >
+                        {log.status}
+                      </Badge>
                     )}
                   </div>
 

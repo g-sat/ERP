@@ -50,8 +50,8 @@ import {
 
 import { ChecklistDetailsForm } from "./checklist-details-form"
 import { ChecklistHistory } from "./checklist-history"
-import { ChecklistLog } from "./checklist-log"
 import { ChecklistMain } from "./checklist-main"
+import { ChecklistLog } from "./checklist-timeline"
 import { TransportationLogTab } from "./checklist-transporationlog"
 import { DebitNoteItemsTable } from "./debit-note-items-table"
 
@@ -139,6 +139,14 @@ export function ChecklistTabs({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobData?.jobOrderId, jobData?.jobOrderNo])
+
+  // Refetch data whenever activeTab changes (when user clicks on a tab)
+  React.useEffect(() => {
+    if (jobData?.jobOrderId && jobData?.jobOrderNo) {
+      refetch()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
 
   // Check if detailed data is available and successful
   const isDetailedJobData = detailedJobData?.result === 1

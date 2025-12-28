@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useParams } from "next/navigation"
 import type { IJobOrderHd } from "@/interfaces/checklist"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -12,7 +13,6 @@ import { z } from "zod"
 import { JobOrder } from "@/lib/api-routes"
 import { OperationsStatus } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId, cn } from "@/lib/utils"
-import { usePermissionStore } from "@/stores/permission-store"
 import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -207,7 +207,7 @@ export default function ChecklistPage() {
   const statusCounts = getStatusCounts
 
   return (
-    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
+    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-8 sm:pt-3 sm:pb-6 lg:px-12">
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">

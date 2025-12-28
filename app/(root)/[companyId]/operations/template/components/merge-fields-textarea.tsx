@@ -30,10 +30,9 @@ export interface MergeFieldsTextareaRef {
   getTextareaRef: () => HTMLTextAreaElement | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MergeFieldsTextarea = forwardRef<
   MergeFieldsTextareaRef,
-  MergeFieldsTextareaProps<any>
+  MergeFieldsTextareaProps<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 >(
   (
     {
