@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, isValid, parse, startOfMonth, subMonths } from "date-fns"
+import { format, startOfMonth, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/date-utils"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -178,34 +178,6 @@ export default function ReportsPage() {
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
-  /**
-   * Converts a date string from user's locale format to dd/MMM/yyyy format
-   * for Telerik Reporting server.
-   */
-  const convertDateToReportFormat = (
-    dateStr: string | null | undefined
-  ): string => {
-    if (!dateStr || dateStr.trim() === "") {
-      return format(new Date(), "dd/MMM/yyyy")
-    }
-
-    const parsedDate = parseDate(dateStr)
-    if (parsedDate && isValid(parsedDate)) {
-      return format(parsedDate, "dd/MMM/yyyy")
-    }
-
-    try {
-      const parsed = parse(dateStr, dateFormat, new Date())
-      if (isValid(parsed)) {
-        return format(parsed, "dd/MMM/yyyy")
-      }
-    } catch (error) {
-      console.warn("Date parsing failed:", dateStr, error)
-    }
-
-    return format(new Date(), "dd/MMM/yyyy")
-  }
-
   const buildReportParameters = (
     data: IReportFormData,
     report?: IReport
@@ -213,12 +185,10 @@ export default function ReportsPage() {
     const asOfDate = data.asOfDate || getCurrentDate()
     const reportType = report?.reportType ?? data.reportType ?? 0
 
-    // Convert all dates to dd/MMM/yyyy format for report server
-    const formattedFromDate = convertDateToReportFormat(
-      data.fromDate || asOfDate
-    )
-    const formattedToDate = convertDateToReportFormat(data.toDate || asOfDate)
-    const formattedAsOfDate = convertDateToReportFormat(asOfDate)
+    // Format all dates to yyyy-MM-dd format using formatDateForApi
+    const formattedFromDate = formatDateForApi(data.fromDate || asOfDate)
+    const formattedToDate = formatDateForApi(data.toDate || asOfDate)
+    const formattedAsOfDate = formatDateForApi(asOfDate)
 
     return {
       companyId,

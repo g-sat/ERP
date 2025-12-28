@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_TransportationLog } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
@@ -214,11 +215,10 @@ export function TransportationLogTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        transportDate: saveConfirmation.formData.transportDate
-          ? typeof saveConfirmation.formData.transportDate === "string"
-            ? saveConfirmation.formData.transportDate
-            : saveConfirmation.formData.transportDate.toISOString()
-          : undefined,
+        transportDate: formatDateForApi(
+          saveConfirmation.formData.transportDate,
+          false
+        ) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 

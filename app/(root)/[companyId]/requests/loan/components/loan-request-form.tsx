@@ -209,7 +209,13 @@ export function LoanRequestForm({
   const handleSubmit = async (data: LoanRequestFormData) => {
     setIsLoading(true)
     try {
-      await onSubmit(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        requestDate: formatDateForApi(data.requestDate) || "",
+        emiStartDate: formatDateForApi(data.emiStartDate) || "",
+      }
+      await onSubmit(formattedData)
       // Reset form with default values
       form.reset({
         loanRequestId: 0,

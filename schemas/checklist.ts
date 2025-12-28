@@ -251,7 +251,7 @@ export const CrewSignOffSchema = z.object({
 
   visaId: z.number().min(1, "Visa Type is required"),
   crewName: z.string().min(1, "Crew Name is required"),
-  nationality: z.string().min(1, "Nationality is required"),
+  nationalityId: z.number().min(1, "Nationality is required"),
   rankId: z.number().optional(),
   flightDetails: z.string().optional(),
   hotelName: z.string().optional(),
@@ -287,10 +287,7 @@ export const CrewSignOnSchema = z.object({
     .string()
     .min(1, "Crew Name is required")
     .max(150, "Crew Name must be less than 150 characters"),
-  nationality: z
-    .string()
-    .min(1, "Nationality is required")
-    .max(100, "Nationality must be less than 100 characters"),
+  nationalityId: z.number().min(1, "Nationality is required"),
   rankId: z.number().min(1, "Rank is required"),
   flightDetails: z
     .string()
@@ -408,7 +405,7 @@ export const MedicalAssistanceSchema = z.object({
   chargeId: z.number().min(1, "Charge is required"),
 
   crewName: z.string().min(1, "Crew Name is required"),
-  nationality: z.string().min(1, "Nationality is required"),
+  nationalityId: z.number().min(1, "Nationality is required"),
   rankId: z.number().optional(),
   reason: z.string().optional(),
   admittedDate: z.union([z.string(), z.date()]).optional(),

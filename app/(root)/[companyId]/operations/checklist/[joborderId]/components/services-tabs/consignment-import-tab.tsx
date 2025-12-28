@@ -22,6 +22,7 @@ import {
   JobOrder_ConsignmentImport,
   JobOrder_DebitNote,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -288,16 +289,10 @@ export function ConsignmentImportTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        receiveDate: saveConfirmation.formData.receiveDate
-          ? typeof saveConfirmation.formData.receiveDate === "string"
-            ? saveConfirmation.formData.receiveDate
-            : saveConfirmation.formData.receiveDate.toISOString()
-          : undefined,
-        deliverDate: saveConfirmation.formData.deliverDate
-          ? typeof saveConfirmation.formData.deliverDate === "string"
-            ? saveConfirmation.formData.deliverDate
-            : saveConfirmation.formData.deliverDate.toISOString()
-          : undefined,
+        receiveDate:
+          formatDateForApi(saveConfirmation.formData.receiveDate) || undefined,
+        deliverDate:
+          formatDateForApi(saveConfirmation.formData.deliverDate) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -662,6 +657,12 @@ export function ConsignmentImportTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

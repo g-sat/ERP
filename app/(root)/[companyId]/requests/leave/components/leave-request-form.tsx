@@ -6,6 +6,7 @@ import { LeaveRequestSchemaType, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { useLeaveTypeLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -135,9 +136,11 @@ export function LeaveRequestForm({
       // Ensure totalDays is calculated and included
       const calculatedDays = calculateDays()
 
-      // Convert form data to the expected format for submission
+      // Format dates for API submission
       const formData: LeaveRequestSchemaType = {
         ...data,
+        startDate: formatDateForApi(data.startDate) || "",
+        endDate: formatDateForApi(data.endDate) || "",
         totalDays: calculatedDays,
         attachments: "",
       }

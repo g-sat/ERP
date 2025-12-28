@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { useSaveEmployeeBasic } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -131,6 +131,7 @@ export function EmployeeBasicForm({ employee, onCancelAction }: Props) {
     console.log("Form is valid:", form.formState.isValid)
     console.log("Form errors:", form.formState.errors)
 
+    // Format dates for API submission
     const processedData = {
       employeeId: data.employeeId || 0,
       employerId: data.employerId || 0,
@@ -142,19 +143,8 @@ export function EmployeeBasicForm({ employee, onCancelAction }: Props) {
       workLocationId: data.workLocationId || 0,
       genderId: data.genderId || 0,
       dayOfWeek: data.dayOfWeek || 0,
-      joinDate: data?.joinDate
-        ? format(
-            parseDate(data?.joinDate as unknown as string) || new Date(),
-            dateFormat
-          )
-        : "",
-
-      lastDate: data?.lastDate
-        ? format(
-            parseDate(data?.lastDate as unknown as string) || new Date(),
-            dateFormat
-          )
-        : "",
+      joinDate: formatDateForApi(data.joinDate) || "",
+      lastDate: formatDateForApi(data.lastDate) || "",
       offPhoneNo: data.offPhoneNo || "",
       offEmailAdd: data.offEmailAdd || "",
       nationalityId: data.nationalityId || 0,

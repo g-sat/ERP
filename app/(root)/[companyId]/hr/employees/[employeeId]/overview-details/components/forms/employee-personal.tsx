@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInYears, format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { useSaveEmployeePersonalDetails } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -134,7 +134,14 @@ export function EmployeePersonalForm({ employee, onCancelAction }: Props) {
   }, [form])
 
   const onSubmit = (data: EmployeePersonalDetailsValues) => {
-    saveMutation.mutate(data)
+    // Format dates for API submission
+    const formattedData = {
+      ...data,
+      dob: formatDateForApi(data.dob) || "",
+      passportExpiryDate: formatDateForApi(data.passportExpiryDate) || "",
+      emiratesIdExpiryDate: formatDateForApi(data.emiratesIdExpiryDate) || "",
+    }
+    saveMutation.mutate(formattedData)
     form.reset()
   }
 

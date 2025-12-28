@@ -21,6 +21,7 @@ import {
   EmployeeAutocomplete,
   LeaveTypeAutocomplete,
 } from "@/components/autocomplete"
+import { formatDateForApi } from "@/lib/date-utils"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -77,8 +78,11 @@ export function LeaveRequestForm({ onSubmit }: LeaveRequestFormProps) {
 
       // Ensure totalDays is calculated and included
       const calculatedDays = calculateDays()
+      // Format dates for API submission
       const formData = {
         ...data,
+        startDate: formatDateForApi(data.startDate) || "",
+        endDate: formatDateForApi(data.endDate) || "",
         totalDays: calculatedDays,
         attachments: attachments.join(","),
       }

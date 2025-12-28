@@ -64,7 +64,7 @@ export default function CountryAutocomplete<T extends Record<string, unknown>>({
     () =>
       countries.map((country: ICountryLookup) => ({
         value: country.countryId.toString(),
-        label: country.countryName,
+        label: country.countryCode + " - " + country.countryName,
       })),
     [countries]
   )

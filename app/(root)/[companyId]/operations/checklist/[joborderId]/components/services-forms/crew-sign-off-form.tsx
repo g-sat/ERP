@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
+  CountryAutocomplete,
   RankAutocomplete,
   TaskStatusAutocomplete,
   VisaAutocomplete,
@@ -60,7 +61,7 @@ export function CrewSignOffForm({
 
       visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
-      nationality: initialData?.nationality ?? "",
+      nationalityId: initialData?.nationalityId ?? 0,
       rankId: initialData?.rankId ?? 0,
       flightDetails: initialData?.flightDetails ?? "",
       hotelName: initialData?.hotelName ?? "",
@@ -90,7 +91,7 @@ export function CrewSignOffForm({
 
       visaId: initialData?.visaId ?? taskDefaults.visaId ?? 0,
       crewName: initialData?.crewName ?? "",
-      nationality: initialData?.nationality ?? "",
+      nationalityId: initialData?.nationalityId ?? 0,
       rankId: initialData?.rankId ?? 0,
       flightDetails: initialData?.flightDetails ?? "",
       hotelName: initialData?.hotelName ?? "",
@@ -129,9 +130,9 @@ export function CrewSignOffForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CountryAutocomplete
                 form={form}
-                name="nationality"
+                name="nationalityId"
                 label="Nationality"
                 isRequired
                 isDisabled={isConfirmed}

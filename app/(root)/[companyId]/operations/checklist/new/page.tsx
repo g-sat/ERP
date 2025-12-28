@@ -20,7 +20,8 @@ import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import {
   clientDateFormat,
-  formatDateWithoutTimezone,
+  formatDateForApi,
+  formatDateTimeForApi,
   parseDate,
 } from "@/lib/date-utils"
 import { useSaveJobOrder } from "@/hooks/use-checklist"
@@ -362,12 +363,9 @@ export default function NewChecklistPage() {
       const formValues = transformToSchemaType(values)
 
       // Format DateTime fields - convert null to undefined to match IJobOrderHd interface
-      const etaDateFormatted = values.etaDate
-        ? formatDateWithoutTimezone(values.etaDate)
-        : undefined
-      const etdDateFormatted = values.etdDate
-        ? formatDateWithoutTimezone(values.etdDate)
-        : undefined
+      // Use formatDateTimeForApi for fields with time (ETA/ETD)
+      const etaDateFormatted = formatDateTimeForApi(values.etaDate)
+      const etdDateFormatted = formatDateTimeForApi(values.etdDate)
 
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
@@ -375,7 +373,7 @@ export default function NewChecklistPage() {
         jobOrderDate: formValues.jobOrderDate as string,
         accountDate: formValues.accountDate as string,
         seriesDate: formValues.seriesDate as string,
-        // DateTime fields: format with time using formatDateWithoutTimezone
+        // DateTime fields: format with time using formatDateTimeForApi
         // Convert null to undefined to match IJobOrderHd interface (Date | string | undefined, not null)
         etaDate: etaDateFormatted,
         etdDate: etdDateFormatted,

@@ -11,7 +11,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInMinutes, format, isValid, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import {
+  clientDateFormat,
+  formatDateTimeForApi,
+  parseDate,
+} from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -279,28 +283,15 @@ export function LaunchServiceForm({
   }
 
   const onSubmit = (data: LaunchServiceSchemaType) => {
+    // Format DateTime fields for API using formatDateTimeForApi
+    // This converts Date objects to ISO 8601 format (yyyy-MM-ddTHH:mm:ss.SSSZ)
     const formData: LaunchServiceSchemaType = {
       ...data,
-      loadingTime:
-        data.loadingTime instanceof Date
-          ? format(data.loadingTime, datetimeFormat)
-          : data.loadingTime,
-      leftJetty:
-        data.leftJetty instanceof Date
-          ? format(data.leftJetty, datetimeFormat)
-          : data.leftJetty,
-      alongsideVessel:
-        data.alongsideVessel instanceof Date
-          ? format(data.alongsideVessel, datetimeFormat)
-          : data.alongsideVessel,
-      departedFromVessel:
-        data.departedFromVessel instanceof Date
-          ? format(data.departedFromVessel, datetimeFormat)
-          : data.departedFromVessel,
-      arrivedAtJetty:
-        data.arrivedAtJetty instanceof Date
-          ? format(data.arrivedAtJetty, datetimeFormat)
-          : data.arrivedAtJetty,
+      loadingTime: formatDateTimeForApi(data.loadingTime),
+      leftJetty: formatDateTimeForApi(data.leftJetty),
+      alongsideVessel: formatDateTimeForApi(data.alongsideVessel),
+      departedFromVessel: formatDateTimeForApi(data.departedFromVessel),
+      arrivedAtJetty: formatDateTimeForApi(data.arrivedAtJetty),
     }
 
     console.log(formData)

@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetGlTransactionInquiry } from "@/hooks/use-inquiry"
 import { IGlTransactionDetails } from "@/interfaces/history"
@@ -48,7 +49,7 @@ export default function GlTransactionInquiryPage() {
   const defaultFromDate = new Date(today)
   defaultFromDate.setMonth(today.getMonth() - 2)
 
-  const formatDate = (date: Date) => date.toISOString().split("T")[0]
+  const formatDate = (date: Date) => formatDateForApi(date) || ""
 
   const [fromDate, setFromDate] = useState(formatDate(defaultFromDate))
   const [toDate, setToDate] = useState(formatDate(today))

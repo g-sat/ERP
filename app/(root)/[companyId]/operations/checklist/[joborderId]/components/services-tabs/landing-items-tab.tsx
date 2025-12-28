@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_LandingItems,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -282,16 +283,9 @@ export function LandingItemsTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        date: saveConfirmation.formData.date
-          ? typeof saveConfirmation.formData.date === "string"
-            ? saveConfirmation.formData.date
-            : saveConfirmation.formData.date.toISOString()
-          : undefined,
-        returnDate: saveConfirmation.formData.returnDate
-          ? typeof saveConfirmation.formData.returnDate === "string"
-            ? saveConfirmation.formData.returnDate
-            : saveConfirmation.formData.returnDate.toISOString()
-          : undefined,
+        date: formatDateForApi(saveConfirmation.formData.date) || undefined,
+        returnDate:
+          formatDateForApi(saveConfirmation.formData.returnDate) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -650,6 +644,12 @@ export function LandingItemsTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

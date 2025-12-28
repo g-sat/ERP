@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { JobOrder } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { OperationsStatus } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId, cn } from "@/lib/utils"
 import { searchJobOrdersDirect } from "@/hooks/use-checklist"
@@ -55,12 +56,14 @@ export default function ChecklistPage() {
   const defaultStartDate = new Date(today)
   defaultStartDate.setMonth(today.getMonth() - 2) // Go back 2 months
 
-  // Format dates to YYYY-MM-DD for input fields
-  const formatDate = (date: Date) => date.toISOString().split("T")[0]
+  // Format dates to YYYY-MM-DD for input fields (using standardized function)
+  const formatDateForInput = (date: Date) => formatDateForApi(date) || ""
 
   // Inside your component state
-  const [startDate, setStartDate] = useState(formatDate(defaultStartDate))
-  const [endDate, setEndDate] = useState(formatDate(today))
+  const [startDate, setStartDate] = useState(
+    formatDateForInput(defaultStartDate)
+  )
+  const [endDate, setEndDate] = useState(formatDateForInput(today))
 
   // Initialize form for date filters
   const dateFilterForm = useForm<DateFilterFormType>({
@@ -109,7 +112,7 @@ export default function ChecklistPage() {
   // Handler to sync startDate from form to state (convert dd/MM/yyyy to YYYY-MM-DD)
   const handleStartDateChange = (date: Date | null) => {
     if (date) {
-      const formattedDate = formatDate(date)
+      const formattedDate = formatDateForInput(date)
       setStartDate(formattedDate)
     }
   }
@@ -117,7 +120,7 @@ export default function ChecklistPage() {
   // Handler to sync endDate from form to state (convert dd/MM/yyyy to YYYY-MM-DD)
   const handleEndDateChange = (date: Date | null) => {
     if (date) {
-      const formattedDate = formatDate(date)
+      const formattedDate = formatDateForInput(date)
       setEndDate(formattedDate)
     }
   }
@@ -127,8 +130,8 @@ export default function ChecklistPage() {
   }
 
   const handleClear = () => {
-    setStartDate(formatDate(defaultStartDate))
-    setEndDate(formatDate(today))
+    setStartDate(formatDateForInput(defaultStartDate))
+    setEndDate(formatDateForInput(today))
     setSearchQuery("")
     setSelectedStatus("All")
     // Reset form values

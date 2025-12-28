@@ -11,7 +11,7 @@ import { format } from "date-fns"
 import { FileText, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -210,7 +210,15 @@ export function DocumentDetailsForm({
       // Assign final path
       data.filePath = `public/documents/upload/${uploadedFiles[0].name}`
 
-      const response = await persistDetailsMutation.mutateAsync(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        issueOn: formatDateForApi(data.issueOn) || null,
+        validFrom: formatDateForApi(data.validFrom) || null,
+        expiryOn: formatDateForApi(data.expiryOn) || null,
+      }
+
+      const response = await persistDetailsMutation.mutateAsync(formattedData)
 
       if (response.result === 1) {
         // Move files

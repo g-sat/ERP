@@ -8,14 +8,12 @@ import { IconCopy, IconEye, IconX } from "@tabler/icons-react"
 import {
   addMonths,
   format,
-  isValid,
-  parse,
   startOfMonth,
   subMonths,
 } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/date-utils"
+import { formatDateForApi } from "@/lib/date-utils"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -336,39 +334,11 @@ export default function ReportsPage() {
     }
   }, [selectedReports, form])
 
-  /**
-   * Converts a date string from user's locale format to dd/MMM/yyyy format
-   * for Telerik Reporting server.
-   */
-  const convertDateToReportFormat = (
-    dateStr: string | null | undefined
-  ): string | null => {
-    if (!dateStr || dateStr.trim() === "") {
-      return null
-    }
-
-    const parsedDate = parseDate(dateStr)
-    if (parsedDate && isValid(parsedDate)) {
-      return format(parsedDate, "dd/MMM/yyyy")
-    }
-
-    try {
-      const parsed = parse(dateStr, dateFormat, new Date())
-      if (isValid(parsed)) {
-        return format(parsed, "dd/MMM/yyyy")
-      }
-    } catch (error) {
-      console.warn("Date parsing failed:", dateStr, error)
-    }
-
-    return null
-  }
-
   const buildReportParameters = (data: IReportFormData): IReportParameters => {
-    // Convert all dates to dd/MMM/yyyy format for report server
-    const formattedFromDate = convertDateToReportFormat(data.fromDate)
-    const formattedToDate = convertDateToReportFormat(data.toDate)
-    const formattedAsOfDate = convertDateToReportFormat(
+    // Format all dates to yyyy-MM-dd format using formatDateForApi
+    const formattedFromDate = formatDateForApi(data.fromDate)
+    const formattedToDate = formatDateForApi(data.toDate)
+    const formattedAsOfDate = formatDateForApi(
       data.asOfDate || getCurrentDate()
     )
 

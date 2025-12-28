@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -89,7 +90,12 @@ export function PettyCashRequestForm({
   const handleSubmit = async (data: PettyCashRequestFormData) => {
     try {
       setIsLoading(true)
-      await onSubmit(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        requestDate: formatDateForApi(data.requestDate) || "",
+      }
+      await onSubmit(formattedData)
     } catch (error) {
       console.error("Error submitting petty cash request:", error)
     } finally {

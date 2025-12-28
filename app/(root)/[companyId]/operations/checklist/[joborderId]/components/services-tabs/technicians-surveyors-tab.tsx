@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_TechnicianSurveyor,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -292,16 +293,14 @@ export function TechniciansSurveyorsTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        embarked: saveConfirmation.formData.embarked
-          ? typeof saveConfirmation.formData.embarked === "string"
-            ? saveConfirmation.formData.embarked
-            : saveConfirmation.formData.embarked.toISOString()
-          : undefined,
-        disembarked: saveConfirmation.formData.disembarked
-          ? typeof saveConfirmation.formData.disembarked === "string"
-            ? saveConfirmation.formData.disembarked
-            : saveConfirmation.formData.disembarked.toISOString()
-          : undefined,
+        embarked: formatDateForApi(
+          saveConfirmation.formData.embarked,
+          false
+        ) || undefined,
+        disembarked: formatDateForApi(
+          saveConfirmation.formData.disembarked,
+          false
+        ) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -663,6 +662,12 @@ export function TechniciansSurveyorsTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

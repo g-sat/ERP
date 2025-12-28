@@ -11,7 +11,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import {
+  clientDateFormat,
+  formatDateForApi,
+  parseDate,
+} from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -87,10 +91,10 @@ export function CurrencyLocalDtForm({
   }, [initialData, form, exhRateDec, defaultValues])
 
   const onSubmit = (data: CurrencyLocalDtSchemaType) => {
-    // Format date to ISO string before submission
+    // Format date to yyyy-MM-dd format before submission
     const formattedData = {
       ...data,
-      validFrom: data.validFrom,
+      validFrom: formatDateForApi(data.validFrom) || "",
     }
     submitAction(formattedData)
   }

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { usePermissionStore } from "@/stores/permission-store"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
@@ -83,7 +84,7 @@ export default function JobOrderDetailsPage() {
         ...clonedData,
         jobOrderId: 0, // Reset ID for new record
         jobOrderNo: "", // Reset job order number
-        jobOrderDate: new Date().toISOString().split("T")[0], // Set to today
+        jobOrderDate: formatDateForApi(new Date()) || "", // Set to today in yyyy-MM-dd format
         editVersion: 0, // Reset edit version
       }
       sessionStorage.setItem(

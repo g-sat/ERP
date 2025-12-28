@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { HrUserRequest } from "@/lib/api-routes"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { useGetEmployeeByUserId } from "@/hooks/use-employee"
@@ -79,11 +80,12 @@ export default function LeavePage() {
           (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
         ) + 1
 
+      // Format dates for API submission
       const leaveRequestData = {
         employeeId: employeeId,
         leaveTypeId: data.leaveTypeId,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        startDate: formatDateForApi(data.startDate) || "",
+        endDate: formatDateForApi(data.endDate) || "",
         totalDays,
         reason: data.reason,
         statusId: 1,

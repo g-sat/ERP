@@ -26,7 +26,7 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -194,7 +194,13 @@ export default function ProfilePage() {
       return
     }
 
-    updateProfileMutation.mutate(data)
+    // Format birthDate for API submission
+    const formattedData = {
+      ...data,
+      birthDate: formatDateForApi(data.birthDate) || "",
+    }
+
+    updateProfileMutation.mutate(formattedData)
   }
 
   // Password form submission

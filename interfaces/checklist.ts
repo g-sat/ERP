@@ -226,7 +226,8 @@ export interface ICrewSignOff {
 
   visaId: number
   crewName: string
-  nationality: string
+  nationalityId: number
+  nationalityName?: string
   rankId: number
   rankName?: string
   flightDetails: string
@@ -263,7 +264,8 @@ export interface ICrewSignOn {
 
   visaId: number
   crewName: string
-  nationality: string
+  nationalityId: number
+  nationalityName?: string
   rankId: number
   rankName?: string
   flightDetails: string
@@ -540,7 +542,8 @@ export interface IMedicalAssistance {
   chargeName?: string
 
   crewName: string
-  nationality: string
+  nationalityId: number
+  nationalityName?: string
   rankId: number
   rankName?: string
   visaId: number

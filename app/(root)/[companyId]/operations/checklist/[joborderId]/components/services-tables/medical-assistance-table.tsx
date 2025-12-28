@@ -181,10 +181,10 @@ export function MedicalAssistanceTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "nationality",
+        accessorKey: "nationalityName",
         header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("nationality") || "-"}</div>
+          <div className="text-wrap">{row.getValue("nationalityName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,

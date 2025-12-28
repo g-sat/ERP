@@ -642,6 +642,12 @@ export function ThirdPartyTab({
                     ? "Edit"
                     : "View"}
               </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
+              </Badge>
             </div>
             <DialogDescription>
               {modalMode === "create"

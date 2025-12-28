@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useGetApTransactionInquiry } from "@/hooks/use-inquiry"
 import { Badge } from "@/components/ui/badge"
@@ -47,7 +48,7 @@ export default function ApTransactionInquiryPage() {
   const defaultStartDate = new Date(today)
   defaultStartDate.setMonth(today.getMonth() - 2)
 
-  const formatDate = (date: Date) => date.toISOString().split("T")[0]
+  const formatDate = (date: Date) => formatDateForApi(date) || ""
 
   const [startDate, setStartDate] = useState(formatDate(defaultStartDate))
   const [endDate, setEndDate] = useState(formatDate(today))

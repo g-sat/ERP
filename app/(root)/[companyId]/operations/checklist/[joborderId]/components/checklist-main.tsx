@@ -19,7 +19,7 @@ import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import {
   clientDateFormat,
-  formatDateWithoutTimezone,
+  formatDateTimeForApi,
   parseDate,
 } from "@/lib/date-utils"
 import { updateJobOrderDirect } from "@/hooks/use-checklist"
@@ -414,16 +414,12 @@ export function ChecklistMain({
       // Format dates - following ar-invoice pattern
       // Use transformToSchemaType to ensure dates are properly formatted as strings
       // Date-only fields (accountDate, seriesDate, jobOrderDate) should be strings in "dd/MM/yyyy" format
-      // DateTime fields (etaDate, etdDate) should include time using formatDateWithoutTimezone
+      // DateTime fields (etaDate, etdDate) should include time using formatDateTimeForApi
       const formValues = transformToSchemaType(data as unknown as IJobOrderHd)
 
-      // Format DateTime fields - convert null to undefined to match IJobOrderHd interface
-      const etaDateFormatted = data.etaDate
-        ? formatDateWithoutTimezone(data.etaDate)
-        : undefined
-      const etdDateFormatted = data.etdDate
-        ? formatDateWithoutTimezone(data.etdDate)
-        : undefined
+      // Format DateTime fields - use formatDateTimeForApi for fields with time
+      const etaDateFormatted = formatDateTimeForApi(data.etaDate)
+      const etdDateFormatted = formatDateTimeForApi(data.etdDate)
 
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
@@ -431,8 +427,8 @@ export function ChecklistMain({
         jobOrderDate: formValues.jobOrderDate as string,
         accountDate: formValues.accountDate as string,
         seriesDate: formValues.seriesDate as string,
-        // DateTime fields: format with time using formatDateWithoutTimezone
-        // Convert null to undefined to match IJobOrderHd interface (Date | string | undefined, not null)
+        // DateTime fields: format with time using formatDateTimeForApi
+        // Converts to ISO 8601 format (yyyy-MM-ddTHH:mm:ss.SSSZ)
         etaDate: etaDateFormatted,
         etdDate: etdDateFormatted,
       }

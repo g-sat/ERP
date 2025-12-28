@@ -22,7 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_PortExpenses,
 } from "@/lib/api-routes"
-import { formatDateWithoutTimezone } from "@/lib/date-utils"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -308,9 +308,8 @@ export function PortExpensesTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        deliverDate: formatDateWithoutTimezone(
-          saveConfirmation.formData.deliverDate
-        ),
+        deliverDate:
+          formatDateForApi(saveConfirmation.formData.deliverDate) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -681,6 +680,12 @@ export function PortExpensesTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

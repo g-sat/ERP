@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_LaunchServices,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -288,11 +289,7 @@ export function LaunchServicesTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        date: saveConfirmation.formData.date
-          ? typeof saveConfirmation.formData.date === "string"
-            ? saveConfirmation.formData.date
-            : saveConfirmation.formData.date.toISOString()
-          : undefined,
+        date: formatDateForApi(saveConfirmation.formData.date) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -649,6 +646,12 @@ export function LaunchServicesTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

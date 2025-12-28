@@ -84,10 +84,10 @@ export function CrewSignOnHistoryDialog({
       minSize: 120,
     },
     {
-      accessorKey: "nationality",
+      accessorKey: "nationalityName",
       header: "Nationality",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationality") || "-"}</div>
+        <div className="text-center">{row.getValue("nationalityName") || "-"}</div>
       ),
       size: 120,
       minSize: 100,

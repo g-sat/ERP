@@ -9,6 +9,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -52,7 +53,12 @@ export function LoanDisbursementForm({
   const handleSubmit = async (data: LoanDisbursementFormData) => {
     setIsLoading(true)
     try {
-      await onSubmit(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        disbursementDate: formatDateForApi(data.disbursementDate) || "",
+      }
+      await onSubmit(formattedData)
       form.reset()
     } catch (error) {
       console.error("Error submitting loan disbursement:", error)

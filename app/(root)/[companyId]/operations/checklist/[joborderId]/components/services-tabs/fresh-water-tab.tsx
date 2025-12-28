@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_FreshWater,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -282,12 +283,8 @@ export function FreshWaterTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        date: saveConfirmation.formData.date
-          ? typeof saveConfirmation.formData.date === "string"
-            ? saveConfirmation.formData.date
-            : saveConfirmation.formData.date.toISOString()
-          : undefined,
-        // Handle null values for string fields
+        date: formatDateForApi(saveConfirmation.formData.date) || undefined,
+        // Handle null values for string fields - convert null to undefined
         operatorName: saveConfirmation.formData.operatorName || "",
         supplyBarge: saveConfirmation.formData.supplyBarge || "",
         taskName: saveConfirmation.formData.taskName || "",
@@ -299,6 +296,7 @@ export function FreshWaterTab({
         debitNoteNo: saveConfirmation.formData.debitNoteNo || "",
         createBy: saveConfirmation.formData.createBy || "",
         editBy: saveConfirmation.formData.editBy || "",
+        poNo: saveConfirmation.formData.poNo || "",
         // Handle null values for numeric fields
         debitNoteId: saveConfirmation.formData.debitNoteId || 0,
         editById: saveConfirmation.formData.editById || undefined,
@@ -660,6 +658,12 @@ export function FreshWaterTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

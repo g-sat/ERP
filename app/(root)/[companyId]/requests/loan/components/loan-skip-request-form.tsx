@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -52,7 +53,13 @@ export function LoanSkipRequestForm({
   const handleSubmit = async (data: LoanSkipRequestFormData) => {
     setIsLoading(true)
     try {
-      await onSubmit(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        skipRequestDate: formatDateForApi(data.skipRequestDate) || "",
+        intendedResumeDate: formatDateForApi(data.intendedResumeDate) || "",
+      }
+      await onSubmit(formattedData)
       form.reset()
     } catch (error) {
       console.error("Error submitting skip request:", error)

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { CbPettyCash } from "@/lib/api-routes"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -56,12 +57,13 @@ export default function PettyCashPage() {
 
   const handlePettyCashSubmit = async (data: unknown) => {
     try {
+      // Format dates for API submission
       const pettyCashRequestData = {
         employeeId: "33",
         amount: data.amount,
         purpose: data.purpose,
         remarks: data.remarks,
-        requestDate: new Date().toISOString().split("T")[0],
+        requestDate: formatDateForApi(data.requestDate) || formatDateForApi(new Date()) || "",
         statusId: 1, // Default to pending
         attachments: data.attachments,
       }

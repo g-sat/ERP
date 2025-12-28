@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/date-utils"
+import { formatDateForApi, parseDate } from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -90,7 +90,12 @@ export function TaxDtForm({
   }, [initialData, form, dateFormat, defaultValues])
 
   const onSubmit = (data: TaxDtSchemaType) => {
-    submitAction(data)
+    // Format date to yyyy-MM-dd format before submission
+    const formattedData = {
+      ...data,
+      validFrom: formatDateForApi(data.validFrom) || "",
+    }
+    submitAction(formattedData)
   }
 
   return (

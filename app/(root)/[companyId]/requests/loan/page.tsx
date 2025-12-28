@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { HrUserRequest } from "@/lib/api-routes"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -70,6 +71,7 @@ export default function LoanPage() {
 
   const handleLoanSubmit = async (data: LoanRequestFormData) => {
     try {
+      // Format dates for API submission
       const loanRequestData = {
         employeeId: data.employeeId,
         loanTypeId: data.loanTypeId,
@@ -77,7 +79,7 @@ export default function LoanPage() {
         calculatedTermMonths: data.calculatedTermMonths,
         desiredEMIAmount: data.desiredEMIAmount,
         remarks: data.remarks,
-        requestDate: new Date().toISOString().split("T")[0],
+        requestDate: formatDateForApi(data.requestDate) || formatDateForApi(new Date()) || "",
         statusId: 1, // Default to pending
       }
 

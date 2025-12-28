@@ -5,6 +5,7 @@ import { LoanRequestFormData, loanRequestSchema } from "@/schemas/loan"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -209,7 +210,13 @@ export function LoanRequestForm({
   const handleSubmit = async (data: LoanRequestFormData) => {
     setIsLoading(true)
     try {
-      await onSubmit(data)
+      // Format dates for API submission
+      const formattedData = {
+        ...data,
+        requestDate: formatDateForApi(data.requestDate) || "",
+        emiStartDate: formatDateForApi(data.emiStartDate) || "",
+      }
+      await onSubmit(formattedData)
       // Reset form with default values
       form.reset({
         loanRequestId: 0,

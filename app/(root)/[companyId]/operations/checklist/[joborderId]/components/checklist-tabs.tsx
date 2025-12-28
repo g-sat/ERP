@@ -25,6 +25,7 @@ import { z } from "zod"
 
 import { apiClient } from "@/lib/api-client"
 import { JobOrder } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Button } from "@/components/ui/button"
 import {
@@ -289,7 +290,7 @@ export function ChecklistTabs({
       ...currentJobData,
       jobOrderId: 0, // Reset ID for new record
       jobOrderNo: "", // Reset job order number
-      jobOrderDate: new Date().toISOString().split("T")[0], // Set to today
+      jobOrderDate: formatDateForApi(new Date()) || "", // Set to today in yyyy-MM-dd format
       editVersion: 0, // Reset edit version
       // Add any other fields that should be reset for a new record
     }

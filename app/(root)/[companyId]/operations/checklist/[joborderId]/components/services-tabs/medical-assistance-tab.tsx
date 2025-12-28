@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_MedicalAssistance,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -287,16 +288,14 @@ export function MedicalAssistanceTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        admittedDate: saveConfirmation.formData.admittedDate
-          ? typeof saveConfirmation.formData.admittedDate === "string"
-            ? saveConfirmation.formData.admittedDate
-            : saveConfirmation.formData.admittedDate.toISOString()
-          : undefined,
-        dischargedDate: saveConfirmation.formData.dischargedDate
-          ? typeof saveConfirmation.formData.dischargedDate === "string"
-            ? saveConfirmation.formData.dischargedDate
-            : saveConfirmation.formData.dischargedDate.toISOString()
-          : undefined,
+        admittedDate: formatDateForApi(
+          saveConfirmation.formData.admittedDate,
+          false
+        ) || undefined,
+        dischargedDate: formatDateForApi(
+          saveConfirmation.formData.dischargedDate,
+          false
+        ) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
@@ -661,6 +660,12 @@ export function MedicalAssistanceTab({
                   : modalMode === "edit"
                     ? "Edit"
                     : "View"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-purple-200 bg-purple-100 text-purple-800"
+              >
+                {jobData.jobOrderNo}
               </Badge>
             </div>
             <DialogDescription>

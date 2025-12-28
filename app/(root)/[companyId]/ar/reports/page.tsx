@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, isValid, parse, startOfMonth, subMonths } from "date-fns"
+import { format, startOfMonth, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/date-utils"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -242,57 +242,6 @@ export default function ReportsPage() {
     return allReports.filter((report) => selectedReports.includes(report.id))
   }
 
-  /**
-   * Converts a date string from user's locale format to dd/MMM/yyyy format
-   * for Telerik Reporting server.
-   *
-   * Format: "dd/MMM/yyyy" (e.g., "18/Dec/2025")
-   * This format uses month abbreviations which are more readable than numeric dates.
-   *
-   * @param dateStr - Date string in user's configured format (e.g., "dd/MM/yyyy" = "18/12/2025")
-   * @returns Formatted date string in dd/MMM/yyyy format e.g., "18/Dec/2025"
-   *
-   * @example
-   * convertDateToReportFormat("18/12/2025") // Returns "18/Dec/2025"
-   * convertDateToReportFormat(null) // Returns current date in dd/MMM/yyyy format
-   */
-  const convertDateToReportFormat = (
-    dateStr: string | null | undefined
-  ): string => {
-    // Handle null/undefined: return current date in dd/MMM/yyyy format as fallback
-    if (!dateStr || dateStr.trim() === "") {
-      return format(new Date(), "dd/MMM/yyyy")
-    }
-
-    // Step 1: Try parsing using parseDate utility (handles multiple formats)
-    const parsedDate = parseDate(dateStr)
-    if (parsedDate && isValid(parsedDate)) {
-      return format(parsedDate, "dd/MMM/yyyy")
-    }
-
-    // Step 2: Fallback - try parsing with the configured dateFormat
-    try {
-      const parsed = parse(dateStr, dateFormat, new Date())
-      if (isValid(parsed)) {
-        return format(parsed, "dd/MMM/yyyy")
-      }
-    } catch (error) {
-      console.warn("Date parsing failed:", dateStr, error)
-    }
-
-    // Step 3: Final fallback - return current date in dd/MMM/yyyy format
-    // This ensures we always return a valid date string
-    return format(new Date(), "dd/MMM/yyyy")
-  }
-
-  /**
-   * Builds report parameters with all dates converted to dd/MMM/yyyy format.
-   * Format: "dd/MMM/yyyy" (e.g., "18/Dec/2025")
-   *
-   * @param data - Form data containing user input dates in client format
-   * @param report - Optional report object to get reportType
-   * @returns Report parameters with dates formatted as dd/MMM/yyyy
-   */
   const buildReportParameters = (
     data: IReportFormData,
     report?: IReport
@@ -300,13 +249,10 @@ export default function ReportsPage() {
     const asOfDate = data.asOfDate || getCurrentDate()
     const reportType = report?.reportType ?? data.reportType ?? 0
 
-    // Convert all dates to dd/MMM/yyyy format for report server
-    // Format: "18/Dec/2025" instead of "18/12/2025" or "2025-12-18"
-    const formattedFromDate = convertDateToReportFormat(
-      data.fromDate || asOfDate
-    )
-    const formattedToDate = convertDateToReportFormat(data.toDate || asOfDate)
-    const formattedAsOfDate = convertDateToReportFormat(asOfDate)
+    // Format all dates to yyyy-MM-dd format using formatDateForApi
+    const formattedFromDate = formatDateForApi(data.fromDate || asOfDate)
+    const formattedToDate = formatDateForApi(data.toDate || asOfDate)
+    const formattedAsOfDate = formatDateForApi(asOfDate)
 
     return {
       companyId,
@@ -330,9 +276,6 @@ export default function ReportsPage() {
 
     const report = selectedReportObjects[0] // Only one report can be selected
     const parameters = buildReportParameters(data, report)
-
-    // All dates are already converted to dd/MMM/yyyy format in buildReportParameters
-    // Format: "18/Dec/2025" instead of "18/12/2025" or "2025-12-18"
 
     const reportParams = {
       companyId: parameters.companyId,

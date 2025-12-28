@@ -25,7 +25,7 @@ import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
-import { parseDate } from "@/lib/date-utils"
+import { formatDateForApi, parseDate } from "@/lib/date-utils"
 import { TaskIdToName } from "@/lib/operations-utils"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -466,11 +466,15 @@ export default function DebitNoteDialog({
       )
 
       // Create the complete debit note header with details (null-safe)
+      // Format debitNoteDate for API submission
+      const debitNoteDateValue = debitNoteHdState?.debitNoteDate ?? new Date()
+      const formattedDebitNoteDate = formatDateForApi(debitNoteDateValue) || ""
+      
       const newDebitNoteHd: DebitNoteHdSchemaType = {
         debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
         debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
         jobOrderId: debitNoteHdState?.jobOrderId ?? 0,
-        debitNoteDate: debitNoteHdState?.debitNoteDate ?? new Date(),
+        debitNoteDate: formattedDebitNoteDate,
         itemNo: debitNoteHdState?.itemNo ?? 0,
         taskId: debitNoteHdState?.taskId ?? 0,
         chargeId: debitNoteHdState?.chargeId ?? 0,

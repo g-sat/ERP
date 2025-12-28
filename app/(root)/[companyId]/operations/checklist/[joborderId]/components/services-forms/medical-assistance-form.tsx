@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
+  CountryAutocomplete,
   RankAutocomplete,
   TaskStatusAutocomplete,
   VisaAutocomplete,
@@ -89,7 +90,7 @@ export function MedicalAssistanceForm({
       rankId: initialData?.rankId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       crewName: initialData?.crewName ?? "",
-      nationality: initialData?.nationality ?? "",
+      nationalityId: initialData?.nationalityId ?? 0,
       reason: initialData?.reason ?? "",
       admittedDate: initialData?.admittedDate
         ? format(
@@ -132,7 +133,7 @@ export function MedicalAssistanceForm({
       rankId: initialData?.rankId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       crewName: initialData?.crewName ?? "",
-      nationality: initialData?.nationality ?? "",
+      nationalityId: initialData?.nationalityId ?? 0,
       reason: initialData?.reason ?? "",
       admittedDate: initialData?.admittedDate
         ? format(
@@ -189,9 +190,9 @@ export function MedicalAssistanceForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CountryAutocomplete
                 form={form}
-                name="nationality"
+                name="nationalityId"
                 label="Nationality"
                 isRequired
                 isDisabled={isConfirmed}
