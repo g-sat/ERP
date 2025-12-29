@@ -360,7 +360,6 @@ export default function DebitNoteForm({
                     form={form}
                     name="chargeId"
                     label="Charge Name"
-                    taskId={taskId}
                     isRequired={true}
                     isDisabled={isConfirmed}
                     onChangeEvent={handleChargeChange}

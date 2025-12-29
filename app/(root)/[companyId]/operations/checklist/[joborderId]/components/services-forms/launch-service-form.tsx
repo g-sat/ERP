@@ -316,10 +316,8 @@ export function LaunchServiceForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.LaunchServices}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <UomAutocomplete

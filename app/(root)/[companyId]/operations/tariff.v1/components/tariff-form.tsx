@@ -370,7 +370,6 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
                 label="Charge"
                 isRequired
                 isDisabled={mode === "view"}
-                taskId={watchedTaskId || 0}
               />
 
               <VisaAutocomplete

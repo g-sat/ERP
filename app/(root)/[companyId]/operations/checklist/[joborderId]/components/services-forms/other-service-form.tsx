@@ -186,11 +186,9 @@ export function OtherServiceForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.OtherService}
                 isRequired={true}
                 isDisabled={isConfirmed}
                 onChangeEvent={handleChargeChange}
-                companyId={jobData.companyId}
               />
 
               <UomAutocomplete

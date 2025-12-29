@@ -269,8 +269,6 @@ export function TransportationLogForm({
                 name="chargeId"
                 label="Charge"
                 isDisabled={isConfirmed}
-                taskId={watchedTaskId || 0}
-                companyId={jobData.companyId}
               />
 
               <CustomDateNew

@@ -1,73 +1,60 @@
 "use client"
 
 import { useEffect } from "react"
-import { IChargeGLMapping } from "@/interfaces/chargeglmapping"
-import { IChargeLookup, IChartOfAccountLookup } from "@/interfaces/lookup"
-import {
-  ChargeGLMappingSchemaType,
-  chargeGLMappingSchema,
-} from "@/schemas/chargeglmapping"
+import { IPartyType } from "@/interfaces/partytype"
+import { PartyTypeSchemaType, partyTypeSchema } from "@/schemas/partytype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { useChargeLookup, useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import {
-  ChargeAutocomplete,
-  ChartOfAccountAutocomplete,
-} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 const defaultValues = {
-  chargeId: 0,
-  glId: 0,
+  partyTypeId: 0,
+  partyTypeName: "",
+  partyTypeCode: "",
+  remarks: "",
   isActive: true,
 }
-
-interface ChargeGLMappingFormProps {
-  initialData?: IChargeGLMapping
-  submitAction: (data: ChargeGLMappingSchemaType) => void
+interface PartyTypeFormProps {
+  initialData?: IPartyType | null
+  submitAction: (data: PartyTypeSchemaType) => void
   onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  companyId: string
+  onCodeBlur?: (code: string) => void
 }
 
-export function ChargeGLMappingForm({
+export function PartyTypeForm({
   initialData,
   submitAction,
   onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
-  companyId,
-}: ChargeGLMappingFormProps) {
+  onCodeBlur,
+}: PartyTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  // Fetch lookup data for populating code/name fields
-  const { data: charges, refetch: refetchCharges } = useChargeLookup()
-  const { data: chartOfAccounts } = useChartOfAccountLookup(Number(companyId))
-
-  // Ensure charges are loaded when form opens (refetch on mount)
-  useEffect(() => {
-    refetchCharges()
-  }, [refetchCharges])
-
-  const form = useForm<ChargeGLMappingSchemaType>({
-    resolver: zodResolver(chargeGLMappingSchema),
+  const form = useForm<PartyTypeSchemaType>({
+    resolver: zodResolver(partyTypeSchema),
     defaultValues: initialData
       ? {
-          chargeId: initialData.chargeId ?? 0,
-          glId: initialData.glId ?? 0,
+          partyTypeId: initialData.partyTypeId ?? 0,
+          partyTypeName: initialData.partyTypeName ?? "",
+          partyTypeCode: initialData.partyTypeCode ?? "",
+          remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
       : {
@@ -80,8 +67,10 @@ export function ChargeGLMappingForm({
     form.reset(
       initialData
         ? {
-            chargeId: initialData.chargeId ?? 0,
-            glId: initialData.glId ?? 0,
+            partyTypeId: initialData.partyTypeId ?? 0,
+            partyTypeName: initialData.partyTypeName ?? "",
+            partyTypeCode: initialData.partyTypeCode ?? "",
+            remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
         : {
@@ -90,50 +79,15 @@ export function ChargeGLMappingForm({
     )
   }, [initialData, form])
 
-  // Function to populate code/name fields from lookup data
-  const populateData = (
-    formData: ChargeGLMappingSchemaType
-  ): ChargeGLMappingSchemaType & {
-    chargeName?: string
-    glCode?: string
-    glName?: string
-  } => {
-    const populatedData = {
-      ...formData,
-      chargeName: "",
-      glCode: "",
-      glName: "",
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
+    const code = form.getValues("partyTypeCode")
+    if (code) {
+      onCodeBlur?.(code)
     }
-
-    // Populate charge name if chargeId is set
-    if (populatedData.chargeId && populatedData.chargeId > 0) {
-      const chargeData = charges?.find(
-        (charge: IChargeLookup) => charge.chargeId === populatedData.chargeId
-      )
-      if (chargeData) {
-        populatedData.chargeName = chargeData.chargeName || ""
-      }
-    }
-
-    // Populate GL code/name if glId is set
-    if (populatedData.glId && populatedData.glId > 0) {
-      const glData = chartOfAccounts?.find(
-        (gl: IChartOfAccountLookup) => gl.glId === populatedData.glId
-      )
-      if (glData) {
-        populatedData.glCode = glData.glCode || ""
-        populatedData.glName = glData.glName || ""
-      }
-    }
-
-    return populatedData
   }
 
-  const onSubmit = (data: ChargeGLMappingSchemaType) => {
-    const populatedData = populateData(data)
-    // Submit with populated data (chargeName, glCode, glName will be included)
-    // The submitAction accepts the base schema type, but backend may use the additional fields
-    submitAction(populatedData as ChargeGLMappingSchemaType)
+  const onSubmit = (data: PartyTypeSchemaType) => {
+    submitAction(data)
   }
 
   return (
@@ -142,30 +96,38 @@ export function ChargeGLMappingForm({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
-              <ChargeAutocomplete
+              <CustomInput
                 form={form}
-                name="chargeId"
-                label="Charge"
-                isRequired={true}
-                isDisabled={isReadOnly}
+                name="partyTypeCode"
+                label="Party Type Code"
+                isRequired
+                isDisabled={isReadOnly || Boolean(initialData)}
+                onBlurEvent={handleCodeBlur}
               />
-              <ChartOfAccountAutocomplete
+              <CustomInput
                 form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
+                name="partyTypeName"
+                label="Party Type Name"
+                isRequired
                 isDisabled={isReadOnly}
-                companyId={Number(companyId)}
               />
             </div>
 
-            <CustomSwitch
+            <CustomTextarea
               form={form}
-              name="isActive"
-              label="Active Status"
-              activeColor="success"
+              name="remarks"
+              label="Remarks"
               isDisabled={isReadOnly}
             />
+            <div className="grid grid-cols-2 gap-2">
+              <CustomSwitch
+                form={form}
+                name="isActive"
+                label="Active Status"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />
+            </div>
 
             {/* Audit Information Section */}
             {initialData &&
@@ -256,8 +218,8 @@ export function ChargeGLMappingForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update Charge GL Mapping"
-                    : "Create Charge GL Mapping"}
+                    ? "Update Party Type"
+                    : "Create Party Type"}
               </Button>
             )}
           </div>

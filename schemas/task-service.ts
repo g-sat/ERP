@@ -3,6 +3,8 @@ import { z } from "zod"
 const serviceFieldSchema = z.object({
   taskId: z.number().min(1, "Task is required"),
   chargeId: z.number().min(1, "Charge is required"),
+  forkliftChargeId: z.number().optional(),
+  stevedoreChargeId: z.number().optional(),
   uomId: z.number().min(1, "UOM is required"),
   carrierId: z.number().optional(),
   serviceModeId: z.number().optional(),

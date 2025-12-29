@@ -145,6 +145,17 @@ export function ThirdPartyTable({
           ]
         : []),
       {
+        accessorKey: "partyTypeName",
+        header: "Party Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("partyTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
         accessorKey: "poNo",
         header: "PO No",
         size: 150,
@@ -290,7 +301,7 @@ export function ThirdPartyTable({
         maxSize: 200,
       },
     ],
-    [formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory, canDebitNote]
   )
 
   // Wrapper functions to handle type differences

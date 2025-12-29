@@ -45,6 +45,12 @@ interface ConsignmentImportTableProps {
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function ConsignmentImportTable({
@@ -65,6 +71,12 @@ export function ConsignmentImportTable({
   onCloneTask,
   isConfirmed,
   jobData,
+  // Permission props
+  canView,
+  canEdit,
+  canDelete,
+  canCreate,
+  canDebitNote,
 }: ConsignmentImportTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -135,12 +147,16 @@ export function ConsignmentImportTable({
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IConsignmentImport>[] = useMemo(
     () => [
-      {
-        accessorKey: "debitNoteNo",
-        header: "Debit Note No",
-        size: 180,
-        minSize: 130,
-      },
+      ...(canDebitNote
+        ? [
+            {
+              accessorKey: "debitNoteNo",
+              header: "Debit Note No",
+              size: 180,
+              minSize: 130,
+            },
+          ]
+        : []),
       {
         accessorKey: "poNo",
         header: "PO No",
@@ -343,7 +359,7 @@ export function ConsignmentImportTable({
         maxSize: 80,
       },
     ],
-    [formatDateValue, formatDateTimeValue]
+    [formatDateValue, formatDateTimeValue, canDebitNote]
   )
 
   // Wrapper functions to handle type differences

@@ -202,7 +202,6 @@ export function TemplateDetailsForm({
                 name="chargeId"
                 label="Charge"
                 isRequired
-                taskId={taskId}
                 onChangeEvent={(selected) => {
                   if (selected) {
                     detailsForm.setValue(

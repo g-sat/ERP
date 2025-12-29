@@ -641,7 +641,7 @@ export const ThirdPartySchema = z.object({
     .optional()
     .optional(),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
-
+  partyTypeId: z.number().min(1, "Party Type is required"),
   chargeId: z.number().min(1, "Charge is required"),
   taskStatusId: z.number().min(1, "Status is required"),
   supplierId: z.number().optional(),

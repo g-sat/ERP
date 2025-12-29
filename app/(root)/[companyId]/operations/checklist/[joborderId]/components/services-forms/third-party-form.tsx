@@ -19,6 +19,7 @@ import {
   TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
+import PartyTypeAutocomplete from "@/components/autocomplete/autocomplete-partytype"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -88,6 +89,7 @@ export function ThirdPartyForm({
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
+      partyTypeId: initialData?.partyTypeId ?? 0,
 
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
@@ -116,7 +118,7 @@ export function ThirdPartyForm({
       description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
-
+      partyTypeId: initialData?.partyTypeId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       supplierId: initialData?.supplierId ?? 0,
@@ -150,14 +152,19 @@ export function ThirdPartyForm({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
+              <PartyTypeAutocomplete
+                form={form}
+                name="partyTypeId"
+                label="Party Type"
+                isRequired={true}
+                isDisabled={isConfirmed}
+              />
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.ThirdParty}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
               <SupplierAutocomplete
                 form={form}

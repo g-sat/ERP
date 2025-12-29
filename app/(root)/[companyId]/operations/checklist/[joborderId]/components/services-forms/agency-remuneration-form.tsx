@@ -153,10 +153,8 @@ export function AgencyRemunerationForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.AgencyRemuneration}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomInput

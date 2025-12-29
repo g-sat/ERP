@@ -191,7 +191,6 @@ export const TemplateForm = forwardRef<TemplateFormRef, TemplateFormProps>(
                 label="Charge"
                 isRequired
                 isDisabled={mode === "view" || hasDetails}
-                taskId={watchedTaskId || 0}
               />
             </div>
 

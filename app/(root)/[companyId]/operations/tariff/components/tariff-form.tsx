@@ -316,7 +316,6 @@ export function TariffForm({
               label="Charge"
               isRequired
               isDisabled={mode === "view"}
-              taskId={form.watch("taskId")}
             />
 
             <VisaAutocomplete

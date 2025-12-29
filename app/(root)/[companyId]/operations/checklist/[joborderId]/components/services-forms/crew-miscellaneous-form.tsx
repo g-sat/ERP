@@ -113,10 +113,8 @@ export function CrewMiscellaneousForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.CrewMiscellaneous}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
               <CustomInput
                 form={form}

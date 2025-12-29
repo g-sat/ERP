@@ -175,10 +175,8 @@ export function PortExpensesForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.PortExpenses}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <UomAutocomplete

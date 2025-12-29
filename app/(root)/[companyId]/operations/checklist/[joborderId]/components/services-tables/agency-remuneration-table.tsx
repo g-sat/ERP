@@ -242,7 +242,7 @@ export function AgencyRemunerationTable({
         maxSize: 200,
       },
     ],
-    [formatDateTimeValue, handleOpenHistory]
+    [formatDateTimeValue, handleOpenHistory, canDebitNote]
   )
 
   // Wrapper functions to handle type differences

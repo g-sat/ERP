@@ -165,10 +165,8 @@ export function FreshWaterForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.FreshWater}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <BargeAutocomplete

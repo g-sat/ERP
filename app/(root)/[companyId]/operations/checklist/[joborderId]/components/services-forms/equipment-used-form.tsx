@@ -146,9 +146,12 @@ export function EquipmentUsedForm({
       forkliftloading: initialData?.forkliftloading ?? 0,
       stevedoreloading: initialData?.stevedoreloading ?? 0,
       offloadingRefNo: initialData?.offloadingRefNo ?? "",
-      craneOffloading: initialData?.craneOffloading ?? 0,
-      forkliftOffloading: initialData?.forkliftOffloading ?? 0,
-      stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
+      craneOffloading:
+        initialData?.craneOffloading ?? taskDefaults.chargeId ?? 0,
+      forkliftOffloading:
+        initialData?.forkliftOffloading ?? taskDefaults.forkliftChargeId ?? 0,
+      stevedoreOffloading:
+        initialData?.stevedoreOffloading ?? taskDefaults.stevedoreChargeId ?? 0,
       remarks: initialData?.remarks ?? "",
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       isNotes: initialData?.isNotes ?? false,
@@ -197,10 +200,8 @@ export function EquipmentUsedForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.EquipmentUsed}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomInput
@@ -257,9 +258,7 @@ export function EquipmentUsedForm({
                   form={form}
                   name="craneChargeId"
                   label="Crane Charge"
-                  taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
-                  companyId={jobData.companyId}
                 />
                 <CustomNumberInput
                   form={form}
@@ -282,9 +281,7 @@ export function EquipmentUsedForm({
                   form={form}
                   name="forkliftChargeId"
                   label="ForkLift Charge"
-                  taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
-                  companyId={jobData.companyId}
                 />
                 <CustomNumberInput
                   form={form}
@@ -307,9 +304,7 @@ export function EquipmentUsedForm({
                   form={form}
                   name="stevedoreChargeId"
                   label="Stevedore Charge"
-                  taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
-                  companyId={jobData.companyId}
                 />
                 <CustomNumberInput
                   form={form}

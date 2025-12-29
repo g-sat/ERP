@@ -698,6 +698,8 @@ export interface IThirdParty {
   editDate?: Date
   editVersion: number
   quantity: number
+  partyTypeId: number
+  partyTypeName?: string
   supplierName?: string
 
   chargeId: number

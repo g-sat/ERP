@@ -148,10 +148,8 @@ export function CrewSignOffForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.CrewSignOff}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
               <VisaAutocomplete
                 form={form}

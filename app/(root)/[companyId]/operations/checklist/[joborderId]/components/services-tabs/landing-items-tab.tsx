@@ -610,6 +610,11 @@ export function LandingItemsTab({
             transactionId={transactionId}
             isConfirmed={isConfirmed}
             jobData={jobData}
+            canView={canView}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canCreate={canCreate}
+            canDebitNote={canDebitNote}
           />
         </div>
       </div>

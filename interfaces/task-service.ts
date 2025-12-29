@@ -2,6 +2,8 @@ export interface ITaskService {
   companyId: number
   taskId: number
   chargeId?: number | null
+  forkliftChargeId?: number | null
+  stevedoreChargeId?: number | null
   uomId?: number | null
   carrierId?: number | null
   serviceModeId?: number | null

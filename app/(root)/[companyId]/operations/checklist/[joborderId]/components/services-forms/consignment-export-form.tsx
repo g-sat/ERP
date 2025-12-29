@@ -288,10 +288,8 @@ export function ConsignmentExportForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.ConsignmentExport}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomInput

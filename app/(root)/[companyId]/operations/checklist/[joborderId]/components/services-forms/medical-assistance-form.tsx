@@ -213,10 +213,8 @@ export function MedicalAssistanceForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.MedicalAssistance}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomDateNew

@@ -197,10 +197,8 @@ export function LandingItemsForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.LandingItems}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomInput

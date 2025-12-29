@@ -45,6 +45,12 @@ interface MedicalAssistanceTableProps {
   onCloneTask?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   jobData?: IJobOrderHd | null // Job order data for document upload
+  // Permission props
+  canView?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
+  canDebitNote?: boolean
 }
 
 export function MedicalAssistanceTable({
@@ -65,6 +71,12 @@ export function MedicalAssistanceTable({
   onCloneTask,
   isConfirmed,
   jobData,
+  // Permission props
+  canView,
+  canEdit,
+  canDelete,
+  canCreate,
+  canDebitNote,
 }: MedicalAssistanceTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -135,12 +147,16 @@ export function MedicalAssistanceTable({
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IMedicalAssistance>[] = useMemo(
     () => [
-      {
-        accessorKey: "debitNoteNo",
-        header: "Debit Note No",
-        size: 180,
-        minSize: 130,
-      },
+      ...(canDebitNote
+        ? [
+            {
+              accessorKey: "debitNoteNo",
+              header: "Debit Note No",
+              size: 180,
+              minSize: 130,
+            },
+          ]
+        : []),
       {
         accessorKey: "poNo",
         header: "PO No",
@@ -184,7 +200,9 @@ export function MedicalAssistanceTable({
         accessorKey: "nationalityName",
         header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("nationalityName") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("nationalityName") || "-"}
+          </div>
         ),
         size: 150,
         minSize: 120,
@@ -386,7 +404,7 @@ export function MedicalAssistanceTable({
         maxSize: 200,
       },
     ],
-    [formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory, canDebitNote]
   )
 
   // Wrapper functions to handle type differences

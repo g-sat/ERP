@@ -413,6 +413,11 @@ export interface IVisaLookup {
   visaCode: string
   visaName: string
 }
+export interface IPartyTypeLookup {
+  partyTypeId: number
+  partyTypeCode: string
+  partyTypeName: string
+}
 export interface IStatusLookup {
   statusId: number
   statusCode: string

@@ -279,6 +279,7 @@ export const Lookup = {
   getRank: "/master/getranklookup",
   getGender: "/master/getgenderlookup",
   getVisa: "/master/getvisalookup",
+  getPartyType: "/master/getpartytypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
   getLandingPurpose: "/master/getLandingPurposelookup",
@@ -458,6 +459,14 @@ export const Visa = {
   getByCode: "/master/getvisabycode",
   add: "/master/savevisa",
   delete: "/master/deletevisa",
+}
+
+// PartyType Endpoints
+export const PartyType = {
+  get: "/master/getpartytype",
+  getByCode: "/master/getpartytypebycode",
+  add: "/master/savepartytype",
+  delete: "/master/deletepartytype",
 }
 
 // Rank Endpoints

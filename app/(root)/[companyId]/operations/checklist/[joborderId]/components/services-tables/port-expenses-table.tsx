@@ -270,7 +270,7 @@ export function PortExpensesTable({
         maxSize: 200,
       },
     ],
-    [formatDateValue, formatDateTimeValue, handleOpenHistory]
+    [formatDateValue, formatDateTimeValue, handleOpenHistory, canDebitNote]
   )
 
   // Wrapper functions to handle type differences

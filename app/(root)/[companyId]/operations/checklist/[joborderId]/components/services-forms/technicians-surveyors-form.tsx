@@ -185,10 +185,8 @@ export function TechniciansSurveyorsForm({
                 form={form}
                 name="chargeId"
                 label="Charge"
-                taskId={Task.TechniciansSurveyors}
                 isRequired={true}
                 isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <PassTypeAutocomplete

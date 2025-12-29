@@ -39,6 +39,7 @@ import {
   IModuleLookup,
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
+  IPartyTypeLookup,
   IPassTypeLookup,
   IPayrollComponentGroupLookup,
   IPayrollComponentLookup,
@@ -1290,13 +1291,13 @@ export const useTaskLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-export const useChargeLookup = (taskId: number) => {
+export const useChargeLookup = () => {
   return useQuery<IChargeLookup[]>({
-    queryKey: ["charge-lookUp", taskId],
+    queryKey: ["charge-lookUp"],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getCharge}/${taskId}`)
+        const data = await getData(`${Lookup.getCharge}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1486,6 +1487,22 @@ export const useVisaLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getVisa)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const usePartyTypeLookup = () => {
+  return useQuery<IPartyTypeLookup[]>({
+    queryKey: ["partyType-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getPartyType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
