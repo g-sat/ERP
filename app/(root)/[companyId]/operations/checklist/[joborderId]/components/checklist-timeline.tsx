@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { format, isValid } from "date-fns"
@@ -16,6 +16,7 @@ import {
   FileText,
   Package,
   Plane,
+  RefreshCw,
   Ship,
   Stethoscope,
   Truck,
@@ -27,7 +28,8 @@ import {
 import { Admin } from "@/lib/api-routes"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface IChecklistLogResponse {
   tblName?: string
@@ -51,20 +53,25 @@ interface IActivityLog {
 interface ChecklistLogProps {
   jobData?: IJobOrderHd | null
   isConfirmed?: boolean
+  activeTab?: string // Tab identifier to detect when this tab is active
 }
 
 export function ChecklistLog({
   jobData,
   isConfirmed: _isConfirmed = false,
+  activeTab,
 }: ChecklistLogProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const timeFormat = "HH:mm"
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Fetch activity logs data
-  const { data: logsResponse, isLoading: isLogsLoading } = useGetById<
-    IChecklistLogResponse[]
-  >(
+  const {
+    data: logsResponse,
+    isLoading: isLogsLoading,
+    refetch: refetchLogs,
+  } = useGetById<IChecklistLogResponse[]>(
     Admin.getChecklistLog,
     "checklistLog",
     jobData?.jobOrderId ? jobData.jobOrderId.toString() : "",
@@ -72,6 +79,25 @@ export function ChecklistLog({
       enabled: !!jobData?.jobOrderId,
     }
   )
+
+  // Refresh when tab becomes active
+  useEffect(() => {
+    if (activeTab === "logs" && jobData?.jobOrderId) {
+      refetchLogs()
+    }
+  }, [activeTab, jobData?.jobOrderId, refetchLogs])
+
+  // Handle manual refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refetchLogs()
+    } catch (error) {
+      console.error("Error refreshing logs:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const formatDateTime = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return "-"
@@ -371,6 +397,23 @@ export function ChecklistLog({
   return (
     <div className="space-y-2">
       <Card className="flex max-h-[600px] flex-col overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-base font-semibold">
+            Activity Timeline
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLogsLoading}
+            className="h-8 w-8 p-0"
+            title="Refresh timeline"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing || isLogsLoading ? "animate-spin" : ""}`}
+            />
+          </Button>
+        </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-4">
           <div className="relative space-y-3">
             {/* Timeline line */}

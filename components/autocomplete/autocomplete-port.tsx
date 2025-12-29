@@ -63,7 +63,7 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     () =>
       ports.map((port: IPortLookup) => ({
         value: port.portId.toString(),
-        label: port.portName,
+        label: port.portShortName + " - " + port.portName,
       })),
     [ports]
   )

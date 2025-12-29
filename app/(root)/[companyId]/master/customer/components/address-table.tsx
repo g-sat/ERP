@@ -71,6 +71,14 @@ export function AddresssTable({
       minSize: 50,
     },
     {
+      accessorKey: "billName",
+      header: "Bill Name",
+      size: 120,
+      minSize: 50,
+
+      enableColumnFilter: true,
+    },
+    {
       accessorKey: "address1",
       header: "Address 1",
       size: 200,

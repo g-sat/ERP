@@ -28,6 +28,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 const defaultAddressSchemaType: CustomerAddressSchemaType = {
   customerId: 0,
   addressId: 0,
+  billName: "",
   address1: "",
   address2: "",
   address3: "",
@@ -76,6 +77,7 @@ export function CustomerAddressForm({
           customerId: initialData.customerId ?? customerId,
           addressId: initialData.addressId ?? 0,
           address1: initialData.address1 ?? "",
+          billName: initialData.billName ?? "",
           address2: initialData.address2 ?? "",
           address3: initialData.address3 ?? "",
           address4: initialData.address4 ?? "",
@@ -140,6 +142,7 @@ export function CustomerAddressForm({
             customerId: initialData.customerId ?? customerId,
             addressId: initialData.addressId ?? 0,
             address1: initialData.address1 ?? "",
+            billName: initialData.billName ?? "",
             address2: initialData.address2 ?? "",
             address3: initialData.address3 ?? "",
             address4: initialData.address4 ?? "",
@@ -172,6 +175,13 @@ export function CustomerAddressForm({
           className="space-y-4"
         >
           <div className="grid gap-2">
+            <CustomInput
+              form={form}
+              name="billName"
+              label="Bill Name"
+              isDisabled={isReadOnly}
+              isRequired={true}
+            />
             <div className="grid grid-cols-2 gap-2">
               <CustomTextarea
                 form={form}

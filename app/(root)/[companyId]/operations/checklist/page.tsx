@@ -143,6 +143,9 @@ export default function ChecklistPage() {
 
   const handleSearchClick = async () => {
     try {
+      // Change tab to "All" when searching
+      setSelectedStatus("All")
+
       // Use enhanced search function from api-client.ts
       const searchParams = {
         searchString: searchQuery,

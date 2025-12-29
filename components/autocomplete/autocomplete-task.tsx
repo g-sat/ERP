@@ -48,7 +48,7 @@ export default function TaskAutocomplete<T extends Record<string, unknown>>({
     () =>
       tasks.map((task: ITaskLookup) => ({
         value: task.taskId.toString(),
-        label: task.taskName,
+        label: task.taskId.toString() + " - " + task.taskName,
       })),
     [tasks]
   )

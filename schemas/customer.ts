@@ -92,6 +92,10 @@ export type CustomerContactSchemaType = z.infer<typeof customerContactSchema>
 export const customerAddressSchema = z.object({
   customerId: z.number().min(1, "Customer is required"),
   addressId: z.number(),
+  billName: z
+    .string()
+    .min(1, "Bill name is required")
+    .max(150, "Bill name cannot exceed 150 characters"),
   address1: z
     .string()
     .min(1, "Address 1 is required")

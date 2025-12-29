@@ -321,62 +321,19 @@ export default function NewChecklistPage() {
         }
       }
 
-      // Format dates - following ar-invoice pattern
-      // Transform form values to ensure dates are properly formatted as strings
-      // Use transformToSchemaType pattern (like AR invoice) to ensure consistency
-      const transformToSchemaType = (
-        formData: JobOrderHdSchemaType
-      ): JobOrderHdSchemaType => {
-        return {
-          ...formData,
-          // Date-only fields: ensure they are strings in "dd/MM/yyyy" format
-          jobOrderDate:
-            typeof formData.jobOrderDate === "string"
-              ? formData.jobOrderDate
-              : format(
-                  formData.jobOrderDate instanceof Date
-                    ? formData.jobOrderDate
-                    : parseWithFallback(formData.jobOrderDate) || new Date(),
-                  dateFormat
-                ),
-          accountDate:
-            typeof formData.accountDate === "string"
-              ? formData.accountDate
-              : format(
-                  formData.accountDate instanceof Date
-                    ? formData.accountDate
-                    : parseWithFallback(formData.accountDate) || new Date(),
-                  dateFormat
-                ),
-          seriesDate:
-            typeof formData.seriesDate === "string"
-              ? formData.seriesDate
-              : format(
-                  formData.seriesDate instanceof Date
-                    ? formData.seriesDate
-                    : parseWithFallback(formData.seriesDate) || new Date(),
-                  dateFormat
-                ),
-        }
-      }
-
-      const formValues = transformToSchemaType(values)
-
-      // Format DateTime fields - convert null to undefined to match IJobOrderHd interface
-      // Use formatDateTimeForApi for fields with time (ETA/ETD)
-      const etaDateFormatted = formatDateTimeForApi(values.etaDate)
-      const etdDateFormatted = formatDateTimeForApi(values.etdDate)
-
+      // Format dates for API submission
+      // Date-only fields: use formatDateForApi to format as yyyy-MM-dd
+      // DateTime fields: use formatDateTimeForApi to format as yyyy-MM-ddTHH:mm:ss.SSS
       const formData: Partial<IJobOrderHd> = {
-        ...formValues,
-        // Date-only fields: already strings formatted with company date format (from transformToSchemaType)
-        jobOrderDate: formValues.jobOrderDate as string,
-        accountDate: formValues.accountDate as string,
-        seriesDate: formValues.seriesDate as string,
+        ...values,
+        // Date-only fields: format to yyyy-MM-dd using formatDateForApi
+        jobOrderDate: formatDateForApi(values.jobOrderDate) || "",
+        accountDate: formatDateForApi(values.accountDate) || "",
+        seriesDate: formatDateForApi(values.seriesDate) || "",
         // DateTime fields: format with time using formatDateTimeForApi
         // Convert null to undefined to match IJobOrderHd interface (Date | string | undefined, not null)
-        etaDate: etaDateFormatted,
-        etdDate: etdDateFormatted,
+        etaDate: formatDateTimeForApi(values.etaDate),
+        etdDate: formatDateTimeForApi(values.etdDate),
       }
 
       const response = await saveJobOrderMutation.mutateAsync(
@@ -416,7 +373,7 @@ export default function NewChecklistPage() {
   }
 
   return (
-    <div className="@container mx-auto space-y-2 px-2 py-2">
+    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-8 sm:pt-3 sm:pb-6 lg:px-12">
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -482,24 +439,6 @@ export default function NewChecklistPage() {
                     label={`Customer${customerCode ? ` (${customerCode})` : ""}`}
                     isRequired={true}
                     onChangeEvent={handleCustomerChange}
-                  />
-                  <CurrencyAutocomplete
-                    form={form}
-                    name="currencyId"
-                    label="Currency"
-                    isRequired={true}
-                    isDisabled={true}
-                    onChangeEvent={handleCurrencyChange}
-                  />
-                  {/* Exchange Rate */}
-                  <CustomNumberInput
-                    form={form}
-                    name="exhRate"
-                    label="Exchange Rate"
-                    isRequired={true}
-                    isDisabled={true}
-                    round={exhRateDec}
-                    className="text-right"
                   />
 
                   <PortAutocomplete
@@ -638,6 +577,26 @@ export default function NewChecklistPage() {
                 </div>
                 <div className="mb-4 border-b border-gray-200"></div>
                 <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <CurrencyAutocomplete
+                      form={form}
+                      name="currencyId"
+                      label="Currency"
+                      isRequired={true}
+                      isDisabled={true}
+                      onChangeEvent={handleCurrencyChange}
+                    />
+                    {/* Exchange Rate */}
+                    <CustomNumberInput
+                      form={form}
+                      name="exhRate"
+                      label="Exchange Rate"
+                      isRequired={true}
+                      isDisabled={true}
+                      round={exhRateDec}
+                      className="text-right"
+                    />
+                  </div>
                   <CustomDateNew
                     form={form}
                     name="accountDate"

@@ -221,6 +221,7 @@ export interface IPortLookup {
   portId: number
   portCode: string
   portName: string
+  portShortName: string
 }
 
 export interface IPortRegionLookup {

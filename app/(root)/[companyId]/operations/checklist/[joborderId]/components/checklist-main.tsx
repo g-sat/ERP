@@ -673,24 +673,6 @@ export function ChecklistMain({
                   isDisabled={isConfirmed}
                   onChangeEvent={handleCustomerChange}
                 />
-                <CurrencyAutocomplete
-                  form={form}
-                  name="currencyId"
-                  label="Currency"
-                  isRequired={true}
-                  isDisabled={true}
-                  onChangeEvent={handleCurrencyChange}
-                />
-                {/* Exchange Rate */}
-                <CustomNumberInput
-                  form={form}
-                  name="exhRate"
-                  label="Exchange Rate"
-                  isRequired={true}
-                  isDisabled={true}
-                  round={exhRateDec}
-                  className="text-right"
-                />
 
                 <PortAutocomplete
                   form={form}
@@ -846,6 +828,27 @@ export function ChecklistMain({
               </div>
               <div className="mb-4 border-b border-gray-200"></div>
               <div className="grid grid-cols-1 gap-2">
+                {/* Currency and Exchange Rate in one row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <CurrencyAutocomplete
+                    form={form}
+                    name="currencyId"
+                    label="Currency"
+                    isRequired={true}
+                    isDisabled={true}
+                    onChangeEvent={handleCurrencyChange}
+                  />
+                  {/* Exchange Rate */}
+                  <CustomNumberInput
+                    form={form}
+                    name="exhRate"
+                    label="Exchange Rate"
+                    isRequired={true}
+                    isDisabled={true}
+                    round={exhRateDec}
+                    className="text-right"
+                  />
+                </div>
                 <CustomDateNew
                   form={form}
                   name="accountDate"

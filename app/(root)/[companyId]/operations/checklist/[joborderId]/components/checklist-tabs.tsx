@@ -495,13 +495,13 @@ export function ChecklistTabs({
             <TabsTrigger value="main">
               <div className="flex items-center gap-1">
                 <span className="text-xs">📋</span>
-                <span className="text-xs sm:text-sm">Checklist Summary</span>
+                <span className="text-xs sm:text-sm">Summary</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="details">
               <div className="flex items-center gap-1">
                 <span className="text-xs">📊</span>
-                <span className="text-xs sm:text-sm">Service List</span>
+                <span className="text-xs sm:text-sm">Services</span>
               </div>
             </TabsTrigger>
             {/* <TabsTrigger value="documents">
@@ -513,7 +513,7 @@ export function ChecklistTabs({
             <TabsTrigger value="transportation">
               <div className="flex items-center gap-1">
                 <span className="text-xs">🚚</span>
-                <span className="text-xs sm:text-sm">Transportation Log</span>
+                <span className="text-xs sm:text-sm">Transportation</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="history">
@@ -740,7 +740,11 @@ export function ChecklistTabs({
         </TabsContent>
 
         <TabsContent value="logs" className="mt-0">
-          <ChecklistLog jobData={currentJobData} isConfirmed={isConfirmed} />
+          <ChecklistLog
+            jobData={currentJobData}
+            isConfirmed={isConfirmed}
+            activeTab={activeTab}
+          />
         </TabsContent>
       </Tabs>
 

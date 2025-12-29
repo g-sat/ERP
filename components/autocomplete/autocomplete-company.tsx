@@ -49,7 +49,7 @@ export default function CompanyAutocomplete<T extends Record<string, unknown>>({
     () =>
       countries.map((company: ICompanyLookup) => ({
         value: company.companyId.toString(),
-        label: company.companyName,
+        label: company.companyCode + " - " + company.companyName,
       })),
     [countries]
   )
