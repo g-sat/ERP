@@ -19,7 +19,7 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { Tariffv1 } from "@/lib/api-routes"
+import { Tariff } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import {
@@ -205,7 +205,7 @@ export default function TariffPage() {
     isLoading: isLoadingCount,
     error: tariffCountError,
   } = useGetByParams<ITaskDetails>(
-    Tariffv1.getTariffCount,
+    Tariff.getTariffCount,
     "tariffCount",
     tariffCountParams,
     {
@@ -221,7 +221,7 @@ export default function TariffPage() {
     isLoading: isLoadingTariffByTask,
     error: tariffByTaskError,
   } = useGetByParams<ITariff[]>(
-    Tariffv1.getTariffByTask,
+    Tariff.getTariffByTask,
     "tariffByTask",
     tariffByTaskParams,
     {
@@ -326,7 +326,7 @@ export default function TariffPage() {
     data: tariffByIdResponse,
     isLoading: isLoadingTariffById,
     refetch: refetchTariffById,
-  } = useGetById<ITariffHd>(Tariffv1.getById, "tariffById", tariffByIdPath, {
+  } = useGetById<ITariffHd>(Tariff.getById, "tariffById", tariffByIdPath, {
     enabled:
       selectedCustomerId !== undefined &&
       selectedCustomerId > 0 &&
@@ -350,9 +350,9 @@ export default function TariffPage() {
     : undefined
 
   // Mutations using use-common hooks
-  const saveMutation = usePersist<ITariffHd>(Tariffv1.add)
-  const updateMutation = usePersist<ITariffHd>(Tariffv1.add)
-  const deleteMutation = useDelete(`${Tariffv1.delete}`)
+  const saveMutation = usePersist<ITariffHd>(Tariff.add)
+  const updateMutation = usePersist<ITariffHd>(Tariff.add)
+  const deleteMutation = useDelete(`${Tariff.delete}`)
 
   // Copy forms state
   const [showCopyRateForm, setShowCopyRateForm] = useState(false)
