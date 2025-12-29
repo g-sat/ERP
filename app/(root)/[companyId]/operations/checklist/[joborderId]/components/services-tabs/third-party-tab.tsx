@@ -22,6 +22,7 @@ import {
   JobOrder_DebitNote,
   JobOrder_ThirdParty,
 } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
@@ -286,8 +287,11 @@ export function ThirdPartyTab({
     if (!saveConfirmation.formData) return
 
     try {
+      // Format dates for API submission (yyyy-MM-dd format)
       const processedData = {
         ...saveConfirmation.formData,
+        deliverDate:
+          formatDateForApi(saveConfirmation.formData.deliverDate) || "",
       }
       const submitData = { ...processedData, ...jobDataProps }
 

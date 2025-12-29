@@ -25,7 +25,7 @@ import { format } from "date-fns"
 import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi } from "@/lib/date-utils"
 import { parseNumberWithCommas } from "@/lib/utils"
 import {
   BankAutocomplete,
@@ -315,10 +315,10 @@ export default function CbPettyCashForm({
             .includes("cheque") ||
           selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
 
-        // Clear cheque fields if not cheque payment
+        // Clear cheque number if not cheque payment, but keep chequeDate
         if (!isCheque) {
           form.setValue("chequeNo", "")
-          form.setValue("chequeDate", "")
+          // Do not clear chequeDate - keep it as requested
         } else {
           const currentChequeDate = form.getValues("chequeDate")
           const currentAccountDate = form.getValues("accountDate")
@@ -335,9 +335,9 @@ export default function CbPettyCashForm({
           }
         }
       } else {
-        // No payment type selected, clear cheque fields
+        // No payment type selected, clear cheque number but keep chequeDate
         form.setValue("chequeNo", "")
-        form.setValue("chequeDate", "")
+        // Do not clear chequeDate - keep it as requested
       }
     },
     [dateFormat, form]

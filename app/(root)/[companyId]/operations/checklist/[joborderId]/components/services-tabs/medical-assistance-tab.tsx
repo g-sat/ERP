@@ -286,16 +286,14 @@ export function MedicalAssistanceTab({
     if (!saveConfirmation.formData) return
 
     try {
+      // Format dates for API submission (yyyy-MM-dd format)
       const processedData = {
         ...saveConfirmation.formData,
-        admittedDate: formatDateForApi(
-          saveConfirmation.formData.admittedDate,
-          false
-        ) || undefined,
-        dischargedDate: formatDateForApi(
-          saveConfirmation.formData.dischargedDate,
-          false
-        ) || undefined,
+        admittedDate:
+          formatDateForApi(saveConfirmation.formData.admittedDate) || undefined,
+        dischargedDate:
+          formatDateForApi(saveConfirmation.formData.dischargedDate) ||
+          undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 

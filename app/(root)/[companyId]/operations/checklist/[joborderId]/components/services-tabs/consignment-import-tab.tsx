@@ -287,12 +287,15 @@ export function ConsignmentImportTab({
     if (!saveConfirmation.formData) return
 
     try {
+      // Format dates for API submission (yyyy-MM-dd format)
       const processedData = {
         ...saveConfirmation.formData,
         receiveDate:
           formatDateForApi(saveConfirmation.formData.receiveDate) || undefined,
         deliverDate:
           formatDateForApi(saveConfirmation.formData.deliverDate) || undefined,
+        arrivalDate:
+          formatDateForApi(saveConfirmation.formData.arrivalDate) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 

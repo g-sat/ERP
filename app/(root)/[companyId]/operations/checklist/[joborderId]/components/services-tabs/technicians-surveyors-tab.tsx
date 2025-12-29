@@ -291,16 +291,13 @@ export function TechniciansSurveyorsTab({
     if (!saveConfirmation.formData) return
 
     try {
+      // Format dates for API submission (yyyy-MM-dd format)
       const processedData = {
         ...saveConfirmation.formData,
-        embarked: formatDateForApi(
-          saveConfirmation.formData.embarked,
-          false
-        ) || undefined,
-        disembarked: formatDateForApi(
-          saveConfirmation.formData.disembarked,
-          false
-        ) || undefined,
+        embarked:
+          formatDateForApi(saveConfirmation.formData.embarked) || undefined,
+        disembarked:
+          formatDateForApi(saveConfirmation.formData.disembarked) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 

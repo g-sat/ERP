@@ -284,12 +284,10 @@ export function AgencyRemunerationTab({
     if (!saveConfirmation.formData) return
 
     try {
+      // Format dates for API submission (yyyy-MM-dd format)
       const processedData = {
         ...saveConfirmation.formData,
-        date: formatDateForApi(
-          saveConfirmation.formData.date,
-          false
-        ) || undefined,
+        date: formatDateForApi(saveConfirmation.formData.date) || undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
