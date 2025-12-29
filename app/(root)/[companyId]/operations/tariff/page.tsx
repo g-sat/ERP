@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "next/navigation"
-import { ITariff, ITariffRPT, ITariffRPTRequest } from "@/interfaces"
+import { ITariff, ITariffHd, ITariffRPT, ITariffRPTRequest } from "@/interfaces"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { usePermissionStore } from "@/stores/permission-store"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   BuildingIcon,
   CopyIcon,
@@ -18,17 +19,21 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { Tariffv1 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import {
+  useDelete,
+  useGetById,
+  useGetByParams,
+  usePersist,
+} from "@/hooks/use-common"
+import {
   copyCompanyTariffDirect,
+  copyCompanyTariffDirectv1,
   copyRateDirect,
-  deleteTariffDirect,
-  getRPTTariffDirect,
-  saveTariffDirect,
-  updateTariffDirect,
-  useGetTariffByTask,
-  useGetTariffCount,
+  copyRateDirectv1,
+  getTariffRptDirect,
 } from "@/hooks/use-tariff"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   CustomerAutocomplete,
@@ -51,7 +57,7 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
 import { CopyRateForm } from "./components/copy-rate-form"
 import { DownloadTariffForm } from "./components/download-tariff-form"
-import { TariffForm } from "./components/tariff-form"
+import { TariffForm, TariffFormRef } from "./components/tariff-form"
 import { TariffTable } from "./components/tariff-table"
 
 interface FilterSchemaType extends Record<string, unknown> {
@@ -147,6 +153,7 @@ export default function TariffPage() {
 
   const params = useParams()
   const companyId = Number(params?.companyId) || 0
+  const queryClient = useQueryClient()
 
   const { hasPermission } = usePermissionStore()
 
@@ -190,24 +197,40 @@ export default function TariffPage() {
     portId: 0,
   })
 
-  // Tariff count API call using api-client.ts
+  // Tariff count API call using use-common hooks
+  const tariffCountParams = `${apiParams.customerId}/${apiParams.portId}`
   const {
     data: tariffCountResponse,
     refetch: refetchTariffCount,
     isLoading: isLoadingCount,
     error: tariffCountError,
-  } = useGetTariffCount(apiParams.customerId, apiParams.portId)
-  // Category-specific API calls using api-client.ts
+  } = useGetByParams<ITaskDetails>(
+    Tariffv1.getTariffCount,
+    "tariffCount",
+    tariffCountParams,
+    {
+      enabled: apiParams.customerId > 0 && apiParams.portId > 0,
+    }
+  )
+
+  // Category-specific API calls using use-common hooks
+  const tariffByTaskParams = `${apiParams.customerId}/${apiParams.portId}/${currentTaskId}`
   const {
     data: tariffByTaskResponse,
     refetch: refetchTariffByTask,
     isLoading: isLoadingTariffByTask,
     error: tariffByTaskError,
-  } = useGetTariffByTask(
-    apiParams.customerId,
-    apiParams.portId,
-    currentTaskId,
-    hasSearched
+  } = useGetByParams<ITariff[]>(
+    Tariffv1.getTariffByTask,
+    "tariffByTask",
+    tariffByTaskParams,
+    {
+      enabled:
+        apiParams.customerId > 0 &&
+        apiParams.portId > 0 &&
+        currentTaskId > 0 &&
+        hasSearched,
+    }
   )
 
   // Direct API functions using api-client.ts for CRUD operations
@@ -216,11 +239,120 @@ export default function TariffPage() {
   const [selectedTariff, setSelectedTariff] = useState<ITariff | undefined>(
     undefined
   )
+  const [selectedTariffId, setSelectedTariffId] = useState<number | undefined>(
+    undefined
+  )
+  const [selectedCustomerId, setSelectedCustomerId] = useState<
+    number | undefined
+  >(undefined)
+  const [selectedTaskId, setSelectedTaskId] = useState<number | undefined>(
+    undefined
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
   const [hasFormErrors, setHasFormErrors] = useState(false)
+
+  // Form ref for submitting
+  const formRef = useRef<TariffFormRef>(null)
+
+  // Transformation function to convert ITariffHd (from API) to ITariffHd with proper data_details formatting
+  const transformToTariffHd = useCallback((apiTariff: ITariffHd): ITariffHd => {
+    return {
+      ...apiTariff,
+      // Ensure data_details is properly formatted array
+      data_details:
+        apiTariff.data_details?.map((detail) => ({
+          tariffId: detail.tariffId ?? 0,
+          itemNo: detail.itemNo ?? 0,
+          displayRate: detail.displayRate ?? 0,
+          basicRate: detail.basicRate ?? 0,
+          minUnit: detail.minUnit ?? 0,
+          maxUnit: detail.maxUnit ?? 0,
+          isAdditional: detail.isAdditional ?? false,
+          additionalUnit: detail.additionalUnit ?? 0,
+          additionalRate: detail.additionalRate ?? 0,
+          editVersion: detail.editVersion ?? 0,
+        })) || [],
+    }
+  }, [])
+
+  // Helper function to convert ITariff to ITariffHd (for backward compatibility)
+  const convertTariffToTariffHd = useCallback(
+    (tariff: ITariff | undefined, companyId: number): ITariffHd | undefined => {
+      if (!tariff) return undefined
+
+      return {
+        companyId: companyId,
+        tariffId: tariff.tariffId || 0,
+        customerId: tariff.customerId || 0,
+        currencyId: tariff.currencyId || 0,
+        portId: tariff.portId || 0,
+        taskId: tariff.taskId || 0,
+        chargeId: tariff.chargeId || 0,
+        uomId: tariff.uomId || 0,
+        visaId: tariff.visaId || null,
+        fromLocationId: null,
+        toLocationId: null,
+        isPrepayment: tariff.isPrepayment || false,
+        prepaymentPercentage: tariff.prepaymentPercentage || 0,
+        itemNo: null,
+        remarks: tariff.remarks || null,
+        isActive: tariff.isActive ?? true,
+        createBy: tariff.createBy || "",
+        createDate: tariff.createDate || new Date(),
+        editBy: tariff.editBy || null,
+        editDate: tariff.editDate || null,
+        editVersion: tariff.editVersion || 0,
+        data_details: [],
+      }
+    },
+    []
+  )
+
+  // Fetch tariff by ID when editing/viewing using use-common hooks
+  // API format: GetTariffv1ById/{CustomerId}/{TaskId}/{TariffId}
+  const tariffByIdPath =
+    selectedCustomerId !== undefined &&
+    selectedCustomerId > 0 &&
+    selectedTaskId !== undefined &&
+    selectedTaskId > 0 &&
+    selectedTariffId !== undefined &&
+    selectedTariffId > 0
+      ? `${selectedCustomerId}/${selectedTaskId}/${selectedTariffId}`
+      : ""
+  const {
+    data: tariffByIdResponse,
+    isLoading: isLoadingTariffById,
+    refetch: refetchTariffById,
+  } = useGetById<ITariffHd>(Tariffv1.getById, "tariffById", tariffByIdPath, {
+    enabled:
+      selectedCustomerId !== undefined &&
+      selectedCustomerId > 0 &&
+      selectedTaskId !== undefined &&
+      selectedTaskId > 0 &&
+      selectedTariffId !== undefined &&
+      selectedTariffId > 0,
+  })
+
+  // Extract tariff data from response and transform to schema type
+  const fetchedTariff: ITariffHd | undefined =
+    tariffByIdResponse?.result === 1 && tariffByIdResponse?.data
+      ? Array.isArray(tariffByIdResponse.data)
+        ? tariffByIdResponse.data[0]
+        : tariffByIdResponse.data
+      : undefined
+
+  // Transform fetched tariff to ITariffHd for form (form accepts ITariffHd)
+  const transformedTariff: ITariffHd | undefined = fetchedTariff
+    ? transformToTariffHd(fetchedTariff)
+    : undefined
+
+  // Mutations using use-common hooks
+  const saveMutation = usePersist<ITariffHd>(Tariffv1.add)
+  const updateMutation = usePersist<ITariffHd>(Tariffv1.add)
+  const deleteMutation = useDelete(`${Tariffv1.delete}`)
 
   // Copy forms state
   const [showCopyRateForm, setShowCopyRateForm] = useState(false)
@@ -241,7 +373,7 @@ export default function TariffPage() {
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
     type: "save" | "copyRate" | "copyCompanyRate" | null
-    data: ITariff | Record<string, unknown> | null
+    data: ITariffHd | Record<string, unknown> | null
   }>({
     isOpen: false,
     type: null,
@@ -268,11 +400,23 @@ export default function TariffPage() {
 
   // Process category-specific tariff data
   const rawTariffByTaskData = tariffByTaskResponse?.data
-  const tariffByTaskData = rawTariffByTaskData
-    ? Array.isArray(rawTariffByTaskData)
-      ? rawTariffByTaskData
-      : [rawTariffByTaskData]
-    : []
+  const tariffByTaskData: ITariff[] = (() => {
+    if (!rawTariffByTaskData) return []
+    if (Array.isArray(rawTariffByTaskData)) {
+      if (
+        rawTariffByTaskData.length > 0 &&
+        Array.isArray(rawTariffByTaskData[0])
+      ) {
+        // Nested array - flatten it
+        const nested = rawTariffByTaskData as unknown as ITariff[][]
+        const flattened: unknown = nested.flat()
+        return flattened as ITariff[]
+      }
+      // Single level array - ensure it's ITariff[]
+      return rawTariffByTaskData as unknown as ITariff[]
+    }
+    return [rawTariffByTaskData as ITariff]
+  })()
 
   // Sequential API call handler
   const handleSearch = useCallback(async () => {
@@ -400,6 +544,9 @@ export default function TariffPage() {
 
   // CRUD handlers
   const handleCreateTariff = () => {
+    setSelectedTariffId(undefined)
+    setSelectedCustomerId(undefined)
+    setSelectedTaskId(undefined)
     setSelectedTariff(undefined)
     setModalMode("create")
     setHasFormErrors(false) // Reset form errors when creating new tariff
@@ -407,6 +554,9 @@ export default function TariffPage() {
   }
 
   const handleEditTariff = (tariff: ITariff) => {
+    setSelectedTariffId(tariff.tariffId)
+    setSelectedCustomerId(tariff.customerId || apiParams.customerId)
+    setSelectedTaskId(tariff.taskId || currentTaskId)
     setSelectedTariff(tariff)
     setModalMode("edit")
     setHasFormErrors(false) // Reset form errors when editing tariff
@@ -414,7 +564,12 @@ export default function TariffPage() {
   }
 
   const handleViewTariff = (tariff: ITariff | null) => {
-    setSelectedTariff(tariff || undefined)
+    if (tariff) {
+      setSelectedTariffId(tariff.tariffId)
+      setSelectedCustomerId(tariff.customerId || apiParams.customerId)
+      setSelectedTaskId(tariff.taskId || currentTaskId)
+      setSelectedTariff(tariff)
+    }
     setModalMode("view")
     setHasFormErrors(false) // Reset form errors when viewing tariff
     setIsModalOpen(true)
@@ -430,36 +585,36 @@ export default function TariffPage() {
   const handleDeleteTariff = async () => {
     if (deleteConfirmation.tariff) {
       const { tariff } = deleteConfirmation
-      const customerId = tariff.customerId || apiParams.customerId
-      const taskId = tariff.taskId || currentTaskId
-      const tariffId = tariff.tariffId?.toString() || ""
+      const tariffId = tariff.tariffId
 
-      if (!customerId || !taskId || !tariffId) {
+      if (!tariffId || tariffId === 0) {
         toast.error("Missing required information to delete tariff")
         return
       }
 
       try {
-        const response = await deleteTariffDirect(customerId, taskId, tariffId)
+        const response = await deleteMutation.mutateAsync(tariffId.toString())
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariff.taskName || tariff.chargeName || ""} deleted successfully`
+          )
           setDeleteConfirmation({
             isOpen: false,
             tariff: null,
           })
-          toast.success(response.message || "Tariff deleted successfully")
           refetchTariffByTask()
         } else {
-          const errorMessage = response?.message || "Failed to delete tariff"
-          toast.error(errorMessage)
+          toast.error(response?.message || "Failed to delete tariff")
         }
       } catch (error) {
         console.error("Error deleting tariff:", error)
-        toast.error("Failed to delete tariff")
+        toast.error("Network error while deleting tariff. Please try again.")
       }
     }
   }
 
-  const handleSaveTariff = (data: ITariff) => {
+  const handleSaveTariff = (data: ITariffHd) => {
     setSaveConfirmation({
       isOpen: true,
       type: "save",
@@ -470,35 +625,51 @@ export default function TariffPage() {
   const handleConfirmSave = async () => {
     if (!saveConfirmation.data) return
 
-    const tariffData = {
-      ...saveConfirmation.data,
-    }
+    const tariffData = saveConfirmation.data as ITariffHd
 
     try {
       if (modalMode === "create") {
-        const response = await saveTariffDirect(tariffData)
+        const response = await saveMutation.mutateAsync(tariffData)
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariffData.tariffId ? `#${tariffData.tariffId}` : ""} saved successfully`
+          )
           setIsModalOpen(false)
-          toast.success(response.message || "Tariff added successfully")
+          setSelectedTariffId(undefined)
+          setSelectedCustomerId(undefined)
+          setSelectedTaskId(undefined)
+          setSelectedTariff(undefined)
           refetchTariffByTask()
         } else {
-          const errorMessage = response?.message || "Failed to add tariff"
-          toast.error(errorMessage)
+          toast.error(response?.message || "Failed to save tariff")
         }
-      } else if (modalMode === "edit" && selectedTariff?.tariffId) {
-        const response = await updateTariffDirect(tariffData)
+      } else if (modalMode === "edit" && selectedTariffId) {
+        const response = await updateMutation.mutateAsync(tariffData)
         if (response?.result === 1) {
+          toast.success(
+            response?.message ||
+              `Tariff ${tariffData.tariffId ? `#${tariffData.tariffId}` : ""} updated successfully`
+          )
+          // Invalidate the tariffById query cache and refetch to ensure fresh data
+          queryClient.invalidateQueries({ queryKey: ["tariffById"] })
+          // If modal is still open, refetch the tariff data immediately
+          if (selectedCustomerId && selectedTaskId && selectedTariffId) {
+            await refetchTariffById()
+          }
           setIsModalOpen(false)
-          toast.success(response.message || "Tariff updated successfully")
+          setSelectedTariffId(undefined)
+          setSelectedCustomerId(undefined)
+          setSelectedTaskId(undefined)
+          setSelectedTariff(undefined)
           refetchTariffByTask()
         } else {
-          const errorMessage = response?.message || "Failed to update tariff"
-          toast.error(errorMessage)
+          toast.error(response?.message || "Failed to update tariff")
         }
       }
     } catch (error) {
       console.error("Error saving tariff:", error)
-      toast.error("Failed to save tariff")
+      toast.error("Network error while saving tariff. Please try again.")
     } finally {
       setSaveConfirmation({
         isOpen: false,
@@ -529,7 +700,7 @@ export default function TariffPage() {
   const handleDownloadTariff = async (data: ITariffRPTRequest) => {
     try {
       setIsDownloading(true)
-      const response = await getRPTTariffDirect(data)
+      const response = await getTariffRptDirect(data)
 
       if (response?.result === 1 && response.data) {
         // Convert data to CSV format
@@ -618,7 +789,7 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      const response = await copyRateDirect(
+      const response = await copyRateDirectv1(
         saveConfirmation.data as unknown as Parameters<typeof copyRateDirect>[0]
       )
       if (response?.result === 1) {
@@ -645,7 +816,7 @@ export default function TariffPage() {
     if (!saveConfirmation.data) return
 
     try {
-      const response = await copyCompanyTariffDirect(
+      const response = await copyCompanyTariffDirectv1(
         saveConfirmation.data as unknown as Parameters<
           typeof copyCompanyTariffDirect
         >[0]
@@ -929,7 +1100,7 @@ export default function TariffPage() {
             </div>
           ) : hasSearched ? (
             <TariffTable
-              data={(tariffByTaskData as ITariff[]) || []}
+              data={tariffByTaskData || []}
               isLoading={isLoading}
               onDeleteAction={handleDeleteConfirmation}
               onEditAction={handleEditTariff}
@@ -968,7 +1139,7 @@ export default function TariffPage() {
         }}
       >
         <DialogContent
-          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[70vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             if (hasFormErrors) {
               e.preventDefault()
@@ -978,34 +1149,73 @@ export default function TariffPage() {
           }}
         >
           <DialogHeader>
-            <DialogTitle>
-              {modalMode === "create"
-                ? "Add Tariff"
-                : modalMode === "edit"
-                  ? "Edit Tariff"
-                  : "Tariff Details"}
-            </DialogTitle>
-            <DialogDescription>
-              {modalMode === "create"
-                ? "Add a new tariff to the system."
-                : modalMode === "edit"
-                  ? "Edit the tariff details."
-                  : "View tariff details."}
-            </DialogDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <DialogTitle>
+                  {modalMode === "create"
+                    ? "Add Tariff"
+                    : modalMode === "edit"
+                      ? "Edit Tariff"
+                      : "Tariff Details"}
+                </DialogTitle>
+                <DialogDescription>
+                  {modalMode === "create"
+                    ? "Add a new tariff to the system."
+                    : modalMode === "edit"
+                      ? "Edit the tariff details."
+                      : "View tariff details."}
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-2 pr-10">
+                {modalMode !== "view" && (
+                  <Button
+                    type="button"
+                    onClick={() => formRef.current?.submit()}
+                  >
+                    {modalMode === "create" ? "Save" : "Update"}
+                  </Button>
+                )}
+              </div>
+            </div>
           </DialogHeader>
-          <TariffForm
-            initialData={selectedTariff}
-            onSaveAction={handleSaveTariff}
-            onCloseAction={() => setIsModalOpen(false)}
-            mode={modalMode}
-            companyId={Number(companyId)}
-            customerId={watchedCustomerId || apiParams.customerId}
-            portId={apiParams.portId}
-            taskId={
-              CATEGORY_CONFIG[activeCategory]?.taskId || Task.PortExpenses
-            }
-            onValidationError={setHasFormErrors}
-          />
+          <Separator />
+          {isLoadingTariffById &&
+          (modalMode === "edit" || modalMode === "view") ? (
+            <div className="flex items-center justify-center p-8">
+              <p>Loading tariff details...</p>
+            </div>
+          ) : (
+            <TariffForm
+              ref={formRef}
+              initialData={
+                transformedTariff
+                  ? {
+                      ...transformedTariff,
+                      createBy: fetchedTariff?.createBy || "",
+                      createDate: fetchedTariff?.createDate || new Date(),
+                      editBy: fetchedTariff?.editBy || null,
+                      editDate: fetchedTariff?.editDate || null,
+                    }
+                  : convertTariffToTariffHd(selectedTariff, Number(companyId))
+              }
+              onSaveAction={handleSaveTariff}
+              onCloseAction={() => {
+                setIsModalOpen(false)
+                setSelectedTariffId(undefined)
+                setSelectedCustomerId(undefined)
+                setSelectedTaskId(undefined)
+                setSelectedTariff(undefined)
+              }}
+              mode={modalMode}
+              companyId={Number(companyId)}
+              customerId={watchedCustomerId || apiParams.customerId}
+              portId={apiParams.portId}
+              taskId={
+                CATEGORY_CONFIG[activeCategory]?.taskId || Task.PortExpenses
+              }
+              onValidationError={setHasFormErrors}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

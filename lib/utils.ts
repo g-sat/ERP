@@ -214,7 +214,6 @@ export enum OperationsTransactionId {
   landingItems = 16,
   otherService = 17,
   agencyRemuneration = 18,
-  tariffv1 = 19,
 }
 
 export enum ARTransactionId {

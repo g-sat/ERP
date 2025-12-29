@@ -1203,22 +1203,10 @@ export const Tariff = {
   getTariffByTask: "/operations/gettariffbytask",
   getById: "/operations/gettariffbyid",
   add: "/operations/savetariff",
-  delete: "/operations/DeleteTariff",
+  delete: "/operations/deletetariff",
   copy: "/operations/copytariff",
-  copyCompanyTariff: "/operations/CopyCompanyTariff",
-  getRPTTariff: "/operations/GetRPTTariff",
-}
-
-export const Tariffv1 = {
-  getTariffCount: "/operations/gettariffv1count",
-  getTariffList: "/operations/gettariffv1list",
-  getTariffByTask: "/operations/gettariffv1bytask",
-  getById: "/operations/gettariffv1byid",
-  add: "/operations/savetariffv1",
-  delete: "/operations/deletetariffv1",
-  copy: "/operations/copytariffv1",
-  copyCompanyTariff: "/operations/CopyCompanyTariffv1",
-  getRPTTariff: "/operations/GetRPTTariff",
+  copyCompanyTariff: "/operations/copycompanytariff",
+  getTariffRpt: "/operations/gettariffrpt",
 }
 
 // Template Endpoints

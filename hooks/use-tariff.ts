@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 
 import { getById, getData, postData, saveData } from "@/lib/api-client"
-import { Tariff, Tariffv1 } from "@/lib/api-routes"
+import { Tariff } from "@/lib/api-routes"
 
 /**
  * Query Configuration
@@ -156,9 +156,7 @@ export function useGetTariffById(
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getById(
-          `${Tariffv1.getById}/${companyId}/${tariffId}`
-        )
+        const data = await getById(`${Tariff.getById}/${companyId}/${tariffId}`)
         return data
       } catch (error) {
         handleApiError(error)
@@ -177,7 +175,7 @@ export function useGetTariffById(
  */
 export const saveTariffDirect = async (tariffData: Partial<ITariffHd>) => {
   try {
-    const response = await saveData(Tariffv1.add, tariffData)
+    const response = await saveData(Tariff.add, tariffData)
     return response
   } catch (error) {
     console.error("Error saving tariff:", error)
@@ -191,7 +189,7 @@ export const saveTariffDirect = async (tariffData: Partial<ITariffHd>) => {
  */
 export const updateTariffDirect = async (tariffData: Partial<ITariffHd>) => {
   try {
-    const response = await saveData(Tariffv1.add, tariffData)
+    const response = await saveData(Tariff.add, tariffData)
     return response
   } catch (error) {
     console.error("Error updating tariff:", error)
@@ -211,7 +209,7 @@ export const deleteTariffDirect = async (
   try {
     // POST request with parameters in URL path and empty body
     const response = await postData(
-      `${Tariffv1.delete}/${companyId}/${tariffId}`,
+      `${Tariff.delete}/${companyId}/${tariffId}`,
       {}
     )
     return response
@@ -258,9 +256,9 @@ export const copyCompanyTariffDirect = async (copyData: CopyRate) => {
  * @returns {Promise} Promise containing API response with ITariffRPT[] data
  */
 
-export const getRPTTariffDirect = async (rptTariffData: ITariffRPTRequest) => {
+export const getTariffRptDirect = async (rptTariffData: ITariffRPTRequest) => {
   try {
-    const response = await postData(Tariff.getRPTTariff, rptTariffData)
+    const response = await postData(Tariff.getTariffRpt, rptTariffData)
     return response as {
       result: number
       message: string
@@ -282,7 +280,7 @@ export const getRPTTariffDirect = async (rptTariffData: ITariffRPTRequest) => {
  */
 export const copyRateDirectv1 = async (copyData: CopyRate) => {
   try {
-    const response = await saveData(Tariffv1.copy, copyData)
+    const response = await saveData(Tariff.copy, copyData)
     return response
   } catch (error) {
     console.error("Error copying rate:", error)
@@ -296,7 +294,7 @@ export const copyRateDirectv1 = async (copyData: CopyRate) => {
  */
 export const copyCompanyTariffDirectv1 = async (copyData: CopyRate) => {
   try {
-    const response = await saveData(Tariffv1.copyCompanyTariff, copyData)
+    const response = await saveData(Tariff.copyCompanyTariff, copyData)
     return response
   } catch (error) {
     console.error("Error copying company tariff:", error)
