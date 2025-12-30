@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   BarChart,
   BookOpen,
+  Building2,
   CalendarCheck,
   ClipboardList,
   Coins,
@@ -121,25 +122,27 @@ export function NavHeader() {
   }
 
   return (
-    <NavigationMenu className="hidden sm:flex">
-      <NavigationMenuList className="ga">
-        {/* Top-level Navigation (Unchanged) */}
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              href={getUrlWithCompanyId("/home")}
-              className={cn(
-                "text-sm leading-none font-medium",
-                pathname === getUrlWithCompanyId("/home") && "text-primary"
-              )}
-            >
-              Home
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+    <div className="relative hidden w-full items-center justify-between px-4 sm:flex">
+      {/* Left Navigation */}
+      <div className="flex flex-1 items-center">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link
+                  href={getUrlWithCompanyId("/home")}
+                  className={cn(
+                    "hover:text-primary text-sm leading-none font-medium transition-colors",
+                    pathname === getUrlWithCompanyId("/home") && "text-primary"
+                  )}
+                >
+                  Home
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
 
-        {/* Operations Navigation - COMMENTED OUT */}
-        {/* <NavigationMenuItem>
+            {/* Operations Navigation - COMMENTED OUT */}
+            {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.projectNav[0].url))
@@ -171,8 +174,8 @@ export function NavHeader() {
           </NavigationMenuContent>
         </NavigationMenuItem> */}
 
-        {/* AR Navigation - COMMENTED OUT */}
-        {/* <NavigationMenuItem>
+            {/* AR Navigation - COMMENTED OUT */}
+            {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[0].url))
@@ -204,8 +207,8 @@ export function NavHeader() {
           </NavigationMenuContent>
         </NavigationMenuItem> */}
 
-        {/* AP Navigation - COMMENTED OUT */}
-        {/* <NavigationMenuItem>
+            {/* AP Navigation - COMMENTED OUT */}
+            {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[1].url))
@@ -237,8 +240,8 @@ export function NavHeader() {
           </NavigationMenuContent>
         </NavigationMenuItem> */}
 
-        {/* CB Navigation - COMMENTED OUT */}
-        {/* <NavigationMenuItem>
+            {/* CB Navigation - COMMENTED OUT */}
+            {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[2].url))
@@ -270,8 +273,8 @@ export function NavHeader() {
           </NavigationMenuContent>
         </NavigationMenuItem> */}
 
-        {/* GL Navigation - COMMENTED OUT */}
-        {/* <NavigationMenuItem>
+            {/* GL Navigation - COMMENTED OUT */}
+            {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[3].url))
@@ -302,7 +305,24 @@ export function NavHeader() {
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem> */}
-      </NavigationMenuList>
-    </NavigationMenu>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+
+      {/* Center - Company Name */}
+      <div className="flex flex-1 items-center justify-center">
+        {currentCompany && (
+          <div className="bg-primary/5 border-primary/10 hover:bg-primary/10 flex items-center gap-2 rounded-lg border px-4 py-2 shadow-sm backdrop-blur-sm transition-all">
+            <Building2 className="text-primary h-4 w-4 flex-shrink-0" />
+            <span className="text-foreground max-w-[200px] truncate text-sm font-semibold sm:max-w-[250px] md:max-w-[300px] lg:max-w-[400px]">
+              {currentCompany.companyName}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Right Side - Reserved for future use */}
+      <div className="flex-1" />
+    </div>
   )
 }
