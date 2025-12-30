@@ -230,10 +230,12 @@ export function TechniciansSurveyorsForm({
                 name="embarked"
                 label="Embarked Date"
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <CustomDateNew
                 form={form}
                 name="disembarked"
+                isFutureShow={true}
                 label="Disembarked Date"
                 isDisabled={isConfirmed}
               />

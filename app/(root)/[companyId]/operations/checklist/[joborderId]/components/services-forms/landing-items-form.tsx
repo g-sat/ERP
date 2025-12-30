@@ -184,6 +184,7 @@ export function LandingItemsForm({
                 label="Landing Date"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <LandingPurposeAutocomplete
                 form={form}
@@ -229,6 +230,7 @@ export function LandingItemsForm({
                 name="returnDate"
                 label="Return Date (Optional)"
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <CustomInput
                 form={form}

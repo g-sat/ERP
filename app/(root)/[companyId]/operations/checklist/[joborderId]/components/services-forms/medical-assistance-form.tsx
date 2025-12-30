@@ -222,10 +222,12 @@ export function MedicalAssistanceForm({
                 name="admittedDate"
                 label="Admitted Date"
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <CustomDateNew
                 form={form}
                 name="dischargedDate"
+                isFutureShow={true}
                 label="Discharged Date"
                 isDisabled={isConfirmed}
               />

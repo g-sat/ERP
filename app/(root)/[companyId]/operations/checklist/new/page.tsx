@@ -432,6 +432,7 @@ export default function NewChecklistPage() {
                     name="jobOrderDate"
                     label="Job Order Date"
                     isRequired={true}
+                    isFutureShow={true}
                   />
                   <CustomerAutocomplete
                     form={form}
@@ -601,10 +602,12 @@ export default function NewChecklistPage() {
                     form={form}
                     name="accountDate"
                     label="Account Date"
+                    isFutureShow={true}
                   />
                   <CustomDateNew
                     form={form}
                     name="seriesDate"
+                    isFutureShow={true}
                     label="Series Date"
                   />
                   <AddressAutocomplete

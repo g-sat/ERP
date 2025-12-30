@@ -277,6 +277,7 @@ export function TransportationLogForm({
                 label="Transport Date"
                 isRequired
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <TransportLocationAutocomplete
                 form={form}

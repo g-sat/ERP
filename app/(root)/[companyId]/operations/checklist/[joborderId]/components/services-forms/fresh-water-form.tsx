@@ -160,6 +160,7 @@ export function FreshWaterForm({
                 label="Date"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <ChargeAutocomplete
                 form={form}

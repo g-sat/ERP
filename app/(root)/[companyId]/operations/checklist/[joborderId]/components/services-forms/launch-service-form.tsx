@@ -311,6 +311,7 @@ export function LaunchServiceForm({
                 label="Service Date"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <ChargeAutocomplete
                 form={form}

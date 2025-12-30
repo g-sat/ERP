@@ -256,6 +256,7 @@ export default function ChecklistPage() {
                   name="startDate"
                   onChangeEvent={handleStartDateChange}
                   className="w-full sm:w-[160px]"
+                  isFutureShow={true}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -264,6 +265,7 @@ export default function ChecklistPage() {
                   form={dateFilterForm}
                   name="endDate"
                   onChangeEvent={handleEndDateChange}
+                  isFutureShow={true}
                   className="w-full sm:w-[160px]"
                 />
               </div>

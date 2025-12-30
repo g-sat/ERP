@@ -188,6 +188,7 @@ export function EquipmentUsedForm({
                 label="Date"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <CustomInput
                 form={form}

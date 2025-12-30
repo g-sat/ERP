@@ -661,6 +661,7 @@ export function ChecklistMain({
                 <CustomDateNew
                   form={form}
                   name="jobOrderDate"
+                  isFutureShow={true}
                   label="Job Order Date"
                   isRequired={true}
                   isDisabled={isConfirmed}
@@ -854,11 +855,13 @@ export function ChecklistMain({
                   name="accountDate"
                   label="Account | Debit Note Date"
                   isDisabled={isConfirmed}
+                  isFutureShow={true}
                 />
                 <CustomDateNew
                   form={form}
                   name="seriesDate"
                   label="Series Date"
+                  isFutureShow={true}
                   isDisabled={isConfirmed}
                 />
                 <AddressAutocomplete

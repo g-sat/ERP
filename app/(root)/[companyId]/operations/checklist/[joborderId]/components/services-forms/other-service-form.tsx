@@ -204,6 +204,7 @@ export function OtherServiceForm({
                 label="Service Date"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
 
               <CustomNumberInput
