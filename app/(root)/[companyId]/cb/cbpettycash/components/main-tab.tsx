@@ -115,7 +115,7 @@ export default function Main({
     recalculateAndSetHeaderTotals(
       form,
       currentDetails as unknown as ICbPettyCashDt[],
-      decimals[0],
+      decimals?.[0] || {},
       visible
     )
 
@@ -135,6 +135,7 @@ export default function Main({
 
   const handleAddRow = (rowData: ICbPettyCashDt) => {
     const currentData = form.getValues("data_details") || []
+    console.log("rowData", rowData)
 
     if (editingDetail) {
       // Update existing row by itemNo (unique identifier)
@@ -151,6 +152,7 @@ export default function Main({
     } else {
       // Add new row
       const updatedData = [...currentData, rowData]
+      console.log("updatedData", updatedData)
       form.setValue(
         "data_details",
         updatedData as unknown as CbPettyCashDtSchemaType[],

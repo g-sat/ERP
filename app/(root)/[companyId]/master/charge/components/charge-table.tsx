@@ -61,7 +61,7 @@ export function ChargeTable({
   canCreate = true,
 }: ChargeTableProps) {
   const { decimals } = useAuthStore()
-  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const datetimeFormat = decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const columns: ColumnDef<ICharge>[] = [
     {
@@ -77,18 +77,6 @@ export function ChargeTable({
       size: 450,
       minSize: 250,
       enableColumnFilter: true,
-    },
-    {
-      accessorKey: "taskName",
-      header: "Task Name",
-      size: 150,
-      minSize: 100,
-    },
-    {
-      accessorKey: "chargeOrder",
-      header: "Order",
-      size: 120,
-      minSize: 50,
     },
     {
       accessorKey: "itemNo",

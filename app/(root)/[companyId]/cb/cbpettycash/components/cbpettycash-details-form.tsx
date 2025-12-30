@@ -116,10 +116,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
     ref
   ) => {
     const { decimals } = useAuthStore()
-    const amtDec = decimals[0]?.amtDec || 2
-    const locAmtDec = decimals[0]?.locAmtDec || 2
+    const amtDec = decimals?.[0]?.amtDec || 2
+    const locAmtDec = decimals?.[0]?.locAmtDec || 2
     const dateFormat = useMemo(
-      () => decimals[0]?.dateFormat || clientDateFormat,
+      () => decimals?.[0]?.dateFormat || clientDateFormat,
       [decimals]
     )
     const defaultCbPettyCashDetails = useMemo(
@@ -166,12 +166,57 @@ const CbPettyCashDetailsForm = React.forwardRef<
 
       // Get account date from header form, fallback to current date
       const accountDate = Hdform.getValues("accountDate")
-      const invoiceDate =
-        accountDate && typeof accountDate === "string"
-          ? accountDate
-          : accountDate instanceof Date
-            ? format(accountDate, dateFormat)
-            : format(new Date(), dateFormat)
+      let invoiceDate: string
+
+      try {
+        if (accountDate) {
+          if (typeof accountDate === "string" && accountDate.trim()) {
+            // If it's already a string, try to parse it to ensure it's valid
+            const parsed = parseDate(accountDate)
+            if (parsed && !isNaN(parsed.getTime())) {
+              invoiceDate = format(parsed, dateFormat)
+            } else {
+              // If parsing fails, use current date
+              const now = new Date()
+              if (!isNaN(now.getTime())) {
+                invoiceDate = format(now, dateFormat)
+              } else {
+                invoiceDate = clientDateFormat // Fallback to default format string
+              }
+            }
+          } else if (
+            accountDate instanceof Date &&
+            !isNaN(accountDate.getTime())
+          ) {
+            invoiceDate = format(accountDate, dateFormat)
+          } else {
+            const now = new Date()
+            if (!isNaN(now.getTime())) {
+              invoiceDate = format(now, dateFormat)
+            } else {
+              invoiceDate = clientDateFormat // Fallback to default format string
+            }
+          }
+        } else {
+          const now = new Date()
+          if (!isNaN(now.getTime())) {
+            invoiceDate = format(now, dateFormat)
+          } else {
+            invoiceDate = clientDateFormat // Fallback to default format string
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Error formatting invoiceDate in createDefaultValues:",
+          error
+        )
+        // Ultimate fallback - use current date string in client format
+        try {
+          invoiceDate = format(new Date(), dateFormat)
+        } catch {
+          invoiceDate = clientDateFormat
+        }
+      }
 
       return {
         ...defaultCbPettyCashDetails,
@@ -193,8 +238,23 @@ const CbPettyCashDetailsForm = React.forwardRef<
             paymentNo: editingDetail.paymentNo ?? "",
             itemNo: editingDetail.itemNo ?? getNextItemNo(),
             seqNo: editingDetail.seqNo ?? getNextItemNo(),
-            invoiceDate:
-              editingDetail.invoiceDate ?? format(new Date(), dateFormat),
+            invoiceDate: (() => {
+              // Validate and format invoiceDate from editingDetail
+              if (editingDetail.invoiceDate) {
+                if (typeof editingDetail.invoiceDate === "string") {
+                  const parsed = parseDate(editingDetail.invoiceDate)
+                  if (parsed && !isNaN(parsed.getTime())) {
+                    return format(parsed, dateFormat)
+                  }
+                } else if (
+                  editingDetail.invoiceDate instanceof Date &&
+                  !isNaN(editingDetail.invoiceDate.getTime())
+                ) {
+                  return format(editingDetail.invoiceDate, dateFormat)
+                }
+              }
+              return format(new Date(), dateFormat)
+            })(),
             invoiceNo: editingDetail.invoiceNo ?? "",
             supplierName: editingDetail.supplierName ?? "",
             supplierRegNo: editingDetail.supplierRegNo ?? "",
@@ -338,7 +398,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
       recalculateDetailFormAmounts(
         form,
         Hdform,
-        decimals[0],
+        decimals?.[0] || {},
         visible,
         exchangeRate,
         countryExchangeRate
@@ -408,7 +468,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
         if (gstData) {
           form.setValue("gstName", gstData.gstName || "")
           // Trigger GST percentage calculation after setting default GST
-          setGSTPercentage(Hdform, form, decimals[0], visible)
+          setGSTPercentage(Hdform, form, decimals?.[0] || {}, visible)
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -456,8 +516,23 @@ const CbPettyCashDetailsForm = React.forwardRef<
           paymentNo: editingDetail.paymentNo ?? "",
           itemNo: editingDetail.itemNo ?? nextItemNo,
           seqNo: editingDetail.seqNo ?? nextItemNo,
-          invoiceDate:
-            editingDetail.invoiceDate ?? format(new Date(), dateFormat),
+          invoiceDate: (() => {
+            // Validate and format invoiceDate from editingDetail
+            if (editingDetail.invoiceDate) {
+              if (typeof editingDetail.invoiceDate === "string") {
+                const parsed = parseDate(editingDetail.invoiceDate)
+                if (parsed && !isNaN(parsed.getTime())) {
+                  return format(parsed, dateFormat)
+                }
+              } else if (
+                editingDetail.invoiceDate instanceof Date &&
+                !isNaN(editingDetail.invoiceDate.getTime())
+              ) {
+                return format(editingDetail.invoiceDate, dateFormat)
+              }
+            }
+            return format(new Date(), dateFormat)
+          })(),
           invoiceNo: editingDetail.invoiceNo ?? "",
           supplierName: editingDetail.supplierName ?? "",
           supplierRegNo: editingDetail.supplierRegNo ?? "",
@@ -526,12 +601,20 @@ const CbPettyCashDetailsForm = React.forwardRef<
       if (editingDetail) return
 
       if (watchedAccountDate) {
-        const accountDateStr =
-          typeof watchedAccountDate === "string"
-            ? watchedAccountDate
-            : watchedAccountDate instanceof Date
-              ? format(watchedAccountDate, dateFormat)
-              : null
+        let accountDateStr: string | null = null
+
+        if (typeof watchedAccountDate === "string") {
+          // If it's a string, try to parse it to ensure it's valid
+          const parsed = parseDate(watchedAccountDate)
+          if (parsed && !isNaN(parsed.getTime())) {
+            accountDateStr = format(parsed, dateFormat)
+          }
+        } else if (
+          watchedAccountDate instanceof Date &&
+          !isNaN(watchedAccountDate.getTime())
+        ) {
+          accountDateStr = format(watchedAccountDate, dateFormat)
+        }
 
         if (accountDateStr) {
           // Update invoice date to match account date
@@ -633,8 +716,24 @@ const CbPettyCashDetailsForm = React.forwardRef<
           glId: populatedData.glId ?? 0,
           glCode: populatedData.glCode ?? "",
           glName: populatedData.glName ?? "",
-          invoiceDate:
-            updatedData.invoiceDate ?? format(new Date(), dateFormat),
+          invoiceDate: (() => {
+            // Ensure invoiceDate is valid before using it
+            if (updatedData.invoiceDate) {
+              if (typeof updatedData.invoiceDate === "string") {
+                const parsed = parseDate(updatedData.invoiceDate)
+                if (parsed && !isNaN(parsed.getTime())) {
+                  return updatedData.invoiceDate
+                }
+              } else if (
+                updatedData.invoiceDate instanceof Date &&
+                !isNaN(updatedData.invoiceDate.getTime())
+              ) {
+                return format(updatedData.invoiceDate, dateFormat)
+              }
+            }
+            // Fallback to current date if invalid
+            return format(new Date(), dateFormat)
+          })(),
           invoiceNo: updatedData.invoiceNo ?? "",
           supplierName: updatedData.supplierName ?? "",
           supplierRegNo: updatedData.supplierRegNo ?? "",
@@ -809,7 +908,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
         form.setValue("gstName", selectedOption.gstName || "")
 
         // Set GST percentage from lookup
-        await setGSTPercentage(Hdform, form, decimals[0], visible)
+        await setGSTPercentage(Hdform, form, decimals?.[0] || {}, visible)
 
         // Get updated form values after percentage is set
         const rowData = form.getValues()
@@ -819,7 +918,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
         syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
         // Calculate GST amounts with the new percentage
-        handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
+        handleGstPercentageChange(Hdform, rowData, decimals?.[0] || {}, visible)
 
         // Update form with calculated GST amounts
         form.setValue("gstAmt", rowData.gstAmt)
@@ -1022,7 +1121,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
       const exchangeRate = Hdform.getValues("exhRate") || 0
       syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
-      handleTotalamountChange(Hdform, rowData, decimals[0], visible)
+      handleTotalamountChange(Hdform, rowData, decimals?.[0] || {}, visible)
       // Update only the calculated fields
       form.setValue("totLocalAmt", rowData.totLocalAmt)
       form.setValue("totCtyAmt", rowData.totCtyAmt)
@@ -1046,7 +1145,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
       const exchangeRate = Hdform.getValues("exhRate") || 0
       syncCountryExchangeRate(Hdform, exchangeRate, visible)
 
-      handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
+      handleGstPercentageChange(Hdform, rowData, decimals?.[0] || {}, visible)
       // Update only the calculated fields
       form.setValue("gstAmt", rowData.gstAmt)
       form.setValue("gstLocalAmt", rowData.gstLocalAmt)
@@ -1125,7 +1224,7 @@ const CbPettyCashDetailsForm = React.forwardRef<
         value,
         exchangeRate,
         countryExchangeRate,
-        decimals[0],
+        decimals?.[0] || {},
         visible
       )
       rowData.gstLocalAmt = gstLocalAmt

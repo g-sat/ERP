@@ -88,7 +88,7 @@ export default function CbPettyCashPage() {
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
   const dateFormat = useMemo(
-    () => decimals[0]?.dateFormat || clientDateFormat,
+    () => decimals?.[0]?.dateFormat || clientDateFormat,
     [decimals]
   )
 
@@ -233,6 +233,7 @@ export default function CbPettyCashPage() {
           totAmtAftGst: cbPettyCash.totAmtAftGst ?? 0,
           totLocalAmtAftGst: cbPettyCash.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbPettyCash.totCtyAmtAftGst ?? 0,
+          payeeTo: cbPettyCash.payeeTo ?? "",
           moduleFrom: cbPettyCash.moduleFrom ?? "",
           editVersion: cbPettyCash.editVersion ?? 0,
           data_details:
@@ -264,8 +265,11 @@ export default function CbPettyCashPage() {
         }
       : (() => {
           // For new cbPettyCash, set createDate with time and createBy
-          const currentDateTime = decimals[0]?.longDateFormat
-            ? format(new Date(), decimals[0].longDateFormat)
+          const currentDateTime = decimals?.[0]?.longDateFormat
+            ? format(
+                new Date(),
+                decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+              )
             : format(new Date(), "dd/MM/yyyy HH:mm:ss")
           const userName = user?.userName || ""
 
@@ -294,8 +298,11 @@ export default function CbPettyCashPage() {
       return
     }
 
-    const currentDateTime = decimals[0]?.longDateFormat
-      ? format(new Date(), decimals[0].longDateFormat)
+    const currentDateTime = decimals?.[0]?.longDateFormat
+      ? format(
+          new Date(),
+          decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+        )
       : format(new Date(), "dd/MM/yyyy HH:mm:ss")
     const userName = user?.userName || ""
 
@@ -527,9 +534,9 @@ export default function CbPettyCashPage() {
       }
 
       // Calculate totals from details with proper rounding
-      const amtDec = decimals[0]?.amtDec || 2
-      const locAmtDec = decimals[0]?.locAmtDec || 2
-      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+      const amtDec = decimals?.[0]?.amtDec || 2
+      const locAmtDec = decimals?.[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals?.[0]?.ctyAmtDec || 2
 
       const details = clonedCbPettyCash.data_details || []
       if (details.length > 0) {
@@ -584,7 +591,7 @@ export default function CbPettyCashPage() {
       form.reset(clonedCbPettyCash)
 
       // Get exchange rate decimal places
-      const exhRateDec = decimals[0]?.exhRateDec || 6
+      const exhRateDec = decimals?.[0]?.exhRateDec || 6
 
       // Fetch and set new exchange rates based on new account date
       if (clonedCbPettyCash.currencyId && clonedCbPettyCash.accountDate) {
@@ -605,7 +612,7 @@ export default function CbPettyCashPage() {
               formDetails as unknown as ICbPettyCashDt[],
               exchangeRate,
               countryExchangeRate,
-              decimals[0],
+              decimals?.[0] || {},
               !!visible?.m_CtyCurr
             )
 
@@ -732,8 +739,11 @@ export default function CbPettyCashPage() {
     setSearchNo("") // Clear search input
 
     // Get current date/time and user name - always set for reset (new cbPettyCash)
-    const currentDateTime = decimals[0]?.longDateFormat
-      ? format(new Date(), decimals[0].longDateFormat)
+    const currentDateTime = decimals?.[0]?.longDateFormat
+      ? format(
+          new Date(),
+          decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+        )
       : format(new Date(), "dd/MM/yyyy HH:mm:ss")
     const userName = user?.userName || ""
 
@@ -762,8 +772,8 @@ export default function CbPettyCashPage() {
     const paymentNo = formValues.paymentNo || cbPettyCash.paymentNo || ""
 
     // Get decimals
-    const amtDec = decimals[0]?.amtDec || 2
-    const locAmtDec = decimals[0]?.locAmtDec || 2
+    const amtDec = decimals?.[0]?.amtDec || 2
+    const locAmtDec = decimals?.[0]?.locAmtDec || 2
 
     // Build report parameters
     const reportParams = {
@@ -850,6 +860,7 @@ export default function CbPettyCashPage() {
         totLocalAmtAftGst: apiCbPettyCash.totLocalAmtAftGst ?? 0,
         totCtyAmtAftGst: apiCbPettyCash.totCtyAmtAftGst ?? 0,
         remarks: apiCbPettyCash.remarks ?? "",
+        payeeTo: apiCbPettyCash.payeeTo ?? "",
         moduleFrom: apiCbPettyCash.moduleFrom ?? "",
         editVersion: apiCbPettyCash.editVersion ?? 0,
         createBy: apiCbPettyCash.createBy ?? "",
@@ -858,7 +869,7 @@ export default function CbPettyCashPage() {
         createDate: apiCbPettyCash.createDate
           ? format(
               parseDate(apiCbPettyCash.createDate as string) || new Date(),
-              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+              decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
 
@@ -866,14 +877,14 @@ export default function CbPettyCashPage() {
           ? format(
               parseDate(apiCbPettyCash.editDate as unknown as string) ||
                 new Date(),
-              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+              decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         cancelDate: apiCbPettyCash.cancelDate
           ? format(
               parseDate(apiCbPettyCash.cancelDate as unknown as string) ||
                 new Date(),
-              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+              decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
         isCancel: apiCbPettyCash.isCancel ?? false,
@@ -1058,8 +1069,11 @@ export default function CbPettyCashPage() {
         !currentCbPettyCashNo
 
       if (isNewCbPettyCash) {
-        const currentDateTime = decimals[0]?.longDateFormat
-          ? format(new Date(), decimals[0].longDateFormat)
+        const currentDateTime = decimals?.[0]?.longDateFormat
+          ? format(
+              new Date(),
+              decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
           : format(new Date(), "dd/MM/yyyy HH:mm:ss")
         const userName = user?.userName || ""
 

@@ -446,7 +446,7 @@ export default function ChargePage() {
 
   // Handler for code availability check (memoized to prevent unnecessary re-renders)
   const handleCodeBlur = useCallback(
-    async (code: string, taskId: number) => {
+    async (code: string) => {
       // Skip if:
       // 1. In edit mode
       // 2. In read-only mode
@@ -459,7 +459,7 @@ export default function ChargePage() {
 
       try {
         const response = await getById(
-          `${Charge.getByCode}/${trimmedCode}/${taskId}`
+          `${Charge.getByCode}/${trimmedCode}`
         )
 
         if (response?.result === 1 && response.data) {
@@ -472,7 +472,6 @@ export default function ChargePage() {
               chargeId: chargeData.chargeId,
               chargeCode: chargeData.chargeCode,
               chargeName: chargeData.chargeName,
-              taskId: chargeData.taskId,
               chargeOrder: chargeData.chargeOrder,
               itemNo: chargeData.itemNo,
               isActive: chargeData.isActive,
@@ -484,7 +483,6 @@ export default function ChargePage() {
               createById: chargeData.createById,
               editById: chargeData.editById,
               companyId: chargeData.companyId,
-              taskName: chargeData.taskName,
             }
 
             setExistingCharge(validChargeData)

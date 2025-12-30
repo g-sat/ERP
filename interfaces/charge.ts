@@ -4,9 +4,7 @@ export interface ICharge {
   chargeCode: string
   chargeName: string
   chargeOrder: number
-  taskId: number
   itemNo: number
-  taskName: string
   createById: number
   editById: number
   createBy: string

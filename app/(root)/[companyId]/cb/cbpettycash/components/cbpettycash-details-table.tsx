@@ -3,8 +3,9 @@ import { ICbPettyCashDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { CellContext, ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 
+import { parseDate } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
@@ -35,9 +36,9 @@ export default function CbPettyCashDetailsTable({
 }: CbPettyCashDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const amtDec = decimals?.[0]?.amtDec || 2
+  const locAmtDec = decimals?.[0]?.locAmtDec || 2
+  const dateFormat = decimals?.[0]?.dateFormat || "dd/MM/yyyy"
 
   useEffect(() => {
     setMounted(true)
@@ -90,10 +91,20 @@ export default function CbPettyCashDetailsTable({
             accessorKey: "invoiceDate",
             header: "Invoice Date",
             cell: ({ row }: CellContext<ICbPettyCashDt, unknown>) => {
-              const date = row.getValue("invoiceDate")
-                ? new Date(row.getValue("invoiceDate"))
-                : null
-              return date ? format(date, dateFormat) : "-"
+              const dateValue = row.getValue("invoiceDate")
+              if (!dateValue) return "-"
+
+              let date: Date | null = null
+              if (typeof dateValue === "string") {
+                date = parseDate(dateValue)
+              } else if (dateValue instanceof Date) {
+                date = dateValue
+              }
+
+              if (date && isValid(date)) {
+                return format(date, dateFormat)
+              }
+              return "-"
             },
             size: 100,
           },

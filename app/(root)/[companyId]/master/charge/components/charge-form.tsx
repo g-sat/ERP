@@ -12,7 +12,6 @@ import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { TaskAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -26,7 +25,6 @@ const defaultValues = {
   chargeId: 0,
   chargeName: "",
   chargeCode: "",
-  taskId: 0,
   chargeOrder: 0,
   itemNo: 0,
   remarks: "",
@@ -38,7 +36,7 @@ interface ChargeFormProps {
   onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  onCodeBlur?: (code: string, taskId: number) => void
+  onCodeBlur?: (code: string) => void
   companyId: string
 }
 
@@ -52,7 +50,7 @@ export function ChargeForm({
   companyId,
 }: ChargeFormProps) {
   const { decimals } = useAuthStore()
-  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const datetimeFormat = decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   // Get chart of account data to ensure it's loaded before setting form values
   useChartOfAccountLookup(Number(companyId))
@@ -64,8 +62,6 @@ export function ChargeForm({
           chargeId: initialData.chargeId ?? 0,
           chargeName: initialData.chargeName ?? "",
           chargeCode: initialData.chargeCode ?? "",
-          taskId: initialData.taskId ?? 0,
-          chargeOrder: initialData.chargeOrder ?? 0,
           itemNo: initialData.itemNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
@@ -83,8 +79,6 @@ export function ChargeForm({
             chargeId: initialData.chargeId ?? 0,
             chargeName: initialData.chargeName ?? "",
             chargeCode: initialData.chargeCode ?? "",
-            taskId: initialData.taskId ?? 0,
-            chargeOrder: initialData.chargeOrder ?? 0,
             itemNo: initialData.itemNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
@@ -97,18 +91,8 @@ export function ChargeForm({
 
   const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("chargeCode")
-    const taskId = form.getValues("taskId")
-    if (code && taskId) {
-      onCodeBlur?.(code, taskId as number)
-    }
-  }
-
-  const handleTaskChange = () => {
-    const code = form.getValues("chargeCode")
-    const taskId = form.getValues("taskId")
-    // Only check if both code and taskId are available
-    if (code && taskId && taskId > 0) {
-      onCodeBlur?.(code, taskId as number)
+    if (code) {
+      onCodeBlur?.(code)
     }
   }
 
@@ -121,23 +105,14 @@ export function ChargeForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-2">
-            <div className="grid grid-cols-2 gap-2">
-              <TaskAutocomplete
-                form={form}
-                name="taskId"
-                label="Task"
-                isRequired={true}
-                onChangeEvent={handleTaskChange}
-              />
-              <CustomInput
-                form={form}
-                name="chargeCode"
-                label="Charge Code"
-                isRequired
-                isDisabled={isReadOnly || Boolean(initialData)}
-                onBlurEvent={handleCodeBlur}
-              />
-            </div>
+            <CustomInput
+              form={form}
+              name="chargeCode"
+              label="Charge Code"
+              isRequired
+              isDisabled={isReadOnly || Boolean(initialData)}
+              onBlurEvent={handleCodeBlur}
+            />
             <CustomTextarea
               form={form}
               name="chargeName"
@@ -146,13 +121,6 @@ export function ChargeForm({
               isDisabled={isReadOnly}
             />
             <div className="grid grid-cols-2 gap-2">
-              <CustomInput
-                form={form}
-                name="chargeOrder"
-                label="Charge Order"
-                type="number"
-                isDisabled={isReadOnly}
-              />
               <CustomInput
                 form={form}
                 name="itemNo"
