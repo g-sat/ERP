@@ -315,10 +315,10 @@ export default function CbGenReceiptForm({
             .includes("cheque") ||
           selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
 
-        // Clear cheque fields if not cheque payment
+        // Clear cheque number if not cheque payment, but keep chequeDate
         if (!isCheque) {
           form.setValue("chequeNo", "")
-          form.setValue("chequeDate", "")
+          // Do not clear chequeDate - keep it as requested
         } else {
           const currentChequeDate = form.getValues("chequeDate")
           const currentAccountDate = form.getValues("accountDate")
@@ -335,9 +335,9 @@ export default function CbGenReceiptForm({
           }
         }
       } else {
-        // No payment type selected, clear cheque fields
+        // No payment type selected, clear cheque number but keep chequeDate
         form.setValue("chequeNo", "")
-        form.setValue("chequeDate", "")
+        // Do not clear chequeDate - keep it as requested
       }
     },
     [dateFormat, form]

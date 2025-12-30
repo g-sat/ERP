@@ -194,11 +194,7 @@ export default function BankTransferForm({
         shouldValidate: true,
         shouldDirty: true,
       })
-      form.setValue(
-        "serviceItemNoName",
-        selectedOption.serviceCode + " " + selectedOption.serviceItemNoName ||
-          ""
-      )
+      form.setValue("serviceItemNoName", selectedOption.serviceItemNoName || "")
     }
   }
 
@@ -858,7 +854,7 @@ export default function BankTransferForm({
               label="Exchange Gain/Loss"
               round={amtDec}
               className="text-right"
-              isDisabled={true}
+              isDisabled={false}
             />
 
             {/* Remarks */}
