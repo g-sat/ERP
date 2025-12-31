@@ -215,10 +215,9 @@ export function TransportationLogTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        transportDate: formatDateForApi(
-          saveConfirmation.formData.transportDate,
-          false
-        ) || undefined,
+        transportDate:
+          formatDateForApi(saveConfirmation.formData.transportDate) ||
+          undefined,
       }
       const submitData = { ...processedData, ...jobDataProps }
 

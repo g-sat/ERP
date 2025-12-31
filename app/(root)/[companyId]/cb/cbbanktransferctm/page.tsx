@@ -37,7 +37,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { BasicSetting, CbBankTransferCtm } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -457,10 +457,18 @@ export default function CbBankTransferCtmPage() {
       }
 
       {
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          chequeDate: formatDateForApi(formValues.chequeDate) || "",
+        }
+
         const response =
           Number(formValues.transferId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const bankTransferData = Array.isArray(response.data)

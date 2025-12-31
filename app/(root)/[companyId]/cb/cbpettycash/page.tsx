@@ -233,15 +233,63 @@ export default function CbPettyCashPage() {
           totAmtAftGst: cbPettyCash.totAmtAftGst ?? 0,
           totLocalAmtAftGst: cbPettyCash.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbPettyCash.totCtyAmtAftGst ?? 0,
+          remarks: cbPettyCash.remarks ?? "",
           payeeTo: cbPettyCash.payeeTo ?? "",
           moduleFrom: cbPettyCash.moduleFrom ?? "",
+          createDate: cbPettyCash.createDate ?? "",
+          editDate: cbPettyCash.editDate ?? "",
+          isCancel: cbPettyCash.isCancel ?? false,
+          cancelDate: cbPettyCash.cancelDate ?? "",
+          cancelRemarks: cbPettyCash.cancelRemarks ?? "",
+          createBy: cbPettyCash.createBy ?? "",
+          editBy: cbPettyCash.editBy ?? "",
+          cancelBy: cbPettyCash.cancelBy ?? "",
           editVersion: cbPettyCash.editVersion ?? 0,
+          appBy: cbPettyCash.appBy ?? "",
+          appDate: cbPettyCash.appDate ?? "",
+          appStatusId: cbPettyCash.appStatusId ?? "",
           data_details:
             cbPettyCash.data_details?.map((detail) => ({
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo?.toString() ?? "",
-              invoiceDate: detail.invoiceDate ?? new Date(),
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              glId: detail.glId ?? 0,
+              glCode: detail.glCode ?? "",
+              glName: detail.glName ?? "",
+              totAmt: detail.totAmt ?? 0,
+              totLocalAmt: detail.totLocalAmt ?? 0,
+              totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
+              gstId: detail.gstId ?? 0,
+              gstName: detail.gstName ?? "",
+              gstPercentage: detail.gstPercentage ?? 0,
+              gstAmt: detail.gstAmt ?? 0,
+              gstLocalAmt: detail.gstLocalAmt ?? 0,
+              gstCtyAmt: detail.gstCtyAmt ?? 0,
+              departmentId: detail.departmentId ?? 0,
+              departmentCode: detail.departmentCode ?? "",
+              departmentName: detail.departmentName ?? "",
+              employeeId: detail.employeeId ?? 0,
+              employeeCode: detail.employeeCode ?? "",
+              employeeName: detail.employeeName ?? "",
+              portId: detail.portId ?? 0,
+              portCode: detail.portCode ?? "",
+              portName: detail.portName ?? "",
+              vesselId: detail.vesselId ?? 0,
+              vesselCode: detail.vesselCode ?? "",
+              vesselName: detail.vesselName ?? "",
+              bargeId: detail.bargeId ?? 0,
+              bargeCode: detail.bargeCode ?? "",
+              bargeName: detail.bargeName ?? "",
+              voyageId: detail.voyageId ?? 0,
+              voyageNo: detail.voyageNo ?? "",
+              invoiceDate: detail.invoiceDate
+                ? typeof detail.invoiceDate === "string"
+                  ? detail.invoiceDate
+                  : format(detail.invoiceDate, dateFormat)
+                : format(new Date(), dateFormat),
               invoiceNo: detail.invoiceNo ?? "",
               supplierName: detail.supplierName ?? "",
               supplierRegNo: detail.supplierRegNo ?? "",
@@ -253,13 +301,6 @@ export default function CbPettyCashPage() {
               serviceItemNoName: detail.serviceItemNoName ?? "",
               serviceCategoryId: detail.serviceCategoryId ?? 0,
               serviceCategoryName: detail.serviceCategoryName ?? "",
-              totAmt: detail.totAmt ?? 0,
-              totLocalAmt: detail.totLocalAmt ?? 0,
-              totCtyAmt: detail.totCtyAmt ?? 0,
-              gstAmt: detail.gstAmt ?? 0,
-              gstLocalAmt: detail.gstLocalAmt ?? 0,
-              gstCtyAmt: detail.gstCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
@@ -399,9 +440,9 @@ export default function CbPettyCashPage() {
           prevAccountDate as unknown as string | Date | null
         )
 
-        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const acc = formatDateForApi(parsedAccountDate) || ""
         const prev = parsedPrevAccountDate
-          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          ? formatDateForApi(parsedPrevAccountDate) || ""
           : ""
 
         const glCheck = await getById(
@@ -862,17 +903,12 @@ export default function CbPettyCashPage() {
         remarks: apiCbPettyCash.remarks ?? "",
         payeeTo: apiCbPettyCash.payeeTo ?? "",
         moduleFrom: apiCbPettyCash.moduleFrom ?? "",
-        editVersion: apiCbPettyCash.editVersion ?? 0,
-        createBy: apiCbPettyCash.createBy ?? "",
-        editBy: apiCbPettyCash.editBy ?? "",
-        cancelBy: apiCbPettyCash.cancelBy ?? "",
         createDate: apiCbPettyCash.createDate
           ? format(
               parseDate(apiCbPettyCash.createDate as string) || new Date(),
               decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-
         editDate: apiCbPettyCash.editDate
           ? format(
               parseDate(apiCbPettyCash.editDate as unknown as string) ||
@@ -880,6 +916,7 @@ export default function CbPettyCashPage() {
               decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
+        isCancel: apiCbPettyCash.isCancel ?? false,
         cancelDate: apiCbPettyCash.cancelDate
           ? format(
               parseDate(apiCbPettyCash.cancelDate as unknown as string) ||
@@ -887,8 +924,20 @@ export default function CbPettyCashPage() {
               decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
             )
           : "",
-        isCancel: apiCbPettyCash.isCancel ?? false,
         cancelRemarks: apiCbPettyCash.cancelRemarks ?? "",
+        createBy: apiCbPettyCash.createBy ?? "",
+        editBy: apiCbPettyCash.editBy ?? "",
+        cancelBy: apiCbPettyCash.cancelBy ?? "",
+        editVersion: apiCbPettyCash.editVersion ?? 0,
+        appBy: apiCbPettyCash.appBy ?? "",
+        appDate: apiCbPettyCash.appDate
+          ? format(
+              parseDate(apiCbPettyCash.appDate as unknown as string) ||
+                new Date(),
+              decimals?.[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        appStatusId: apiCbPettyCash.appStatusId?.toString() ?? "",
         data_details:
           apiCbPettyCash.data_details?.map(
             (detail) =>
@@ -911,7 +960,12 @@ export default function CbPettyCashPage() {
                 gstAmt: detail.gstAmt ?? 0,
                 gstLocalAmt: detail.gstLocalAmt ?? 0,
                 gstCtyAmt: detail.gstCtyAmt ?? 0,
-                invoiceDate: detail.invoiceDate ?? "",
+                invoiceDate: detail.invoiceDate
+                  ? format(
+                      parseDate(detail.invoiceDate as string) || new Date(),
+                      dateFormat
+                    )
+                  : format(new Date(), dateFormat),
                 invoiceNo: detail.invoiceNo ?? "",
                 supplierName: detail.supplierName ?? "",
                 supplierRegNo: detail.supplierRegNo ?? "",

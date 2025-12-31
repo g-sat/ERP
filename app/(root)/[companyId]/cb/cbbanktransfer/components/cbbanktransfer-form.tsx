@@ -439,7 +439,8 @@ export default function BankTransferForm({
   // STEP 1: FROM Total Amount Handler (Enhanced Debugging)
   const handleFromTotAmtChange = React.useCallback(
     (value: number) => {
-      console.log("🔄 [FROM] TotAmt changed to:", value)
+      const fromTotAmt = value || 0
+      console.log("🔄 [FROM] TotAmt changed to:", fromTotAmt)
 
       // Prevent circular updates
       if (isUpdatingAmounts.current) {
@@ -451,7 +452,6 @@ export default function BankTransferForm({
       console.log("🔒 [FROM] Lock acquired")
 
       try {
-        const fromTotAmt = value || 0
         const fromExhRate = form.getValues("fromExhRate") || 0
         const toExhRate = form.getValues("toExhRate") || 0
         const fromCurrencyId = form.getValues("fromCurrencyId")
@@ -527,7 +527,8 @@ export default function BankTransferForm({
   // STEP 2: TO Total Amount Handler (Enhanced Debugging)
   const handleToTotAmtChange = React.useCallback(
     (value: number) => {
-      console.log("🔄 [TO] TotAmt changed to:", value)
+      const toTotAmt = value || 0
+      console.log("🔄 [TO] TotAmt changed to:", toTotAmt)
 
       // Prevent circular updates
       if (isUpdatingAmounts.current) {
@@ -539,22 +540,14 @@ export default function BankTransferForm({
       console.log("🔒 [TO] Lock acquired")
 
       try {
-        const toTotAmt = value || 0
         const toExhRate = form.getValues("toExhRate") || 0
-        const fromExhRate = form.getValues("fromExhRate") || 0
-        const fromCurrencyId = form.getValues("fromCurrencyId")
-        const toCurrencyId = form.getValues("toCurrencyId")
 
         console.log("📊 [TO] Current values:", {
           toTotAmt,
           toExhRate,
-          fromExhRate,
-          fromCurrencyId,
-          toCurrencyId,
-          differentCurrencies: fromCurrencyId !== toCurrencyId,
         })
 
-        // STEP 2A: Calculate TO local amount
+        // STEP 2A: Calculate TO local amount only
         const toTotLocalAmt = calculateMultiplierAmount(
           toTotAmt,
           toExhRate,
@@ -563,55 +556,16 @@ export default function BankTransferForm({
         console.log("✅ [TO] Local calculated:", toTotLocalAmt)
         form.setValue("toTotLocalAmt", toTotLocalAmt, { shouldValidate: false })
 
-        // STEP 2B: Calculate FROM amounts based on currency relationship
-        if (fromCurrencyId && toCurrencyId && fromCurrencyId !== toCurrencyId) {
-          // Different currencies: local amounts must be equal
-          if (fromExhRate > 0) {
-            const fromTotLocalAmt = toTotLocalAmt // Direct assignment - no calculation
-            const fromTotAmt = calculateDivisionAmount(
-              fromTotLocalAmt,
-              fromExhRate,
-              amtDec
-            )
-            console.log("🌍 [TO] Different currencies - FROM calculated:", {
-              fromTotAmt,
-              fromTotLocalAmt,
-            })
-            form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
-            form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
-              shouldValidate: false,
-            })
-          }
-        } else {
-          // Same currency: amounts are equal
-          const fromTotAmt = toTotAmt
-          const fromTotLocalAmt = calculateMultiplierAmount(
-            fromTotAmt,
-            fromExhRate,
-            locAmtDec
-          )
-          console.log("🏠 [TO] Same currency - FROM calculated:", {
-            fromTotAmt,
-            fromTotLocalAmt,
-          })
-          form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
-          form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
-            shouldValidate: false,
-          })
-        }
-
         console.log("🎯 [TO] Final result:", {
           toTotAmt,
           toTotLocalAmt,
-          fromTotAmt: form.getValues("fromTotAmt"),
-          fromTotLocalAmt: form.getValues("fromTotLocalAmt"),
         })
       } finally {
         isUpdatingAmounts.current = false
         console.log("🔓 [TO] Lock released")
       }
     },
-    [form, amtDec, locAmtDec]
+    [form, locAmtDec]
   )
 
   // STEP 3: FROM Bank Charge Amount Handler

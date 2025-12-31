@@ -49,7 +49,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { BasicSetting, CbGenPayment } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -233,20 +233,64 @@ export default function CbGenPaymentPage() {
           totAmtAftGst: cbGenPayment.totAmtAftGst ?? 0,
           totLocalAmtAftGst: cbGenPayment.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbGenPayment.totCtyAmtAftGst ?? 0,
+          remarks: cbGenPayment.remarks ?? "",
+          payeeTo: cbGenPayment.payeeTo ?? "",
           moduleFrom: cbGenPayment.moduleFrom ?? "",
+          createDate: cbGenPayment.createDate ?? "",
+          editDate: cbGenPayment.editDate ?? "",
+          isCancel: cbGenPayment.isCancel ?? false,
+          cancelDate: cbGenPayment.cancelDate ?? "",
+          cancelRemarks: cbGenPayment.cancelRemarks ?? "",
+          createBy: cbGenPayment.createBy ?? "",
+          editBy: cbGenPayment.editBy ?? "",
+          cancelBy: cbGenPayment.cancelBy ?? "",
           editVersion: cbGenPayment.editVersion ?? 0,
+          appBy: cbGenPayment.appBy ?? "",
+          appDate: cbGenPayment.appDate ?? "",
+          appStatusId: cbGenPayment.appStatusId ?? "",
           data_details:
             cbGenPayment.data_details?.map((detail) => ({
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo?.toString() ?? "",
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              glId: detail.glId ?? 0,
+              glCode: detail.glCode ?? "",
+              glName: detail.glName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
+              gstId: detail.gstId ?? 0,
+              gstName: detail.gstName ?? "",
+              gstPercentage: detail.gstPercentage ?? 0,
               gstAmt: detail.gstAmt ?? 0,
               gstLocalAmt: detail.gstLocalAmt ?? 0,
               gstCtyAmt: detail.gstCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
+              departmentId: detail.departmentId ?? 0,
+              departmentCode: detail.departmentCode ?? "",
+              departmentName: detail.departmentName ?? "",
+              employeeId: detail.employeeId ?? 0,
+              employeeCode: detail.employeeCode ?? "",
+              employeeName: detail.employeeName ?? "",
+              portId: detail.portId ?? 0,
+              portCode: detail.portCode ?? "",
+              portName: detail.portName ?? "",
+              vesselId: detail.vesselId ?? 0,
+              vesselCode: detail.vesselCode ?? "",
+              vesselName: detail.vesselName ?? "",
+              bargeId: detail.bargeId ?? 0,
+              bargeCode: detail.bargeCode ?? "",
+              bargeName: detail.bargeName ?? "",
+              voyageId: detail.voyageId ?? 0,
+              voyageNo: detail.voyageNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceItemNo: detail.serviceItemNo ?? 0,
+              serviceItemNoName: detail.serviceItemNoName ?? "",
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
@@ -385,9 +429,9 @@ export default function CbGenPaymentPage() {
           prevAccountDate as unknown as string | Date | null
         )
 
-        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const acc = formatDateForApi(parsedAccountDate) || ""
         const prev = parsedPrevAccountDate
-          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          ? formatDateForApi(parsedPrevAccountDate) || ""
           : ""
 
         const glCheck = await getById(
@@ -405,10 +449,19 @@ export default function CbGenPaymentPage() {
       }
 
       {
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          gstClaimDate: formatDateForApi(formValues.gstClaimDate) || "",
+          chequeDate: formatDateForApi(formValues.chequeDate) || "",
+        }
+
         const response =
           Number(formValues.paymentId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const invoiceData = Array.isArray(response.data)
@@ -816,6 +869,7 @@ export default function CbGenPaymentPage() {
         totLocalAmtAftGst: apiCbGenPayment.totLocalAmtAftGst ?? 0,
         totCtyAmtAftGst: apiCbGenPayment.totCtyAmtAftGst ?? 0,
         remarks: apiCbGenPayment.remarks ?? "",
+        payeeTo: apiCbGenPayment.payeeTo ?? "",
         moduleFrom: apiCbGenPayment.moduleFrom ?? "",
         editVersion: apiCbGenPayment.editVersion ?? 0,
         createBy: apiCbGenPayment.createBy ?? "",
@@ -844,6 +898,15 @@ export default function CbGenPaymentPage() {
           : "",
         isCancel: apiCbGenPayment.isCancel ?? false,
         cancelRemarks: apiCbGenPayment.cancelRemarks ?? "",
+        appBy: apiCbGenPayment.appBy ?? "",
+        appDate: apiCbGenPayment.appDate
+          ? format(
+              parseDate(apiCbGenPayment.appDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        appStatusId: apiCbGenPayment.appStatusId?.toString() ?? "",
         data_details:
           apiCbGenPayment.data_details?.map(
             (detail) =>

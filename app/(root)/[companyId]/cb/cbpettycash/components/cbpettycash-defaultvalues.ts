@@ -57,7 +57,6 @@ const buildDefaultCbPettyCash = (dateFormat: string) => ({
   paymentId: "0",
   paymentNo: "",
   referenceNo: "",
-  suppCbPettyCashNo: "",
   trnDate: format(new Date(), dateFormat),
   accountDate: format(new Date(), dateFormat),
   currencyId: 0,

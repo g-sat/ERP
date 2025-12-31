@@ -39,7 +39,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { ArRefund, BasicSetting } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -392,10 +392,18 @@ export default function RefundPage() {
       }
 
       {
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          chequeDate: formatDateForApi(formValues.chequeDate) || "",
+        }
+
         const response =
           Number(formValues.refundId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const refundData = Array.isArray(response.data)

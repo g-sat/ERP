@@ -25,7 +25,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -220,10 +220,27 @@ export default function InvoicePage() {
             return
           }
 
+          // Format dates for API submission (yyyy-MM-dd format)
+          const apiFormValues = {
+            ...formValues,
+            trnDate: formatDateForApi(formValues.trnDate) || "",
+            accountDate: formatDateForApi(formValues.accountDate) || "",
+            dueDate: formatDateForApi(formValues.dueDate) || "",
+            deliveryDate: formatDateForApi(formValues.deliveryDate) || "",
+            gstClaimDate: formatDateForApi(formValues.gstClaimDate) || "",
+            // Format dates in details array
+            data_details:
+              formValues.data_details?.map((detail) => ({
+                ...detail,
+                deliveryDate: formatDateForApi(detail.deliveryDate) || "",
+                supplyDate: formatDateForApi(detail.supplyDate) || "",
+              })) || [],
+          }
+
           const response =
             Number(formValues.invoiceId) === 0
-              ? await saveMutation.mutateAsync(formValues)
-              : await updateMutation.mutateAsync(formValues)
+              ? await saveMutation.mutateAsync(apiFormValues)
+              : await updateMutation.mutateAsync(apiFormValues)
 
           if (response.result === 1) {
             const invoiceData = Array.isArray(response.data)
@@ -671,10 +688,10 @@ export default function InvoicePage() {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const successful = document.execCommand("copy")
       document.body.removeChild(textArea)
-      
+
       if (successful) {
         toast.success("Copying to clipboard was successful!")
       } else {
@@ -739,7 +756,7 @@ export default function InvoicePage() {
                   }
                 }}
                 placeholder="Search Invoice No"
-                className="h-8 text-sm cursor-pointer"
+                className="h-8 cursor-pointer text-sm"
                 readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
                 disabled={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
               />

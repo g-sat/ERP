@@ -19,6 +19,7 @@ import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import {
   clientDateFormat,
+  formatDateForApi,
   formatDateTimeForApi,
   parseDate,
 } from "@/lib/date-utils"
@@ -423,10 +424,10 @@ export function ChecklistMain({
 
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
-        // Date-only fields: already strings formatted with company date format (from transformToSchemaType)
-        jobOrderDate: formValues.jobOrderDate as string,
-        accountDate: formValues.accountDate as string,
-        seriesDate: formValues.seriesDate as string,
+        // Date-only fields: format to yyyy-MM-dd using formatDateForApi
+        jobOrderDate: formatDateForApi(formValues.jobOrderDate) || "",
+        accountDate: formatDateForApi(formValues.accountDate) || "",
+        seriesDate: formatDateForApi(formValues.seriesDate) || "",
         // DateTime fields: format with time using formatDateTimeForApi
         // Converts to ISO 8601 format (yyyy-MM-ddTHH:mm:ss.SSSZ)
         etaDate: etaDateFormatted,

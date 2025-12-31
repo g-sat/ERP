@@ -18,6 +18,7 @@ import {
 import { useForm as useBulkUpdateForm, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { formatDateForApi } from "@/lib/date-utils"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -353,7 +354,8 @@ export function CombinedFormsDialog({
           toast.error("Please select a date")
           return
         }
-        fieldValue = dateValue // Date is already a string
+        // Format date to yyyy-MM-dd format for API
+        fieldValue = formatDateForApi(dateValue) || ""
       } else if (selectedFieldConfig.type === "text") {
         const textValue = formValues.textValue || ""
         if (!textValue || textValue.trim() === "") {

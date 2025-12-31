@@ -46,7 +46,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { ArInvoice, BasicSetting } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -430,11 +430,28 @@ export default function InvoicePage() {
       }
 
       {
-        console.log("handleSaveInvoice formValues", formValues)
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          dueDate: formatDateForApi(formValues.dueDate) || "",
+          deliveryDate: formatDateForApi(formValues.deliveryDate) || "",
+          gstClaimDate: formatDateForApi(formValues.gstClaimDate) || "",
+          // Format dates in details array
+          data_details:
+            formValues.data_details?.map((detail) => ({
+              ...detail,
+              deliveryDate: formatDateForApi(detail.deliveryDate) || "",
+              supplyDate: formatDateForApi(detail.supplyDate) || "",
+            })) || [],
+        }
+
+        console.log("handleSaveInvoice apiFormValues", apiFormValues)
         const response =
           Number(formValues.invoiceId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const invoiceData = Array.isArray(response.data)

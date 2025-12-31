@@ -39,7 +39,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { ApPayment, BasicSetting } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -392,10 +392,25 @@ export default function PaymentPage() {
       }
 
       {
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          chequeDate: formatDateForApi(formValues.chequeDate) || "",
+          // Format dates in details array
+          data_details:
+            formValues.data_details?.map((detail) => ({
+              ...detail,
+              docAccountDate: formatDateForApi(detail.docAccountDate) || "",
+              docDueDate: formatDateForApi(detail.docDueDate) || "",
+            })) || [],
+        }
+
         const response =
           Number(formValues.paymentId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const paymentData = Array.isArray(response.data)

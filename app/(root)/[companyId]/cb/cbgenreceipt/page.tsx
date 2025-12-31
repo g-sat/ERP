@@ -49,7 +49,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { BasicSetting, CbGenReceipt } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
@@ -233,20 +233,64 @@ export default function CbGenReceiptPage() {
           totAmtAftGst: cbGenReceipt.totAmtAftGst ?? 0,
           totLocalAmtAftGst: cbGenReceipt.totLocalAmtAftGst ?? 0,
           totCtyAmtAftGst: cbGenReceipt.totCtyAmtAftGst ?? 0,
+          remarks: cbGenReceipt.remarks ?? "",
+          payeeTo: cbGenReceipt.payeeTo ?? "",
           moduleFrom: cbGenReceipt.moduleFrom ?? "",
+          createDate: cbGenReceipt.createDate ?? "",
+          editDate: cbGenReceipt.editDate ?? "",
+          isCancel: cbGenReceipt.isCancel ?? false,
+          cancelDate: cbGenReceipt.cancelDate ?? "",
+          cancelRemarks: cbGenReceipt.cancelRemarks ?? "",
+          createBy: cbGenReceipt.createBy ?? "",
+          editBy: cbGenReceipt.editBy ?? "",
+          cancelBy: cbGenReceipt.cancelBy ?? "",
           editVersion: cbGenReceipt.editVersion ?? 0,
+          appBy: cbGenReceipt.appBy ?? "",
+          appDate: cbGenReceipt.appDate ?? "",
+          appStatusId: cbGenReceipt.appStatusId ?? "",
           data_details:
             cbGenReceipt.data_details?.map((detail) => ({
               ...detail,
               receiptId: detail.receiptId?.toString() ?? "0",
               receiptNo: detail.receiptNo?.toString() ?? "",
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              glId: detail.glId ?? 0,
+              glCode: detail.glCode ?? "",
+              glName: detail.glName ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
+              gstId: detail.gstId ?? 0,
+              gstName: detail.gstName ?? "",
+              gstPercentage: detail.gstPercentage ?? 0,
               gstAmt: detail.gstAmt ?? 0,
               gstLocalAmt: detail.gstLocalAmt ?? 0,
               gstCtyAmt: detail.gstCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
+              departmentId: detail.departmentId ?? 0,
+              departmentCode: detail.departmentCode ?? "",
+              departmentName: detail.departmentName ?? "",
+              employeeId: detail.employeeId ?? 0,
+              employeeCode: detail.employeeCode ?? "",
+              employeeName: detail.employeeName ?? "",
+              portId: detail.portId ?? 0,
+              portCode: detail.portCode ?? "",
+              portName: detail.portName ?? "",
+              vesselId: detail.vesselId ?? 0,
+              vesselCode: detail.vesselCode ?? "",
+              vesselName: detail.vesselName ?? "",
+              bargeId: detail.bargeId ?? 0,
+              bargeCode: detail.bargeCode ?? "",
+              bargeName: detail.bargeName ?? "",
+              voyageId: detail.voyageId ?? 0,
+              voyageNo: detail.voyageNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceItemNo: detail.serviceItemNo ?? 0,
+              serviceItemNoName: detail.serviceItemNoName ?? "",
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
@@ -385,9 +429,9 @@ export default function CbGenReceiptPage() {
           prevAccountDate as unknown as string | Date | null
         )
 
-        const acc = format(parsedAccountDate, "yyyy-MM-dd")
+        const acc = formatDateForApi(parsedAccountDate) || ""
         const prev = parsedPrevAccountDate
-          ? format(parsedPrevAccountDate, "yyyy-MM-dd")
+          ? formatDateForApi(parsedPrevAccountDate) || ""
           : ""
 
         const glCheck = await getById(
@@ -405,10 +449,19 @@ export default function CbGenReceiptPage() {
       }
 
       {
+        // Format dates for API submission (yyyy-MM-dd format)
+        const apiFormValues = {
+          ...formValues,
+          trnDate: formatDateForApi(formValues.trnDate) || "",
+          accountDate: formatDateForApi(formValues.accountDate) || "",
+          gstClaimDate: formatDateForApi(formValues.gstClaimDate) || "",
+          chequeDate: formatDateForApi(formValues.chequeDate) || "",
+        }
+
         const response =
           Number(formValues.receiptId) === 0
-            ? await saveMutation.mutateAsync(formValues)
-            : await updateMutation.mutateAsync(formValues)
+            ? await saveMutation.mutateAsync(apiFormValues)
+            : await updateMutation.mutateAsync(apiFormValues)
 
         if (response.result === 1) {
           const invoiceData = Array.isArray(response.data)
@@ -816,6 +869,7 @@ export default function CbGenReceiptPage() {
         totLocalAmtAftGst: apiCbGenReceipt.totLocalAmtAftGst ?? 0,
         totCtyAmtAftGst: apiCbGenReceipt.totCtyAmtAftGst ?? 0,
         remarks: apiCbGenReceipt.remarks ?? "",
+        payeeTo: apiCbGenReceipt.payeeTo ?? "",
         moduleFrom: apiCbGenReceipt.moduleFrom ?? "",
         editVersion: apiCbGenReceipt.editVersion ?? 0,
         createBy: apiCbGenReceipt.createBy ?? "",
@@ -844,6 +898,15 @@ export default function CbGenReceiptPage() {
           : "",
         isCancel: apiCbGenReceipt.isCancel ?? false,
         cancelRemarks: apiCbGenReceipt.cancelRemarks ?? "",
+        appBy: apiCbGenReceipt.appBy ?? "",
+        appDate: apiCbGenReceipt.appDate
+          ? format(
+              parseDate(apiCbGenReceipt.appDate as unknown as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        appStatusId: apiCbGenReceipt.appStatusId?.toString() ?? "",
         data_details:
           apiCbGenReceipt.data_details?.map(
             (detail) =>
