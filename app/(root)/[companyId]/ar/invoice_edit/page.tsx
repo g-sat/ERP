@@ -178,8 +178,8 @@ export default function InvoicePage() {
     `${ArInvoice.get}`,
     TableName.arInvoice,
     filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString()
+    filters.startDate ? formatDateForApi(filters.startDate) || "" : "",
+    filters.endDate ? formatDateForApi(filters.endDate) || "" : ""
   )
 
   const { data: invoicesData } =

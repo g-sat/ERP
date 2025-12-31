@@ -7,7 +7,7 @@ import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArRefund } from "@/lib/api-routes"
-import { clientDateFormat } from "@/lib/date-utils"
+import { clientDateFormat, formatDateForApi } from "@/lib/date-utils"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
@@ -66,10 +66,14 @@ export default function RefundTable({
   const [hasSearched, setHasSearched] = useState(false)
   // Store the actual search dates - initialize from initialFilters if available
   const [searchStartDate, setSearchStartDate] = useState<string | undefined>(
-    initialFilters?.startDate?.toString() || defaultStartDate
+    initialFilters?.startDate
+      ? formatDateForApi(initialFilters.startDate) || defaultStartDate
+      : defaultStartDate
   )
   const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
-    initialFilters?.endDate?.toString() || defaultEndDate
+    initialFilters?.endDate
+      ? formatDateForApi(initialFilters.endDate) || defaultEndDate
+      : defaultEndDate
   )
 
   // Update form values when initialFilters change (when dialog reopens)
@@ -78,9 +82,15 @@ export default function RefundTable({
     form.setValue("endDate", initialFilters?.endDate || defaultEndDate)
 
     setSearchStartDate(
-      initialFilters?.startDate?.toString() || defaultStartDate
+      initialFilters?.startDate
+        ? formatDateForApi(initialFilters.startDate) || defaultStartDate
+        : defaultStartDate
     )
-    setSearchEndDate(initialFilters?.endDate?.toString() || defaultEndDate)
+    setSearchEndDate(
+      initialFilters?.endDate
+        ? formatDateForApi(initialFilters.endDate) || defaultEndDate
+        : defaultEndDate
+    )
   }, [initialFilters, form, defaultStartDate, defaultEndDate])
 
   // Data fetching - only after search button is clicked OR if dates are already set
@@ -395,9 +405,13 @@ export default function RefundTable({
     const startDate = form.getValues("startDate")
     const endDate = form.getValues("endDate")
 
-    // Store the search dates (convert to string if needed)
-    setSearchStartDate(startDate?.toString())
-    setSearchEndDate(endDate?.toString())
+    // Format dates to yyyy-MM-dd format for API
+    const formattedStartDate = formatDateForApi(startDate) || ""
+    const formattedEndDate = formatDateForApi(endDate) || ""
+
+    // Store the search dates (formatted for API)
+    setSearchStartDate(formattedStartDate)
+    setSearchEndDate(formattedEndDate)
     setHasSearched(true) // Enable the query
     setCurrentPage(1) // Reset to first page when searching
 

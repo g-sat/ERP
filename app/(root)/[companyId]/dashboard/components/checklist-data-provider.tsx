@@ -4,6 +4,7 @@ import { useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 
 import { JobOrder } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { useGetWithDates } from "@/hooks/use-common"
 
 import { ChecklistDashboard } from "./checklist-dashboard"
@@ -14,9 +15,8 @@ export function ChecklistDataProvider() {
   const defaultStartDate = new Date(today)
   defaultStartDate.setMonth(today.getMonth() - 1)
 
-  const formatDate = (date: Date) => date.toISOString().split("T")[0]
-  const [startDate] = useState(formatDate(defaultStartDate))
-  const [endDate] = useState(formatDate(today))
+  const [startDate] = useState(formatDateForApi(defaultStartDate) || "")
+  const [endDate] = useState(formatDateForApi(today) || "")
   const [searchQuery] = useState("")
 
   const { data: jobOrderResponse, isLoading: isLoadingJobOrder } =

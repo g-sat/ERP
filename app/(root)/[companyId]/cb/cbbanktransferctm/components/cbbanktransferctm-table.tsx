@@ -7,6 +7,7 @@ import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { CbBankTransferCtm } from "@/lib/api-routes"
+import { formatDateForApi } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -62,8 +63,8 @@ export default function CbBankTransferCtmTable({
     `${CbBankTransferCtm.get}`,
     TableName.cbBankTransferCtm,
     searchQuery,
-    form.watch("startDate")?.toString(),
-    form.watch("endDate")?.toString(),
+    formatDateForApi(form.watch("startDate")) || "",
+    formatDateForApi(form.watch("endDate")) || "",
     undefined, // options
     true // enabled: Fetch when table is opened
   )
