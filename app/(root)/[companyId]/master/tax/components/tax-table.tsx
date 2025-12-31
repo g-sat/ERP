@@ -98,14 +98,13 @@ export function TaxTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+        <div className="flex justify-center">
           {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
           ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
           )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
+        </div>
       ),
       size: 120,
       minSize: 50,

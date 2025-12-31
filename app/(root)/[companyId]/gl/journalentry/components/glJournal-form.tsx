@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  calculateAdditionAmount as calculateAdditionAmountHelper,
   setExchangeRate,
   setExchangeRateLocal,
   setGSTPercentage,
@@ -428,6 +429,55 @@ export default function GLJournalForm({
     }
   }, [dataDetails, amtDec, locAmtDec])
 
+  // Calculate balance status (debit vs credit)
+  const balanceStatus = React.useMemo(() => {
+    if (!dataDetails || dataDetails.length === 0) {
+      return {
+        debitTotal: 0,
+        creditTotal: 0,
+        difference: 0,
+        isBalanced: true,
+      }
+    }
+
+    const details = dataDetails as unknown as IGLJournalDt[]
+
+    // Calculate sum of totAmt for isDebit = true
+    let debitTotal = 0
+    const debitDetails = details.filter((detail) => detail.isDebit === true)
+    debitDetails.forEach((detail) => {
+      debitTotal = calculateAdditionAmountHelper(
+        debitTotal,
+        Number(detail.totAmt) || 0,
+        amtDec
+      )
+    })
+
+    // Calculate sum of totAmt for isDebit = false
+    let creditTotal = 0
+    const creditDetails = details.filter((detail) => detail.isDebit === false)
+    creditDetails.forEach((detail) => {
+      creditTotal = calculateAdditionAmountHelper(
+        creditTotal,
+        Number(detail.totAmt) || 0,
+        amtDec
+      )
+    })
+
+    const difference = Math.abs(debitTotal - creditTotal)
+    // Use a very small tolerance for floating point comparison (0.0001)
+    // Any difference >= 0.01 should be flagged as unbalanced
+    const tolerance = 0.0001
+    const isBalanced = difference < tolerance
+
+    return {
+      debitTotal,
+      creditTotal,
+      difference,
+      isBalanced,
+    }
+  }, [dataDetails, amtDec])
+
   return (
     <FormProvider {...form}>
       <form
@@ -568,7 +618,67 @@ export default function GLJournalForm({
           <>
             {/* Summary Box */}
         {/* Right Section: Summary Box */}
-        <div className="col-span-2 ml-2 flex flex-col justify-start">
+        <div className="col-span-2 ml-2 flex flex-col justify-start gap-2">
+          {/* Balance Status Indicator */}
+          {dataDetails && dataDetails.length > 0 && (
+            <div
+              className={`w-full rounded-md border p-3 shadow-sm ${
+                balanceStatus.isBalanced
+                  ? "border-green-200 bg-green-50"
+                  : "border-red-200 bg-red-50"
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-between border-b pb-2">
+                <span
+                  className={`text-xs font-bold ${
+                    balanceStatus.isBalanced ? "text-green-800" : "text-red-800"
+                  }`}
+                >
+                  {balanceStatus.isBalanced ? "✓ Balanced" : "⚠ Not Balanced"}
+                </span>
+              </div>
+              <div className="space-y-1 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-700">
+                    Debit Total:
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {balanceStatus.debitTotal.toLocaleString(undefined, {
+                      minimumFractionDigits: amtDec,
+                      maximumFractionDigits: amtDec,
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-700">
+                    Credit Total:
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {balanceStatus.creditTotal.toLocaleString(undefined, {
+                      minimumFractionDigits: amtDec,
+                      maximumFractionDigits: amtDec,
+                    })}
+                  </span>
+                </div>
+                {!balanceStatus.isBalanced && (
+                  <div className="mt-2 border-t border-red-300 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-red-700">
+                        Difference:
+                      </span>
+                      <span className="font-bold text-red-800">
+                        {balanceStatus.difference.toLocaleString(undefined, {
+                          minimumFractionDigits: amtDec,
+                          maximumFractionDigits: amtDec,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
             {/* Header Row */}
             <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-xs">

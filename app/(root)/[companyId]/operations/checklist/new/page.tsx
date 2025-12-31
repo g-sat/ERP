@@ -139,6 +139,9 @@ export default function NewChecklistPage() {
   // Watch currencyId to update exchange rate
   const currencyId = form.watch("currencyId")
 
+  // Watch gstId to fetch GST percentage
+  const gstId = form.watch("gstId")
+
   // Watch etaDate and etdDate for validation
   const etaDate = form.watch("etaDate")
   const etdDate = form.watch("etdDate")
@@ -219,6 +222,38 @@ export default function NewChecklistPage() {
 
     updateExchangeRate()
   }, [accountDate, currencyId, exhRateDec, form, parseWithFallback])
+
+  // Fetch GST percentage when gstId or accountDate changes
+  useEffect(() => {
+    const fetchGstPercentage = async () => {
+      // Only fetch if taxable is true and both gstId and accountDate are available
+      if (isTaxable && gstId && accountDate) {
+        try {
+          // Format date to yyyy-MM-dd (matching account.ts pattern)
+          const parsedAccountDate = parseWithFallback(accountDate)
+          if (!parsedAccountDate) return
+
+          const dt = format(parsedAccountDate, "yyyy-MM-dd")
+          const res = await getData(
+            `${BasicSetting.getGstPercentage}/${gstId}/${dt}`
+          )
+          const gstPercentage = res?.data as number
+
+          if (gstPercentage !== undefined && gstPercentage !== null) {
+            form.setValue("gstPercentage", gstPercentage)
+            form.trigger("gstPercentage")
+          }
+        } catch (error) {
+          console.error("Error fetching GST percentage:", error)
+        }
+      } else if (!isTaxable || !gstId) {
+        // Reset GST percentage when not taxable or no GST selected
+        form.setValue("gstPercentage", 0)
+      }
+    }
+
+    fetchGstPercentage()
+  }, [gstId, accountDate, isTaxable, form, parseWithFallback])
 
   // Handle currency selection
   const handleCurrencyChange = useCallback(

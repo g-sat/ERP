@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import {
+  calculateAdditionAmount,
   mathRound,
   setExchangeRate,
   setExchangeRateLocal,
@@ -56,6 +57,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  BalanceMismatchWarning,
   CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
@@ -121,6 +123,13 @@ export default function GLJournalPage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
+  const [showBalanceMismatchWarning, setShowBalanceMismatchWarning] =
+    useState(false)
+  const [balanceMismatchData, setBalanceMismatchData] = useState<{
+    debitTotal: number
+    creditTotal: number
+    difference: number
+  } | null>(null)
   const [isLoadingGLJournal, setIsLoadingGLJournal] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [glJournal, setGLJournal] = useState<GLJournalHdSchemaType | null>(null)
@@ -314,6 +323,56 @@ export default function GLJournalPage() {
       const formValues = transformToSchemaType(
         form.getValues() as unknown as IGLJournalHd
       )
+
+      // Check debit and credit balance before saving
+      const details = (formValues.data_details ||
+        []) as unknown as IGLJournalDt[]
+      if (details.length > 0) {
+        const amtDec = decimals[0]?.amtDec || 2
+
+        // Calculate sum of totAmt for isDebit = true
+        let debitTotal = 0
+        const debitDetails = details.filter((detail) => detail.isDebit === true)
+        debitDetails.forEach((detail) => {
+          debitTotal = calculateAdditionAmount(
+            debitTotal,
+            Number(detail.totAmt) || 0,
+            amtDec
+          )
+        })
+
+        // Calculate sum of totAmt for isDebit = false
+        let creditTotal = 0
+        const creditDetails = details.filter(
+          (detail) => detail.isDebit === false
+        )
+        creditDetails.forEach((detail) => {
+          creditTotal = calculateAdditionAmount(
+            creditTotal,
+            Number(detail.totAmt) || 0,
+            amtDec
+          )
+        })
+
+        // Check if debit and credit totals match
+        const difference = Math.abs(debitTotal - creditTotal)
+        // Use a very small tolerance for floating point comparison (0.0001)
+        // Any difference >= 0.01 should be flagged as unbalanced
+        const tolerance = 0.0001
+        if (difference >= tolerance) {
+          // Close save confirmation dialog
+          setShowSaveConfirm(false)
+          // Show warning dialog with amounts
+          setBalanceMismatchData({
+            debitTotal,
+            creditTotal,
+            difference,
+          })
+          setShowBalanceMismatchWarning(true)
+          setIsSaving(false)
+          return
+        }
+      }
 
       // Validate the form data using the schema
       const validationResult = GLJournalHdSchema(required, visible).safeParse(
@@ -1491,6 +1550,18 @@ export default function GLJournalPage() {
         title="Clone GLJournal"
         description="This will create a copy as a new glJournal."
       />
+
+      {/* Balance Mismatch Warning */}
+      {balanceMismatchData && (
+        <BalanceMismatchWarning
+          open={showBalanceMismatchWarning}
+          onOpenChange={setShowBalanceMismatchWarning}
+          debitTotal={balanceMismatchData.debitTotal}
+          creditTotal={balanceMismatchData.creditTotal}
+          difference={balanceMismatchData.difference}
+          decimals={decimals[0]?.amtDec || 2}
+        />
+      )}
     </div>
   )
 }

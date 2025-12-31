@@ -270,8 +270,11 @@ export const recalculateAndSetHeaderTotals = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  if (details.length === 0) {
-    // Reset all amounts to 0 if no details
+  // Filter details to only include rows where isDebit === true (isDebit = 1)
+  const debitDetails = details.filter((detail) => detail.isDebit === true)
+
+  if (debitDetails.length === 0) {
+    // Reset all amounts to 0 if no debit details
     form.setValue("totAmt", 0)
     form.setValue("gstAmt", 0)
     form.setValue("totAmtAftGst", 0)
@@ -290,22 +293,22 @@ export const recalculateAndSetHeaderTotals = (
   const locAmtDec = decimals?.locAmtDec || 2
   const ctyAmtDec = decimals?.ctyAmtDec || 2
 
-  // Calculate base currency totals
-  const totals = calculateTotalAmounts(details, amtDec)
+  // Calculate base currency totals (only from debit details)
+  const totals = calculateTotalAmounts(debitDetails, amtDec)
   form.setValue("totAmt", totals.totAmt)
   form.setValue("gstAmt", totals.gstAmt)
   form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-  // Calculate local currency totals (always calculate)
-  const localAmounts = calculateLocalAmounts(details, locAmtDec)
+  // Calculate local currency totals (only from debit details)
+  const localAmounts = calculateLocalAmounts(debitDetails, locAmtDec)
   form.setValue("totLocalAmt", localAmounts.totLocalAmt)
   form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
   form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
-  // Calculate country currency totals (always calculate)
+  // Calculate country currency totals (only from debit details)
   // If m_CtyCurr is false, country amounts = local amounts
   const countryAmounts = calculateCtyAmounts(
-    details,
+    debitDetails,
     visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
   )
   form.setValue("totCtyAmt", countryAmounts.totCtyAmt)

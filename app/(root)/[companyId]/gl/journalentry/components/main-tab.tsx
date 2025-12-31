@@ -79,35 +79,6 @@ export default function Main({
     setTableKey((prev) => prev + 1)
   }, [currentGLjournalId, currentGLJournalNo])
 
-  // Clear editingDetail when data_details is reset/cleared
-  useEffect(() => {
-    if (dataDetails.length === 0 && editingDetail) {
-      setEditingDetail(null)
-    }
-  }, [dataDetails.length, editingDetail])
-
-  useEffect(() => {
-    if (!editingDetail) {
-      return
-    }
-
-    const details = (dataDetails as unknown as IGLJournalDt[]) || []
-    const editingExists = details.some((detail) => {
-      const detailGLjournalId = `${detail.journalId ?? ""}`
-      const editingGLjournalId = `${editingDetail.journalId ?? ""}`
-      const detailGLJournalNo = detail.journalNo ?? ""
-      const editingGLJournalNo = editingDetail.journalNo ?? ""
-      return (
-        detail.itemNo === editingDetail.itemNo &&
-        detailGLjournalId === editingGLjournalId &&
-        detailGLJournalNo === editingGLJournalNo
-      )
-    })
-
-    if (!editingExists) {
-      setEditingDetail(null)
-    }
-  }, [dataDetails, editingDetail])
 
   // Helper function to recalculate header totals
   const recalculateHeaderTotals = () => {
@@ -133,30 +104,62 @@ export default function Main({
     ])
   }
 
+  // Clear editingDetail when data_details is reset/cleared
+  useEffect(() => {
+    if (dataDetails.length === 0 && editingDetail) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails.length, editingDetail])
+
+  // Note: Balance check is only done in handleSaveGLJournal in page.tsx
+  // We don't show warning dialog here, only the visual indicator in the header
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IGLJournalDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailGLjournalId = `${detail.journalId ?? ""}`
+      const editingGLjournalId = `${editingDetail.journalId ?? ""}`
+      const detailGLJournalNo = detail.journalNo ?? ""
+      const editingGLJournalNo = editingDetail.journalNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailGLjournalId === editingGLjournalId &&
+        detailGLJournalNo === editingGLJournalNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
+
   const handleAddRow = (rowData: IGLJournalDt) => {
     const currentData = form.getValues("data_details") || []
 
+    let updatedData: GLJournalDtSchemaType[]
     if (editingDetail) {
       // Update existing row by itemNo (unique identifier)
-      const updatedData = currentData.map((item) =>
+      updatedData = currentData.map((item) =>
         item.itemNo === editingDetail.itemNo ? rowData : item
-      )
-      form.setValue(
-        "data_details",
-        updatedData as unknown as GLJournalDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
-
+      ) as unknown as GLJournalDtSchemaType[]
       setEditingDetail(null)
     } else {
       // Add new row
-      const updatedData = [...currentData, rowData]
-      form.setValue(
-        "data_details",
-        updatedData as unknown as GLJournalDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
+      updatedData = [
+        ...currentData,
+        rowData,
+      ] as unknown as GLJournalDtSchemaType[]
     }
+
+    // Update form with new data
+    form.setValue("data_details", updatedData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
 
     // Trigger form validation
     form.trigger("data_details")
@@ -301,6 +304,7 @@ export default function Main({
           setItemToDelete(null)
         }}
       />
+
     </div>
   )
 }
