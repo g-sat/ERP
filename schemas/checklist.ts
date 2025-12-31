@@ -21,6 +21,7 @@ export const JobOrderHdSchema = z
     lastPortId: z.number().optional(),
     nextPortId: z.number().optional(),
     voyageId: z.number().optional(),
+    geoLocationId: z.number().optional(),
     natureOfCall: z
       .string()
       .max(50, "Nature of Call must be less than 50 characters")
@@ -641,7 +642,7 @@ export const ThirdPartySchema = z.object({
     .optional()
     .optional(),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
-  partyTypeId: z.number().min(1, "Party Type is required"),
+  supplyTypeId: z.number().min(1, "Supply Type is required"),
   chargeId: z.number().min(1, "Charge is required"),
   taskStatusId: z.number().min(1, "Status is required"),
   supplierId: z.number().optional(),

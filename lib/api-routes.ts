@@ -279,7 +279,8 @@ export const Lookup = {
   getRank: "/master/getranklookup",
   getGender: "/master/getgenderlookup",
   getVisa: "/master/getvisalookup",
-  getPartyType: "/master/getpartytypelookup",
+  getGeoLocation: "/master/getgeolocationlookup",
+  getSupplyType: "/master/getsupplytypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
   getLandingPurpose: "/master/getLandingPurposelookup",
@@ -461,12 +462,20 @@ export const Visa = {
   delete: "/master/deletevisa",
 }
 
-// PartyType Endpoints
-export const PartyType = {
-  get: "/master/getpartytype",
-  getByCode: "/master/getpartytypebycode",
-  add: "/master/savepartytype",
-  delete: "/master/deletepartytype",
+// GeoLocation Endpoints
+export const GeoLocation = {
+  get: "/master/getgeolocation",
+  getByCode: "/master/getgeolocationbycode",
+  add: "/master/savegeolocation",
+  delete: "/master/deletegeolocation",
+}
+
+// SupplyType Endpoints
+export const SupplyType = {
+  get: "/master/getsupplytype",
+  getByCode: "/master/getsupplytypebycode",
+  add: "/master/savesupplytype",
+  delete: "/master/deletesupplytype",
 }
 
 // Rank Endpoints

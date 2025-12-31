@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { IPartyType } from "@/interfaces/partytype"
-import { PartyTypeSchemaType, partyTypeSchema } from "@/schemas/partytype"
+import { ISupplyType } from "@/interfaces/supplytype"
+import { SupplyTypeSchemaType, supplyTypeSchema } from "@/schemas/supplytype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -21,39 +21,39 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 const defaultValues = {
-  partyTypeId: 0,
-  partyTypeName: "",
-  partyTypeCode: "",
+  supplyTypeId: 0,
+  supplyTypeName: "",
+  supplyTypeCode: "",
   remarks: "",
   isActive: true,
 }
-interface PartyTypeFormProps {
-  initialData?: IPartyType | null
-  submitAction: (data: PartyTypeSchemaType) => void
+interface SupplyTypeFormProps {
+  initialData?: ISupplyType | null
+  submitAction: (data: SupplyTypeSchemaType) => void
   onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
 }
 
-export function PartyTypeForm({
+export function SupplyTypeForm({
   initialData,
   submitAction,
   onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
-}: PartyTypeFormProps) {
+}: SupplyTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<PartyTypeSchemaType>({
-    resolver: zodResolver(partyTypeSchema),
+  const form = useForm<SupplyTypeSchemaType>({
+    resolver: zodResolver(supplyTypeSchema),
     defaultValues: initialData
       ? {
-          partyTypeId: initialData.partyTypeId ?? 0,
-          partyTypeName: initialData.partyTypeName ?? "",
-          partyTypeCode: initialData.partyTypeCode ?? "",
+          supplyTypeId: initialData.supplyTypeId ?? 0,
+          supplyTypeName: initialData.supplyTypeName ?? "",
+          supplyTypeCode: initialData.supplyTypeCode ?? "",
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -67,9 +67,9 @@ export function PartyTypeForm({
     form.reset(
       initialData
         ? {
-            partyTypeId: initialData.partyTypeId ?? 0,
-            partyTypeName: initialData.partyTypeName ?? "",
-            partyTypeCode: initialData.partyTypeCode ?? "",
+            supplyTypeId: initialData.supplyTypeId ?? 0,
+            supplyTypeName: initialData.supplyTypeName ?? "",
+            supplyTypeCode: initialData.supplyTypeCode ?? "",
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -80,13 +80,13 @@ export function PartyTypeForm({
   }, [initialData, form])
 
   const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
-    const code = form.getValues("partyTypeCode")
+    const code = form.getValues("supplyTypeCode")
     if (code) {
       onCodeBlur?.(code)
     }
   }
 
-  const onSubmit = (data: PartyTypeSchemaType) => {
+  const onSubmit = (data: SupplyTypeSchemaType) => {
     submitAction(data)
   }
 
@@ -98,16 +98,16 @@ export function PartyTypeForm({
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
-                name="partyTypeCode"
-                label="Party Type Code"
+                name="supplyTypeCode"
+                label="Supply Type Code"
                 isRequired
                 isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
               <CustomInput
                 form={form}
-                name="partyTypeName"
-                label="Party Type Name"
+                name="supplyTypeName"
+                label="Supply Type Name"
                 isRequired
                 isDisabled={isReadOnly}
               />

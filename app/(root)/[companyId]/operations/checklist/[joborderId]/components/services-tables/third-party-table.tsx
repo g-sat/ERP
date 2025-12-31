@@ -145,11 +145,11 @@ export function ThirdPartyTable({
           ]
         : []),
       {
-        accessorKey: "partyTypeName",
-        header: "Party Type",
+        accessorKey: "supplyTypeName",
+        header: "Supply Type",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("partyTypeName") || "-"}
+            {row.getValue("supplyTypeName") || "-"}
           </div>
         ),
         size: 150,

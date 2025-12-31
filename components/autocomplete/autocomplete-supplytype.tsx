@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IPartyTypeLookup } from "@/interfaces/lookup"
+import { ISupplyTypeLookup } from "@/interfaces/lookup"
 import {
   IconCheck,
   IconChevronDown,
@@ -20,7 +20,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { usePartyTypeLookup } from "@/hooks/use-lookup"
+import { useSupplyTypeLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,7 +30,9 @@ interface FieldOption {
   label: string
 }
 
-export default function PartyTypeAutocomplete<T extends Record<string, unknown>>({
+export default function SupplyTypeAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -45,27 +47,27 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IPartyTypeLookup | null) => void
+  onChangeEvent?: (selectedOption: ISupplyTypeLookup | null) => void
 }) {
-  const { data: partyTypes = [], isLoading, refetch } = usePartyTypeLookup()
+  const { data: supplyTypes = [], isLoading, refetch } = useSupplyTypeLookup()
 
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
-      console.error("Error refreshing party types:", error)
+      console.error("Error refreshing supply types:", error)
     }
   }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      partyTypes.map((partyType: IPartyTypeLookup) => ({
-        value: partyType.partyTypeId.toString(),
-        label: partyType.partyTypeName,
+      supplyTypes.map((supplyType: ISupplyTypeLookup) => ({
+        value: supplyType.supplyTypeId.toString(),
+        label: supplyType.supplyTypeName,
       })),
-    [partyTypes]
+    [supplyTypes]
   )
 
   // Custom components with display names
@@ -202,16 +204,16 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedPartyType = selectedOption
-          ? partyTypes.find(
-              (u: IPartyTypeLookup) =>
-                u.partyTypeId.toString() === selectedOption.value
+        const selectedSupplyType = selectedOption
+          ? supplyTypes.find(
+              (u: ISupplyTypeLookup) =>
+                u.supplyTypeId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedPartyType)
+        onChangeEvent(selectedSupplyType)
       }
     },
-    [form, name, onChangeEvent, partyTypes]
+    [form, name, onChangeEvent, supplyTypes]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -359,7 +361,7 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
               disabled={isLoading}
               tabIndex={-1}
               className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-              title="Refresh party types"
+              title="Refresh supply types"
             >
               <IconRefresh
                 size={12}
@@ -386,7 +388,7 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
                     value={getValue()}
                     onChange={handleChange}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select Party Type..."
+                    placeholder="Select Supply Type..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
@@ -404,7 +406,7 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
                     }
                     menuPosition="fixed"
                     isLoading={isLoading}
-                    loadingMessage={() => "Loading party types..."}
+                    loadingMessage={() => "Loading supply types..."}
                     blurInputOnSelect={true}
                   />
                 </div>
@@ -486,4 +488,3 @@ export default function PartyTypeAutocomplete<T extends Record<string, unknown>>
     </div>
   )
 }
-

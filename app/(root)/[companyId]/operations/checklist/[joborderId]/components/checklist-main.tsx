@@ -32,6 +32,7 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   GSTAutocomplete,
+  GeoLocationAutocomplete,
   JobStatusAutocomplete,
   PortAutocomplete,
   VesselAutocomplete,
@@ -113,6 +114,7 @@ export function ChecklistMain({
       exhRate: jobData?.exhRate ?? 0,
       vesselId: jobData?.vesselId ?? 0,
       voyageId: jobData?.voyageId ?? 0,
+      geoLocationId: jobData?.geoLocationId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
       etaDate: jobData?.etaDate
@@ -230,6 +232,7 @@ export function ChecklistMain({
       exhRate: jobData?.exhRate ?? 0,
       vesselId: jobData?.vesselId ?? 0,
       voyageId: jobData?.voyageId ?? 0,
+      geoLocationId: jobData?.geoLocationId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
       etaDate: jobData?.etaDate
@@ -387,6 +390,7 @@ export function ChecklistMain({
       exhRate: apiJobOrder.exhRate ?? 0,
       vesselId: apiJobOrder.vesselId ?? 0,
       voyageId: apiJobOrder.voyageId ?? 0,
+      geoLocationId: apiJobOrder.geoLocationId ?? 0,
       lastPortId: apiJobOrder.lastPortId ?? 0,
       nextPortId: apiJobOrder.nextPortId ?? 0,
       etaDate: apiJobOrder.etaDate
@@ -737,6 +741,13 @@ export function ChecklistMain({
                   form={form}
                   name="imoCode"
                   label="IMO No"
+                  isRequired={false}
+                  isDisabled={isConfirmed}
+                />
+                <GeoLocationAutocomplete
+                  form={form}
+                  name="geoLocationId"
+                  label="GeoLocation"
                   isRequired={false}
                   isDisabled={isConfirmed}
                 />

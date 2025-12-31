@@ -413,10 +413,10 @@ export interface IVisaLookup {
   visaCode: string
   visaName: string
 }
-export interface IPartyTypeLookup {
-  partyTypeId: number
-  partyTypeCode: string
-  partyTypeName: string
+export interface ISupplyTypeLookup {
+  supplyTypeId: number
+  supplyTypeCode: string
+  supplyTypeName: string
 }
 export interface IStatusLookup {
   statusId: number
@@ -449,6 +449,12 @@ export interface IVisaLookup {
   visaId: number
   visaCode: string
   visaName: string
+}
+
+export interface IGeoLocationLookup {
+  geoLocationId: number
+  geoLocationCode: string
+  geoLocationName: string
 }
 
 export interface IPassTypeLookup {

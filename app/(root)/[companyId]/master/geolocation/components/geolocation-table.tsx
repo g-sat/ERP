@@ -1,6 +1,6 @@
 "use client"
 
-import { IPartyType } from "@/interfaces/partytype"
+import { IGeoLocation } from "@/interfaces/geolocation"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -10,16 +10,15 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface PartyTypesTableProps {
-  data: IPartyType[]
+interface GeoLocationsTableProps {
+  data: IGeoLocation[]
   isLoading?: boolean
   totalRecords?: number
-  onSelect?: (partyType: IPartyType | null) => void
-  onDeleteAction?: (partyTypeId: string) => void
-  onEditAction?: (partyType: IPartyType) => void
+  onSelect?: (geolocation: IGeoLocation | null) => void
+  onDeleteAction?: (geolocationId: string) => void
+  onEditAction?: (geolocation: IGeoLocation) => void
   onCreateAction?: () => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -37,7 +36,7 @@ interface PartyTypesTableProps {
   canCreate?: boolean
 }
 
-export function PartyTypesTable({
+export function GeoLocationsTable({
   data,
   isLoading = false,
   totalRecords = 0,
@@ -59,33 +58,60 @@ export function PartyTypesTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: PartyTypesTableProps) {
+}: GeoLocationsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const columns: ColumnDef<IPartyType>[] = [
+  const columns: ColumnDef<IGeoLocation>[] = [
     {
-      accessorKey: "partyTypeCode",
+      accessorKey: "geoLocationCode",
       header: "Code",
       size: 120,
       minSize: 50,
-
       enableColumnFilter: true,
     },
     {
-      accessorKey: "partyTypeName",
+      accessorKey: "geoLocationName",
       header: "Name",
       size: 200,
       minSize: 50,
-
       enableColumnFilter: true,
+    },
+    {
+      accessorKey: "portId",
+      header: "Port ID",
+      size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "latitude",
+      header: "Latitude",
+      size: 120,
+      minSize: 50,
+      cell: ({ row }) => {
+        const value = row.getValue("latitude") as string | null
+        return <span>{value || "-"}</span>
+      },
+    },
+    {
+      accessorKey: "longitude",
+      header: "Longitude",
+      size: 120,
+      minSize: 50,
+      cell: ({ row }) => {
+        const value = row.getValue("longitude") as string | null
+        return <span>{value || "-"}</span>
+      },
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-
       size: 250,
       minSize: 50,
+      cell: ({ row }) => {
+        const value = row.getValue("remarks") as string | null
+        return <span>{value || "-"}</span>
+      },
     },
     {
       accessorKey: "isActive",
@@ -105,7 +131,6 @@ export function PartyTypesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-
       size: 120,
       minSize: 50,
     },
@@ -125,15 +150,19 @@ export function PartyTypesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-
       size: 120,
       minSize: 50,
+      cell: ({ row }) => {
+        const value = row.getValue("editBy") as string | null
+        return <span>{value || "-"}</span>
+      },
     },
     {
       accessorKey: "editDate",
       header: "Edit Date",
       cell: ({ row }) => {
         const raw = row.getValue("editDate")
+        if (!raw) return "-"
         let date: Date | null = null
         if (typeof raw === "string") date = new Date(raw)
         else if (raw instanceof Date) date = raw
@@ -152,9 +181,9 @@ export function PartyTypesTable({
       totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.partyType}
-      emptyMessage="No party types found."
-      accessorId="partyTypeId"
+      tableName={TableName.geoLocation}
+      emptyMessage="No geo locations found."
+      accessorId="geoLocationId"
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}

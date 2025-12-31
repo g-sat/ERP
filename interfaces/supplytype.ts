@@ -1,8 +1,8 @@
-export interface IPartyType {
-  partyTypeId: number
+export interface ISupplyType {
+  supplyTypeId: number
   companyId: number
-  partyTypeCode: string
-  partyTypeName: string
+  supplyTypeCode: string
+  supplyTypeName: string
   createById: number
   editById: number
   createBy: string
@@ -13,7 +13,7 @@ export interface IPartyType {
   remarks: string
 }
 
-export interface IPartyTypeFilter {
+export interface ISupplyTypeFilter {
   isActive?: boolean
   search?: string
   sortOrder?: "asc" | "desc"

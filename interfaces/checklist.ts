@@ -22,6 +22,8 @@ export interface IJobOrderHd {
   nextPortName?: string
   voyageId?: number
   voyageNo?: string
+  geoLocationId?: number
+  geoLocationName?: string
   natureOfCall?: string
   isps?: string
   etaDate?: Date | string | null
@@ -698,8 +700,8 @@ export interface IThirdParty {
   editDate?: Date
   editVersion: number
   quantity: number
-  partyTypeId: number
-  partyTypeName?: string
+  supplyTypeId: number
+  supplyTypeName?: string
   supplierName?: string
 
   chargeId: number

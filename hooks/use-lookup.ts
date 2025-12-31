@@ -28,6 +28,7 @@ import {
   IEmployerLookup,
   IEntityTypeLookup,
   IGenderLookup,
+  IGeoLocationLookup,
   IGstCategoryLookup,
   IGstLookup,
   IJobOrderLookup,
@@ -39,7 +40,7 @@ import {
   IModuleLookup,
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
-  IPartyTypeLookup,
+  ISupplyTypeLookup,
   IPassTypeLookup,
   IPayrollComponentGroupLookup,
   IPayrollComponentLookup,
@@ -1496,13 +1497,29 @@ export const useVisaLookup = () => {
   })
 }
 
-export const usePartyTypeLookup = () => {
-  return useQuery<IPartyTypeLookup[]>({
-    queryKey: ["partyType-lookUp"],
+export const useGeoLocationLookup = () => {
+  return useQuery<IGeoLocationLookup[]>({
+    queryKey: ["geolocation-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getPartyType)
+        const data = await getData(Lookup.getGeoLocation)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useSupplyTypeLookup = () => {
+  return useQuery<ISupplyTypeLookup[]>({
+    queryKey: ["supplyType-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getSupplyType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

@@ -237,8 +237,10 @@ const getTransactionIcon = (transactionCode: string) => {
     rank: Award,
     servicemode: Sliders,
     taskstatus: CircleDot,
-    vatservicecategory: FileText,
+    vatservicecategory: Receipt,
+    supplytype: Users,
     visa: Globe,
+    geolocation: MapPin,
     // Cash Book transactions
     cbbankrecon: Scale,
     cbbanktransfer: ArrowLeftRight,

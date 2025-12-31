@@ -35,6 +35,7 @@ import {
   CustomerAutocomplete,
   DynamicVesselAutocomplete,
   GSTAutocomplete,
+  GeoLocationAutocomplete,
   PortAutocomplete,
   StatusAutocomplete,
   VoyageAutocomplete,
@@ -488,6 +489,7 @@ export default function NewChecklistPage() {
                     form={form}
                     name="jobOrderNo"
                     label="Job Order No"
+                    isDisabled={true}
                   />
                   <DynamicVesselAutocomplete
                     form={form}
@@ -500,6 +502,12 @@ export default function NewChecklistPage() {
                     form={form}
                     name="imoCode"
                     label="IMO No"
+                    isRequired={false}
+                  />
+                  <GeoLocationAutocomplete
+                    form={form}
+                    name="geoLocationId"
+                    label="GeoLocation"
                     isRequired={false}
                   />
                   <VoyageAutocomplete
