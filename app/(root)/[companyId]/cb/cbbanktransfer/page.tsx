@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { ICbBankTransfer, ICbBankTransferFilter } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -32,7 +32,7 @@ import { getById } from "@/lib/api-client"
 import { BasicSetting, CbBankTransfer } from "@/lib/api-routes"
 import { clientDateFormat, formatDateForApi, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
@@ -93,10 +93,10 @@ export default function BankTransferPage() {
     [dateFormat]
   )
 
-  const _canView = hasPermission(moduleId, transactionId, "isRead")
-  const _canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const _canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const _canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
   const _canPost = hasPermission(moduleId, transactionId, "isPost")
 
   const [showListDialog, setShowListDialog] = useState(false)
@@ -107,7 +107,6 @@ export default function BankTransferPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingBankTransfer, setIsLoadingBankTransfer] = useState(false)
-  const [_isSelectingBankTransfer, setIsSelectingBankTransfer] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [bankTransfer, setBankTransfer] =
     useState<CbBankTransferSchemaType | null>(null)
@@ -236,112 +235,190 @@ export default function BankTransferPage() {
           appStatusId: bankTransfer.appStatusId ?? null,
           appBy: bankTransfer.appBy ?? "",
           appDate: bankTransfer.appDate ?? null,
+          createBy: bankTransfer.createBy ?? "",
+          editBy: bankTransfer.editBy ?? "",
+          createDate: bankTransfer.createDate ?? "",
+          editDate: bankTransfer.editDate ?? null,
         }
-      : {
-          ...defaultBankTransferValues,
-        },
+      : (() => {
+          // For new bankTransfer, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultBankTransferValues,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
-  // Data fetching moved to BankTransferTable component for better performance
+  const previousDateFormatRef = useRef<string>(dateFormat)
+  const { isDirty } = form.formState
+
+  useEffect(() => {
+    if (previousDateFormatRef.current === dateFormat) return
+    previousDateFormatRef.current = dateFormat
+
+    if (isDirty) return
+
+    const currentTransferId = form.getValues("transferId") || "0"
+    if (
+      (bankTransfer &&
+        bankTransfer.transferId &&
+        bankTransfer.transferId !== "0") ||
+      currentTransferId !== "0"
+    ) {
+      return
+    }
+
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
+    form.reset({
+      ...defaultBankTransferValues,
+      createBy: userName,
+      createDate: currentDateTime,
+    })
+  }, [
+    dateFormat,
+    defaultBankTransferValues,
+    decimals,
+    form,
+    bankTransfer,
+    isDirty,
+    user,
+  ])
 
   // Helper function to transform ICbBankTransfer to CbBankTransferSchemaType
-  const transformToSchemaType = (
-    apiBankTransfer: ICbBankTransfer
-  ): CbBankTransferSchemaType => {
-    return {
-      transferId: apiBankTransfer.transferId?.toString() ?? "0",
-      transferNo: apiBankTransfer.transferNo ?? "",
-      referenceNo: apiBankTransfer.referenceNo ?? "",
-      trnDate: apiBankTransfer.trnDate
-        ? format(
-            parseDate(apiBankTransfer.trnDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      accountDate: apiBankTransfer.accountDate
-        ? format(
-            parseDate(apiBankTransfer.accountDate as string) || new Date(),
-            clientDateFormat
-          )
-        : "",
-      paymentTypeId: apiBankTransfer.paymentTypeId ?? 0,
-      chequeNo: apiBankTransfer.chequeNo ?? "",
-      chequeDate: apiBankTransfer.chequeDate
-        ? format(
-            parseDate(apiBankTransfer.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : apiBankTransfer.accountDate
+  const transformToSchemaType = useCallback(
+    (apiBankTransfer: ICbBankTransfer): CbBankTransferSchemaType => {
+      return {
+        transferId: apiBankTransfer.transferId?.toString() ?? "0",
+        transferNo: apiBankTransfer.transferNo ?? "",
+        referenceNo: apiBankTransfer.referenceNo ?? "",
+        trnDate: apiBankTransfer.trnDate
+          ? format(
+              parseDate(apiBankTransfer.trnDate as string) || new Date(),
+              dateFormat
+            )
+          : dateFormat,
+        accountDate: apiBankTransfer.accountDate
           ? format(
               parseDate(apiBankTransfer.accountDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : format(new Date(), clientDateFormat),
-      jobOrderId: apiBankTransfer.jobOrderId ?? 0,
-      taskId: apiBankTransfer.taskId ?? 0,
-      serviceItemNo: apiBankTransfer.serviceItemNo ?? 0,
+          : dateFormat,
+        paymentTypeId: apiBankTransfer.paymentTypeId ?? 0,
+        chequeNo: apiBankTransfer.chequeNo ?? "",
+        chequeDate: apiBankTransfer.chequeDate
+          ? format(
+              parseDate(apiBankTransfer.chequeDate as string) || new Date(),
+              dateFormat
+            )
+          : apiBankTransfer.accountDate
+            ? format(
+                parseDate(apiBankTransfer.accountDate as string) || new Date(),
+                dateFormat
+              )
+            : format(new Date(), dateFormat),
+        jobOrderId: apiBankTransfer.jobOrderId ?? 0,
+        taskId: apiBankTransfer.taskId ?? 0,
+        serviceItemNo: apiBankTransfer.serviceItemNo ?? 0,
 
-      fromBankId: apiBankTransfer.fromBankId ?? 0,
-      fromCurrencyId: apiBankTransfer.fromCurrencyId ?? 0,
-      fromExhRate: apiBankTransfer.fromExhRate ?? 0,
-      fromBankChgGLId: apiBankTransfer.fromBankChgGLId ?? 0,
-      fromBankChgAmt: apiBankTransfer.fromBankChgAmt ?? 0,
-      fromBankChgLocalAmt: apiBankTransfer.fromBankChgLocalAmt ?? 0,
-      fromTotAmt: apiBankTransfer.fromTotAmt ?? 0,
-      fromTotLocalAmt: apiBankTransfer.fromTotLocalAmt ?? 0,
+        fromBankId: apiBankTransfer.fromBankId ?? 0,
+        fromCurrencyId: apiBankTransfer.fromCurrencyId ?? 0,
+        fromExhRate: apiBankTransfer.fromExhRate ?? 0,
+        fromBankChgGLId: apiBankTransfer.fromBankChgGLId ?? 0,
+        fromBankChgAmt: apiBankTransfer.fromBankChgAmt ?? 0,
+        fromBankChgLocalAmt: apiBankTransfer.fromBankChgLocalAmt ?? 0,
+        fromTotAmt: apiBankTransfer.fromTotAmt ?? 0,
+        fromTotLocalAmt: apiBankTransfer.fromTotLocalAmt ?? 0,
 
-      toBankId: apiBankTransfer.toBankId ?? 0,
-      toCurrencyId: apiBankTransfer.toCurrencyId ?? 0,
-      toExhRate: apiBankTransfer.toExhRate ?? 0,
-      toBankChgGLId: apiBankTransfer.toBankChgGLId ?? 0,
-      toBankChgAmt: apiBankTransfer.toBankChgAmt ?? 0,
-      toBankChgLocalAmt: apiBankTransfer.toBankChgLocalAmt ?? 0,
-      toTotAmt: apiBankTransfer.toTotAmt ?? 0,
-      toTotLocalAmt: apiBankTransfer.toTotLocalAmt ?? 0,
+        toBankId: apiBankTransfer.toBankId ?? 0,
+        toCurrencyId: apiBankTransfer.toCurrencyId ?? 0,
+        toExhRate: apiBankTransfer.toExhRate ?? 0,
+        toBankChgGLId: apiBankTransfer.toBankChgGLId ?? 0,
+        toBankChgAmt: apiBankTransfer.toBankChgAmt ?? 0,
+        toBankChgLocalAmt: apiBankTransfer.toBankChgLocalAmt ?? 0,
+        toTotAmt: apiBankTransfer.toTotAmt ?? 0,
+        toTotLocalAmt: apiBankTransfer.toTotLocalAmt ?? 0,
 
-      bankExhRate: apiBankTransfer.bankExhRate ?? 0,
-      bankTotAmt: apiBankTransfer.bankTotAmt ?? 0,
-      bankTotLocalAmt: apiBankTransfer.bankTotLocalAmt ?? 0,
+        bankExhRate: apiBankTransfer.bankExhRate ?? 0,
+        bankTotAmt: apiBankTransfer.bankTotAmt ?? 0,
+        bankTotLocalAmt: apiBankTransfer.bankTotLocalAmt ?? 0,
 
-      remarks: apiBankTransfer.remarks ?? "",
-      payeeTo: apiBankTransfer.payeeTo ?? "",
-      moduleFrom: apiBankTransfer.moduleFrom ?? "",
-      exhGainLoss: apiBankTransfer.exhGainLoss ?? 0,
-      createBy: apiBankTransfer.createBy ?? "",
-      editBy: apiBankTransfer.editBy ?? "",
-      cancelBy: apiBankTransfer.cancelBy ?? "",
-      createDate: apiBankTransfer.createDate
-        ? parseDate(apiBankTransfer.createDate as string) || new Date()
-        : new Date(),
-      editDate: apiBankTransfer.editDate
-        ? parseDate(apiBankTransfer.editDate as unknown as string) || null
-        : null,
-      cancelDate: apiBankTransfer.cancelDate
-        ? parseDate(apiBankTransfer.cancelDate as unknown as string) || null
-        : null,
-      cancelRemarks: apiBankTransfer.cancelRemarks ?? null,
-      editVersion: apiBankTransfer.editVersion ?? 0,
-      isPost: apiBankTransfer.isPost ?? false,
-      postDate: apiBankTransfer.postDate
-        ? parseDate(apiBankTransfer.postDate as unknown as string) || null
-        : null,
-      appStatusId: apiBankTransfer.appStatusId ?? null,
-      appBy: apiBankTransfer.appBy ?? "",
-      appDate: apiBankTransfer.appDate
-        ? parseDate(apiBankTransfer.appDate as unknown as string) || null
-        : null,
-    }
-  }
+        remarks: apiBankTransfer.remarks ?? "",
+        payeeTo: apiBankTransfer.payeeTo ?? "",
+        moduleFrom: apiBankTransfer.moduleFrom ?? "",
+        exhGainLoss: apiBankTransfer.exhGainLoss ?? 0,
+        editVersion: apiBankTransfer.editVersion ?? 0,
+        createBy: apiBankTransfer.createBy ?? "",
+        editBy: apiBankTransfer.editBy ?? "",
+        cancelBy: apiBankTransfer.cancelBy ?? "",
+        createDate: apiBankTransfer.createDate
+          ? format(
+              parseDate(apiBankTransfer.createDate as string) || new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
+        editDate: apiBankTransfer.editDate
+          ? parseDate(apiBankTransfer.editDate as unknown as string) || null
+          : null,
+        cancelDate: apiBankTransfer.cancelDate
+          ? parseDate(apiBankTransfer.cancelDate as unknown as string) || null
+          : null,
+        cancelRemarks: apiBankTransfer.cancelRemarks ?? null,
+        isPost: apiBankTransfer.isPost ?? false,
+        postDate: apiBankTransfer.postDate
+          ? parseDate(apiBankTransfer.postDate as unknown as string) || null
+          : null,
+        appStatusId: apiBankTransfer.appStatusId ?? null,
+        appBy: apiBankTransfer.appBy ?? "",
+        appDate: apiBankTransfer.appDate
+          ? parseDate(apiBankTransfer.appDate as unknown as string) || null
+          : null,
+        isCancel: apiBankTransfer.isCancel ?? false,
+      }
+    },
+    [dateFormat, decimals]
+  )
 
-  // Handle Search Bank Transfer
-  const handleBankTransferSearch = useCallback(
-    async (value: string) => {
-      if (!value) return
+  const loadBankTransfer = useCallback(
+    async ({
+      transferId,
+      transferNo,
+      showLoader = false,
+    }: {
+      transferId?: string | number | null
+      transferNo?: string | null
+      showLoader?: boolean
+    }) => {
+      console.log("transferId", transferId)
+      console.log("transferNo", transferNo)
+      const trimmedTransferNo = transferNo?.trim() ?? ""
+      const trimmedTransferId =
+        typeof transferId === "number"
+          ? transferId.toString()
+          : (transferId?.toString().trim() ?? "")
 
-      setIsLoadingBankTransfer(true)
+      if (!trimmedTransferNo && !trimmedTransferId) return null
+
+      if (showLoader) {
+        setIsLoadingBankTransfer(true)
+      }
+
+      const requestTransferId = trimmedTransferId || "0"
+      const requestTransferNo = trimmedTransferNo || ""
 
       try {
-        const response = await getById(`${CbBankTransfer.getByIdNo}/0/${value}`)
+        const response = await getById(
+          `${CbBankTransfer.getByIdNo}/${requestTransferId}/${requestTransferNo}`
+        )
 
         if (response?.result === 1) {
           const detailedBankTransfer = Array.isArray(response.data)
@@ -349,58 +426,54 @@ export default function BankTransferPage() {
             : response.data
 
           if (detailedBankTransfer) {
-            const updatedBankTransfer =
-              transformToSchemaType(detailedBankTransfer)
-            setBankTransfer(updatedBankTransfer)
-            const parsed = parseDate(updatedBankTransfer.accountDate as string)
+            const parsed = parseDate(detailedBankTransfer.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, dateFormat)
-                : (updatedBankTransfer.accountDate as string)
+                : (detailedBankTransfer.accountDate as string)
             )
+
+            const updatedBankTransfer =
+              transformToSchemaType(detailedBankTransfer)
+
+            setBankTransfer(updatedBankTransfer)
             form.reset(updatedBankTransfer)
             form.trigger()
 
-            // Show success message
-            toast.success(`Bank Transfer ${value} loaded successfully`)
+            const resolvedTransferNo =
+              updatedBankTransfer.transferNo ||
+              trimmedTransferNo ||
+              trimmedTransferId
+            setSearchNo(resolvedTransferNo)
 
-            // Close the load confirmation dialog on success
-            setShowLoadConfirm(false)
+            return resolvedTransferNo
           }
         } else {
           toast.error(
-            response?.message ||
-              "Failed to fetch Bank Transfer details (direct)"
+            response?.message || "Failed to fetch bank transfer details"
           )
         }
-      } catch {
-        toast.error("Error searching for Bank Transfer")
+      } catch (error) {
+        console.error("Error fetching bank transfer details:", error)
+        toast.error("Error loading bank transfer. Please try again.")
       } finally {
-        setIsLoadingBankTransfer(false)
+        if (showLoader) {
+          setIsLoadingBankTransfer(false)
+        }
       }
+
+      return null
     },
-    [dateFormat, form]
+    [
+      dateFormat,
+      form,
+      setBankTransfer,
+      setIsLoadingBankTransfer,
+      setPreviousAccountDate,
+      setSearchNo,
+      transformToSchemaType,
+    ]
   )
-
-  // Auto-load document from URL query or localStorage
-  useEffect(() => {
-    if (pendingDocId && !bankTransfer) {
-      handleBankTransferSearch(pendingDocId)
-      setPendingDocId("")
-    }
-  }, [pendingDocId, bankTransfer, handleBankTransferSearch])
-
-  // Track previous account date when loading a bank transfer
-  useEffect(() => {
-    if (bankTransfer?.accountDate) {
-      const parsed = parseDate(bankTransfer.accountDate as string)
-      setPreviousAccountDate(
-        parsed
-          ? format(parsed, dateFormat)
-          : (bankTransfer.accountDate as string)
-      )
-    }
-  }, [bankTransfer?.accountDate, dateFormat])
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferSchemaType>(
@@ -409,7 +482,7 @@ export default function BankTransferPage() {
   const updateMutation = usePersist<CbBankTransferSchemaType>(
     `${CbBankTransfer.add}`
   )
-  const deleteMutation = useDelete(`${CbBankTransfer.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${CbBankTransfer.delete}`)
 
   // Handle Save
   const handleSaveBankTransfer = async () => {
@@ -501,14 +574,13 @@ export default function BankTransferPage() {
         )
 
         if (glCheck?.result === 1) {
-          toast.error(
-            `GL Period is closed for Account Date: ${format(parsedAccountDate, dateFormat)}`
-          )
+          toast.error("GL Period is closed for this date")
           return
         }
-      } catch (error) {
-        console.error("GL period check error:", error)
-        // Continue with save even if period check fails
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
       }
 
       // Format dates for API submission (yyyy-MM-dd format)
@@ -559,7 +631,6 @@ export default function BankTransferPage() {
       toast.error("Network error while saving Bank Transfer")
     } finally {
       setIsSaving(false)
-      setIsSelectingBankTransfer(false)
     }
   }
 
@@ -594,17 +665,26 @@ export default function BankTransferPage() {
   }
 
   // Handle Delete - Second Level: With Cancel Remarks
-  const handleBankTransferDelete = async (_cancelRemarks: string) => {
+  const handleBankTransferDelete = async (cancelRemarks: string) => {
     if (!bankTransfer) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        bankTransfer.transferId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Bank Transfer ID:", bankTransfer.transferId)
+      console.log("Bank Transfer No:", bankTransfer.transferNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: bankTransfer.transferId?.toString() ?? "",
+        documentNo: bankTransfer.transferNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setBankTransfer(null)
         setSearchNo("") // Clear search input
-        form.reset(defaultBankTransferValues)
+        form.reset({
+          ...defaultBankTransferValues,
+        })
         toast.success(
           `Bank Transfer ${bankTransfer.transferNo} deleted successfully`
         )
@@ -638,7 +718,9 @@ export default function BankTransferPage() {
   }
 
   // Handle Print Bank Transfer Report
-  const handlePrintBankTransfer = () => {
+  const handlePrintBankTransfer = (
+    reportType: "direct" | "bankTransfer" = "bankTransfer"
+  ) => {
     if (!bankTransfer || bankTransfer.transferId === "0") {
       toast.error("Please select a bank transfer to print")
       return
@@ -658,7 +740,7 @@ export default function BankTransferPage() {
       companyId: companyId,
       invoiceId: transferId,
       invoiceNo: transferNo,
-      reportType: 1,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -666,9 +748,12 @@ export default function BankTransferPage() {
 
     console.log("reportParams", reportParams)
 
+    // Determine report file based on type
+    const reportFile = "cb/CbBankTransfer.trdp"
+
     // Store report data in sessionStorage
     const reportData = {
-      reportFile: "cb/CbBankTransfer.trdp",
+      reportFile: reportFile,
       parameters: reportParams,
     }
 
@@ -694,51 +779,61 @@ export default function BankTransferPage() {
   ) => {
     if (!selectedBankTransfer) return
 
-    setIsSelectingBankTransfer(true)
+    const loadedTransferNo = await loadBankTransfer({
+      transferId: selectedBankTransfer.transferId ?? "0",
+      transferNo: selectedBankTransfer.transferNo ?? "",
+    })
 
-    try {
-      // Fetch bankTransfer details directly using selected bankTransfer's values
-      const response = await getById(
-        `${CbBankTransfer.getByIdNo}/${selectedBankTransfer.transferId}/${selectedBankTransfer.transferNo}`
-      )
-
-      if (response?.result === 1) {
-        const detailedBankTransfer = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (detailedBankTransfer) {
-          const updatedBankTransfer =
-            transformToSchemaType(detailedBankTransfer)
-          setBankTransfer(updatedBankTransfer)
-          form.reset(updatedBankTransfer)
-          form.trigger()
-
-          // Close dialog only on success
-          setShowListDialog(false)
-          toast.success(
-            `BankTransfer ${selectedBankTransfer.transferNo} loaded successfully`
-          )
-        }
-      } else {
-        toast.error(
-          response?.message || "Failed to fetch Bank Transfer details"
-        )
-        // Keep dialog open on failure so user can try again
-      }
-    } catch (error) {
-      console.error("Error fetching Bank Transfer details:", error)
-      toast.error("Error loading Bank Transfer. Please try again.")
-      // Keep dialog open on error
-    } finally {
-      setIsSelectingBankTransfer(false)
+    if (loadedTransferNo) {
+      setShowListDialog(false)
     }
   }
 
-  // Handle filter changes
+  // Remove direct refetchBankTransfers from handleFilterChange
   const handleFilterChange = (newFilters: ICbBankTransferFilter) => {
     setFilters(newFilters)
+    // Data refresh handled by BankTransferTable component
   }
+
+  // Data refresh handled by BankTransferTable component
+
+  // Add keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S: Save
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault()
+        setShowSaveConfirm(true)
+      }
+      // Ctrl+L or Cmd+L: Open List
+      if ((e.ctrlKey || e.metaKey) && e.key === "l") {
+        e.preventDefault()
+        setShowListDialog(true)
+      }
+    }
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [])
+
+  // Set createBy and createDate for new bank transfers on page load/refresh
+  useEffect(() => {
+    if (!bankTransfer && user && decimals.length > 0) {
+      const currentTransferId = form.getValues("transferId")
+      const currentTransferNo = form.getValues("transferNo")
+      const isNewBankTransfer =
+        !currentTransferId || currentTransferId === "0" || !currentTransferNo
+
+      if (isNewBankTransfer) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [bankTransfer, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -769,6 +864,46 @@ export default function BankTransferPage() {
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
+
+  const handleBankTransferSearch = async (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) return
+
+    try {
+      const loadedTransferNo = await loadBankTransfer({
+        transferId: "0",
+        transferNo: trimmedValue,
+        showLoader: true,
+      })
+
+      if (loadedTransferNo) {
+        toast.success(`Bank Transfer ${loadedTransferNo} loaded successfully`)
+      }
+    } finally {
+      setShowLoadConfirm(false)
+    }
+  }
+
+  useEffect(() => {
+    const trimmedId = pendingDocId.trim()
+    if (!trimmedId) return
+
+    const executeLoad = async () => {
+      await loadBankTransfer({
+        transferId: trimmedId,
+        transferNo: "0",
+        showLoader: true,
+      })
+    }
+
+    void executeLoad()
+    setPendingDocId("")
+  }, [loadBankTransfer, pendingDocId])
 
   // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
   const handleSearchNoBlur = () => {
@@ -803,6 +938,7 @@ export default function BankTransferPage() {
   // Determine mode and bankTransfer ID from URL
   const transferNo = form.getValues("transferNo")
   const isEdit = Boolean(transferNo)
+  const isCancelled = bankTransfer?.isCancel === true
 
   // Generic function to copy text to clipboard
   const copyToClipboard = useCallback(async (textToCopy: string) => {
@@ -863,7 +999,7 @@ export default function BankTransferPage() {
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Bank Transfer (Edit) - ${transferNo}`
+    ? `CB Bank Transfer (Edit)- v[${bankTransfer?.editVersion}] - ${transferNo}`
     : "CB Bank Transfer (New)"
 
   // Show loading spinner while essential data is loading
@@ -892,31 +1028,67 @@ export default function BankTransferPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-          <h1>
-            {/* Outer wrapper: gradient border or yellow pulsing border */}
-            <span
-              className={`relative inline-flex rounded-full p-[2px] transition-all ${
-                isEdit
-                  ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
-                  : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
-              } `}
-            >
-              {/* Inner pill: solid dark background + white text */}
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                {bankTransfer?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {bankTransfer.cancelRemarks}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <h1>
+              {/* Outer wrapper: gradient border or yellow pulsing border */}
               <span
-                className={`text-l block cursor-pointer rounded-full px-6 font-semibold select-none ${isEdit ? "text-white" : "text-white"}`}
-                onDoubleClick={handleCopyInvoiceNo}
-                title="Double-click to copy transfer number"
+                className={`relative inline-flex rounded-full p-[2px] transition-all ${
+                  isEdit
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500" // pulsing yellow border on edit
+                    : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
+                } `}
               >
-                {titleText}
+                {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
+                <span
+                  className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium select-none ${isEdit ? "text-white" : "text-white"}`}
+                  onDoubleClick={handleCopyInvoiceNo}
+                  title="Double-click to copy bank transfer number"
+                >
+                  {titleText}
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
+            {isEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (bankTransfer?.transferNo) {
+                    setSearchNo(bankTransfer.transferNo)
+                    setShowLoadConfirm(true)
+                  }
+                }}
+                disabled={isLoadingBankTransfer}
+                className="h-4 w-4 p-0"
+                title="Refresh bank transfer data"
+              >
+                <RefreshCw className="h-2 w-2" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div
@@ -953,20 +1125,37 @@ export default function BankTransferPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                !canView ||
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
               variant="outline"
               size="sm"
+              onClick={() => handlePrintBankTransfer("bankTransfer")}
               disabled={!bankTransfer || bankTransfer.transferId === "0"}
-              onClick={handlePrintBankTransfer}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -975,20 +1164,8 @@ export default function BankTransferPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                form.reset()
-                form.trigger()
-              }}
-              title="Refresh form validation"
-            >
-              <RefreshCw className="mr-1 h-4 w-4" />
-              Refresh
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
               onClick={() => setShowResetConfirm(true)}
+              //disabled={!bankTransfer}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -998,7 +1175,9 @@ export default function BankTransferPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              disabled={
+                !bankTransfer || bankTransfer.transferId === "0" || isCancelled
+              }
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1008,10 +1187,21 @@ export default function BankTransferPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              disabled={
+                !canView ||
+                !bankTransfer ||
+                bankTransfer.transferId === "0" ||
+                deleteMutation.isPending ||
+                isCancelled ||
+                !canDelete
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Cancelling..." : "Cancel"}
             </Button>
           </div>
         </div>

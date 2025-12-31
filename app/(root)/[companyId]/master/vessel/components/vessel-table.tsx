@@ -110,7 +110,36 @@ export function VesselTable({
       size: 120,
       minSize: 50,
     },
-
+    {
+      accessorKey: "nrt",
+      header: "NRT",
+      cell: ({ row }) => {
+        const value = row.getValue("nrt") as number | null | undefined
+        return <div>{value != null ? value.toFixed(2) : "-"}</div>
+      },
+      size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "loa",
+      header: "LOA",
+      cell: ({ row }) => {
+        const value = row.getValue("loa") as number | null | undefined
+        return <div>{value != null ? value.toFixed(2) : "-"}</div>
+      },
+      size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "dwt",
+      header: "DWT",
+      cell: ({ row }) => {
+        const value = row.getValue("dwt") as number | null | undefined
+        return <div>{value != null ? value.toFixed(2) : "-"}</div>
+      },
+      size: 120,
+      minSize: 50,
+    },
     {
       accessorKey: "licenseNo",
       header: "License No",
@@ -136,14 +165,13 @@ export function VesselTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+        <div className="flex justify-center">
           {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
           ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
           )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
+        </div>
       ),
       size: 120,
       minSize: 50,

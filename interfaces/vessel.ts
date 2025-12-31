@@ -9,6 +9,9 @@ export interface IVessel {
   licenseNo: string
   vesselType: string
   flag: string
+  nrt?: number | null
+  loa?: number | null
+  dwt?: number | null
   createBy: string
   editBy: string | null
   createDate: Date | string

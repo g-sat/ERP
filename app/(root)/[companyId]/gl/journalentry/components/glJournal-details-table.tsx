@@ -101,6 +101,34 @@ export default function GLJournalDetailsTable({
           },
         ]
       : []),
+    ...(visible?.m_Remarks
+      ? [
+          {
+            accessorKey: "remarks",
+            header: "Remarks",
+            size: 200,
+          },
+        ]
+      : []),
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      cell: ({ row }) => (
+        <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+          {row.original.isDebit ? "Debit" : "Credit"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "totAmt",
+      header: "Amount",
+      size: 100,
+      cell: ({ row }: CellContext<IGLJournalDt, unknown>) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
+      ),
+    },
     ...(visible?.m_JobOrderId
       ? [
           {

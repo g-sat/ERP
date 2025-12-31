@@ -17,6 +17,7 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -30,6 +31,9 @@ const defaultValues = {
   grt: "",
   licenseNo: "",
   flag: "",
+  nrt: undefined,
+  loa: undefined,
+  dwt: undefined,
   remarks: "",
   isActive: true,
 }
@@ -66,6 +70,9 @@ export function VesselForm({
           grt: initialData.grt ?? "",
           licenseNo: initialData.licenseNo ?? "",
           flag: initialData.flag ?? "",
+          nrt: initialData.nrt ?? undefined,
+          loa: initialData.loa ?? undefined,
+          dwt: initialData.dwt ?? undefined,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -88,6 +95,9 @@ export function VesselForm({
             grt: initialData.grt ?? "",
             licenseNo: initialData.licenseNo ?? "",
             flag: initialData.flag ?? "",
+            nrt: initialData.nrt ?? undefined,
+            loa: initialData.loa ?? undefined,
+            dwt: initialData.dwt ?? undefined,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -171,6 +181,28 @@ export function VesselForm({
                 name="flag"
                 label="Flag"
                 isDisabled={isReadOnly}
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="nrt"
+                label="NRT"
+                isDisabled={isReadOnly}
+                round={2}
+              />
+              <CustomNumberInput
+                form={form}
+                name="loa"
+                label="LOA"
+                isDisabled={isReadOnly}
+                round={2}
+              />
+              <CustomNumberInput
+                form={form}
+                name="dwt"
+                label="DWT"
+                isDisabled={isReadOnly}
+                round={2}
               />
             </div>
 

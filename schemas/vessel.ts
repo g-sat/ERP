@@ -13,41 +13,52 @@ export const vesselSchema = z.object({
   callSign: z
     .string()
     .min(1, { message: "call sign is required" })
-    .max(150, { message: "call sign cannot exceed 150 characters" })
-    ,
+    .max(150, { message: "call sign cannot exceed 150 characters" }),
   imoCode: z
     .string()
     .min(1, { message: "IMO code is required" })
-    .max(150, { message: "IMO code cannot exceed 150 characters" })
-    ,
+    .max(150, { message: "IMO code cannot exceed 150 characters" }),
   grt: z
     .string()
     .min(1, { message: "GRT is required" })
     .max(150, { message: "GRT cannot exceed 150 characters" })
-    .optional()
-    ,
+    .optional(),
   licenseNo: z
     .string()
     .max(150, { message: "license number cannot exceed 150 characters" })
-    .optional()
-    ,
+    .optional(),
   vesselType: z
     .string()
     .min(1, { message: "vessel type is required" })
     .max(150, { message: "vessel type cannot exceed 150 characters" })
-    .optional()
-    ,
+    .optional(),
   flag: z
     .string()
     .max(150, { message: "flag cannot exceed 150 characters" })
+    .optional(),
+  nrt: z
+    .number()
+    .min(0, { message: "NRT must be a positive number" })
+    .max(99999999.99, { message: "NRT cannot exceed 99999999.99" })
     .optional()
-    ,
+    .nullable(),
+  loa: z
+    .number()
+    .min(0, { message: "LOA must be a positive number" })
+    .max(99999999.99, { message: "LOA cannot exceed 99999999.99" })
+    .optional()
+    .nullable(),
+  dwt: z
+    .number()
+    .min(0, { message: "DWT must be a positive number" })
+    .max(99999999.99, { message: "DWT cannot exceed 99999999.99" })
+    .optional()
+    .nullable(),
   isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    ,
+    .optional(),
 })
 
 export type VesselSchemaType = z.infer<typeof vesselSchema>

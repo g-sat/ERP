@@ -63,9 +63,9 @@ export const CbBankTransferSchema = (
     toTotLocalAmt: z.number().optional(),
 
     // Bank Exchange Fields
-    bankExhRate: z.number().min(0),
-    bankTotAmt: z.number().min(0),
-    bankTotLocalAmt: z.number().min(0),
+    bankExhRate: z.number().optional(),
+    bankTotAmt: z.number().optional(),
+    bankTotLocalAmt: z.number().optional(),
 
     // Additional Fields
     remarks: required?.m_Remarks

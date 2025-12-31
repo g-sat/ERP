@@ -994,7 +994,7 @@ export default function BankTransferForm({
               name="bankExhRate"
               label="Bank Exchange Rate"
               round={exhRateDec}
-              isRequired={true}
+              isRequired={false}
               className="text-right"
               onChangeEvent={handleBankExhRateChange}
             />
@@ -1004,7 +1004,7 @@ export default function BankTransferForm({
               name="bankTotAmt"
               label="Bank Total Amount"
               round={amtDec}
-              isRequired={true}
+              isRequired={false}
               className="text-right"
               onChangeEvent={handleBankTotAmtChange}
             />
@@ -1014,7 +1014,7 @@ export default function BankTransferForm({
               name="bankTotLocalAmt"
               label="Bank Total Local Amount"
               round={locAmtDec}
-              isRequired={true}
+              isRequired={false}
               isDisabled={true}
               className="text-right"
             />

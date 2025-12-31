@@ -230,7 +230,7 @@ export default function CbBankTransferCtmPage() {
           appBy: cbBankTransferCtm.appBy ?? null,
           appDate: cbBankTransferCtm.appDate ?? null,
           createBy: cbBankTransferCtm.createBy ?? "",
-          createDate: cbBankTransferCtm.createDate ?? new Date(),
+          createDate: cbBankTransferCtm.createDate ?? "",
           editBy: cbBankTransferCtm.editBy ?? null,
           editDate: cbBankTransferCtm.editDate ?? null,
           data_details:
@@ -510,13 +510,27 @@ export default function CbBankTransferCtmPage() {
   }
 
   // Handle Clone
-  const handleCloneCbBankTransferCtm = () => {
+  const handleCloneCbBankTransferCtm = async () => {
     if (cbBankTransferCtm) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, dateFormat)
+
       const clonedBankTransferCtm: CbBankTransferCtmHdSchemaType = {
         ...cbBankTransferCtm,
         transferId: "0",
         transferNo: "",
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        chequeDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: null,
+        cancelDate: null,
         // Reset amounts for new Bank Transfer CTM
         fromTotAmt: 0,
         fromTotLocalAmt: 0,
@@ -527,10 +541,16 @@ export default function CbBankTransferCtmPage() {
             ...detail,
             transferId: "0",
             transferNo: "",
+            editVersion: 0,
           })) || [],
       }
+
       setCbBankTransferCtm(clonedBankTransferCtm)
       form.reset(clonedBankTransferCtm)
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Bank Transfer CTM cloned successfully")
     }
   }
@@ -628,7 +648,9 @@ export default function CbBankTransferCtmPage() {
   }
 
   // Handle Print Bank Transfer CTM Report
-  const handlePrintCbBankTransferCtm = () => {
+  const handlePrintCbBankTransferCtm = (
+    reportType: "direct" | "bankTransferCtm" = "bankTransferCtm"
+  ) => {
     if (!cbBankTransferCtm || cbBankTransferCtm.transferId === "0") {
       toast.error("Please select a Bank Transfer CTM to print")
       return
@@ -649,7 +671,7 @@ export default function CbBankTransferCtmPage() {
       companyId: companyId,
       invoiceId: transferId,
       invoiceNo: transferNo,
-      reportType: 1,
+      reportType: reportType === "direct" ? 1 : 2,
       userName: user?.userName || "",
       amtDec: amtDec,
       locAmtDec: locAmtDec,
@@ -657,7 +679,7 @@ export default function CbBankTransferCtmPage() {
 
     console.log("reportParams", reportParams)
 
-    // Determine report file
+    // Determine report file based on type
     const reportFile = "cb/CbBankTransferCtm.trdp"
 
     // Store report data in sessionStorage
@@ -695,31 +717,31 @@ export default function CbBankTransferCtmPage() {
         trnDate: apiCbBankTransferCtm.trnDate
           ? format(
               parseDate(apiCbBankTransferCtm.trnDate as string) || new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : "",
+          : dateFormat,
         accountDate: apiCbBankTransferCtm.accountDate
           ? format(
               parseDate(apiCbBankTransferCtm.accountDate as string) ||
                 new Date(),
-              clientDateFormat
+              dateFormat
             )
-          : "",
+          : dateFormat,
         paymentTypeId: apiCbBankTransferCtm.paymentTypeId ?? 0,
         chequeNo: apiCbBankTransferCtm.chequeNo ?? "",
         chequeDate: apiCbBankTransferCtm.chequeDate
           ? format(
               parseDate(apiCbBankTransferCtm.chequeDate as string) ||
                 new Date(),
-              clientDateFormat
+              dateFormat
             )
           : apiCbBankTransferCtm.accountDate
             ? format(
                 parseDate(apiCbBankTransferCtm.accountDate as string) ||
                   new Date(),
-                clientDateFormat
+                dateFormat
               )
-            : format(new Date(), clientDateFormat),
+            : format(new Date(), dateFormat),
 
         fromBankId: apiCbBankTransferCtm.fromBankId ?? 0,
         fromCurrencyId: apiCbBankTransferCtm.fromCurrencyId ?? 0,
@@ -734,12 +756,17 @@ export default function CbBankTransferCtmPage() {
         payeeTo: apiCbBankTransferCtm.payeeTo ?? "",
         moduleFrom: apiCbBankTransferCtm.moduleFrom ?? "",
         exhGainLoss: apiCbBankTransferCtm.exhGainLoss ?? 0,
+        editVersion: apiCbBankTransferCtm.editVersion ?? 0,
         createBy: apiCbBankTransferCtm.createBy ?? "",
         editBy: apiCbBankTransferCtm.editBy ?? "",
         cancelBy: apiCbBankTransferCtm.cancelBy ?? "",
         createDate: apiCbBankTransferCtm.createDate
-          ? parseDate(apiCbBankTransferCtm.createDate as string) || new Date()
-          : new Date(),
+          ? format(
+              parseDate(apiCbBankTransferCtm.createDate as string) ||
+                new Date(),
+              decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+            )
+          : "",
         editDate: apiCbBankTransferCtm.editDate
           ? parseDate(apiCbBankTransferCtm.editDate as unknown as string) ||
             null
@@ -749,7 +776,6 @@ export default function CbBankTransferCtmPage() {
             null
           : null,
         cancelRemarks: apiCbBankTransferCtm.cancelRemarks ?? null,
-        editVersion: apiCbBankTransferCtm.editVersion ?? 0,
         isPost: apiCbBankTransferCtm.isPost ?? false,
         postBy: apiCbBankTransferCtm.postBy ?? "",
         postDate: apiCbBankTransferCtm.postDate
@@ -795,7 +821,7 @@ export default function CbBankTransferCtmPage() {
           })) || [],
       }
     },
-    []
+    [dateFormat, decimals]
   )
 
   const loadCbBankTransferCtm = useCallback(
@@ -1225,7 +1251,7 @@ export default function CbBankTransferCtmPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePrintCbBankTransferCtm()}
+              onClick={() => handlePrintCbBankTransferCtm("bankTransferCtm")}
               disabled={
                 !cbBankTransferCtm || cbBankTransferCtm.transferId === "0"
               }

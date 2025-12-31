@@ -7,6 +7,8 @@ import {
   setGSTPercentage,
 } from "@/helpers/account"
 import {
+  calculateLocalAmounts,
+  calculateTotalAmounts,
   recalculateAllDetailsLocalAndCtyAmounts,
   recalculateAndSetHeaderTotals,
   syncCountryExchangeRate,
@@ -377,6 +379,55 @@ export default function GLJournalForm({
     [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
+  // Watch data_details to calculate debit-only totals
+  const dataDetails = useWatch({
+    control: form.control,
+    name: "data_details",
+  })
+
+  // Calculate totals only from details where isDebit === true
+  const debitTotals = React.useMemo(() => {
+    if (!dataDetails || dataDetails.length === 0) {
+      return {
+        totAmt: 0,
+        gstAmt: 0,
+        totAmtAftGst: 0,
+        totLocalAmt: 0,
+        gstLocalAmt: 0,
+        totLocalAmtAftGst: 0,
+      }
+    }
+
+    // Filter details where isDebit === true
+    const debitDetails = (dataDetails as unknown as IGLJournalDt[]).filter(
+      (detail) => detail.isDebit === true
+    )
+
+    if (debitDetails.length === 0) {
+      return {
+        totAmt: 0,
+        gstAmt: 0,
+        totAmtAftGst: 0,
+        totLocalAmt: 0,
+        gstLocalAmt: 0,
+        totLocalAmtAftGst: 0,
+      }
+    }
+
+    // Calculate totals using helper functions
+    const totals = calculateTotalAmounts(debitDetails, amtDec)
+    const localAmounts = calculateLocalAmounts(debitDetails, locAmtDec)
+
+    return {
+      totAmt: totals.totAmt,
+      gstAmt: totals.gstAmt,
+      totAmtAftGst: totals.totAmtAftGst,
+      totLocalAmt: localAmounts.totLocalAmt,
+      gstLocalAmt: localAmounts.gstLocalAmt,
+      totLocalAmtAftGst: localAmounts.totLocalAmtAftGst,
+    }
+  }, [dataDetails, amtDec, locAmtDec])
+
   return (
     <FormProvider {...form}>
       <form
@@ -528,17 +579,17 @@ export default function GLJournalForm({
 
             {/* 3-column grid: [Amt] [Label] [Local] */}
             <div className="grid grid-cols-3 gap-x-4 text-xs">
-              {/* Column 1: Foreign Amounts (Amt) */}
+              {/* Column 1: Foreign Amounts (Amt) - Only Debit */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
-                  {(form.watch("totAmt") || 0).toLocaleString(undefined, {
+                  {debitTotals.totAmt.toLocaleString(undefined, {
                     minimumFractionDigits: amtDec,
                     maximumFractionDigits: amtDec,
                   })}
                 </div>
                 {visible?.m_GstId && (
                   <div className="font-medium text-gray-700">
-                    {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
+                    {debitTotals.gstAmt.toLocaleString(undefined, {
                       minimumFractionDigits: amtDec,
                       maximumFractionDigits: amtDec,
                     })}
@@ -546,7 +597,7 @@ export default function GLJournalForm({
                 )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
-                  {(form.watch("totAmtAftGst") || 0).toLocaleString(undefined, {
+                  {debitTotals.totAmtAftGst.toLocaleString(undefined, {
                     minimumFractionDigits: amtDec,
                     maximumFractionDigits: amtDec,
                   })}
@@ -563,34 +614,28 @@ export default function GLJournalForm({
                 <div className="font-bold text-blue-800">Total</div>
               </div>
 
-              {/* Column 3: Local Amounts */}
+              {/* Column 3: Local Amounts - Only Debit */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
-                  {(form.watch("totLocalAmt") || 0).toLocaleString(undefined, {
+                  {debitTotals.totLocalAmt.toLocaleString(undefined, {
                     minimumFractionDigits: locAmtDec,
                     maximumFractionDigits: locAmtDec,
                   })}
                 </div>
                 {visible?.m_GstId && (
                   <div className="font-medium text-gray-700">
-                    {(form.watch("gstLocalAmt") || 0).toLocaleString(
-                      undefined,
-                      {
-                        minimumFractionDigits: locAmtDec,
-                        maximumFractionDigits: locAmtDec,
-                      }
-                    )}
+                    {debitTotals.gstLocalAmt.toLocaleString(undefined, {
+                      minimumFractionDigits: locAmtDec,
+                      maximumFractionDigits: locAmtDec,
+                    })}
                   </div>
                 )}
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
-                  {(form.watch("totLocalAmtAftGst") || 0).toLocaleString(
-                    undefined,
-                    {
-                      minimumFractionDigits: locAmtDec,
-                      maximumFractionDigits: locAmtDec,
-                    }
-                  )}
+                  {debitTotals.totLocalAmtAftGst.toLocaleString(undefined, {
+                    minimumFractionDigits: locAmtDec,
+                    maximumFractionDigits: locAmtDec,
+                  })}
                 </div>
               </div>
             </div>
