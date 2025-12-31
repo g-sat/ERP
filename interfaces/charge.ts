@@ -4,7 +4,7 @@ export interface ICharge {
   chargeCode: string
   chargeName: string
   chargeOrder: number
-  itemNo: number
+  seqNo: number
   createById: number
   editById: number
   createBy: string

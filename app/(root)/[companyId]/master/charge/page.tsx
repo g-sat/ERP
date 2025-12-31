@@ -458,9 +458,7 @@ export default function ChargePage() {
       }
 
       try {
-        const response = await getById(
-          `${Charge.getByCode}/${trimmedCode}`
-        )
+        const response = await getById(`${Charge.getByCode}/${trimmedCode}`)
 
         if (response?.result === 1 && response.data) {
           const chargeData = Array.isArray(response.data)
@@ -473,7 +471,7 @@ export default function ChargePage() {
               chargeCode: chargeData.chargeCode,
               chargeName: chargeData.chargeName,
               chargeOrder: chargeData.chargeOrder,
-              itemNo: chargeData.itemNo,
+              seqNo: chargeData.seqNo,
               isActive: chargeData.isActive,
               remarks: chargeData.remarks || "",
               createBy: chargeData.createBy,

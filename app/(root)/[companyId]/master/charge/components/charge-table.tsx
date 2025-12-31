@@ -79,8 +79,8 @@ export function ChargeTable({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "itemNo",
-      header: "Item No",
+      accessorKey: "seqNo",
+      header: "Seq No",
       size: 120,
       minSize: 50,
     },

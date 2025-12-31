@@ -26,7 +26,7 @@ const defaultValues = {
   chargeName: "",
   chargeCode: "",
   chargeOrder: 0,
-  itemNo: 0,
+  seqNo: 0,
   remarks: "",
   isActive: true,
 }
@@ -62,7 +62,7 @@ export function ChargeForm({
           chargeId: initialData.chargeId ?? 0,
           chargeName: initialData.chargeName ?? "",
           chargeCode: initialData.chargeCode ?? "",
-          itemNo: initialData.itemNo ?? 0,
+          seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -79,7 +79,7 @@ export function ChargeForm({
             chargeId: initialData.chargeId ?? 0,
             chargeName: initialData.chargeName ?? "",
             chargeCode: initialData.chargeCode ?? "",
-            itemNo: initialData.itemNo ?? 0,
+            seqNo: initialData.seqNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
@@ -123,8 +123,8 @@ export function ChargeForm({
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
-                name="itemNo"
-                label="Item No"
+                name="seqNo"
+                label="Seq No"
                 type="number"
                 isDisabled={isReadOnly}
               />
