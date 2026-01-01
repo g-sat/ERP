@@ -58,7 +58,7 @@ export default function DocSetOffTable({
     },
   })
 
-  const [searchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(_pageSize)
 
@@ -91,7 +91,22 @@ export default function DocSetOffTable({
         ? formatDateForApi(initialFilters.endDate) || defaultEndDate
         : defaultEndDate
     )
+
+    // Update searchQuery when initialFilters change
+    if (initialFilters?.search !== undefined) {
+      setSearchQuery(initialFilters.search)
+    }
   }, [initialFilters, form, defaultStartDate, defaultEndDate])
+
+  // Update searchQuery when initialFilters.search changes (separate effect to avoid conflicts)
+  useEffect(() => {
+    if (
+      initialFilters?.search !== undefined &&
+      initialFilters.search !== searchQuery
+    ) {
+      setSearchQuery(initialFilters.search)
+    }
+  }, [initialFilters?.search])
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
@@ -416,11 +431,15 @@ export default function DocSetOffTable({
     search?: string
     sortOrder?: string
   }) => {
+    // Update local searchQuery state when search changes from dialog
+    const searchValue = filters.search || ""
+    setSearchQuery(searchValue)
+
     if (onFilterChange) {
       const newFilters: IArDocSetOffFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
-        search: filters.search || "",
+        search: searchValue,
         sortBy: "setoffNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,

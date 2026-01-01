@@ -51,7 +51,7 @@ export default function CbBankTransferCtmTable({
     },
   })
 
-  const [searchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "")
 
   // Data fetching - only when table is opened
   const {
@@ -250,17 +250,31 @@ export default function CbBankTransferCtmTable({
     search?: string
     sortOrder?: string
   }) => {
+    // Update local searchQuery state when search changes from dialog
+    const searchValue = filters.search || ""
+    setSearchQuery(searchValue)
+
     if (onFilterChange) {
       const newFilters: ICbBankTransferCtmFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
-        search: filters.search || "",
+        search: searchValue,
         sortBy: "transferNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
       }
       onFilterChange(newFilters)
     }
   }
+
+  // Update searchQuery when initialFilters.search changes
+  useEffect(() => {
+    if (
+      initialFilters?.search !== undefined &&
+      initialFilters.search !== searchQuery
+    ) {
+      setSearchQuery(initialFilters.search)
+    }
+  }, [initialFilters?.search])
 
   return (
     <div className="w-full overflow-auto">

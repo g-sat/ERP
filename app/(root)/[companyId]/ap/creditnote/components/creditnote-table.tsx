@@ -58,7 +58,7 @@ export default function CreditNoteTable({
     },
   })
 
-  const [searchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(_pageSize)
 
@@ -458,11 +458,15 @@ export default function CreditNoteTable({
     search?: string
     sortOrder?: string
   }) => {
+    // Update local searchQuery state when search changes from dialog
+    const searchValue = filters.search || ""
+    setSearchQuery(searchValue)
+
     if (onFilterChange) {
       const newFilters: IApCreditNoteFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
-        search: filters.search || "",
+        search: searchValue,
         sortBy: "creditNoteNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,

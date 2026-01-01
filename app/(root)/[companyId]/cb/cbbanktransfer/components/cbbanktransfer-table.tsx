@@ -46,7 +46,7 @@ export default function BankTransferTable({
     },
   })
 
-  const [searchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
 
@@ -364,11 +364,15 @@ export default function BankTransferTable({
     search?: string
     sortOrder?: string
   }) => {
+    // Update local searchQuery state when search changes from dialog
+    const searchValue = filters.search || ""
+    setSearchQuery(searchValue)
+
     if (onFilterChange) {
       const newFilters: ICbBankTransferFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
-        search: filters.search || "",
+        search: searchValue,
         sortBy: "transferNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
@@ -377,6 +381,16 @@ export default function BankTransferTable({
       onFilterChange(newFilters)
     }
   }
+
+  // Update searchQuery when initialFilters.search changes
+  useEffect(() => {
+    if (
+      initialFilters?.search !== undefined &&
+      initialFilters.search !== searchQuery
+    ) {
+      setSearchQuery(initialFilters.search)
+    }
+  }, [initialFilters?.search])
 
   // Show loading spinner while data is loading
   if (isLoadingBankTransfers) {

@@ -58,7 +58,7 @@ export default function RefundTable({
     },
   })
 
-  const [searchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.search || "")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(_pageSize)
 
@@ -466,11 +466,15 @@ export default function RefundTable({
     search?: string
     sortOrder?: string
   }) => {
+    // Update local searchQuery state when search changes from dialog
+    const searchValue = filters.search || ""
+    setSearchQuery(searchValue)
+
     if (onFilterChange) {
       const newFilters: IApRefundFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
-        search: filters.search || "",
+        search: searchValue,
         sortBy: "refundNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
