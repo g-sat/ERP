@@ -343,34 +343,10 @@ const CbPettyCashDetailsForm = React.forwardRef<
     // Function to focus on the first visible field after form operations
     const focusFirstVisibleField = () => {
       setTimeout(() => {
-        if (visible?.m_ProductId) {
-          const productSelect = document.querySelector(
-            `div[class*="react-select__control"] input[aria-label*="productId"]`
-          ) as HTMLInputElement
-          if (productSelect) {
-            productSelect.focus()
-          } else {
-            const firstSelectInput = document.querySelector(
-              'div[class*="react-select__control"] input'
-            ) as HTMLInputElement
-            if (firstSelectInput) {
-              firstSelectInput.focus()
-            }
-          }
-        } else {
-          const glSelect = document.querySelector(
-            `div[class*="react-select__control"] input[aria-label*="glId"]`
-          ) as HTMLInputElement
-          if (glSelect) {
-            glSelect.focus()
-          } else {
-            const firstSelectInput = document.querySelector(
-              'div[class*="react-select__control"] input'
-            ) as HTMLInputElement
-            if (firstSelectInput) {
-              firstSelectInput.focus()
-            }
-          }
+        const seqNoInput = document.getElementById("seqNo") as HTMLInputElement
+        if (seqNoInput) {
+          seqNoInput.focus()
+          seqNoInput.select()
         }
       }, 300)
     }

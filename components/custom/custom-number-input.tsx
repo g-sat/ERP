@@ -53,6 +53,7 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
           return (
             <FormItem className={cn("flex flex-col", className)}>
               <NumericFormat
+                id={name}
                 value={value ?? ""}
                 onFocus={(e) => {
                   e.target.select()

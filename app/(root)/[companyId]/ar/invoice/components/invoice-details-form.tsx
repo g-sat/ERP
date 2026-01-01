@@ -287,34 +287,10 @@ const InvoiceDetailsForm = React.forwardRef<
     // Function to focus on the first visible field after form operations
     const focusFirstVisibleField = () => {
       setTimeout(() => {
-        if (visible?.m_ProductId) {
-          const productSelect = document.querySelector(
-            `div[class*="react-select__control"] input[aria-label*="productId"]`
-          ) as HTMLInputElement
-          if (productSelect) {
-            productSelect.focus()
-          } else {
-            const firstSelectInput = document.querySelector(
-              'div[class*="react-select__control"] input'
-            ) as HTMLInputElement
-            if (firstSelectInput) {
-              firstSelectInput.focus()
-            }
-          }
-        } else {
-          const glSelect = document.querySelector(
-            `div[class*="react-select__control"] input[aria-label*="glId"]`
-          ) as HTMLInputElement
-          if (glSelect) {
-            glSelect.focus()
-          } else {
-            const firstSelectInput = document.querySelector(
-              'div[class*="react-select__control"] input'
-            ) as HTMLInputElement
-            if (firstSelectInput) {
-              firstSelectInput.focus()
-            }
-          }
+        const seqNoInput = document.getElementById("seqNo") as HTMLInputElement
+        if (seqNoInput) {
+          seqNoInput.focus()
+          seqNoInput.select()
         }
       }, 300)
     }
@@ -329,10 +305,7 @@ const InvoiceDetailsForm = React.forwardRef<
       // Reset submit attempted flag when canceling
       setSubmitAttempted(false)
       toast.info("Detail cancelled")
-      // Focus on seqNo field after clearing
-      setTimeout(() => {
-        form.setFocus("seqNo")
-      }, 100)
+      focusFirstVisibleField()
     }
 
     // Function to recalculate local amounts when exchange rate changes
@@ -707,10 +680,8 @@ const InvoiceDetailsForm = React.forwardRef<
           // Reset submit attempted flag on successful submission
           setSubmitAttempted(false)
 
-          // Focus on seqNo field after successful submission
-          setTimeout(() => {
-            form.setFocus("seqNo")
-          }, 100)
+          // Focus on the first visible field after successful submission
+          focusFirstVisibleField()
         }
       } catch (error) {
         console.error("Error adding row:", error)
