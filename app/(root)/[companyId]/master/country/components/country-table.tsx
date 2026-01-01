@@ -10,7 +10,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
 interface CountriesTableProps {
@@ -28,6 +27,7 @@ interface CountriesTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -54,6 +54,7 @@ export function CountriesTable({
   serverSidePagination,
   moduleId,
   transactionId,
+  initialSearchValue,
   // Permission props
   canView = true,
   canCreate = true,
@@ -165,6 +166,7 @@ export function CountriesTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       currentPage={currentPage}

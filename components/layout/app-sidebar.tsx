@@ -241,6 +241,8 @@ const getTransactionIcon = (transactionCode: string) => {
     supplytype: Users,
     visa: Globe,
     geolocation: MapPin,
+    transportlocation: MapPin,
+    transportmode: Sliders,
     // Cash Book transactions
     cbbankrecon: Scale,
     cbbanktransfer: ArrowLeftRight,

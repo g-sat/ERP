@@ -184,7 +184,11 @@ export function useGetWithPagination<T>(
     queryFn: async () => {
       const params: QueryParams = {
         ...baseQueryConfig,
-        searchString: filters?.trim() || "null",
+        // Only include searchString if filters is provided and not empty
+        // If filters is undefined or empty, don't include searchString (let API handle default)
+        ...(filters && filters.trim()
+          ? { searchString: filters.trim() }
+          : { searchString: "null" }),
         pageNumber: pageNumber.toString(),
         pageSize: pageSize.toString(),
       }
