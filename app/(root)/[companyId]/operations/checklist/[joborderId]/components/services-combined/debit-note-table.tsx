@@ -72,6 +72,16 @@ export function DebitNoteTable({
         size: 30,
       },
       {
+        accessorKey: "refItemNo",
+        header: "Ref Item No",
+        cell: ({ row }: { row: { original: IDebitNoteDt } }) => (
+          <div className="text-right font-medium">
+            {row.original.refItemNo || "-"}
+          </div>
+        ),
+        size: 30,
+      },
+      {
         accessorKey: "remarks",
         header: "Remarks",
         size: 500,

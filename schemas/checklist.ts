@@ -675,6 +675,7 @@ export const debitNoteDtSchema = z
     debitNoteId: z.number().min(1, "Debit Note ID is required"),
     debitNoteNo: z.string().min(1, "Debit Note Number is required"),
     itemNo: z.number().min(0, "Item Number is required"),
+    refItemNo: z.number().optional(),
     taskId: z.number().min(1, "Task ID is required"),
     chargeId: z.number().min(1, "Charge is required"),
     qty: z.number().min(0, "Quantity must be 0 or greater"),

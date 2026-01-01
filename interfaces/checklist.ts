@@ -758,6 +758,7 @@ export interface IDebitNoteDt {
   debitNoteId: number
   debitNoteNo: string
   itemNo: number
+  refItemNo?: number
   taskId: number
   taskName?: string
   chargeId: number

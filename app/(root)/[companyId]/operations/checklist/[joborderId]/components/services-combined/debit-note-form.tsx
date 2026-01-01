@@ -68,6 +68,7 @@ export default function DebitNoteForm({
       debitNoteId: initialData?.debitNoteId ?? debitNoteHd?.debitNoteId,
       debitNoteNo: debitNoteHd?.debitNoteNo,
       itemNo: 0,
+      refItemNo: 0,
       taskId: taskId,
       chargeId: 0,
       qty: 0,
@@ -101,6 +102,7 @@ export default function DebitNoteForm({
           debitNoteNo:
             initialData?.debitNoteNo ?? debitNoteHd?.debitNoteNo ?? "",
           itemNo: initialData?.itemNo ?? 0,
+          refItemNo: initialData?.refItemNo ?? 0,
           taskId: taskId,
           chargeId: initialData?.chargeId ?? 0,
           qty: initialData?.qty ?? 0,
@@ -128,6 +130,7 @@ export default function DebitNoteForm({
         debitNoteId: initialData?.debitNoteId ?? debitNoteHd?.debitNoteId ?? 0,
         debitNoteNo: initialData?.debitNoteNo ?? debitNoteHd?.debitNoteNo ?? "",
         itemNo: initialData?.itemNo ?? 0,
+        refItemNo: initialData?.refItemNo ?? 0,
         taskId: taskId,
         chargeId: initialData?.chargeId ?? 0,
         qty: initialData?.qty ?? 0,
