@@ -51,6 +51,7 @@ export default function Other({ form, visible }: OtherProps) {
     const address: ICustomerAddress = {
       customerId: customerId,
       addressId: form.getValues("addressId") || 0,
+      billName: form.getValues("billName") || "",
       address1: form.getValues("address1") || "",
       address2: form.getValues("address2") || "",
       address3: form.getValues("address3") || "",
@@ -111,6 +112,7 @@ export default function Other({ form, visible }: OtherProps) {
     setSelectedAddress(customerAddress)
     if (customerAddress) {
       form.setValue("addressId", customerAddress.addressId)
+      form.setValue("billName", customerAddress.billName || "")
       form.setValue("address1", customerAddress.address1 || "")
       form.setValue("address2", customerAddress.address2 || "")
       form.setValue("address3", customerAddress.address3 || "")
@@ -121,6 +123,7 @@ export default function Other({ form, visible }: OtherProps) {
       form.setValue("countryId", customerAddress.countryId || 0)
     } else {
       form.setValue("addressId", 0)
+      form.setValue("billName", "")
       form.setValue("address1", "")
       form.setValue("address2", "")
       form.setValue("address3", "")
@@ -171,6 +174,12 @@ export default function Other({ form, visible }: OtherProps) {
                 </div>
               )}
               <div className="grid">
+                <CustomInput
+                  form={form}
+                  name="billName"
+                  label="Bill Name"
+                  isDisabled={!selectedAddress}
+                />
                 <div className="grid grid-cols-2 gap-x-1 gap-y-0">
                   <CustomTextarea
                     form={form}

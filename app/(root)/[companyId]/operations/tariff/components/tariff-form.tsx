@@ -199,7 +199,6 @@ export const TariffForm = forwardRef<TariffFormRef, TariffFormProps>(
     ])
 
     // Watch form values
-    const watchedTaskId = form.watch("taskId")
     const watchedDetails = form.watch("data_details") || []
 
     // Check if details exist - if so, Task and Charge should be read-only

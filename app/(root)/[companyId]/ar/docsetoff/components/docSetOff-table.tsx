@@ -505,6 +505,7 @@ export default function DocSetOffTable({
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onDocSetOffSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

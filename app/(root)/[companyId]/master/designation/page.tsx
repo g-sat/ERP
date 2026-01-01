@@ -333,6 +333,7 @@ export default function DesignationPage() {
           onCreateAction={canCreate ? handleCreateDesignation : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

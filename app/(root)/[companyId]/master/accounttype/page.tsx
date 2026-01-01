@@ -347,6 +347,7 @@ export default function AccountTypePage() {
           onCreateAction={canCreate ? handleCreateAccountType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

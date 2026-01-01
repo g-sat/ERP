@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IConsignmentType, IConsignmentTypeFilter } from "@/interfaces/consignment-type"
+import {
+  IConsignmentType,
+  IConsignmentTypeFilter,
+} from "@/interfaces/consignment-type"
 import { ConsignmentTypeSchemaType } from "@/schemas/consignment-type"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -94,18 +97,24 @@ export default function ConsignmentTypePage() {
     totalRecords: 0,
   }
 
-  const saveMutation = usePersist<ConsignmentTypeSchemaType>(`${ConsignmentType.add}`)
-  const updateMutation = usePersist<ConsignmentTypeSchemaType>(`${ConsignmentType.add}`)
+  const saveMutation = usePersist<ConsignmentTypeSchemaType>(
+    `${ConsignmentType.add}`
+  )
+  const updateMutation = usePersist<ConsignmentTypeSchemaType>(
+    `${ConsignmentType.add}`
+  )
   const deleteMutation = useDelete(`${ConsignmentType.delete}`)
 
-  const [selectedConsignmentType, setSelectedConsignmentType] = useState<IConsignmentType | null>(null)
+  const [selectedConsignmentType, setSelectedConsignmentType] =
+    useState<IConsignmentType | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingConsignmentType, setExistingConsignmentType] = useState<IConsignmentType | null>(null)
+  const [existingConsignmentType, setExistingConsignmentType] =
+    useState<IConsignmentType | null>(null)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -141,7 +150,9 @@ export default function ConsignmentTypePage() {
     setIsModalOpen(true)
   }
 
-  const handleViewConsignmentType = (consignmentType: IConsignmentType | null) => {
+  const handleViewConsignmentType = (
+    consignmentType: IConsignmentType | null
+  ) => {
     if (!consignmentType) return
     setModalMode("view")
     setSelectedConsignmentType(consignmentType)
@@ -176,7 +187,9 @@ export default function ConsignmentTypePage() {
   }
 
   const handleDeleteConsignmentType = (consignmentTypeId: string) => {
-    const consignmentTypeToDelete = consignmentTypesData?.find((b) => b.consignmentTypeId.toString() === consignmentTypeId)
+    const consignmentTypeToDelete = consignmentTypesData?.find(
+      (b) => b.consignmentTypeId.toString() === consignmentTypeId
+    )
     if (!consignmentTypeToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -187,9 +200,11 @@ export default function ConsignmentTypePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.consignmentTypeId) {
-      deleteMutation.mutateAsync(deleteConfirmation.consignmentTypeId).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["consignmentTypes"] })
-      })
+      deleteMutation
+        .mutateAsync(deleteConfirmation.consignmentTypeId)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["consignmentTypes"] })
+        })
       setDeleteConfirmation({
         isOpen: false,
         consignmentTypeId: null,
@@ -206,7 +221,9 @@ export default function ConsignmentTypePage() {
       if (!trimmedCode) return
 
       try {
-        const response = await getById(`${ConsignmentType.getByCode}/${trimmedCode}`)
+        const response = await getById(
+          `${ConsignmentType.getByCode}/${trimmedCode}`
+        )
         if (response?.result === 1 && response.data) {
           const consignmentTypeData = Array.isArray(response.data)
             ? response.data[0]
@@ -307,6 +324,7 @@ export default function ConsignmentTypePage() {
           onCreateAction={canCreate ? handleCreateConsignmentType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +370,9 @@ export default function ConsignmentTypePage() {
           <Separator />
           <ConsignmentTypeForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedConsignmentType : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedConsignmentType
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -398,7 +418,11 @@ export default function ConsignmentTypePage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Consignment Type" : "Update Consignment Type"}
+        title={
+          modalMode === "create"
+            ? "Create Consignment Type"
+            : "Update Consignment Type"
+        }
         itemName={saveConfirmation.data?.consignmentTypeName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
@@ -421,4 +445,3 @@ export default function ConsignmentTypePage() {
     </div>
   )
 }
-

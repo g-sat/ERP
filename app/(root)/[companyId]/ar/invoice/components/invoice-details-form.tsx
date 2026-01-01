@@ -329,7 +329,10 @@ const InvoiceDetailsForm = React.forwardRef<
       // Reset submit attempted flag when canceling
       setSubmitAttempted(false)
       toast.info("Detail cancelled")
-      focusFirstVisibleField()
+      // Focus on seqNo field after clearing
+      setTimeout(() => {
+        form.setFocus("seqNo")
+      }, 100)
     }
 
     // Function to recalculate local amounts when exchange rate changes
@@ -704,8 +707,10 @@ const InvoiceDetailsForm = React.forwardRef<
           // Reset submit attempted flag on successful submission
           setSubmitAttempted(false)
 
-          // Focus on the first visible field after successful submission
-          focusFirstVisibleField()
+          // Focus on seqNo field after successful submission
+          setTimeout(() => {
+            form.setFocus("seqNo")
+          }, 100)
         }
       } catch (error) {
         console.error("Error adding row:", error)

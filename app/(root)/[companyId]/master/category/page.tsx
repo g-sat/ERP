@@ -364,6 +364,7 @@ export default function CategoryPage() {
           onCreateAction={canCreate ? handleCreateCategory : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

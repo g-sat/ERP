@@ -555,6 +555,7 @@ export default function RefundTable({
         emptyMessage="No refunds found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchRefunds()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onRefundSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

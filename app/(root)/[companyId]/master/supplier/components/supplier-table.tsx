@@ -24,6 +24,7 @@ interface SupplierTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
+  initialSearchValue?: string // Initial search value to sync with parent filters
   onRefreshAction?: () => void
   moduleId: number
   transactionId: number
@@ -40,6 +41,7 @@ export function SupplierTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
+  initialSearchValue,
   onRefreshAction,
   moduleId,
   transactionId,
@@ -274,6 +276,7 @@ export function SupplierTable({
         emptyMessage="No suppliers found."
         onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialSearchValue}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
         currentPage={currentPage}

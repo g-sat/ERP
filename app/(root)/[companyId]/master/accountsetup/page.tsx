@@ -763,6 +763,7 @@ export default function AccountSetupPage() {
               onCreateAction={canCreate ? handleCreateSetup : undefined}
               onRefreshAction={refetchSetup}
               onFilterChange={handleSetupFilterChange}
+              initialSearchValue={filtersSetup.search}
               onPageChange={handleSetupPageChange}
               onPageSizeChange={handleSetupPageSizeChange}
               currentPage={setupCurrentPage}

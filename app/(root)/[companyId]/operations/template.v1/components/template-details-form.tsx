@@ -34,7 +34,7 @@ interface TemplateDetailsFormProps {
 
 export function TemplateDetailsForm({
   form,
-  taskId,
+  taskId: _taskId,
   templateId,
 }: TemplateDetailsFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)

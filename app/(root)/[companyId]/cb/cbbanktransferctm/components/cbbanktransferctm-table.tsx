@@ -329,6 +329,7 @@ export default function CbBankTransferCtmTable({
         emptyMessage="No Bank Transfer CTMs found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchBankTransferCtms()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onCbBankTransferCtmSelect(row || undefined)}
       />
     </div>

@@ -19,6 +19,7 @@ interface BankTableProps {
   totalRecords?: number
   onSelect?: (bank: IBank | null) => void
   onFilterChange?: (filters: IBankFilter) => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   onRefreshAction?: () => void
   moduleId: number
   transactionId: number
@@ -30,6 +31,7 @@ export function BankTable({
   totalRecords = 0,
   onSelect,
   onFilterChange,
+  initialSearchValue,
   onRefreshAction,
   moduleId,
   transactionId,
@@ -216,6 +218,7 @@ export function BankTable({
         emptyMessage="No banks found."
         onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialSearchValue}
         onRowSelect={onSelect}
       />
     </div>

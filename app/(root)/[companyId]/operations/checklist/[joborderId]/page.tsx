@@ -209,6 +209,12 @@ export default function JobOrderDetailsPage() {
                         </span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">IMO:</span>
+                        <span className="text-gray-800">
+                          {jobOrderResponse?.data?.imoCode || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="font-medium text-gray-600">
                           Last Port:
                         </span>

@@ -674,6 +674,7 @@ export default function TaxPage() {
               onCreateAction={canCreate ? handleCreateTax : undefined}
               onRefreshAction={refetchTax}
               onFilterChange={handleFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

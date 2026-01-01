@@ -743,6 +743,7 @@ export default function BankPage() {
             isLoading={isLoadingBanks}
             onSelect={handleBankSelect}
             onFilterChange={handleFilterChange}
+            initialSearchValue={filters.search}
             onRefreshAction={() => refetchBanks()}
             moduleId={moduleId}
             transactionId={transactionId}

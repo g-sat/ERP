@@ -677,6 +677,7 @@ export default function GstPage() {
               onCreateAction={canCreate ? handleCreateGst : undefined}
               onRefreshAction={refetchGst}
               onFilterChange={handleFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

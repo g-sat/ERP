@@ -564,6 +564,7 @@ export default function CbPettyCashTable({
         emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchCbPettyCashs()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onCbPettyCashSelect(row || undefined)}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}

@@ -60,10 +60,10 @@ export function OtherServiceTable({
   isConfirmed,
   jobData,
   // Permission props
-  canView,
-  canEdit,
-  canDelete,
-  canCreate,
+  canView: _canView,
+  canEdit: _canEdit,
+  canDelete: _canDelete,
+  canCreate: _canCreate,
   canDebitNote,
 }: OtherServiceTableProps) {
   const { decimals } = useAuthStore()

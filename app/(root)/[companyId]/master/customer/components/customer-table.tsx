@@ -10,7 +10,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface CustomerTableProps {
@@ -24,6 +23,7 @@ interface CustomerTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
+  initialSearchValue?: string // Initial search value to sync with parent filters
   onRefreshAction?: () => void
   moduleId: number
   transactionId: number
@@ -40,6 +40,7 @@ export function CustomerTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
+  initialSearchValue,
   onRefreshAction,
   moduleId,
   transactionId,
@@ -210,6 +211,7 @@ export function CustomerTable({
         emptyMessage="No customers found."
         onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialSearchValue}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
         currentPage={currentPage}

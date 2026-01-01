@@ -660,8 +660,8 @@ export function ChecklistTabs({
             </Button>
           )}
 
-          {/* Submit/Update Button - only show if user has edit permission */}
-          {canEdit && (
+          {/* Submit/Update Button - only show if user has edit permission and Summary tab is active */}
+          {canEdit && activeTab === "main" && (
             <Button
               size="sm"
               disabled={isConfirmed}

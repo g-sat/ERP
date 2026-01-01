@@ -369,6 +369,7 @@ export default function VesselPage() {
           onCreateAction={canCreate ? handleCreateVessel : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

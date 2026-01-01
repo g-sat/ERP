@@ -547,6 +547,7 @@ export default function CreditNoteTable({
         emptyMessage="No creditNotes found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchCreditNotes()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

@@ -98,14 +98,16 @@ export default function TaskStatusPage() {
   const updateMutation = usePersist<TaskStatusSchemaType>(`${TaskStatus.add}`)
   const deleteMutation = useDelete(`${TaskStatus.delete}`)
 
-  const [selectedTaskStatus, setSelectedTaskStatus] = useState<ITaskStatus | null>(null)
+  const [selectedTaskStatus, setSelectedTaskStatus] =
+    useState<ITaskStatus | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingTaskStatus, setExistingTaskStatus] = useState<ITaskStatus | null>(null)
+  const [existingTaskStatus, setExistingTaskStatus] =
+    useState<ITaskStatus | null>(null)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -176,7 +178,9 @@ export default function TaskStatusPage() {
   }
 
   const handleDeleteTaskStatus = (taskStatusId: string) => {
-    const taskStatusToDelete = taskStatusesData?.find((b) => b.taskStatusId.toString() === taskStatusId)
+    const taskStatusToDelete = taskStatusesData?.find(
+      (b) => b.taskStatusId.toString() === taskStatusId
+    )
     if (!taskStatusToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -307,6 +311,7 @@ export default function TaskStatusPage() {
           onCreateAction={canCreate ? handleCreateTaskStatus : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +357,9 @@ export default function TaskStatusPage() {
           <Separator />
           <TaskStatusForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedTaskStatus : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedTaskStatus
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -398,7 +405,9 @@ export default function TaskStatusPage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Task Status" : "Update Task Status"}
+        title={
+          modalMode === "create" ? "Create Task Status" : "Update Task Status"
+        }
         itemName={saveConfirmation.data?.taskStatusName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
@@ -421,4 +430,3 @@ export default function TaskStatusPage() {
     </div>
   )
 }
-

@@ -472,6 +472,7 @@ export default function ContraTable({
         emptyMessage="No contra found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchContra()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onContraSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

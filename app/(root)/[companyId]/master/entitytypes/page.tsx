@@ -340,6 +340,7 @@ export default function EntityTypePage() {
           onCreateAction={canCreate ? handleCreateEntityType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

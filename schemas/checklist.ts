@@ -62,6 +62,21 @@ export const JobOrderHdSchema = z
     jobStatusId: z.number().min(1, "Job Status is required"),
     gstId: z.number().optional(),
     gstPercentage: z.number().optional(),
+
+    //add
+    billName: z.string().optional(),
+    address1: z.string().optional(),
+    address2: z.string().optional(),
+    address3: z.string().optional(),
+    address4: z.string().optional(),
+    pinCode: z.string().optional(),
+    countryId: z.number().optional(),
+    phoneNo: z.string().optional(),
+    faxNo: z.string().optional(),
+    contactName: z.string().optional(),
+    mobileNo: z.string().optional(),
+    emailAdd: z.string().optional(),
+
     isActive: z.boolean().optional(),
     isTaxable: z.boolean().optional(),
     isClose: z.boolean().optional(),

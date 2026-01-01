@@ -329,6 +329,7 @@ export default function BankReconTable({
         emptyMessage="No data found."
         onRefreshAction={() => refetchBankRecons()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onBankReconSelect(row || undefined)}
       />
     </div>

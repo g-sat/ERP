@@ -547,6 +547,7 @@ export default function AdjustmentTable({
         emptyMessage="No adjustments found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchAdjustments()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onAdjustmentSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

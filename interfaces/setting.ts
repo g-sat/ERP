@@ -169,6 +169,7 @@ export interface IVisibleFields {
   m_SupplierName: boolean
   m_GstNo: boolean
   m_DebitNoteNo: boolean
+  m_BargeIdHd: boolean
 }
 
 export interface INumberFormatDetails {

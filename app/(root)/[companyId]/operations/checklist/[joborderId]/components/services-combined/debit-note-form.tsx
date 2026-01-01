@@ -51,7 +51,7 @@ export default function DebitNoteForm({
   companyId,
   onChargeChange,
   summaryTotals,
-  currencyCode,
+  currencyCode: _currencyCode,
 }: DebitNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2

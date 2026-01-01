@@ -83,7 +83,7 @@ const MERGE_FIELDS = [
 
 export function TemplateDetailsForm({
   form,
-  taskId,
+  taskId: _taskId,
   templateId,
 }: TemplateDetailsFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)

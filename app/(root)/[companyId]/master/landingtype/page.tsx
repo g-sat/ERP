@@ -313,6 +313,7 @@ export default function LandingTypePage() {
           onCreateAction={canCreate ? handleCreateLandingType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

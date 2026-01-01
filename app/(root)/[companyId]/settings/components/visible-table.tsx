@@ -718,6 +718,24 @@ export function VisibleTable() {
       ),
       size: 100,
     },
+    {
+      accessorKey: "m_BargeIdHd",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Barge Header</div>
+      ),
+
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_BargeIdHd}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_BargeIdHd", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
   ]
 
   const handleSave = async () => {

@@ -28,6 +28,7 @@ interface TaskStatusesTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId?: number
   transactionId?: number
   canEdit?: boolean
@@ -51,6 +52,7 @@ export function TaskStatusesTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
+  initialSearchValue,
   moduleId,
   transactionId,
   canEdit = true,
@@ -150,6 +152,7 @@ export function TaskStatusesTable({
       accessorId="taskStatusId"
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       currentPage={currentPage}
@@ -169,4 +172,3 @@ export function TaskStatusesTable({
     />
   )
 }
-

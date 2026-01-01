@@ -480,6 +480,7 @@ export default function UomPage() {
               onCreateAction={canCreate ? handleCreateUom : undefined}
               onRefreshAction={refetchUom}
               onFilterChange={handleUomFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

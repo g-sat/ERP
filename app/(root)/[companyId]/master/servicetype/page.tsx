@@ -559,6 +559,7 @@ export default function ServiceTypePage() {
               onCreateAction={canCreate ? handleCreateServiceType : undefined}
               onRefreshAction={refetchServiceType}
               onFilterChange={handleFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

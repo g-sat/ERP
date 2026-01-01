@@ -345,6 +345,7 @@ export default function DocumentTypePage() {
           onCreateAction={canCreate ? handleCreateDocumentType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

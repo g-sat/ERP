@@ -328,6 +328,7 @@ export default function RankPage() {
           onCreateAction={canCreate ? handleCreateRank : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

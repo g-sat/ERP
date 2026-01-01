@@ -571,6 +571,7 @@ export default function ReceiptTable({
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

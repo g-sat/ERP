@@ -792,6 +792,7 @@ export default function SupplierPage() {
             totalRecords={totalRecords}
             onSelect={handleSupplierSelect}
             onFilterChange={handleFilterChange}
+            initialSearchValue={filters.search}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
             currentPage={currentPage}

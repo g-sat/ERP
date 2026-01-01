@@ -43,6 +43,7 @@ export interface IArInvoiceHd {
   operationId: number
   operationNo: string
   remarks: string
+  billName: string
   address1: string
   address2: string
   address3: string
@@ -96,6 +97,7 @@ export interface IArInvoiceHd {
   serviceCategoryName: string
   otherRemarks: string
   advRecAmt: number
+  bargeId: number
   data_details: IArInvoiceDt[]
 }
 

@@ -14,7 +14,7 @@ import {
   recalculateAndSetHeaderTotals,
   syncCountryExchangeRate,
 } from "@/helpers/ar-invoice-calculations"
-import { IArInvoiceDt } from "@/interfaces"
+import { IArInvoiceDt, IBargeLookup } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
@@ -32,6 +32,7 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
+  BargeAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
   CustomerAutocomplete,
@@ -265,6 +266,7 @@ export default function InvoiceForm({
 
         // Clear address fields
         form.setValue("addressId", 0)
+        form.setValue("billName", "")
         form.setValue("address1", "")
         form.setValue("address2", "")
         form.setValue("address3", "")
@@ -539,6 +541,17 @@ export default function InvoiceForm({
     [decimals, form, recalculateHeaderTotals, visible, detailsFormRef]
   )
 
+  const handleBargeChange = React.useCallback(
+    (selectedBarge: IBargeLookup | null) => {
+      if (selectedBarge) {
+        form.setValue("bargeId", selectedBarge.bargeId)
+      } else {
+        form.setValue("bargeId", 0)
+      }
+    },
+    [form]
+  )
+
   return (
     <FormProvider {...form}>
       <form
@@ -772,6 +785,16 @@ export default function InvoiceForm({
               name="serviceCategoryId"
               label="Service Category"
               isRequired={true}
+            />
+          )}
+          {/* Service Category */}
+          {visible?.m_BargeIdHd && (
+            <BargeAutocomplete
+              form={form}
+              name="bargeId"
+              label="Barge"
+              isRequired={true}
+              onChangeEvent={handleBargeChange}
             />
           )}
 

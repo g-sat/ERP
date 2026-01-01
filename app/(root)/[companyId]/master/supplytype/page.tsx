@@ -331,6 +331,7 @@ export default function SupplyTypePage() {
           onCreateAction={canCreate ? handleCreateSupplyType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

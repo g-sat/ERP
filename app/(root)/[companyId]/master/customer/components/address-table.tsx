@@ -23,6 +23,7 @@ interface AddresssTableProps {
   onCreateAction?: () => void
   onFilterChange?: (filters: ICustomerAddressFilter) => void
   onRefreshAction?: () => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId: number
   transactionId: number
   // Permission props
@@ -42,6 +43,7 @@ export function AddresssTable({
   onCreateAction,
   onFilterChange,
   onRefreshAction,
+  initialSearchValue,
   moduleId,
   transactionId,
   // Permission props
@@ -300,6 +302,7 @@ export function AddresssTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={handleDialogFilterChange}
+      initialSearchValue={initialSearchValue}
       //handler column props
       onSelect={onSelect}
       onCreateAction={onCreateAction}

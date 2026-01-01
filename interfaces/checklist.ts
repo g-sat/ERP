@@ -55,6 +55,18 @@ export interface IJobOrderHd {
   editDate?: Date | string
   createBy?: string
   editBy?: string
+  billName?: string
+  address1?: string
+  address2?: string
+  address3?: string
+  address4?: string
+  pinCode?: string
+  phoneNo?: string
+  faxNo?: string
+  countryId?: number
+  contactName?: string
+  mobileNo?: string
+  emailAdd?: string
 }
 
 export interface IJobOrderDt {

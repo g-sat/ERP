@@ -98,14 +98,16 @@ export default function ServiceModePage() {
   const updateMutation = usePersist<ServiceModeSchemaType>(`${ServiceMode.add}`)
   const deleteMutation = useDelete(`${ServiceMode.delete}`)
 
-  const [selectedServiceMode, setSelectedServiceMode] = useState<IServiceMode | null>(null)
+  const [selectedServiceMode, setSelectedServiceMode] =
+    useState<IServiceMode | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingServiceMode, setExistingServiceMode] = useState<IServiceMode | null>(null)
+  const [existingServiceMode, setExistingServiceMode] =
+    useState<IServiceMode | null>(null)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -176,7 +178,9 @@ export default function ServiceModePage() {
   }
 
   const handleDeleteServiceMode = (serviceModeId: string) => {
-    const serviceModeToDelete = serviceModesData?.find((b) => b.serviceModeId.toString() === serviceModeId)
+    const serviceModeToDelete = serviceModesData?.find(
+      (b) => b.serviceModeId.toString() === serviceModeId
+    )
     if (!serviceModeToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -206,7 +210,9 @@ export default function ServiceModePage() {
       if (!trimmedCode) return
 
       try {
-        const response = await getById(`${ServiceMode.getByCode}/${trimmedCode}`)
+        const response = await getById(
+          `${ServiceMode.getByCode}/${trimmedCode}`
+        )
         if (response?.result === 1 && response.data) {
           const serviceModeData = Array.isArray(response.data)
             ? response.data[0]
@@ -307,6 +313,7 @@ export default function ServiceModePage() {
           onCreateAction={canCreate ? handleCreateServiceMode : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +359,9 @@ export default function ServiceModePage() {
           <Separator />
           <ServiceModeForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedServiceMode : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedServiceMode
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -398,7 +407,9 @@ export default function ServiceModePage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Service Mode" : "Update Service Mode"}
+        title={
+          modalMode === "create" ? "Create Service Mode" : "Update Service Mode"
+        }
         itemName={saveConfirmation.data?.serviceModeName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
@@ -421,4 +432,3 @@ export default function ServiceModePage() {
     </div>
   )
 }
-

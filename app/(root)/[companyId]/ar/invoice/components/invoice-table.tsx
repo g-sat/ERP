@@ -632,6 +632,7 @@ export default function InvoiceTable({
         emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}

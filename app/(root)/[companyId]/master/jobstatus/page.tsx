@@ -98,14 +98,18 @@ export default function JobStatusPage() {
   const updateMutation = usePersist<JobStatusSchemaType>(`${JobStatus.add}`)
   const deleteMutation = useDelete(`${JobStatus.delete}`)
 
-  const [selectedJobStatus, setSelectedJobStatus] = useState<IJobStatus | null>(null)
+  const [selectedJobStatus, setSelectedJobStatus] = useState<IJobStatus | null>(
+    null
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingJobStatus, setExistingJobStatus] = useState<IJobStatus | null>(null)
+  const [existingJobStatus, setExistingJobStatus] = useState<IJobStatus | null>(
+    null
+  )
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -176,7 +180,9 @@ export default function JobStatusPage() {
   }
 
   const handleDeleteJobStatus = (jobStatusId: string) => {
-    const jobStatusToDelete = jobStatusesData?.find((b) => b.jobStatusId.toString() === jobStatusId)
+    const jobStatusToDelete = jobStatusesData?.find(
+      (b) => b.jobStatusId.toString() === jobStatusId
+    )
     if (!jobStatusToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -307,6 +313,7 @@ export default function JobStatusPage() {
           onCreateAction={canCreate ? handleCreateJobStatus : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +359,9 @@ export default function JobStatusPage() {
           <Separator />
           <JobStatusForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedJobStatus : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedJobStatus
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -398,7 +407,9 @@ export default function JobStatusPage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Job Status" : "Update Job Status"}
+        title={
+          modalMode === "create" ? "Create Job Status" : "Update Job Status"
+        }
         itemName={saveConfirmation.data?.jobStatusName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
@@ -421,4 +432,3 @@ export default function JobStatusPage() {
     </div>
   )
 }
-

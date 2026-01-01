@@ -21,6 +21,7 @@ interface TariffTableProps {
   onEditAction?: (tariff: ITariff) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: ITariffFilter) => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -39,6 +40,7 @@ export function TariffTable({
   onEditAction,
   onRefreshAction,
   onFilterChange,
+  initialSearchValue,
   moduleId,
   transactionId,
   canEdit = true,
@@ -289,6 +291,7 @@ export function TariffTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       //handler column props
       onSelect={onSelect}
       onCreateAction={onCreateAction}

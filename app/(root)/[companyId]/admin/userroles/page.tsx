@@ -286,6 +286,7 @@ export default function AdminUserRolesPage() {
             onCreateAction={canCreate ? handleCreateUserRole : undefined}
             onRefreshAction={refetchUserRoles}
             onFilterChange={handleFilterChange}
+            initialSearchValue={roleFilters.search}
             moduleId={moduleId}
             transactionId={transactionIdRole}
             canEdit={canEdit}
@@ -304,6 +305,7 @@ export default function AdminUserRolesPage() {
           onCreateAction={canCreate ? handleCreateUserRole : undefined}
           onRefreshAction={refetchUserRoles}
           onFilterChange={handleFilterChange}
+          initialSearchValue={roleFilters.search}
           moduleId={moduleId}
           transactionId={transactionIdRole}
           canEdit={canEdit}

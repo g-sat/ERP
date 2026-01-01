@@ -332,6 +332,7 @@ export default function DepartmentPage() {
           onCreateAction={canCreate ? handleCreateDepartment : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

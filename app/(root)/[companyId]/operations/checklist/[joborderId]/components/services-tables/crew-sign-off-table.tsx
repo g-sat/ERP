@@ -60,10 +60,10 @@ export function CrewSignOffTable({
   isConfirmed,
   jobData,
   // Permission props
-  canView,
-  canEdit,
-  canDelete,
-  canCreate,
+  canView: _canView,
+  canEdit: _canEdit,
+  canDelete: _canDelete,
+  canCreate: _canCreate,
   canDebitNote,
 }: CrewSignOffTableProps) {
   const { decimals } = useAuthStore()

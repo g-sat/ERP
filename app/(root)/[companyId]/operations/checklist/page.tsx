@@ -42,12 +42,13 @@ export default function ChecklistPage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canView = hasPermission(moduleId, transactionId, "isRead")
-  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canView = hasPermission(moduleId, transactionId, "isRead")
+  const _canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const _canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const _canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("") // This is used for API calls
+  const [searchInput, setSearchInput] = useState("") // This is for the input field only
   const [selectedStatus, setSelectedStatus] = useState("Pending")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -105,8 +106,8 @@ export default function ChecklistPage() {
     }
   }, [jobOrderError])
 
-  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
+  const handleSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value) // Only update local input state, no API call
   }
 
   // Handler to sync startDate from form to state (convert dd/MM/yyyy to YYYY-MM-DD)
@@ -132,23 +133,29 @@ export default function ChecklistPage() {
   const handleClear = () => {
     setStartDate(formatDateForInput(defaultStartDate))
     setEndDate(formatDateForInput(today))
-    setSearchQuery("")
+    setSearchQuery("") // Clear the search query used for API
+    setSearchInput("") // Clear the input field
     setSelectedStatus("All")
     // Reset form values
     dateFilterForm.reset({
       startDate: format(defaultStartDate, "dd/MM/yyyy"),
       endDate: format(today, "dd/MM/yyyy"),
     })
+    // Refetch with cleared search
+    refetchJobOrder()
   }
 
   const handleSearchClick = async () => {
     try {
+      // Update the searchQuery state which triggers the API call
+      setSearchQuery(searchInput)
+
       // Change tab to "All" when searching
       setSelectedStatus("All")
 
       // Use enhanced search function from api-client.ts
       const searchParams = {
-        searchString: searchQuery,
+        searchString: searchInput, // Use the input value
         startDate: startDate,
         endDate: endDate,
       }
@@ -213,7 +220,7 @@ export default function ChecklistPage() {
   const statusCounts = getStatusCounts
 
   return (
-    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-8 sm:pt-3 sm:pb-6 lg:px-12">
+    <div className="@container mx-auto space-y-2 px-2 pt-2 pb-4 sm:space-y-2 sm:px-4 sm:pt-2 sm:pb-4 lg:px-6">
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -245,62 +252,73 @@ export default function ChecklistPage() {
       </div>
 
       {/* Enhanced Search and Filter Section */}
-      <div className="bg-card rounded-lg border p-4 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-card rounded-lg border p-3 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
             <Form {...dateFilterForm}>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs">📅</span>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground text-xs whitespace-nowrap">
+                  From
+                </span>
                 <CustomDateNew
                   form={dateFilterForm}
                   name="startDate"
                   onChangeEvent={handleStartDateChange}
-                  className="w-full sm:w-[160px]"
+                  className="w-full sm:w-[150px]"
                   isFutureShow={true}
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs">📅</span>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground text-xs whitespace-nowrap">
+                  To
+                </span>
                 <CustomDateNew
                   form={dateFilterForm}
                   name="endDate"
                   onChangeEvent={handleEndDateChange}
                   isFutureShow={true}
-                  className="w-full sm:w-[160px]"
+                  className="w-full sm:w-[150px]"
                 />
               </div>
             </Form>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">🔎</span>
+            <div className="flex items-center gap-1">
               <Input
                 type="text"
                 placeholder="Search Jobs..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="w-full sm:w-[180px]"
+                value={searchInput}
+                onChange={handleSearchInput}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearchClick()
+                  }
+                }}
+                className="w-full sm:w-[160px]"
               />
+              <Button
+                onClick={handleSearchClick}
+                className="flex items-center gap-1 px-2 sm:px-3"
+                size="sm"
+              >
+                <span>🔍</span>
+                <span className="hidden sm:inline">Search</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleClear}
+                className="flex items-center gap-1 px-2 sm:px-3"
+                size="sm"
+              >
+                <span>🗑️</span>
+                <span className="hidden sm:inline">Clear</span>
+              </Button>
             </div>
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={handleSearchClick}
-              className="flex w-full items-center gap-2 sm:w-auto"
-            >
-              <span>🔍</span>
-              <span className="hidden sm:inline">Search</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleClear}
-              className="flex w-full items-center gap-2 sm:w-auto"
-            >
-              <span>🗑️</span>
-              <span className="hidden sm:inline">Clear</span>
-            </Button>
-            <Button
               variant="outline"
               onClick={handleRefresh}
-              className="flex w-full items-center gap-2 sm:w-auto"
+              className="flex w-full items-center gap-1 px-2 sm:w-auto sm:px-3"
+              size="sm"
             >
               <span>🔄</span>
               <span className="hidden sm:inline">Refresh</span>
@@ -431,7 +449,7 @@ export default function ChecklistPage() {
             </div>
           </div>
         ) : (
-          <div className="p-4">
+          <div className="p-2">
             <ChecklistTable
               data={apiData}
               isLoading={isRefetchingJobOrder}

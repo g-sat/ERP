@@ -1,12 +1,15 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { IJobOrderHd } from "@/interfaces/checklist"
+import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import {
   ICurrencyLookup,
   ICustomerLookup,
   IVesselLookup,
 } from "@/interfaces/lookup"
+import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,10 +28,12 @@ import {
 } from "@/lib/date-utils"
 import { updateJobOrderDirect } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import {
   AddressAutocomplete,
   ContactAutocomplete,
+  CountryAutocomplete,
   CurrencyAutocomplete,
   CustomerAutocomplete,
   GSTAutocomplete,
@@ -38,6 +43,12 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicAddressAutocomplete, {
+  EntityType as AddressEntityType,
+} from "@/components/autocomplete/autocomplete-address-dynamic"
+import DynamicContactAutocomplete, {
+  EntityType as ContactEntityType,
+} from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"
@@ -87,6 +98,12 @@ export function ChecklistMain({
 
   // State to track customer code for label display
   const [customerCode, setCustomerCode] = useState<string>("")
+
+  // State for address and contact
+  const [selectedAddress, setSelectedAddress] =
+    useState<ICustomerAddress | null>(null)
+  const [selectedContact, setSelectedContact] =
+    useState<ICustomerContact | null>(null)
 
   // Ref to track if we just updated to prevent useEffect from overwriting response data
   const justUpdatedRef = React.useRef(false)
@@ -276,6 +293,76 @@ export function ChecklistMain({
     })
   }, [jobData, form, dateFormat, parseWithFallback])
 
+  // Initialize address and contact from form values only on initial load or when customer changes
+  useEffect(() => {
+    // Only initialize if we have form values but no selected address/contact yet
+    // This prevents overwriting when user selects a new address/contact
+    const addressId = form.getValues("addressId") || 0
+    const contactId = form.getValues("contactId") || 0
+
+    if (addressId > 0 && !selectedAddress) {
+      const address: ICustomerAddress = {
+        customerId: customerId,
+        addressId: addressId,
+        billName: form.getValues("billName") || "",
+        address1: form.getValues("address1") || "",
+        address2: form.getValues("address2") || "",
+        address3: form.getValues("address3") || "",
+        address4: form.getValues("address4") || "",
+        pinCode: form.getValues("pinCode") || "",
+        countryId: form.getValues("countryId") || 0,
+        phoneNo: form.getValues("phoneNo") || "",
+        faxNo: form.getValues("faxNo") || "",
+        emailAdd: "",
+        webUrl: "",
+        isDefaultAdd: false,
+        isDeliveryAdd: false,
+        isFinAdd: false,
+        isSalesAdd: false,
+        isActive: true,
+        createById: 0,
+        createDate: new Date(),
+        editById: 0,
+        editDate: new Date(),
+        createBy: "",
+        editBy: "",
+      }
+      setSelectedAddress(address)
+    } else if (addressId === 0) {
+      setSelectedAddress(null)
+    }
+
+    if (contactId > 0 && !selectedContact) {
+      const contact: ICustomerContact = {
+        contactId: contactId,
+        customerId: customerId,
+        customerCode: "",
+        customerName: "",
+        contactName: form.getValues("contactName") || "",
+        otherName: form.getValues("emailAdd") || "",
+        mobileNo: form.getValues("mobileNo") || "",
+        offNo: "",
+        faxNo: "",
+        emailAdd: "",
+        messId: "",
+        contactMessType: "",
+        isDefault: false,
+        isFinance: false,
+        isSales: false,
+        isActive: true,
+        createById: 0,
+        createDate: new Date(),
+        editById: 0,
+        editDate: new Date(),
+        createBy: "",
+        editBy: "",
+      }
+      setSelectedContact(contact)
+    } else if (contactId === 0) {
+      setSelectedContact(null)
+    }
+  }, [customerId, form, selectedAddress, selectedContact])
+
   // Reset address and contact when customer changes (only for new selections, not initial load)
   useEffect(() => {
     const currentAddressId = form.getValues("addressId")
@@ -289,6 +376,8 @@ export function ChecklistMain({
     ) {
       form.setValue("addressId", 0)
       form.setValue("contactId", 0)
+      setSelectedAddress(null)
+      setSelectedContact(null)
       toast.info("Address and contact have been reset for the new customer.")
     }
   }, [customerId, jobData?.customerId, form])
@@ -617,6 +706,67 @@ export function ChecklistMain({
     [form]
   )
 
+  const handleAddressSelect = (
+    address: ICustomerAddress | ISupplierAddress | IBankAddress | null
+  ) => {
+    const customerAddress = address as ICustomerAddress | null
+    setSelectedAddress(customerAddress)
+    if (customerAddress) {
+      form.setValue("addressId", customerAddress.addressId)
+      form.setValue("billName", customerAddress.billName || "")
+      form.setValue("address1", customerAddress.address1 || "")
+      form.setValue("address2", customerAddress.address2 || "")
+      form.setValue("address3", customerAddress.address3 || "")
+      form.setValue("address4", customerAddress.address4 || "")
+      form.setValue("pinCode", customerAddress.pinCode?.toString() || "")
+      form.setValue("phoneNo", customerAddress.phoneNo || "")
+      form.setValue("faxNo", customerAddress.faxNo || "")
+      form.setValue("countryId", customerAddress.countryId || 0)
+    } else {
+      form.setValue("addressId", 0)
+      form.setValue("billName", "")
+      form.setValue("address1", "")
+      form.setValue("address2", "")
+      form.setValue("address3", "")
+      form.setValue("address4", "")
+      form.setValue("pinCode", "")
+      form.setValue("phoneNo", "")
+      form.setValue("faxNo", "")
+      form.setValue("countryId", 0)
+    }
+  }
+
+  const handleContactSelect = (
+    contact: ICustomerContact | ISupplierContact | IBankContact | null
+  ) => {
+    const customerContact = contact as ICustomerContact | null
+
+    // Update selected contact state
+    setSelectedContact(customerContact)
+
+    if (customerContact) {
+      // Clear old values first, then set new ones
+      form.setValue("contactId", customerContact.contactId, {
+        shouldValidate: false,
+      })
+      form.setValue("contactName", customerContact.contactName || "", {
+        shouldValidate: false,
+      })
+      form.setValue("emailAdd", customerContact.otherName || "", {
+        shouldValidate: false,
+      })
+      form.setValue("mobileNo", customerContact.mobileNo || "", {
+        shouldValidate: false,
+      })
+    } else {
+      // Clear all contact fields when contact is cleared
+      form.setValue("contactId", 0, { shouldValidate: false })
+      form.setValue("contactName", "", { shouldValidate: false })
+      form.setValue("emailAdd", "", { shouldValidate: false })
+      form.setValue("mobileNo", "", { shouldValidate: false })
+    }
+  }
+
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
@@ -911,7 +1061,28 @@ export function ChecklistMain({
                   isFutureShow={true}
                   isDisabled={isConfirmed}
                 />
-                <AddressAutocomplete
+
+                <DynamicAddressAutocomplete
+                  form={form}
+                  name="addressId"
+                  label="Address"
+                  entityId={customerId}
+                  entityType={AddressEntityType.CUSTOMER}
+                  onChangeEvent={handleAddressSelect}
+                  isDisabled={isConfirmed}
+                />
+
+                <DynamicContactAutocomplete
+                  form={form}
+                  name="contactId"
+                  label="Contact"
+                  entityId={customerId}
+                  entityType={ContactEntityType.CUSTOMER}
+                  onChangeEvent={handleContactSelect}
+                  isDisabled={isConfirmed}
+                />
+
+                {/* <AddressAutocomplete
                   form={form}
                   name="addressId"
                   label="Address"
@@ -926,7 +1097,7 @@ export function ChecklistMain({
                   isRequired={false}
                   customerId={customerId || 0}
                   isDisabled={isConfirmed}
-                />
+                /> */}
 
                 <CustomCheckbox
                   form={form}
@@ -978,6 +1149,125 @@ export function ChecklistMain({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Address and Contact Section */}
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            {/* Address Section */}
+            <Card className="border-0">
+              <CardContent>
+                <div className="mb-2 flex">
+                  <Badge
+                    variant="outline"
+                    className="border-purple-200 bg-purple-100 px-4 py-2 text-sm font-semibold text-purple-800 shadow-sm transition-colors duration-200 hover:bg-purple-200"
+                  >
+                    📍 Address Details
+                  </Badge>
+                </div>
+                <div className="mb-4 border-b border-gray-200"></div>
+
+                <div className="grid gap-2">
+                  <CustomInput
+                    form={form}
+                    name="billName"
+                    label="Bill Name"
+                    isDisabled={!selectedAddress || isConfirmed}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <CustomTextarea
+                      form={form}
+                      name="address1"
+                      label="Address Line 1"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                    <CustomTextarea
+                      form={form}
+                      name="address2"
+                      label="Address Line 2"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                    <CustomTextarea
+                      form={form}
+                      name="address3"
+                      label="Address Line 3"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                    <CustomTextarea
+                      form={form}
+                      name="address4"
+                      label="Address Line 4"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <CountryAutocomplete
+                      form={form}
+                      name="countryId"
+                      label="Country"
+                      isDisabled={isConfirmed}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="pinCode"
+                      label="Pin Code"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="phoneNo"
+                      label="Phone No"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="faxNo"
+                      label="Fax No"
+                      isDisabled={!selectedAddress || isConfirmed}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Section */}
+            <Card className="border-0">
+              <CardContent>
+                <div className="mb-2 flex">
+                  <Badge
+                    variant="outline"
+                    className="border-indigo-200 bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-800 shadow-sm transition-colors duration-200 hover:bg-indigo-200"
+                  >
+                    👤 Contact Details
+                  </Badge>
+                </div>
+                <div className="mb-4 border-b border-gray-200"></div>
+
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <CustomInput
+                      form={form}
+                      name="contactName"
+                      label="Contact Name"
+                      isDisabled={!selectedContact || isConfirmed}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="emailAdd"
+                      label="Email"
+                      isDisabled={!selectedContact || isConfirmed}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <CustomInput
+                      form={form}
+                      name="mobileNo"
+                      label="Mobile No"
+                      isDisabled={!selectedContact || isConfirmed}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </form>
       </Form>

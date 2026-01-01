@@ -60,10 +60,10 @@ export function CrewSignOnTable({
   isConfirmed,
   jobData,
   // Permission props
-  canView,
-  canEdit,
-  canDelete,
-  canCreate,
+  canView: _canView,
+  canEdit: _canEdit,
+  canDelete: _canDelete,
+  canCreate: _canCreate,
   canDebitNote,
 }: CrewSignOnTableProps) {
   const { decimals } = useAuthStore()
@@ -180,7 +180,9 @@ export function CrewSignOnTable({
         accessorKey: "nationalityName",
         header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("nationalityName") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("nationalityName") || "-"}
+          </div>
         ),
         size: 200,
         minSize: 150,

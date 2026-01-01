@@ -28,6 +28,7 @@ interface SubCategoryTableProps {
   currentPage?: number
   pageSize?: number
   serverSidePagination?: boolean
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -52,6 +53,7 @@ export function SubCategoryTable({
   currentPage = 1,
   pageSize = 50,
   serverSidePagination = false,
+  initialSearchValue,
   moduleId,
   transactionId,
   // Permission props
@@ -158,6 +160,7 @@ export function SubCategoryTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       currentPage={currentPage}

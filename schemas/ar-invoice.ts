@@ -79,6 +79,7 @@ export const ArInvoiceHdSchema = (
     // Address and Contact
     addressId: z.number().optional(),
     contactId: z.number().optional(),
+    billName: z.string().optional(),
     address1: required?.m_Address1
       ? z.string().min(1, "Address 1 is required")
       : z.string().optional(),
@@ -152,6 +153,7 @@ export const ArInvoiceHdSchema = (
     advRecAmt: visible?.m_AdvRecAmt
       ? z.number().optional()
       : z.number().optional(),
+    bargeId: z.number().optional(),
 
     // Nested Details
     data_details: z

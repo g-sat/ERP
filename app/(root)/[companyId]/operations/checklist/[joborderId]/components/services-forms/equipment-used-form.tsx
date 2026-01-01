@@ -95,9 +95,12 @@ export function EquipmentUsedForm({
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
-      forkliftChargeId: initialData?.forkliftChargeId ?? 0,
-      craneChargeId: initialData?.craneChargeId ?? 0,
-      stevedoreChargeId: initialData?.stevedoreChargeId ?? 0,
+      forkliftChargeId:
+        initialData?.forkliftChargeId ?? taskDefaults.forkliftChargeId ?? 0,
+      craneChargeId:
+        initialData?.craneChargeId ?? taskDefaults.craneChargeId ?? 0,
+      stevedoreChargeId:
+        initialData?.stevedoreChargeId ?? taskDefaults.stevedoreChargeId ?? 0,
       loadingRefNo: initialData?.loadingRefNo ?? "",
       craneloading: initialData?.craneloading ?? 0,
       forkliftloading: initialData?.forkliftloading ?? 0,
@@ -138,20 +141,20 @@ export function EquipmentUsedForm({
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
-      forkliftChargeId: initialData?.forkliftChargeId ?? 0,
-      craneChargeId: initialData?.craneChargeId ?? 0,
-      stevedoreChargeId: initialData?.stevedoreChargeId ?? 0,
+      forkliftChargeId:
+        initialData?.forkliftChargeId ?? taskDefaults.forkliftChargeId ?? 0,
+      craneChargeId:
+        initialData?.craneChargeId ?? taskDefaults.craneChargeId ?? 0,
+      stevedoreChargeId:
+        initialData?.stevedoreChargeId ?? taskDefaults.stevedoreChargeId ?? 0,
       loadingRefNo: initialData?.loadingRefNo ?? "",
       craneloading: initialData?.craneloading ?? 0,
       forkliftloading: initialData?.forkliftloading ?? 0,
       stevedoreloading: initialData?.stevedoreloading ?? 0,
       offloadingRefNo: initialData?.offloadingRefNo ?? "",
-      craneOffloading:
-        initialData?.craneOffloading ?? taskDefaults.chargeId ?? 0,
-      forkliftOffloading:
-        initialData?.forkliftOffloading ?? taskDefaults.forkliftChargeId ?? 0,
-      stevedoreOffloading:
-        initialData?.stevedoreOffloading ?? taskDefaults.stevedoreChargeId ?? 0,
+      craneOffloading: initialData?.craneOffloading ?? 0,
+      forkliftOffloading: initialData?.forkliftOffloading ?? 0,
+      stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       remarks: initialData?.remarks ?? "",
       taskStatusId: initialData?.taskStatusId ?? taskDefaults.taskStatusId ?? 1,
       isNotes: initialData?.isNotes ?? false,

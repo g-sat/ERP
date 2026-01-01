@@ -570,6 +570,7 @@ export default function OrderTypePage() {
               onCreateAction={canCreate ? handleCreateOrderType : undefined}
               onRefreshAction={refetchOrderType}
               onFilterChange={handleFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

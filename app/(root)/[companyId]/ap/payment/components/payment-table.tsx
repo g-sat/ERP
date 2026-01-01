@@ -571,6 +571,7 @@ export default function PaymentTable({
         emptyMessage="No payments found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchPayments()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

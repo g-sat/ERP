@@ -571,6 +571,7 @@ export default function ChargePage() {
               onCreateAction={canCreate ? handleCreateCharge : undefined}
               onRefreshAction={refetchCharge}
               onFilterChange={handleFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

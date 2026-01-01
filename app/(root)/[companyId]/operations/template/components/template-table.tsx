@@ -21,6 +21,7 @@ interface TemplateTableProps {
   onEditAction?: (template: ITemplateHd) => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: ITemplateFilter) => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   onPageChange?: (page: number) => void
   onPageSizeChange?: (pageSize: number) => void
   currentPage?: number
@@ -45,6 +46,7 @@ export function TemplateTable({
   onEditAction,
   onRefreshAction,
   onFilterChange,
+  initialSearchValue,
   onPageChange,
   onPageSizeChange,
   currentPage,
@@ -169,6 +171,7 @@ export function TemplateTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       currentPage={currentPage}

@@ -332,6 +332,7 @@ export default function InvoiceTable({
         emptyMessage="No data found."
         onRefreshAction={onRefreshAction}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
       />
     </div>

@@ -331,6 +331,7 @@ export default function PortRegionPage() {
           onCreateAction={canCreate ? handleCreatePortRegion : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

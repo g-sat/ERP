@@ -98,14 +98,18 @@ export default function PassTypePage() {
   const updateMutation = usePersist<PassTypeSchemaType>(`${PassType.add}`)
   const deleteMutation = useDelete(`${PassType.delete}`)
 
-  const [selectedPassType, setSelectedPassType] = useState<IPassType | null>(null)
+  const [selectedPassType, setSelectedPassType] = useState<IPassType | null>(
+    null
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingPassType, setExistingPassType] = useState<IPassType | null>(null)
+  const [existingPassType, setExistingPassType] = useState<IPassType | null>(
+    null
+  )
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -176,7 +180,9 @@ export default function PassTypePage() {
   }
 
   const handleDeletePassType = (passTypeId: string) => {
-    const passTypeToDelete = passTypesData?.find((b) => b.passTypeId.toString() === passTypeId)
+    const passTypeToDelete = passTypesData?.find(
+      (b) => b.passTypeId.toString() === passTypeId
+    )
     if (!passTypeToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -307,6 +313,7 @@ export default function PassTypePage() {
           onCreateAction={canCreate ? handleCreatePassType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +359,9 @@ export default function PassTypePage() {
           <Separator />
           <PassTypeForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedPassType : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedPassType
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -421,4 +430,3 @@ export default function PassTypePage() {
     </div>
   )
 }
-

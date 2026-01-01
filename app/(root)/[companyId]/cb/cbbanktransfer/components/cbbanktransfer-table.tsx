@@ -438,6 +438,7 @@ export default function BankTransferTable({
         emptyMessage="No data found."
         onRefreshAction={() => refetchBankTransfers()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onBankTransferSelect(row || undefined)}
       />
     </div>

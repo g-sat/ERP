@@ -242,6 +242,7 @@ export default function InvoicePage() {
           operationId: invoice.operationId ?? 0,
           operationNo: invoice.operationNo ?? "",
           remarks: invoice.remarks ?? "",
+          billName: invoice.billName ?? "",
           address1: invoice.address1 ?? "",
           address2: invoice.address2 ?? "",
           address3: invoice.address3 ?? "",
@@ -270,6 +271,7 @@ export default function InvoicePage() {
           serviceCategoryId: invoice.serviceCategoryId ?? 0,
           otherRemarks: invoice.otherRemarks ?? "",
           advRecAmt: invoice.advRecAmt ?? 0,
+          bargeId: invoice.bargeId ?? 0,
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
@@ -897,6 +899,7 @@ export default function InvoicePage() {
         remarks: apiInvoice.remarks ?? "",
         addressId: apiInvoice.addressId ?? 0, // Not available in IArInvoiceHd
         contactId: apiInvoice.contactId ?? 0, // Not available in IArInvoiceHd
+        billName: apiInvoice.billName ?? "",
         address1: apiInvoice.address1 ?? "",
         address2: apiInvoice.address2 ?? "",
         address3: apiInvoice.address3 ?? "",
@@ -923,6 +926,7 @@ export default function InvoicePage() {
         serviceCategoryId: apiInvoice.serviceCategoryId ?? 0,
         otherRemarks: apiInvoice.otherRemarks ?? "",
         advRecAmt: apiInvoice.advRecAmt ?? 0,
+        bargeId: apiInvoice.bargeId ?? 0,
         createBy: apiInvoice.createBy ?? "",
         editBy: apiInvoice.editBy ?? "",
         cancelBy: apiInvoice.cancelBy ?? "",

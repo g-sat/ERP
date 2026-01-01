@@ -39,7 +39,7 @@ export function TransportationLogTab({
   moduleId,
   transactionId,
   onTaskAdded,
-  isConfirmed,
+  isConfirmed: _isConfirmed,
 }: TransportationLogTabProps) {
   const jobOrderId = jobData.jobOrderId
   const queryClient = useQueryClient()

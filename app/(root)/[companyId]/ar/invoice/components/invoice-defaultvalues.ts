@@ -97,6 +97,7 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   operationId: 0,
   operationNo: "",
   remarks: "",
+  billName: "",
   address1: "",
   address2: "",
   address3: "",
@@ -140,6 +141,7 @@ const buildDefaultInvoice = (dateFormat: string) => ({
   serviceCategoryId: 0,
   otherRemarks: "",
   advRecAmt: 0,
+  bargeId: 0,
   data_details: [],
 })
 

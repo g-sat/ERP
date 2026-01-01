@@ -547,6 +547,7 @@ export default function DebitNoteTable({
         emptyMessage="No debitNotes found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchDebitNotes()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onDebitNoteSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}

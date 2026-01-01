@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ILandingPurpose, ILandingPurposeFilter } from "@/interfaces/landing-purpose"
+import {
+  ILandingPurpose,
+  ILandingPurposeFilter,
+} from "@/interfaces/landing-purpose"
 import { LandingPurposeSchemaType } from "@/schemas/landing-purpose"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -94,18 +97,24 @@ export default function LandingPurposePage() {
     totalRecords: 0,
   }
 
-  const saveMutation = usePersist<LandingPurposeSchemaType>(`${LandingPurpose.add}`)
-  const updateMutation = usePersist<LandingPurposeSchemaType>(`${LandingPurpose.add}`)
+  const saveMutation = usePersist<LandingPurposeSchemaType>(
+    `${LandingPurpose.add}`
+  )
+  const updateMutation = usePersist<LandingPurposeSchemaType>(
+    `${LandingPurpose.add}`
+  )
   const deleteMutation = useDelete(`${LandingPurpose.delete}`)
 
-  const [selectedLandingPurpose, setSelectedLandingPurpose] = useState<ILandingPurpose | null>(null)
+  const [selectedLandingPurpose, setSelectedLandingPurpose] =
+    useState<ILandingPurpose | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
 
   const [showLoadDialog, setShowLoadDialog] = useState(false)
-  const [existingLandingPurpose, setExistingLandingPurpose] = useState<ILandingPurpose | null>(null)
+  const [existingLandingPurpose, setExistingLandingPurpose] =
+    useState<ILandingPurpose | null>(null)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -176,7 +185,9 @@ export default function LandingPurposePage() {
   }
 
   const handleDeleteLandingPurpose = (landingPurposeId: string) => {
-    const landingPurposeToDelete = landingPurposesData?.find((b) => b.landingPurposeId.toString() === landingPurposeId)
+    const landingPurposeToDelete = landingPurposesData?.find(
+      (b) => b.landingPurposeId.toString() === landingPurposeId
+    )
     if (!landingPurposeToDelete) return
     setDeleteConfirmation({
       isOpen: true,
@@ -187,9 +198,11 @@ export default function LandingPurposePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.landingPurposeId) {
-      deleteMutation.mutateAsync(deleteConfirmation.landingPurposeId).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["landingPurposes"] })
-      })
+      deleteMutation
+        .mutateAsync(deleteConfirmation.landingPurposeId)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["landingPurposes"] })
+        })
       setDeleteConfirmation({
         isOpen: false,
         landingPurposeId: null,
@@ -206,7 +219,9 @@ export default function LandingPurposePage() {
       if (!trimmedCode) return
 
       try {
-        const response = await getById(`${LandingPurpose.getByCode}/${trimmedCode}`)
+        const response = await getById(
+          `${LandingPurpose.getByCode}/${trimmedCode}`
+        )
         if (response?.result === 1 && response.data) {
           const landingPurposeData = Array.isArray(response.data)
             ? response.data[0]
@@ -307,6 +322,7 @@ export default function LandingPurposePage() {
           onCreateAction={canCreate ? handleCreateLandingPurpose : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}
@@ -352,7 +368,9 @@ export default function LandingPurposePage() {
           <Separator />
           <LandingPurposeForm
             initialData={
-              modalMode === "edit" || modalMode === "view" ? selectedLandingPurpose : null
+              modalMode === "edit" || modalMode === "view"
+                ? selectedLandingPurpose
+                : null
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
@@ -398,7 +416,11 @@ export default function LandingPurposePage() {
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create Landing Purpose" : "Update Landing Purpose"}
+        title={
+          modalMode === "create"
+            ? "Create Landing Purpose"
+            : "Update Landing Purpose"
+        }
         itemName={saveConfirmation.data?.landingPurposeName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
@@ -421,4 +443,3 @@ export default function LandingPurposePage() {
     </div>
   )
 }
-

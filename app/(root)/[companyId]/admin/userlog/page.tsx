@@ -74,6 +74,7 @@ export default function AdminUserLogPage() {
           isLoading={isLoadingUserLogs}
           onRefreshAction={refetchUserLogs}
           onFilterChange={handleFilterChange}
+          initialSearchValue={userLogFilters.search}
           moduleId={moduleId}
           transactionId={transactionId}
         />

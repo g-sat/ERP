@@ -965,6 +965,7 @@ export default function ChartOfAccountPage() {
               }
               onRefreshAction={refetchChart}
               onFilterChange={handleChartFilterChange}
+              initialSearchValue={filtersChart.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

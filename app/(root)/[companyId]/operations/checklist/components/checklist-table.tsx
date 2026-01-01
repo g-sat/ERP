@@ -139,9 +139,9 @@ export function ChecklistTable({
             </button>
           )
         },
-        size: 150,
-        minSize: 120,
-        maxSize: 180,
+        size: 180,
+        minSize: 100,
+        maxSize: 140,
       },
       {
         accessorKey: "jobOrderDate",
@@ -153,13 +153,92 @@ export function ChecklistTable({
           return date ? format(date, dateFormat) : "-"
         },
         size: 100,
-        minSize: 80,
+        minSize: 70,
       },
       {
         accessorKey: "customerName",
         header: "Customer",
         size: 180,
-        minSize: 140,
+        minSize: 100,
+      },
+      {
+        accessorKey: "billName",
+        header: "Address",
+        cell: ({ row }) => {
+          const billName = row.original.billName
+          const address1 = row.original.address1
+          const address2 = row.original.address2
+          const address3 = row.original.address3
+          const address4 = row.original.address4
+          const pinCode = row.original.pinCode
+          const phoneNo = row.original.phoneNo
+
+          if (!billName && !address1) return "-"
+
+          const addressParts = [
+            billName,
+            address1,
+            address2,
+            address3,
+            address4,
+            pinCode,
+          ].filter(Boolean)
+
+          const displayText =
+            addressParts.length > 0 ? addressParts.join(", ") : "-"
+
+          return (
+            <div className="max-w-[200px] truncate" title={displayText}>
+              {displayText}
+              {phoneNo && (
+                <div className="text-muted-foreground mt-1 text-xs">
+                  📞 {phoneNo}
+                </div>
+              )}
+            </div>
+          )
+        },
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "contactName",
+        header: "Contact",
+        cell: ({ row }) => {
+          const contactName = row.original.contactName
+          const mobileNo = row.original.mobileNo
+          const emailAdd = row.original.emailAdd
+
+          if (!contactName && !mobileNo && !emailAdd) return "-"
+
+          return (
+            <div className="max-w-[180px]">
+              {contactName && (
+                <div className="truncate font-medium" title={contactName}>
+                  {contactName}
+                </div>
+              )}
+              {mobileNo && (
+                <div
+                  className="text-muted-foreground truncate text-xs"
+                  title={mobileNo}
+                >
+                  📱 {mobileNo}
+                </div>
+              )}
+              {emailAdd && (
+                <div
+                  className="text-muted-foreground truncate text-xs"
+                  title={emailAdd}
+                >
+                  ✉️ {emailAdd}
+                </div>
+              )}
+            </div>
+          )
+        },
+        size: 180,
+        minSize: 150,
       },
       {
         accessorKey: "currencyCode",
@@ -170,14 +249,14 @@ export function ChecklistTable({
       {
         accessorKey: "portName",
         header: "Port",
-        size: 120,
-        minSize: 100,
+        size: 100,
+        minSize: 80,
       },
       {
         accessorKey: "vesselName",
         header: "Vessel",
-        size: 140,
-        minSize: 100,
+        size: 110,
+        minSize: 90,
       },
       {
         accessorKey: "jobStatusName",
@@ -202,8 +281,8 @@ export function ChecklistTable({
             </Badge>
           )
         },
-        size: 120,
-        minSize: 80,
+        size: 90,
+        minSize: 70,
       },
       {
         accessorKey: "etaDate",
@@ -214,6 +293,8 @@ export function ChecklistTable({
             : null
           return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
+        size: 140,
+        minSize: 120,
       },
       {
         accessorKey: "etdDate",
@@ -224,81 +305,78 @@ export function ChecklistTable({
             : null
           return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
+        size: 140,
+        minSize: 120,
       },
       {
         accessorKey: "vesselDistance",
         header: "Dist. In.",
-        size: 80,
-        minSize: 60,
+        size: 70,
+        minSize: 50,
       },
 
       {
         accessorKey: "remarks",
         header: "Remarks",
-        size: 150,
+        size: 100,
         minSize: 50,
       },
       {
         accessorKey: "lastPortName",
         header: "Last Port",
-        size: 120,
-        minSize: 100,
+        size: 100,
+        minSize: 80,
       },
       {
         accessorKey: "nextPortName",
         header: "Next Port",
-        size: 120,
-        minSize: 100,
+        size: 100,
+        minSize: 80,
       },
       {
         accessorKey: "istaxable",
         header: "Tax",
         cell: ({ row }) => (
-          <Badge
-            variant={row.getValue("istaxable") ? "default" : "destructive"}
-          >
+          <div className="flex justify-center">
             {row.getValue("istaxable") ? (
-              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+              <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
             ) : (
-              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+              <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
             )}
-            {row.getValue("istaxable") ? "Yes" : "No"}
-          </Badge>
+          </div>
         ),
-        size: 120,
+        size: 80,
         minSize: 50,
       },
       {
         accessorKey: "isPost",
         header: "Post",
         cell: ({ row }) => (
-          <Badge variant={row.getValue("isPost") ? "default" : "destructive"}>
+          <div className="flex justify-center">
             {row.getValue("isPost") ? (
-              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+              <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
             ) : (
-              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+              <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
             )}
-            {row.getValue("isPost") ? "Yes" : "No"}
-          </Badge>
+          </div>
         ),
-        size: 120,
+        size: 80,
         minSize: 50,
       },
       {
         accessorKey: "isActive",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+          <div className="flex justify-center">
             {row.getValue("isActive") ? (
-              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+              <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
             ) : (
-              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+              <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
             )}
-            {row.getValue("isActive") ? "Active" : "Inactive"}
-          </Badge>
+          </div>
         ),
-        size: 120,
-        minSize: 50,
+        size: 90,
+        minSize: 70,
       },
       {
         accessorKey: "editVersion",
@@ -316,14 +394,14 @@ export function ChecklistTable({
             </Badge>
           )
         },
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
+        size: 70,
+        minSize: 50,
+        maxSize: 80,
       },
       {
         accessorKey: "createBy",
         header: "Create By",
-        size: 120,
+        size: 100,
         minSize: 50,
       },
       {
@@ -336,13 +414,13 @@ export function ChecklistTable({
           else if (raw instanceof Date) date = raw
           return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
-        size: 180,
-        minSize: 150,
+        size: 140,
+        minSize: 120,
       },
       {
         accessorKey: "editBy",
         header: "Edit By",
-        size: 120,
+        size: 100,
         minSize: 50,
       },
       {
@@ -355,8 +433,8 @@ export function ChecklistTable({
           else if (raw instanceof Date) date = raw
           return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
-        size: 180,
-        minSize: 150,
+        size: 140,
+        minSize: 120,
       },
     ],
     [dateFormat, datetimeFormat, companyId]

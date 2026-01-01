@@ -54,6 +54,7 @@ interface DialogDataTableProps<T> {
   emptyMessage?: string
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   onRowSelect?: (row: T | null) => void
   // Paging props
   onPageChange?: (page: number) => void
@@ -74,6 +75,7 @@ export function DialogDataTable<T>({
   emptyMessage = "No data found.",
   onRefreshAction,
   onFilterChange,
+  initialSearchValue,
   onRowSelect,
   // Pagination props
   onPageChange, // Page change callback
@@ -130,12 +132,20 @@ export function DialogDataTable<T>({
     getInitialColumnVisibility
   )
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialSearchValue || "")
   const [currentPage, setCurrentPage] = useState(propCurrentPage || 1)
   const [pageSize, setPageSize] = useState(propPageSize || 50)
   const [rowSelection, setRowSelection] = useState({})
   // Shared scroll container ref
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  // Track if this is the first render to prevent debounce from firing on mount
+  const isFirstRender = useRef(true)
+  // Track the last search value that was sent to prevent duplicate calls
+  const lastSentSearch = useRef<string | undefined>(undefined)
+  // Track if searchQuery was explicitly set by user (to prevent accidental clearing)
+  const searchQueryRef = useRef<string>("")
+  // Track if user is actively editing (to prevent sync from overwriting user input)
+  const isUserEditing = useRef<boolean>(false)
 
   useEffect(() => {
     if (gridSettingsData) {
@@ -170,6 +180,23 @@ export function DialogDataTable<T>({
       }
     }
   }, [gridSettingsData])
+
+  // Sync searchQuery with initialSearchValue from parent when it changes
+  useEffect(() => {
+    // Don't sync if user is actively editing
+    if (isUserEditing.current) {
+      return
+    }
+
+    // Only sync if initialSearchValue is provided and different from current searchQuery
+    if (
+      initialSearchValue !== undefined &&
+      initialSearchValue !== searchQuery
+    ) {
+      setSearchQuery(initialSearchValue)
+      searchQueryRef.current = initialSearchValue
+    }
+  }, [initialSearchValue]) // Only depend on initialSearchValue to avoid loops
 
   const tableColumns: ColumnDef<T>[] = [...columns]
 
@@ -251,29 +278,110 @@ export function DialogDataTable<T>({
     useSensor(KeyboardSensor, {})
   )
 
-  const clampColumnSize = useCallback(
-    (columnId: string, size: number) => {
-      if (columnId === "remarks") {
-        return Math.min(Math.max(size, 150), 220)
-      }
-      return size
-    },
-    []
-  )
+  const clampColumnSize = useCallback((columnId: string, size: number) => {
+    if (columnId === "remarks") {
+      return Math.min(Math.max(size, 150), 220)
+    }
+    return size
+  }, [])
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query)
+    // Mark that user is actively editing
+    isUserEditing.current = true
 
-    if (data && data.length > 0) {
-      table.setGlobalFilter(query)
-    } else if (onFilterChange) {
+    // Always update the search query when user types
+    setSearchQuery(query) // Update local search state immediately for UI responsiveness
+    searchQueryRef.current = query // Track the current search value
+
+    // If user clears the search (empty string), immediately update parent filters
+    // This allows the user to clear the search box
+    if (query === "" && serverSidePagination && onFilterChange) {
       const newFilters = {
-        search: query,
+        search: undefined, // Clear the search in parent
         sortOrder: sorting[0]?.desc ? "desc" : "asc",
       }
       onFilterChange(newFilters)
+      lastSentSearch.current = undefined // Reset last sent value
     }
+
+    // For client-side filtering, apply immediately
+    if (!serverSidePagination && data && data.length > 0) {
+      table.setGlobalFilter(query) // Apply filter to local data immediately
+    }
+
+    // Reset editing flag after a short delay to allow sync from parent if needed
+    setTimeout(() => {
+      isUserEditing.current = false
+    }, 100)
   }
+
+  /**
+   * Debounced search effect for server-side pagination
+   * Waits 400ms after user stops typing before calling onFilterChange
+   * This prevents excessive API calls while the user is still typing
+   */
+  useEffect(() => {
+    // Only debounce for server-side pagination
+    if (!serverSidePagination || !onFilterChange) return
+
+    // Skip debounce on first render to prevent unnecessary API call on mount
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      lastSentSearch.current = searchQuery.trim() || undefined
+      return
+    }
+
+    const trimmedQuery = searchQuery.trim()
+    const normalizedQuery = trimmedQuery || undefined
+
+    // Skip if the search value hasn't actually changed
+    if (normalizedQuery === lastSentSearch.current) {
+      return
+    }
+
+    // Set up debounce timer
+    const debounceTimer = setTimeout(() => {
+      // Only call if the value still matches (user might have changed it during debounce)
+      const currentTrimmed = searchQuery.trim()
+      const currentNormalized = currentTrimmed || undefined
+
+      // Double-check the value hasn't changed during the debounce delay
+      if (currentNormalized !== lastSentSearch.current) {
+        // Pass undefined for empty searches (hook will convert to "null" for API)
+        const newFilters = {
+          search: currentNormalized, // undefined for empty, string for actual search
+          sortOrder: sorting[0]?.desc ? "desc" : "asc", // Pass current sort order
+        }
+        onFilterChange(newFilters) // Let parent handle server-side filtering
+        lastSentSearch.current = currentNormalized // Update last sent value
+      }
+    }, 400) // 400ms delay - standard for search inputs
+
+    // Cleanup: clear timer if searchQuery changes before timeout
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery, serverSidePagination, onFilterChange, sorting])
+
+  /**
+   * Handle search for non-server-side pagination when no local data
+   * This is for cases where we need to call onFilterChange but don't have local data
+   */
+  useEffect(() => {
+    // Only for non-server-side pagination with no local data
+    if (serverSidePagination || (data && data.length > 0) || !onFilterChange)
+      return
+
+    // Debounce this as well
+    const debounceTimer = setTimeout(() => {
+      // Pass undefined for empty strings to avoid sending "null" to API
+      const newFilters = {
+        search: searchQuery.trim() || undefined,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }
+      onFilterChange(newFilters)
+    }, 400)
+
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery, serverSidePagination, data, onFilterChange, sorting])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)

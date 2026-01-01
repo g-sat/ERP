@@ -342,6 +342,7 @@ export default function LeaveTypePage() {
           onCreateAction={canCreate ? handleCreateLeaveType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

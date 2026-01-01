@@ -60,10 +60,10 @@ export function LaunchServiceTable({
   isConfirmed,
   jobData,
   // Permission props
-  canView,
-  canEdit,
-  canDelete,
-  canCreate,
+  canView: _canView,
+  canEdit: _canEdit,
+  canDelete: _canDelete,
+  canCreate: _canCreate,
   canDebitNote,
 }: LaunchServiceTableProps) {
   const { decimals } = useAuthStore()

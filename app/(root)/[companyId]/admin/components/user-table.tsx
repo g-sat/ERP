@@ -22,6 +22,7 @@ interface UsersTableProps {
   onCreateAction?: () => void
   onRefreshAction?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  initialSearchValue?: string // Initial search value to sync with parent filters
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -40,6 +41,7 @@ export function UserTable({
   onCreateAction,
   onRefreshAction,
   onFilterChange,
+  initialSearchValue,
   moduleId,
   transactionId,
   // Permission props
@@ -206,6 +208,7 @@ export function UserTable({
       // Add handlers if provided
       onRefreshAction={onRefreshAction}
       onFilterChange={onFilterChange}
+      initialSearchValue={initialSearchValue}
       //handler column props
       onSelect={onSelect}
       onCreateAction={onCreateAction}

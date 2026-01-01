@@ -343,6 +343,7 @@ export default function LoanTypePage() {
           onCreateAction={canCreate ? handleCreateLoanType : undefined}
           onRefreshAction={handleRefresh}
           onFilterChange={handleFilterChange}
+          initialSearchValue={filters.search}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           currentPage={currentPage}

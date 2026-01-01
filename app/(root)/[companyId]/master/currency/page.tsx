@@ -682,6 +682,7 @@ export default function CurrencyPage() {
               onCreateAction={canCreate ? handleCreateCurrency : undefined}
               onRefreshAction={refetchCurrency}
               onFilterChange={handleCurrencyFilterChange}
+              initialSearchValue={filters.search}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
               currentPage={currentPage}

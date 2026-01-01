@@ -566,6 +566,7 @@ export default function CbGenReceiptTable({
         emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchCbGenReceipts()}
         onFilterChange={handleDialogFilterChange}
+        initialSearchValue={initialFilters?.search}
         onRowSelect={(row) => onCbGenReceiptSelect(row || undefined)}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
