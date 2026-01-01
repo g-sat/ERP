@@ -221,7 +221,11 @@ export function useGetWithDatesAndPagination<T>(
     queryFn: async () => {
       const params: QueryParams = {
         ...baseQueryConfig,
-        searchString: filters?.trim() || "",
+        // Only include searchString if filters is provided and not empty
+        // If filters is undefined or empty, use "null" to match useGetWithPagination behavior
+        ...(filters && filters.trim()
+          ? { searchString: filters.trim() }
+          : { searchString: "null" }),
         startDate: startDate?.trim() || "",
         endDate: endDate?.trim() || "",
         pageNumber: pageNumber.toString(),
