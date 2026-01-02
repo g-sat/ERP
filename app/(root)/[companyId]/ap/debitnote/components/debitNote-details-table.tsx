@@ -183,9 +183,9 @@ export default function DebitNoteDetailsTable({
             accessorKey: "gstPercentage",
             header: "VAT %",
             size: 50,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { original: IApDebitNoteDt } }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("gstPercentage"), 2)}
+                {formatNumber(row.original.gstPercentage, 2)}
               </div>
             ),
           },
@@ -193,9 +193,9 @@ export default function DebitNoteDetailsTable({
             accessorKey: "gstAmt",
             header: "VAT Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { original: IApDebitNoteDt } }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("gstAmt"), amtDec)}
+                {formatNumber(row.original.gstAmt, amtDec)}
               </div>
             ),
           },
@@ -252,9 +252,9 @@ export default function DebitNoteDetailsTable({
             accessorKey: "gstLocalAmt",
             header: "GST Local Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { original: IApDebitNoteDt } }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+                {formatNumber(row.original.gstLocalAmt, locAmtDec)}
               </div>
             ),
           },
@@ -266,9 +266,9 @@ export default function DebitNoteDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }) => (
+            cell: ({ row }: { row: { original: IApDebitNoteDt } }) => (
               <div className="text-right">
-                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+                {formatNumber(row.original.gstCtyAmt, locAmtDec)}
               </div>
             ),
           } as ColumnDef<IApDebitNoteDt>,
@@ -341,7 +341,7 @@ export default function DebitNoteDetailsTable({
         columns={columns}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.debitNote}
-        tableName={TableName.arDebitNoteDt}
+        tableName={TableName.apDebitNoteDt}
         emptyMessage="No debitNote details found."
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}

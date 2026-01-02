@@ -17,8 +17,8 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomInput from "@/components/custom/custom-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 const defaultValues = {
@@ -27,6 +27,7 @@ const defaultValues = {
   chargeCode: "",
   chargeOrder: 0,
   seqNo: 0,
+  isTransport: false,
   remarks: "",
   isActive: true,
 }
@@ -65,6 +66,7 @@ export function ChargeForm({
           seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
+          isTransport: initialData.isTransport ?? false,
         }
       : {
           ...defaultValues,
@@ -82,6 +84,7 @@ export function ChargeForm({
             seqNo: initialData.seqNo ?? 0,
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
+            isTransport: initialData.isTransport ?? false,
           }
         : {
             ...defaultValues,
@@ -137,11 +140,16 @@ export function ChargeForm({
               isDisabled={isReadOnly}
             />
 
-            <CustomSwitch
+            <CustomCheckbox
               form={form}
               name="isActive"
               label="Active Status"
-              activeColor="success"
+              isDisabled={isReadOnly}
+            />
+            <CustomCheckbox
+              form={form}
+              name="isTransport"
+              label="Transport"
               isDisabled={isReadOnly}
             />
 

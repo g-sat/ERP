@@ -101,7 +101,7 @@ export default function DebitNoteTable({
     refetch: refetchDebitNotes,
   } = useGetWithDatesAndPagination<IApDebitNoteHd>(
     `${ApDebitNote.get}`,
-    TableName.arDebitNote,
+    TableName.apDebitNote,
     searchQuery,
     searchStartDate,
     searchEndDate,
@@ -547,7 +547,7 @@ export default function DebitNoteTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.arDebitNote}
+        tableName={TableName.apDebitNote}
         emptyMessage="No debitNotes found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchDebitNotes()}
         onFilterChange={handleDialogFilterChange}

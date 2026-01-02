@@ -86,6 +86,21 @@ export function ChargeTable({
       minSize: 50,
     },
     {
+      accessorKey: "isTransport",
+      header: "Transport",
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          {row.getValue("isTransport") ? (
+            <IconCircleCheckFilled className="h-4 w-4 text-green-500" />
+          ) : (
+            <IconSquareRoundedXFilled className="h-4 w-4 text-red-500" />
+          )}
+        </div>
+      ),
+      size: 120,
+      minSize: 50,
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
       size: 250,

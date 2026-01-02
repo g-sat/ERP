@@ -5,6 +5,7 @@ export interface ICharge {
   chargeName: string
   chargeOrder: number
   seqNo: number
+  isTransport: boolean
   createById: number
   editById: number
   createBy: string

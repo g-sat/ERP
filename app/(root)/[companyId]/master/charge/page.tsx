@@ -472,6 +472,7 @@ export default function ChargePage() {
               chargeName: chargeData.chargeName,
               chargeOrder: chargeData.chargeOrder,
               seqNo: chargeData.seqNo,
+              isTransport: chargeData.isTransport,
               isActive: chargeData.isActive,
               remarks: chargeData.remarks || "",
               createBy: chargeData.createBy,
