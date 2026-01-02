@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { calculateMultiplierAmount } from "@/helpers/account"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
@@ -38,6 +38,13 @@ interface DebitNoteFormProps {
     totalAfterVat: number
   } // Summary totals from table
   currencyCode?: string // Currency code for remarks update
+  onServiceChargeUpdate?: (
+    itemNo: number,
+    chargeId: number,
+    totAmtAftGst: number,
+    serviceCharge: number,
+    taskId: number
+  ) => void // Callback to update service charge entry when parent changes
 }
 
 export default function DebitNoteForm({
@@ -52,8 +59,16 @@ export default function DebitNoteForm({
   onChargeChange,
   summaryTotals,
   currencyCode: _currencyCode,
+  onServiceChargeUpdate,
 }: DebitNoteFormProps) {
   const { decimals } = useAuthStore()
+
+  // Store callback in ref to avoid dependency issues
+  const onServiceChargeUpdateRef = useRef(onServiceChargeUpdate)
+
+  useEffect(() => {
+    onServiceChargeUpdateRef.current = onServiceChargeUpdate
+  }, [onServiceChargeUpdate])
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const { isLoading: _isChartOfAccountLoading } = useChartOfAccountLookup(
@@ -154,6 +169,32 @@ export default function DebitNoteForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.itemNo, form])
 
+  // Watch for isServiceCharge and serviceCharge changes to auto-update service charge entry
+  const isServiceCharge = form.watch("isServiceCharge")
+  const serviceCharge = form.watch("serviceCharge")
+  const totAmtAftGst = form.watch("totAmtAftGst")
+  const itemNo = form.watch("itemNo")
+  const chargeId = form.watch("chargeId")
+
+  useEffect(() => {
+    if (
+      onServiceChargeUpdateRef.current &&
+      isServiceCharge &&
+      serviceCharge > 0 &&
+      totAmtAftGst > 0 &&
+      itemNo > 0
+    ) {
+      onServiceChargeUpdateRef.current(
+        itemNo,
+        chargeId,
+        totAmtAftGst,
+        serviceCharge,
+        taskId
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isServiceCharge, serviceCharge, totAmtAftGst, itemNo, chargeId, taskId])
+
   // Helper function to calculate totAmtAftGst = totAmt + gstAmt
   const calculateTotAmtAftGst = useCallback(() => {
     const totAmt = form.getValues("totAmt") || 0
@@ -163,8 +204,32 @@ export default function DebitNoteForm({
       form.setValue("totAmtAftGst", calculatedTotAmtAftGst, {
         shouldDirty: false,
       })
+
+      // Auto-update service charge entry if isServiceCharge is checked
+      if (onServiceChargeUpdateRef.current) {
+        const isServiceCharge = form.getValues("isServiceCharge")
+        const serviceCharge = form.getValues("serviceCharge") || 0
+        const itemNo = form.getValues("itemNo") || 0
+        const chargeId = form.getValues("chargeId") || 0
+
+        if (
+          isServiceCharge &&
+          serviceCharge > 0 &&
+          calculatedTotAmtAftGst > 0 &&
+          itemNo > 0
+        ) {
+          onServiceChargeUpdateRef.current(
+            itemNo,
+            chargeId,
+            calculatedTotAmtAftGst,
+            serviceCharge,
+            taskId
+          )
+        }
+      }
     })
-  }, [form])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, taskId])
 
   // Helper function to calculate totAmt = qty * unitPrice
   const calculateTotAmt = useCallback(() => {
@@ -227,6 +292,62 @@ export default function DebitNoteForm({
   const handleGstAmtChange = useCallback(() => {
     calculateTotAmtAftGst()
   }, [calculateTotAmtAftGst])
+
+  // Handler for isServiceCharge checkbox change
+  const handleIsServiceChargeChange = useCallback(() => {
+    if (!onServiceChargeUpdate) return
+
+    const isServiceCharge = form.getValues("isServiceCharge")
+    const serviceCharge = form.getValues("serviceCharge") || 0
+    const totAmtAftGst = form.getValues("totAmtAftGst") || 0
+    const itemNo = form.getValues("itemNo") || 0
+    const chargeId = form.getValues("chargeId") || 0
+
+    // If service charge is checked and values are valid, trigger update
+    if (
+      isServiceCharge &&
+      serviceCharge > 0 &&
+      totAmtAftGst > 0 &&
+      itemNo > 0
+    ) {
+      onServiceChargeUpdate(
+        itemNo,
+        chargeId,
+        totAmtAftGst,
+        serviceCharge,
+        taskId
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, taskId])
+
+  // Handler for serviceCharge percentage change
+  const handleServiceChargeChange = useCallback(() => {
+    if (!onServiceChargeUpdate) return
+
+    const isServiceCharge = form.getValues("isServiceCharge")
+    const serviceCharge = form.getValues("serviceCharge") || 0
+    const totAmtAftGst = form.getValues("totAmtAftGst") || 0
+    const itemNo = form.getValues("itemNo") || 0
+    const chargeId = form.getValues("chargeId") || 0
+
+    // If service charge is checked and values are valid, trigger update
+    if (
+      isServiceCharge &&
+      serviceCharge > 0 &&
+      totAmtAftGst > 0 &&
+      itemNo > 0
+    ) {
+      onServiceChargeUpdate(
+        itemNo,
+        chargeId,
+        totAmtAftGst,
+        serviceCharge,
+        taskId
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, taskId])
 
   // 4. Handle charge name change - update remarks
   const handleChargeChange = useCallback(
@@ -461,6 +582,7 @@ export default function DebitNoteForm({
                     name="isServiceCharge"
                     label="Is Sr Chg?"
                     isDisabled={isConfirmed}
+                    onBlurEvent={handleIsServiceChargeChange}
                   />
                 </div>
 
@@ -470,6 +592,8 @@ export default function DebitNoteForm({
                     name="serviceCharge"
                     label="Service Chg"
                     round={amtDec}
+                    isDisabled={isConfirmed}
+                    onChangeEvent={handleServiceChargeChange}
                   />
                 </div>
 

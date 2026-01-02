@@ -230,10 +230,10 @@ export default function DebitNoteDialog({
     []
   )
 
-  // Function to create service charge entry
-  const createServiceChargeEntry = useCallback(
+  // Function to create or update service charge entry
+  const createOrUpdateServiceChargeEntry = useCallback(
     (
-      currentItemNo: number,
+      parentItemNo: number,
       chargeId: number,
       totAmtAftGst: number,
       serviceCharge: number,
@@ -241,69 +241,149 @@ export default function DebitNoteDialog({
     ) => {
       if (serviceCharge <= 0 || totAmtAftGst <= 0) return
 
-      // Calculate unitPrice = totAmtAftGst / serviceCharge using account helper
-      const unitPrice = calculatePercentagecAmount(
+      // Calculate service charge amount = totAmtAftGst * (serviceCharge / 100)
+      const serviceChargeAmount = calculatePercentagecAmount(
         totAmtAftGst,
         serviceCharge,
         amtDec
       )
       const qty = 1
-      // Calculate totAmt = qty * unitPrice using account helper
-      const totAmt = calculateMultiplierAmount(qty, unitPrice, amtDec)
+      const unitPrice = serviceChargeAmount // Since qty = 1, unitPrice = totAmt
+      const totAmt = serviceChargeAmount
 
-      // Create service charge entry
-      const serviceChargeItem: IDebitNoteDt = {
-        debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
-        debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
-        itemNo: currentItemNo + 1, // Insert after current item
-        taskId: taskId,
-        chargeId: chargeId,
-        qty: qty,
-        unitPrice: unitPrice,
-        totLocalAmt: 0,
-        totAmt: totAmt,
-        gstId: 0,
-        gstPercentage: 0,
-        gstAmt: 0,
-        totAmtAftGst: totAmt, // Since gstAmt = 0
-        remarks: `${serviceCharge} % Service Charges`,
-        editVersion: 0,
-        isServiceCharge: false,
-        serviceCharge: 0,
-      }
-
-      // Add service charge entry and update itemNo for items after
       setDetails((prev) => {
-        // Find the index of the current item
-        const currentIndex = prev.findIndex(
-          (item) => item.itemNo === currentItemNo
+        // Check if service charge entry already exists (by refItemNo)
+        const existingServiceChargeIndex = prev.findIndex(
+          (item) => item.refItemNo === parentItemNo && !item.isServiceCharge
         )
 
-        if (currentIndex < 0) {
-          // Current item not found, just add at the end
-          return [...prev, serviceChargeItem]
-        }
-
-        // First, update itemNo for all items that come after the current item
-        // Increment their itemNo by 1 to make room for the service charge entry
-        const updatedDetails = prev.map((item) => {
-          if (item.itemNo > currentItemNo) {
-            return {
-              ...item,
-              itemNo: item.itemNo + 1,
-            }
+        if (existingServiceChargeIndex >= 0) {
+          // Update existing service charge entry
+          const updatedDetails = [...prev]
+          updatedDetails[existingServiceChargeIndex] = {
+            ...updatedDetails[existingServiceChargeIndex],
+            chargeId: chargeId,
+            qty: qty,
+            unitPrice: unitPrice,
+            totAmt: totAmt,
+            gstId: 0,
+            gstPercentage: 0,
+            gstAmt: 0,
+            totAmtAftGst: totAmt, // Since gstAmt = 0
+            remarks: `${serviceCharge}% Service Charges`,
+            isServiceCharge: false,
+            serviceCharge: 0,
           }
-          return item
-        })
+          return updatedDetails
+        } else {
+          // Create new service charge entry
+          const serviceChargeItem: IDebitNoteDt = {
+            debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
+            debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
+            itemNo: 0, // Will be set based on position
+            refItemNo: parentItemNo, // Reference to parent item
+            taskId: taskId,
+            chargeId: chargeId,
+            qty: qty,
+            unitPrice: unitPrice,
+            totLocalAmt: 0,
+            totAmt: totAmt,
+            gstId: 0,
+            gstPercentage: 0,
+            gstAmt: 0,
+            totAmtAftGst: totAmt, // Since gstAmt = 0
+            remarks: `${serviceCharge}% Service Charges`,
+            editVersion: 0,
+            isServiceCharge: false,
+            serviceCharge: 0,
+          }
 
-        // Insert service charge entry right after current item
-        updatedDetails.splice(currentIndex + 1, 0, serviceChargeItem)
+          // Find the index of the parent item
+          const parentIndex = prev.findIndex(
+            (item) => item.itemNo === parentItemNo
+          )
 
-        return updatedDetails
+          if (parentIndex < 0) {
+            // Parent item not found, add at the end
+            const maxItemNo =
+              prev.length > 0
+                ? Math.max(...prev.map((item) => item.itemNo || 0))
+                : 0
+            serviceChargeItem.itemNo = maxItemNo + 1
+            return [...prev, serviceChargeItem]
+          }
+
+          // Find the next itemNo after parent (check if there's already a service charge entry)
+          const itemsAfterParent = prev.filter(
+            (item) => item.itemNo > parentItemNo
+          )
+          const nextItemNo =
+            itemsAfterParent.length > 0
+              ? Math.min(...itemsAfterParent.map((item) => item.itemNo))
+              : parentItemNo + 1
+
+          // Check if nextItemNo is already a service charge for this parent
+          const nextItem = prev.find((item) => item.itemNo === nextItemNo)
+          if (nextItem && nextItem.refItemNo === parentItemNo) {
+            // Update existing service charge at that position
+            const updatedDetails = [...prev]
+            updatedDetails[
+              prev.findIndex((item) => item.itemNo === nextItemNo)
+            ] = {
+              ...serviceChargeItem,
+              itemNo: nextItemNo,
+            }
+            return updatedDetails
+          }
+
+          // Insert service charge entry right after parent item
+          // First, update itemNo for all items that come after the parent item
+          const updatedDetails = prev.map((item) => {
+            if (item.itemNo >= nextItemNo) {
+              return {
+                ...item,
+                itemNo: item.itemNo + 1,
+              }
+            }
+            return item
+          })
+
+          serviceChargeItem.itemNo = nextItemNo
+          updatedDetails.splice(parentIndex + 1, 0, serviceChargeItem)
+
+          return updatedDetails
+        }
       })
     },
     [debitNoteHdState, amtDec]
   )
+
+  // Function to remove service charge entry when isServiceCharge is unchecked
+  const removeServiceChargeEntry = useCallback((parentItemNo: number) => {
+    setDetails((prev) => {
+      // Find and remove service charge entry
+      const serviceChargeIndex = prev.findIndex(
+        (item) => item.refItemNo === parentItemNo && !item.isServiceCharge
+      )
+
+      if (serviceChargeIndex < 0) {
+        return prev // No service charge entry found
+      }
+
+      const serviceChargeItemNo = prev[serviceChargeIndex].itemNo
+
+      // Remove the service charge entry
+      const filtered = prev.filter(
+        (item) => item.itemNo !== serviceChargeItemNo
+      )
+
+      // Rearrange itemNo to maintain sequential order
+      return filtered.map((item, index) => ({
+        ...item,
+        itemNo: index + 1,
+      }))
+    })
+  }, [])
 
   // Handler for form submission (create or edit) - add to table directly
   const handleFormSubmit = useCallback(
@@ -311,6 +391,9 @@ export default function DebitNoteDialog({
       if (modalMode === "edit" && selectedDebitNoteDetail) {
         // Update existing item
         const updatedItemNo = selectedDebitNoteDetail.itemNo
+        const wasServiceCharge = selectedDebitNoteDetail.isServiceCharge
+        const isNowServiceCharge = data.isServiceCharge ?? false
+
         setDetails((prev) =>
           prev.map((item) =>
             item.itemNo === selectedDebitNoteDetail.itemNo
@@ -327,24 +410,41 @@ export default function DebitNoteDialog({
                   totAmtAftGst: data.totAmtAftGst ?? 0,
                   remarks: data.remarks ?? "",
                   editVersion: data.editVersion ?? 0,
-                  isServiceCharge: data.isServiceCharge ?? false,
+                  isServiceCharge: isNowServiceCharge,
                   serviceCharge: data.serviceCharge ?? 0,
                 }
               : item
           )
         )
 
-        // Create service charge entry if needed
+        // Handle service charge entry creation/update/removal
         if (
-          data.isServiceCharge &&
+          isNowServiceCharge &&
           data.serviceCharge > 0 &&
           data.totAmtAftGst > 0
         ) {
-          createServiceChargeEntry(
+          // Create or update service charge entry
+          createOrUpdateServiceChargeEntry(
             updatedItemNo,
             data.chargeId ?? 0,
             data.totAmtAftGst,
             data.serviceCharge,
+            data.taskId ?? 0
+          )
+        } else if (wasServiceCharge && !isNowServiceCharge) {
+          // Remove service charge entry if unchecked
+          removeServiceChargeEntry(updatedItemNo)
+        } else if (
+          wasServiceCharge &&
+          isNowServiceCharge &&
+          data.totAmtAftGst > 0
+        ) {
+          // Update existing service charge entry if totAmtAftGst changed
+          createOrUpdateServiceChargeEntry(
+            updatedItemNo,
+            data.chargeId ?? 0,
+            data.totAmtAftGst,
+            data.serviceCharge ?? 0,
             data.taskId ?? 0
           )
         }
@@ -362,6 +462,7 @@ export default function DebitNoteDialog({
           debitNoteId: debitNoteHd?.debitNoteId ?? 0,
           debitNoteNo: debitNoteHd?.debitNoteNo ?? "",
           itemNo: newItemNo,
+          refItemNo: 0, // New items don't have refItemNo initially
           taskId: data.taskId ?? 0,
           chargeId: data.chargeId ?? 0,
           qty: data.qty ?? 0,
@@ -386,7 +487,7 @@ export default function DebitNoteDialog({
           data.serviceCharge > 0 &&
           data.totAmtAftGst > 0
         ) {
-          createServiceChargeEntry(
+          createOrUpdateServiceChargeEntry(
             newItemNo,
             data.chargeId ?? 0,
             data.totAmtAftGst,
@@ -401,7 +502,13 @@ export default function DebitNoteDialog({
         setShouldResetForm(true)
       }
     },
-    [debitNoteHd, modalMode, selectedDebitNoteDetail, createServiceChargeEntry]
+    [
+      debitNoteHd,
+      modalMode,
+      selectedDebitNoteDetail,
+      createOrUpdateServiceChargeEntry,
+      removeServiceChargeEntry,
+    ]
   )
 
   // Handler for deleting a debit note detail
@@ -469,7 +576,7 @@ export default function DebitNoteDialog({
       // Format debitNoteDate for API submission
       const debitNoteDateValue = debitNoteHdState?.debitNoteDate ?? new Date()
       const formattedDebitNoteDate = formatDateForApi(debitNoteDateValue) || ""
-      
+
       const newDebitNoteHd: DebitNoteHdSchemaType = {
         debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
         debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
@@ -940,6 +1047,24 @@ export default function DebitNoteDialog({
               onChargeChange={() => {}}
               summaryTotals={summaryTotals}
               currencyCode={jobOrder?.currencyCode}
+              onServiceChargeUpdate={(
+                itemNo,
+                chargeId,
+                totAmtAftGst,
+                serviceCharge,
+                taskId
+              ) => {
+                // Auto-update service charge entry when parent totAmtAftGst changes
+                if (itemNo > 0 && serviceCharge > 0 && totAmtAftGst > 0) {
+                  createOrUpdateServiceChargeEntry(
+                    itemNo,
+                    chargeId,
+                    totAmtAftGst,
+                    serviceCharge,
+                    taskId
+                  )
+                }
+              }}
             />
           </div>
 

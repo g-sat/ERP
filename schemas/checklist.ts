@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { ApRefundDtFiltersSchema } from "./ap-refund"
+
 export const JobOrderHdSchema = z
   .object({
     jobOrderId: z.number(),
@@ -719,6 +721,7 @@ export const debitNoteHdSchema = z.object({
   debitNoteDate: z.union([z.string(), z.date()]).optional(),
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   itemNo: z.number().min(0, "Item Number is required"),
+  refItemNo: z.number().optional(),
   taskId: z.number().min(1, "Task ID is required"),
   chargeId: z.number().min(1, "Charge is required"),
   currencyId: z.number().min(1, "Currency is required"),
