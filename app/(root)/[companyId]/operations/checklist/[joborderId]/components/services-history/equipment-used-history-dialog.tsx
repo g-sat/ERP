@@ -191,12 +191,6 @@ export function EquipmentUsedHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "poNo",
-      header: "PO No",
-      size: 120,
-      minSize: 100,
-    },
-    {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => (
@@ -206,6 +200,12 @@ export function EquipmentUsedHistoryDialog({
       ),
       size: 200,
       minSize: 150,
+    },
+    {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "createBy",

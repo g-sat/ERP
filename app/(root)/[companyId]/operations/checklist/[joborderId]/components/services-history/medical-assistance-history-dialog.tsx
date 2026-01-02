@@ -87,7 +87,9 @@ export function MedicalAssistanceHistoryDialog({
       accessorKey: "nationalityName",
       header: "Nationality",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationalityName") || "-"}</div>
+        <div className="text-center">
+          {row.getValue("nationalityName") || "-"}
+        </div>
       ),
       size: 120,
       minSize: 100,
@@ -249,12 +251,6 @@ export function MedicalAssistanceHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "poNo",
-      header: "PO No",
-      size: 120,
-      minSize: 100,
-    },
-    {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => (
@@ -264,6 +260,12 @@ export function MedicalAssistanceHistoryDialog({
       ),
       size: 200,
       minSize: 150,
+    },
+    {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "createBy",

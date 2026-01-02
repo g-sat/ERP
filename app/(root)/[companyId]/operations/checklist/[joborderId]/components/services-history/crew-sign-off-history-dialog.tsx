@@ -87,7 +87,9 @@ export function CrewSignOffHistoryDialog({
       accessorKey: "nationalityName",
       header: "Nationality",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationalityName") || "-"}</div>
+        <div className="text-center">
+          {row.getValue("nationalityName") || "-"}
+        </div>
       ),
       size: 120,
       minSize: 100,
@@ -183,12 +185,6 @@ export function CrewSignOffHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "poNo",
-      header: "PO No",
-      size: 120,
-      minSize: 100,
-    },
-    {
       accessorKey: "overStayRemark",
       header: "Over Stay Remark",
       cell: ({ row }) => (
@@ -220,6 +216,12 @@ export function CrewSignOffHistoryDialog({
       ),
       size: 200,
       minSize: 150,
+    },
+    {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "createBy",

@@ -146,12 +146,6 @@ export function LaunchServiceTable({
           ]
         : []),
       {
-        accessorKey: "poNo",
-        header: "PO No",
-        size: 150,
-        minSize: 120,
-      },
-      {
         accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => {
@@ -460,6 +454,12 @@ export function LaunchServiceTable({
         size: 70,
         minSize: 60,
         maxSize: 80,
+      },
+      {
+        accessorKey: "poNo",
+        header: "PO No",
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "createBy",

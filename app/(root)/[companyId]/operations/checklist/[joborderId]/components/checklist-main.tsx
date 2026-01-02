@@ -191,10 +191,6 @@ export function ChecklistMain({
   // Watch gstId to fetch GST percentage
   const gstId = form.watch("gstId")
 
-  // Watch etaDate and etdDate for validation
-  const etaDate = form.watch("etaDate")
-  const etdDate = form.watch("etdDate")
-
   // Set gstId to 1 when isTaxable is false
   useEffect(() => {
     if (!isTaxable) {
@@ -203,29 +199,61 @@ export function ChecklistMain({
     }
   }, [isTaxable, form])
 
-  // Validate etaDate and etdDate rules
-  useEffect(() => {
-    // Rule 1: If etaDate is empty, then etdDate should be empty
-    if (!etaDate && etdDate) {
-      form.setValue("etdDate", undefined, { shouldValidate: false })
-      toast.info("ETD Date has been cleared because ETA Date is empty")
-      return
-    }
-
-    // Rule 2 & 3: If etaDate >= etdDate (with time), then etdDate should be empty
-    if (etaDate && etdDate) {
-      const eta = etaDate instanceof Date ? etaDate : new Date(etaDate)
-      const etd = etdDate instanceof Date ? etdDate : new Date(etdDate)
-
-      // Compare dates with time (full timestamp comparison)
-      if (eta.getTime() >= etd.getTime()) {
-        form.setValue("etdDate", undefined, { shouldValidate: false })
-        toast.error(
-          "ETD Date must be greater than ETA Date (with time). ETD Date has been cleared."
-        )
+  // Handler for ETA Date blur - validate against ETD when user finishes selecting
+  const handleEtaDateBlur = useCallback(
+    (date: Date | null) => {
+      if (!date) {
+        // Rule 1: If etaDate is empty, then etdDate should be empty
+        const currentEtdDate = form.getValues("etdDate")
+        if (currentEtdDate) {
+          form.setValue("etdDate", undefined, { shouldValidate: false })
+          toast.info("ETD Date has been cleared because ETA Date is empty")
+        }
+        return
       }
-    }
-  }, [etaDate, etdDate, form])
+
+      // Rule 2: Validate ETA against existing ETD only when user finishes selecting
+      const etdDate = form.getValues("etdDate")
+      if (etdDate) {
+        const eta = date instanceof Date ? date : new Date(date)
+        const etd = etdDate instanceof Date ? etdDate : new Date(etdDate)
+
+        // Clear ETD if ETA >= ETD (invalid - ETD must be after ETA)
+        if (eta.getTime() >= etd.getTime()) {
+          form.setValue("etdDate", undefined, { shouldValidate: false })
+          toast.error(
+            "ETD Date must be greater than ETA Date (with time). ETD Date has been cleared."
+          )
+        }
+      }
+    },
+    [form]
+  )
+
+  // Handler for ETD Date blur - validate against ETA when user finishes selecting
+  const handleEtdDateBlur = useCallback(
+    (date: Date | null) => {
+      if (!date) {
+        return // ETD can be empty
+      }
+
+      // Validate ETD against existing ETA only when user finishes selecting
+      const etaDate = form.getValues("etaDate")
+      if (etaDate) {
+        const eta = etaDate instanceof Date ? etaDate : new Date(etaDate)
+        const etd = date instanceof Date ? date : new Date(date)
+
+        // Clear ETD if ETA >= ETD (invalid - ETD must be after ETA)
+        if (eta.getTime() >= etd.getTime()) {
+          form.setValue("etdDate", undefined, { shouldValidate: false })
+          toast.error(
+            "ETD Date must be greater than ETA Date (with time). ETD Date has been cleared."
+          )
+        }
+      }
+    },
+    [form]
+  )
 
   useEffect(() => {
     // Skip reset if we just updated (to prevent overwriting response data)
@@ -507,6 +535,18 @@ export function ChecklistMain({
         : format(new Date(), dateFormat),
       addressId: apiJobOrder.addressId ?? 0,
       contactId: apiJobOrder.contactId ?? 0,
+      billName: apiJobOrder.billName ?? "",
+      address1: apiJobOrder.address1 ?? "",
+      address2: apiJobOrder.address2 ?? "",
+      address3: apiJobOrder.address3 ?? "",
+      address4: apiJobOrder.address4 ?? "",
+      pinCode: apiJobOrder.pinCode ?? "",
+      countryId: apiJobOrder.countryId ?? 0,
+      phoneNo: apiJobOrder.phoneNo ?? "",
+      faxNo: apiJobOrder.faxNo ?? "",
+      contactName: apiJobOrder.contactName ?? "",
+      mobileNo: apiJobOrder.mobileNo ?? "",
+      emailAdd: apiJobOrder.emailAdd ?? "",
       natureOfCall: apiJobOrder.natureOfCall ?? "",
       isps: apiJobOrder.isps ?? "",
       imoCode: apiJobOrder.imoCode ?? "",
@@ -534,7 +574,8 @@ export function ChecklistMain({
           data.etdDate instanceof Date ? data.etdDate : new Date(data.etdDate)
 
         // Compare dates with time (full timestamp comparison)
-        if (eta.getTime() >= etd.getTime()) {
+        // ETD must be greater than ETA (invalid if ETA >= ETD)
+        if (eta >= etd) {
           toast.error("ETD Date must be greater than ETA Date (with time)")
           return
         }
@@ -937,6 +978,7 @@ export function ChecklistMain({
                   isRequired={false}
                   isDisabled={isConfirmed}
                   isFutureShow={true}
+                  onBlurEvent={handleEtaDateBlur}
                 />
                 <CustomDateTimePicker
                   form={form}
@@ -945,6 +987,7 @@ export function ChecklistMain({
                   isRequired={false}
                   isDisabled={isConfirmed}
                   isFutureShow={true}
+                  onBlurEvent={handleEtdDateBlur}
                 />
                 <CustomInput
                   form={form}

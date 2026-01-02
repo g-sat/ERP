@@ -341,7 +341,7 @@ export default function InvoiceDetailsTable({
         columns={columns}
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.invoice}
-        tableName={TableName.arInvoiceDt}
+        tableName={TableName.apInvoiceDt}
         emptyMessage="No invoice details found."
         accessorId="itemNo"
         onRefreshAction={onRefreshAction}

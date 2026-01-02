@@ -78,7 +78,7 @@ export default function InvoicePage() {
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.ar
+  const moduleId = ModuleId.ap
   const transactionId = APTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()

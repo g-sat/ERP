@@ -156,12 +156,6 @@ export function ThirdPartyTable({
         minSize: 120,
       },
       {
-        accessorKey: "poNo",
-        header: "PO No",
-        size: 150,
-        minSize: 120,
-      },
-      {
         accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => (
@@ -261,6 +255,12 @@ export function ThirdPartyTable({
         size: 180,
         minSize: 150,
         maxSize: 200,
+      },
+      {
+        accessorKey: "poNo",
+        header: "PO No",
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "createBy",

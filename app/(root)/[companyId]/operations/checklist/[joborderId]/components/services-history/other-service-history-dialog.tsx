@@ -162,12 +162,6 @@ export function OtherServiceHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "poNo",
-      header: "PO No",
-      size: 120,
-      minSize: 100,
-    },
-    {
       accessorKey: "glName",
       header: "GL Account",
       cell: ({ row }) => (
@@ -186,6 +180,12 @@ export function OtherServiceHistoryDialog({
       ),
       size: 200,
       minSize: 150,
+    },
+    {
+      accessorKey: "poNo",
+      header: "PO No",
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "createBy",

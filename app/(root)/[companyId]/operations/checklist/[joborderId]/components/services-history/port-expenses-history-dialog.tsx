@@ -182,7 +182,6 @@ export function PortExpensesHistoryDialog({
     {
       accessorKey: "createBy",
       header: "Create By",
-
       size: 120,
       minSize: 100,
     },

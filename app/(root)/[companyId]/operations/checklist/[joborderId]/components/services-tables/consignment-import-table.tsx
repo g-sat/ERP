@@ -158,12 +158,6 @@ export function ConsignmentImportTable({
           ]
         : []),
       {
-        accessorKey: "poNo",
-        header: "PO No",
-        size: 150,
-        minSize: 120,
-      },
-      {
         accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => (
@@ -305,6 +299,12 @@ export function ConsignmentImportTable({
         },
         size: 120,
         minSize: 100,
+      },
+      {
+        accessorKey: "poNo",
+        header: "PO No",
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "createBy",

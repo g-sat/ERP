@@ -19,6 +19,7 @@ interface CustomDateTimePickerProps<T extends FieldValues = FieldValues> {
   name: Path<T>
   className?: string
   onChangeEvent?: (date: Date | null) => void
+  onBlurEvent?: (date: Date | null) => void
   isDisabled?: boolean
   isRequired?: boolean
   placeholder?: string
@@ -32,6 +33,7 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
   name,
   className,
   onChangeEvent,
+  onBlurEvent,
   isDisabled = false,
   isRequired = false,
   placeholder = "Pick a date and time",
@@ -40,11 +42,22 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
 }: CustomDateTimePickerProps<T>) => {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const [isOpen, setIsOpen] = React.useState(false)
 
   // Handle date change
   const handleDateChange = (date: Date | undefined) => {
     if (onChangeEvent) {
       onChangeEvent(date || null)
+    }
+  }
+
+  // Handle popover close (blur equivalent)
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open && onBlurEvent) {
+      // Popover closed, trigger blur event with current value
+      const currentValue = form.getValues(name)
+      onBlurEvent(currentValue || null)
     }
   }
 
@@ -84,7 +97,7 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
         render={({ field }) => (
           <FormItem>
             <div className="relative w-full">
-              <Popover>
+              <Popover open={isOpen} onOpenChange={handleOpenChange}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"

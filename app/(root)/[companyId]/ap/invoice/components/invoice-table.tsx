@@ -119,7 +119,7 @@ export default function InvoiceTable({
     refetch: refetchInvoices,
   } = useGetWithDatesAndPagination<IApInvoiceHd>(
     `${ApInvoice.get}`,
-    TableName.arInvoice,
+    TableName.apInvoice,
     searchQuery,
     searchStartDate,
     searchEndDate,
@@ -620,7 +620,7 @@ export default function InvoiceTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.arInvoice}
+        tableName={TableName.apInvoice}
         emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefreshAction={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}

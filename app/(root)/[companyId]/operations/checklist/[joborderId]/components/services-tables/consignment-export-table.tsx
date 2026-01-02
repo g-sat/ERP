@@ -141,12 +141,6 @@ export function ConsignmentExportTable({
           ]
         : []),
       {
-        accessorKey: "poNo",
-        header: "PO No",
-        size: 150,
-        minSize: 120,
-      },
-      {
         accessorKey: "taskStatusName",
         header: "Status",
         cell: ({ row }) => (
@@ -243,6 +237,12 @@ export function ConsignmentExportTable({
         minSize: 120,
       },
       {
+        accessorKey: "poNo",
+        header: "PO No",
+        size: 150,
+        minSize: 120,
+      },
+      {
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
@@ -275,7 +275,13 @@ export function ConsignmentExportTable({
         minSize: 130,
       },
     ],
-    [datetimeFormat, dateFormat, formatDateTime, _handleOpenHistory, canDebitNote]
+    [
+      datetimeFormat,
+      dateFormat,
+      formatDateTime,
+      _handleOpenHistory,
+      canDebitNote,
+    ]
   )
 
   // Wrapper functions to handle type differences
