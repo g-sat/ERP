@@ -241,6 +241,7 @@ export const Lookup = {
   getJobOrderCustomer: "/master/getjobordercustomerlookup",
   getTask: "/master/gettasklookup",
   getCharge: "/master/getchargelookup",
+  getTransportCharge: "/master/gettransportchargelookup",
   getYear: "/master/getperiodcloseyear",
   getFutureYear: "/master/getperiodclosefutureyear",
   getGstCategory: "/master/getgstcategorylookup",
@@ -281,6 +282,7 @@ export const Lookup = {
   getVisa: "/master/getvisalookup",
   getGeoLocation: "/master/getgeolocationlookup",
   getSupplyType: "/master/getsupplytypelookup",
+  getCargoType: "/master/getcargotypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
   getLandingPurpose: "/master/getLandingPurposelookup",
@@ -476,6 +478,14 @@ export const SupplyType = {
   getByCode: "/master/getsupplytypebycode",
   add: "/master/savesupplytype",
   delete: "/master/deletesupplytype",
+}
+
+// CargoType Endpoints
+export const CargoType = {
+  get: "/master/getcargotype",
+  getByCode: "/master/getcargotypebycode",
+  add: "/master/savecargotype",
+  delete: "/master/deletecargotype",
 }
 
 // Rank Endpoints

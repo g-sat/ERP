@@ -146,8 +146,6 @@ export enum MasterTransactionId {
   workLocation = 52,
   chargeGLMapping = 53,
   visa = 54,
-  geoLocation = 69,
-  supplyType = 68,
   rank = 55,
   serviceMode = 56,
   carrier = 57,
@@ -161,6 +159,9 @@ export enum MasterTransactionId {
   bargeGLMapping = 65,
   transportLocation = 66,
   transportMode = 67,
+  geoLocation = 69,
+  supplyType = 68,
+  cargoType = 70,
 }
 
 export enum AdminTransactionId {
@@ -454,6 +455,7 @@ export enum TableName {
   visa = "M_Visa",
   geoLocation = "M_GeoLocation",
   supplyType = "M_SupplyType",
+  cargoType = "M_CargoType",
   rank = "M_Rank",
   voyage = "M_Voyage",
   workLocation = "M_WorkLocation",

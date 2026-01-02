@@ -15,10 +15,9 @@ import { useForm } from "react-hook-form"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import {
-  ChargeAutocomplete,
-  JobOrderTaskAutocomplete,
-} from "@/components/autocomplete"
+import { JobOrderTaskAutocomplete } from "@/components/autocomplete"
+import CargoTypeAutocomplete from "@/components/autocomplete/autocomplete-cargotype"
+import TransportChargeAutocomplete from "@/components/autocomplete/autocomplete-transportcharge"
 import TransportLocationAutocomplete from "@/components/autocomplete/autocomplete-transportlocation"
 import TransportModeAutocomplete from "@/components/autocomplete/autocomplete-transportmode"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -95,6 +94,7 @@ export function TransportationLogForm({
       driverName: initialData?.driverName ?? null,
       passengerCount: initialData?.passengerCount ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? null,
+      cargoTypeId: initialData?.cargoTypeId ?? 0,
       remarks: initialData?.remarks ?? null,
       refNo: initialData?.refNo ?? null,
       vendor: initialData?.vendor ?? null,
@@ -124,6 +124,7 @@ export function TransportationLogForm({
       driverName: initialData?.driverName ?? null,
       passengerCount: initialData?.passengerCount ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? null,
+      cargoTypeId: initialData?.cargoTypeId ?? 0,
       remarks: initialData?.remarks ?? null,
       refNo: initialData?.refNo ?? null,
       vendor: initialData?.vendor ?? null,
@@ -264,11 +265,12 @@ export function TransportationLogForm({
                   className="min-h-[80px] w-full"
                 />
               </div>
-              <ChargeAutocomplete
+              <TransportChargeAutocomplete
                 form={form}
                 name="chargeId"
                 label="Charge"
                 isDisabled={isConfirmed}
+                isRequired={true}
               />
 
               <CustomDateNew
@@ -328,6 +330,12 @@ export function TransportationLogForm({
                 form={form}
                 name="passengerCount"
                 label="Passenger Count"
+                isDisabled={isConfirmed}
+              />
+              <CargoTypeAutocomplete
+                form={form}
+                name="cargoTypeId"
+                label="Vehicle Type"
                 isDisabled={isConfirmed}
               />
             </div>

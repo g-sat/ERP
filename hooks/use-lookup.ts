@@ -10,6 +10,7 @@ import {
   ICOACategory1Lookup,
   ICOACategory2Lookup,
   ICOACategory3Lookup,
+  ICargoTypeLookup,
   ICarrierLookup,
   ICategoryLookup,
   IChargeLookup,
@@ -40,7 +41,6 @@ import {
   IModuleLookup,
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
-  ISupplyTypeLookup,
   IPassTypeLookup,
   IPayrollComponentGroupLookup,
   IPayrollComponentLookup,
@@ -56,6 +56,7 @@ import {
   IStatusTypeLookup,
   ISubCategoryLookup,
   ISupplierLookup,
+  ISupplyTypeLookup,
   ITaskLookup,
   ITaskStatusLookup,
   ITaxCategoryLookup,
@@ -1308,6 +1309,24 @@ export const useChargeLookup = () => {
     enabled: true,
   })
 }
+
+export const useTransportChargeLookup = () => {
+  return useQuery<IChargeLookup[]>({
+    queryKey: ["transportcharge-lookUp"],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getTransportCharge}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+        return []
+      }
+    },
+    enabled: true,
+  })
+}
+
 export const useCustomerLookup = () => {
   return useQuery<ICustomerLookup[]>({
     queryKey: ["customer-lookUp"],
@@ -1520,6 +1539,22 @@ export const useSupplyTypeLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getSupplyType)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useCargoTypeLookup = () => {
+  return useQuery<ICargoTypeLookup[]>({
+    queryKey: ["cargoType-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getCargoType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

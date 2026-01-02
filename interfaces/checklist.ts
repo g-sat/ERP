@@ -877,6 +877,7 @@ export interface ITransportationLog {
   driverName?: string | null
   passengerCount: number
   chargeId?: number | null
+  cargoTypeId?: number | null
   remarks?: string | null
   refNo?: string | null
   vendor?: string | null
@@ -891,4 +892,5 @@ export interface ITransportationLog {
   serviceName?: string
   transportModeName?: string
   chargeName?: string
+  cargoTypeName?: string
 }

@@ -418,6 +418,11 @@ export interface ISupplyTypeLookup {
   supplyTypeCode: string
   supplyTypeName: string
 }
+export interface ICargoTypeLookup {
+  cargoTypeId: number
+  cargoTypeCode: string
+  cargoTypeName: string
+}
 export interface IStatusLookup {
   statusId: number
   statusCode: string

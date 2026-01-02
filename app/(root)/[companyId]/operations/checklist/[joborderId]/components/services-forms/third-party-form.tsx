@@ -16,10 +16,10 @@ import { Form } from "@/components/ui/form"
 import {
   ChargeAutocomplete,
   SupplierAutocomplete,
+  SupplyTypeAutocomplete,
   TaskStatusAutocomplete,
   UomAutocomplete,
 } from "@/components/autocomplete"
-import { SupplyTypeAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -155,7 +155,7 @@ export function ThirdPartyForm({
               <SupplyTypeAutocomplete
                 form={form}
                 name="supplyTypeId"
-                label="Supply Type"
+                label="Initiators By"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
